@@ -2,7 +2,7 @@ defaults:
   - base
   - _self_ 
 
-pretrained_llm_name: TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T
+pretrained_llm_name: TinyLlama/TinyLlama-1.1B-Chat-v1.0
 
 memory_model:
   _target_: memory_llms.llama.WrappedLlamaForCausalLM
@@ -25,4 +25,4 @@ rope_scaling:
   alpha: 2
 
 
-llm_log_name: Meta-Llama-3-8B-x4NTK
+llm_log_name: TinyLlama-1.1B

@@ -40,7 +40,7 @@ pad_mode: constant
 output_magnitudes: true
 # --
 
-pop_size: 32
+pop_size: 8
 
 scoring_initializer: 0
 

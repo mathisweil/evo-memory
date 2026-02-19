@@ -287,7 +287,12 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         if self.memory_policy_fixed_delay is not None and num_new_tokens > 1:
             past_length = 0
             if past_key_values is not None:
-                num_all_tokens = past_key_values[0][0].shape[-2]
+
+                if isinstance(past_key_values, DynamicCache):
+                    num_all_tokens = past_key_values.get_seq_length()
+                else:
+                    num_all_tokens = past_key_values[0][0].shape[-2]
+                #print(f"DEBUG: num_new_tokens={num_new_tokens}, num_all_tokens={num_all_tokens}, split_freq={self.memory_policy_fixed_delay}")
                 if num_all_tokens > 0:
                     past_length = self.memory_policy.get_rotary_offset(
                         layer_id=0).item()
@@ -320,6 +325,7 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                 split_lens[1:] = np.diff(split_idxs)        
         
         # split input context to apply memory model and reduce GPU memory
+        # see if needed to be modified to fit on our gpu's
         if split_processing:
             split_idxs = split_idxs.tolist()
             split_lens = split_lens.tolist()
@@ -344,11 +350,22 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                 )
             
             if cache_position is not None:
-                split_cache_position = torch.split(
-                    cache_position,
-                    split_size_or_sections=split_lens,
-                    dim=-1,
-                    )
+                if cache_position.shape[0] == input_ids.shape[-1]:
+                    split_cache_position = torch.split(
+                        cache_position,
+                        split_size_or_sections=split_lens,
+                        dim=0,
+                        )
+                else:
+                    split_cache_position = []
+                    offset = 0
+                    for length in split_lens:
+                        split_cache_position.append(
+                            torch.arange(offset, offset + length,
+                                         device = cache_position.device)
+                        )
+                        offset += length
+                    split_cache_position = tuple(split_cache_position)
                 
             num_splits = len(split_tokens)
 
@@ -440,7 +457,9 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
             # Enable model parallelism
             shift_labels = shift_labels.to(shift_logits.device)
             loss = loss_fct(shift_logits, shift_labels)
+        
 
+        # APPLYING THE BAM MLP
         if apply_memory_policy:
             update_iter = True
             if self.memory_policy_fixed_delay is not None:
@@ -458,6 +477,9 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
             
             # cache is automatically converted to 'legacy_cache' 
             # tuple of tuples (num_layers x 2) after model inference
+
+            # outputs.past_key_values contains the full cache including the new
+            # tokens just generated
             if update_iter and (not always_buffer_cache):
                 outputs.past_key_values = self.memory_policy.update_cache(
                     past_key_values=outputs.past_key_values, 
@@ -479,7 +501,9 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         else:
             self.memory_policy.update_rotary_offset(
                 num_new_tokens=num_new_tokens,
-                num_all_tokens=outputs.past_key_values[0][0].shape[-2]
+                num_all_tokens=(outputs.past_key_values.get_seq_length()
+                                if isinstance(outputs.past_key_values, DynamicCache)
+                                else outputs.past_key_values[0][0].shape[-2])
                 )
 
         if not return_dict:
@@ -608,6 +632,11 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         return model_inputs
     
 class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
+
+    def __init__(self, config, layer_idx=None):
+        super().__init__(config,layer_idx)
+        self._init_rope()
+
     def forward(
         self,
         hidden_states: torch.Tensor,
@@ -683,11 +712,26 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
                                      dtype=dtype, device=device)
             causal_mask = torch.triu(causal_mask, diagonal=1)
             causal_mask = F.pad(causal_mask, (n_k-n_q, 0))
+            causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)
             attn_weights = attn_weights + causal_mask
         else:
-            causal_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
+            #causal_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
+            #attn_weights = attn_weights + causal_mask
+            n_q, n_k = attn_weights.shape[-2:]
+            if attention_mask.shape[-1] < n_k:
+                # attention_mask is smaller than full key sequence (transformers 4.46
+                # passes chunk-sized mask during split processing) ? rebuild it
+                dtype, device = hidden_states.dtype, hidden_states.device
+                min_dtype = torch.finfo(dtype).min
+                causal_mask = torch.full((n_q, n_q), fill_value=min_dtype,
+                                        dtype=dtype, device=device)
+                causal_mask = torch.triu(causal_mask, diagonal=1)
+                causal_mask = F.pad(causal_mask, (n_k-n_q, 0))
+                causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)
+            else:
+                causal_mask = attention_mask[:, :, :, -n_k:]
             attn_weights = attn_weights + causal_mask
-
+            
         # upcast attention to fp32
         attn_weights_to_return = nn.functional.softmax(
             attn_weights, dim=-1, dtype=torch.float32)

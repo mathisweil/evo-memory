@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /model/wrapped_llm@_global_: llama3-8b-rope-x4NTK
+  - override /model/wrapped_llm@_global_: tiny_llama
   - override /task@_global_: passage_retrieval_en
   - override /evolution@_global_: cma_es
   - override /policy@_global_: deep
@@ -90,7 +90,7 @@ per_timestep_loglikelihood: false
 
 batch_size: 1 # NOTE: super low for the moment...
 
-max_iters: 1000
+max_iters: 50
 
 # total samples per step = 64 x 3 (tasks) x 16 (pop) = 3072
 pop_size: 16

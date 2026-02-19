@@ -10,8 +10,7 @@ tokenizer:
   _target_: utils_hydra.AutoTokenizer.from_pretrained
   pretrained_model_name_or_path: ${pretrained_llm_name}
 
-pretrained_llm_name: meta-llama/Meta-Llama-3-8B
-
+pretrained_llm_name: TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T
 
 memory_model:
   _target_: memory_llms.llama.WrappedLlamaForCausalLM
