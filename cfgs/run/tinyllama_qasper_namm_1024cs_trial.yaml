@@ -1,0 +1,28 @@
+# @package _global_
+# 2-iteration training trial for timing profiling.
+# Run with: PROFILE_TIME=1 python3 main.py run@_global_=tinyllama_qasper_namm_1024cs_trial log_misc=true
+defaults:
+  - base_memory_policy/deep/bam/base_bam
+  - override /task@_global_: qasper
+  - _self_
+
+eval_only: false
+max_iters: 2
+max_new_tokens: 64
+max_conditioning_length: 6500
+score_normalization_reference: null
+
+cache_size: 1024
+memory_policy_fixed_delay: 256
+
+# architecture must match training
+scoring_attn_hidden_dim: 32
+scoring_attn_bias: true
+
+init_from: 'exp_local/memory_evolution_hf/TinyLlama-1.1B/NAMM/attn-spec-norm/bam/binary-1024cs/passage-retrieval-en-cma-es-p8-rMeanTrue-shared-8pop-16qs-256fixDel-stage1/1337/ckpt.pt'
+
+pop_size: 8
+samples_batch_size: 4
+wandb_run_name: tinyllama_namm_1024cs_trial
+wandb_group_name: timing_trials
+wandb_project: memory_evolution_hf

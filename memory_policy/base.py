@@ -2,6 +2,7 @@ import os
 import pdb
 import copy
 import math
+import time
 import numpy as np
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union, Dict, List
@@ -17,6 +18,7 @@ from transformers import LlamaPreTrainedModel
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
 
 from utils import pad_and_concat_buffered_attn_mxs
+from profile_log import plog
 from .shared import RegistrationCompatible, SynchronizableBufferStorage
 from .base_deep_components import DeepMemoryPolicyComponent
 

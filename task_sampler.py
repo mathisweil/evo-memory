@@ -31,6 +31,7 @@ class TaskSampler():
         test_tasks_subset: Optional[list] = None,
         store_gen_outputs: bool = False,
         store_gen_outputs_path: Optional[str] = None,
+        max_conditioning_length:Optional[str] = None
     ):
 
         self.store_gen_outputs = store_gen_outputs
@@ -73,7 +74,10 @@ class TaskSampler():
         self.prefetched_task_tensors = {t: None for t in tasks}
         self.loaded_cached_model_data = False
         self.cached_per_task_stats = {}
+        # Adding context conditioning length
+        self.max_conditioning_length = max_conditioning_length
         self.init_tasks()
+        
 
     def get_cached_per_task_stats(self, reset=True) -> dict:
         cached_per_task_stats = copy.deepcopy(self.cached_per_task_stats)
@@ -132,6 +136,18 @@ class TaskSampler():
         # unpacked utils
         self.lb_jsons_per_task = {t: [p for p in d] for t, d in zip(
             self.lb_tasks, self.lb_datasets)}
+
+        # Filter examples exceeding max_conditioning_length
+        if self.max_conditioning_length is not None:
+            max_words = self.max_conditioning_length / 1.3
+            for t in self.lb_jsons_per_task:
+                before = len(self.lb_jsons_per_task[t])
+                self.lb_jsons_per_task[t] = [
+                    j for j in self.lb_jsons_per_task[t]
+                    if j.get('length', 0) < max_words
+                ]
+                after = len(self.lb_jsons_per_task[t])
+                print(f"Length filter {t}: {before} -> {after} examples")
 
         self.lb_prompts_per_task = {}
         for task, jsons in self.lb_jsons_per_task.items():

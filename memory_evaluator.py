@@ -1,5 +1,6 @@
 import copy
 import os
+import time
 import traceback
 from typing import List, Optional, Tuple
 import numpy as np
@@ -28,6 +29,7 @@ from utils import CtxCollator
 import json
 
 from utils_longbench import build_chat
+from profile_log import plog
 
 
 class MemoryHFEvaluator():
@@ -470,12 +472,19 @@ class MemoryHFEvaluator():
                 self.memory_policy.set_params_batch_idxs(
                     param_idxs=curr_pop_idxs)
 
+            _profile = os.environ.get('PROFILE_TIME', '0') == '1'
+
+            if _profile:
+                _t_tok = time.perf_counter()
             context_enc, attn_masks = self.tok_batch_encode(
                 curr_contexts,
                 **shared_tok_kwargs,
             )
             context_enc = context_enc.to(self.device)
             attn_masks = attn_masks.to(self.device)
+            if _profile:
+                _t_tok_done = time.perf_counter()
+                _ctx_len = context_enc.shape[-1]
 
             if return_encoding_size:
                 cont_list.append(context_enc.shape[-1])
@@ -504,11 +513,23 @@ class MemoryHFEvaluator():
                 context_enc = context_enc[..., -1:]
                 raise NotImplementedError
 
+            if _profile:
+                torch.cuda.synchronize()
+                _t_gen = time.perf_counter()
             generation_out = self._model_generate(
                 context=context_enc,
                 attention_mask=attn_masks,
                 **gen_kwargs,
             )
+            if _profile:
+                torch.cuda.synchronize()
+                _gen_len = generation_out.shape[-1] - context_enc.shape[-1]
+                _t_done = time.perf_counter()
+                _tok_s = _t_tok_done - _t_tok
+                _gen_s = _t_done - _t_gen
+                plog(f'[PROFILE] prompt bs={len(curr_contexts)} ctx={_ctx_len}tok | '
+                     f'tok={_tok_s:.2f}s | '
+                     f'generate={_gen_s:.2f}s ({_gen_s / max(_gen_len, 1) * 1000:.0f}ms/gen-tok)')
 
             cont = generation_out[:, context_enc.shape[1]:]
             if self.log_misc:
@@ -650,7 +671,9 @@ class MemoryHFEvaluator():
         if self.log_misc:
             pbar = tqdm(
                 total=len(dataset_samples),
-                disable=(disable_tqdm or (int(os.getenv("RANK")) != 0)),
+                disable=(disable_tqdm
+                         or os.environ.get('DISABLE_TQDM', '0') == '1'
+                         or (int(os.getenv("RANK", 0)) != 0)),
                 desc="Running longbench requests",
             )
         adaptive_batch_size = None

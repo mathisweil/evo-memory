@@ -4,6 +4,7 @@ task_sampler:
   metrics: ${metrics}
   training_tasks_subset: ${training_tasks_subset}
   test_tasks_subset: ${test_tasks_subset}
+  max_conditioning_length: ${max_conditioning_length}
 
 
 tasks: ['sciq']

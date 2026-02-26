@@ -9,6 +9,7 @@ import numpy as np
 import time
 import os
 from contextlib import nullcontext
+from profile_log import plog
 import wandb
 import torch.distributed as dist
 from utils import aggregate_score_dict
@@ -971,10 +972,17 @@ class MemoryTrainer():
 
     @torch.no_grad()
     def _train_step(self,):
+        _profile = os.environ.get('PROFILE_TIME', '0') == '1'
         self.model.training_mode()
 
+        if _profile:
+            torch.cuda.synchronize()
+            _t0 = time.perf_counter()
         step_params, buffers = self.sample_and_synchronize_params(best=False)
         self.model.set_memory_params(step_params)
+        if _profile:
+            torch.cuda.synchronize()
+            plog(f'[PROFILE] pop_sampling: {time.perf_counter() - _t0:.3f}s')
 
         if self.model.memory_policy_has_buffers_to_merge():
             self.model.load_buffers_dict(buffers_dict=buffers)
@@ -996,6 +1004,9 @@ class MemoryTrainer():
         for pop_acc_step in range(self.pop_accumulation_steps):
             acc_step_idxs = self.param_idx_mx[pop_acc_step]
 
+            if _profile:
+                torch.cuda.synchronize()
+                _t_eval = time.perf_counter()
             score_dicts = self.task_sampler.evaluate(
                 lm=self.evaluation_model, train=True, evolved_model=True,
                 resample_requests=False,
@@ -1005,6 +1016,15 @@ class MemoryTrainer():
 
                 performance_per_request=self.train_samples_split,
             )
+            if _profile:
+                torch.cuda.synchronize()
+                _n_prompts = self.samples_batch_size * self.pop_batch_size
+                _elapsed = time.perf_counter() - _t_eval
+                plog(f'[PROFILE] pop_evaluate (acc_step={pop_acc_step}, '
+                     f'pop_batch={self.pop_batch_size}, '
+                     f'prompts_per_member={self.samples_batch_size}): '
+                     f'{_elapsed:.3f}s total, '
+                     f'{_elapsed / _n_prompts:.3f}s/prompt-member')
             score_dicts_per_acc_step.append(score_dicts)
 
         if self.train_samples_split:
@@ -1049,7 +1069,13 @@ class MemoryTrainer():
             fitness = step_scores - aux_loss
         else:
             fitness = step_scores
+        if _profile:
+            torch.cuda.synchronize()
+            _t_evo = time.perf_counter()
         self.update_and_synchronize_evolution(fitness=fitness)
+        if _profile:
+            torch.cuda.synchronize()
+            plog(f'[PROFILE] evolution_update: {time.perf_counter() - _t_evo:.3f}s')
         return all_scores, all_score_dicts
 
     def _save_ckpt(self, iter_num, save_path=None):
@@ -1155,6 +1181,11 @@ class MemoryTrainer():
         else:
             start_iter = self.start_iter
             max_iters = self.max_iters
+            if start_iter > max_iters:
+                print(f'WARNING: checkpoint iter_num ({start_iter - 1}) '
+                      f'>= max_iters ({max_iters}); resetting start_iter to 0 '
+                      f'(checkpoint parameters are still loaded)')
+                start_iter = 0
 
         for iter_num in range(start_iter, max_iters+1):
 
@@ -1249,4 +1280,3 @@ class MemoryTrainer():
                                     iter_num),
                             )
             local_iter_num += 1
-        iter_num += 1

@@ -2,7 +2,8 @@ import os
 import pdb
 import copy
 import math
-import numpy as np 
+import time
+import numpy as np
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union, Dict, List
 
@@ -27,6 +28,7 @@ from .base_dynamic import (
 
 from .base_deep_components import (
     TokenEmbedding, ScoringNetwork, SelectionNetwork, DeepMemoryPolicyComponent)
+from profile_log import plog
 
 from .shared import SynchronizableBufferStorage
 
@@ -448,7 +450,6 @@ class DeepMP(DynamicParamMemoryPolicy):
             analyze=analyze,
             **kwargs,
             )
-
         if analyze:
             
             token_scores_per_head = torch.unbind(token_scores[0], dim=0)
