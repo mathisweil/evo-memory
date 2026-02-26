@@ -1,4 +1,4 @@
-name: /cs/student/project_msc/2025/csml/rhautier/envs/th3
+name: th3
 channels:
   - conda-forge
   - nvidia
