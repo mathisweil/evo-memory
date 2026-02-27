@@ -221,6 +221,23 @@ class StatelessAttention(StatelessGeneralizedModule):
         # 2 dimensional - flatten all batch dims
         position_ids = position_ids.flatten(start_dim=0, end_dim=-2)
 
+        # Expand attn_mask batch dim to match flattened qkv_states.
+        # attn_mask is [bs, 1, T]; after per-head flatten total_batch = bs*n_heads.
+        # Reshape to [total_batch, 1, 1, T] so logical_or with causal_mask [T, T]
+        # produces [total_batch, 1, T, T] matching sdpa's expected mask shape.
+        if attn_mask is not None and len(batch_dims) > 1:
+            total_batch = qkv_states.shape[0]
+            mask_batch = attn_mask.shape[0]
+            if mask_batch > 1 and mask_batch != total_batch:
+                assert total_batch % mask_batch == 0, (
+                    f'Cannot expand attn_mask batch {mask_batch} '
+                    f'to match total batch {total_batch}')
+                repeat = total_batch // mask_batch
+                # [bs, 1, T] -> [bs, repeat, T] -> [total_batch, 1, 1, T]
+                attn_mask = (attn_mask.expand(-1, repeat, -1)
+                             .reshape(total_batch, 1, attn_mask.shape[-1])
+                             .unsqueeze(-2))
+
         if not self.multiple_heads:
             # add singleton dimension to use attention over faster kernel
             qkv_states = qkv_states.unsqueeze_(1)
@@ -340,6 +357,23 @@ class MonoHeadStatelessAttention(StatelessAttention):
         qkv_states = qkv_states.flatten(start_dim=0, end_dim=-3)
         # 2 dimensional - flatten all batch dims
         position_ids = position_ids.flatten(start_dim=0, end_dim=-2)
+
+        # Expand attn_mask batch dim to match flattened qkv_states.
+        # attn_mask is [bs, 1, T]; after per-head flatten total_batch = bs*n_heads.
+        # Reshape to [total_batch, 1, 1, T] so logical_or with causal_mask [T, T]
+        # produces [total_batch, 1, T, T] matching sdpa's expected mask shape.
+        if attn_mask is not None and len(batch_dims) > 1:
+            total_batch = qkv_states.shape[0]
+            mask_batch = attn_mask.shape[0]
+            if mask_batch > 1 and mask_batch != total_batch:
+                assert total_batch % mask_batch == 0, (
+                    f'Cannot expand attn_mask batch {mask_batch} '
+                    f'to match total batch {total_batch}')
+                repeat = total_batch // mask_batch
+                # [bs, 1, T] -> [bs, repeat, T] -> [total_batch, 1, 1, T]
+                attn_mask = (attn_mask.expand(-1, repeat, -1)
+                             .reshape(total_batch, 1, attn_mask.shape[-1])
+                             .unsqueeze(-2))
 
         # total_batch_dim x num_tokens x head_dim (single head)
         query_states, key_states, value_states = torch.chunk(

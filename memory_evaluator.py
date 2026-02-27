@@ -527,9 +527,12 @@ class MemoryHFEvaluator():
                 _t_done = time.perf_counter()
                 _tok_s = _t_tok_done - _t_tok
                 _gen_s = _t_done - _t_gen
+                _mem_mb = torch.cuda.memory_allocated() / 1024**2
+                _peak_mb = torch.cuda.max_memory_allocated() / 1024**2
                 plog(f'[PROFILE] prompt bs={len(curr_contexts)} ctx={_ctx_len}tok | '
                      f'tok={_tok_s:.2f}s | '
-                     f'generate={_gen_s:.2f}s ({_gen_s / max(_gen_len, 1) * 1000:.0f}ms/gen-tok)')
+                     f'generate={_gen_s:.2f}s ({_gen_s / max(_gen_len, 1) * 1000:.0f}ms/gen-tok) | '
+                     f'gpu={_mem_mb:.0f}MB peak={_peak_mb:.0f}MB')
 
             cont = generation_out[:, context_enc.shape[1]:]
             if self.log_misc:
