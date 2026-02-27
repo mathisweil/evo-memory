@@ -1,0 +1,16 @@
+defaults:
+  - base
+  - _self_ 
+
+pretrained_llm_name: meta-llama/Llama-3.2-3B
+
+memory_model:
+  _target_: memory_llms.llama.WrappedLlamaForCausalLM
+  model: ${pretrained_llm}
+  memory_policy: ${memory_policy}  
+  max_new_tokens: ${max_new_tokens}
+
+max_new_tokens:
+max_position_id: 32768
+
+llm_log_name: Llama-3.2-3B
