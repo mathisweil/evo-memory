@@ -1091,7 +1091,7 @@ class MemoryTrainer():
             rng_ckpt_path = os.path.join(dirname, basename)
 
         if os.path.isfile(ckpt_path):
-            checkpoint = torch.load(ckpt_path, map_location=self.device)
+            checkpoint = torch.load(ckpt_path, map_location=self.device, weights_only=False)
             state_dict = checkpoint['evolution_state']
 
             unwanted_prefix = '_orig_mod.'
@@ -1136,7 +1136,7 @@ class MemoryTrainer():
             print(self.raw_evolution_algorithm.best_member)
             if load_randomness:
                 rng_state_dict = torch.load(rng_ckpt_path,
-                                            map_location='cpu')
+                                            map_location='cpu', weights_only=False)
                 torch.set_rng_state(rng_state_dict['cpu_rng_state'])
                 torch.cuda.set_rng_state(rng_state_dict['gpu_rng_state'])
                 np.random.set_state(rng_state_dict['numpy_rng_state'])

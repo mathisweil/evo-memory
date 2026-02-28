@@ -1,0 +1,67 @@
+# @package _global_
+# Evaluate trained NAMM on LLaMA 3.2-1B against the 3-task subset.
+# Run AFTER stage 1 training; point init_from at the output ckpt.pt.
+#
+# Override cache_size from the CLI to evaluate at multiple budgets, e.g.:
+#   torchrun ... main.py run@_global_=namm_bam_eval_llama32_1b.yaml \
+#       init_from=<path/to/ckpt.pt> cache_size=512
+# wandb_run_name automatically encodes the cache size so each run is distinct.
+defaults:
+  - base_memory_policy/deep/bam/base_bam
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - override /task@_global_: lb_3subset_eval
+  - _self_
+
+run_name_suffix: 'llama32-1b-eval'
+
+cache_size: 256
+max_new_tokens: 128
+
+scoring_reduction_mode:
+embedding_reduction_mode: ema
+
+embedding_ema_coeff: 0.99
+embedding_reduction_learned: false
+
+scoring_attn_hidden_dim: 32
+scoring_attn_output_dim:
+scoring_attn_num_heads: 1
+scoring_attn_bias: true
+scoring_attn_use_rope: false
+scoring_attn_rope_theta: 50000
+scoring_attn_masking_strategy: backward
+
+n_fft: 32
+hop_length: 16
+window_fn:
+  _target_: utils_hydra.torch.hann_window
+  window_length: ${n_fft}
+  periodic: true
+window_fn_log_name: hann
+pad_mode: constant
+output_magnitudes: true
+
+# Path to the best checkpoint from stage 1 training.
+# Always override this from the CLI: init_from=/path/to/ckpt.pt
+init_from: ~
+
+pop_size: 8
+scoring_initializer: 0
+keep_past_epoch_checkpoints_every: 1
+
+# Increase batch size during eval-only for speed
+batch_size: 4
+
+scratch: false
+eval_only: true
+# Extended timeout for 3-task evaluation
+ddp_timeout_limit: '0:3:0'
+
+score_normalization_reference:
+add_bos_token: true
+
+# wandb — all eval runs share the same project/group so they appear together
+wandb_log: true
+wandb_project: memory_evolution_hf
+wandb_group_name: Llama-3.2-1B/eval-comparison
+wandb_run_name: namm-cs${cache_size}-llama32-1b

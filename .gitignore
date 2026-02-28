@@ -1,0 +1,31 @@
+# Experiment outputs and checkpoints
+exp_local/
+exp/
+outputs/
+
+# Weights & Biases
+wandb/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / tooling
+.claude/
+.planning/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Hydra outputs
+multirun/

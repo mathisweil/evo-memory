@@ -1,0 +1,15 @@
+# Evaluation subset: 3 LongBench tasks chosen to highlight NAMM vs recency.
+# - passage_retrieval_en: "needle in haystack" retrieval, strong NAMM signal
+# - qasper:               multi-hop QA over long scientific papers
+# - narrativeqa:          comprehension over full books/movie scripts
+defaults:
+  - base_sampler
+  - _self_
+
+tasks:
+  - "lb/passage_retrieval_en"
+  - "lb/qasper"
+  - "lb/narrativeqa"
+metrics: 'perf'
+
+tasks_log_name: lb3subset-eval

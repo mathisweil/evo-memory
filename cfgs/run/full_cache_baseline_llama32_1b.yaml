@@ -1,0 +1,31 @@
+# @package _global_
+# Full-cache baseline for LLaMA 3.2-1B: no KV-cache eviction at all.
+# cache_size is set to max_position_id (4096) so every token is always retained.
+# This is the upper-bound oracle — all context fits in the window, nothing is dropped.
+defaults:
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - override /task@_global_: lb_3subset_eval
+  - override /evolution@_global_: dummy
+  - override /policy@_global_: none
+  - override /typing@_global_: half_attn
+  - override /auxiliary_loss@_global_: none
+  - _self_
+
+# Use the full context window — no eviction
+cache_size: ${max_position_id}
+max_new_tokens: 128
+
+batch_size: 4
+
+eval_only: true
+pop_size: 1
+
+add_bos_token: true
+score_normalization_reference:
+ddp_timeout_limit: '0:3:0'
+
+# wandb — same project/group as NAMM eval so all methods appear together
+wandb_log: true
+wandb_project: memory_evolution_hf
+wandb_group_name: Llama-3.2-1B/eval-comparison
+wandb_run_name: full-cache-cs${cache_size}-llama32-1b

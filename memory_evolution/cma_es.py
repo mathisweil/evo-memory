@@ -11,7 +11,7 @@ import numpy as np
 def full_eigen_decomp(
     C: torch.Tensor, gen_counter: torch.Tensor,
     shift_first_gen: bool = True,
-) -> torch.Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tp.Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Perform eigendecomposition of covariance matrix."""
     # small shift for first iter.
     if shift_first_gen:

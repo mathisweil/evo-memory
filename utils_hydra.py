@@ -16,6 +16,37 @@ import time
 # File containing imports to be used in hydra configs/for instantiating hydra
 # objects outside main
 
+
+class LlamaCompatModel:
+    """Loads LLaMA 3.2+ models with transformers 4.41.x by patching the
+    rope_scaling config, which changed format in 4.45 (llama3 rope_type).
+    Also supports overriding max_position_embeddings to reduce RoPE cache size.
+    """
+
+    @staticmethod
+    def from_pretrained(pretrained_model_name_or_path,
+                        max_position_embeddings=None, **kwargs):
+        import json
+        import os
+        from transformers import LlamaConfig
+
+        config_file = os.path.join(pretrained_model_name_or_path, 'config.json')
+        with open(config_file) as f:
+            cfg = json.load(f)
+
+        # Replace new-style llama3 rope_scaling with None so the NAMM
+        # _init_rope falls back to standard LlamaRotaryEmbedding.
+        # Safe for sequences up to original_max_position_embeddings (8192).
+        cfg['rope_scaling'] = None
+
+        if max_position_embeddings is not None:
+            cfg['max_position_embeddings'] = max_position_embeddings
+
+        config = LlamaConfig(**cfg)
+        kwargs.pop('rope_scaling', None)  # prevent conflicting kwarg
+        return AutoModelForCausalLM.from_pretrained(
+            pretrained_model_name_or_path, config=config, **kwargs)
+
 def initialize_cfg(
         config_path="cfgs",
         hydra_overrides: dict = {},
