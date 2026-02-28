@@ -1,0 +1,30 @@
+# @package _global_
+# Llama 3.2 1B — recency eviction eval on Qasper.
+# Override cache_size on CLI: cache_size=1024, cache_size=2048, cache_size=4096
+defaults:
+  - override /model/wrapped_llm@_global_: llama_3_2_1b
+  - override /task@_global_: qasper
+  - override /policy@_global_: none
+  - override /typing@_global_: half_attn
+  - override /auxiliary_loss@_global_: none
+  - override /evolution@_global_: dummy
+  - _self_
+
+eval_only: true
+init_from: null
+max_new_tokens: 64
+max_conditioning_length: 6500
+eval_max_batch_size: 1
+add_bos_token: true
+score_normalization_reference: null
+dtype: bfloat16
+wandb_log: true
+wandb_project: memory_evolution_hf
+wandb_run_name: llama32_recency_${cache_size}_qasper
+wandb_group_name: Llama-3.2-1B
+seed: 1337
+batch_size: 1
+samples_batch_size: 4
+eval_samples_batch_size:
+
+cache_size: 1024

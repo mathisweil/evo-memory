@@ -1,0 +1,20 @@
+defaults:
+  - base
+  - _self_
+
+pretrained_llm_name: ./llama-1b-hf
+
+memory_model:
+  _target_: memory_llms.llama.WrappedLlamaForCausalLM
+  model: ${pretrained_llm}
+  memory_policy: ${memory_policy}
+  max_new_tokens: ${max_new_tokens}
+
+pretrained_llm:
+  _target_: utils_hydra.AutoModelForCausalLM.from_pretrained
+  pretrained_model_name_or_path: ${pretrained_llm_name}
+
+max_new_tokens:
+max_position_id: 131072
+
+llm_log_name: Llama-3.2-1B
