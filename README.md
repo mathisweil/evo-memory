@@ -1,100 +1,118 @@
-<h1 align="center">
-  <a href="https://github.com/SakanaAI/universal-transformer-memory/">
-<img src="figures/logo.png" width="300" /></a><br>
-<b>An Evolved Universal Transformer Memory</b><br>
-</h1>
+# NAMM on LLaMA 3.2-1B
 
-<p align="center">
-  📄 <a href="http://arxiv.org/abs/2410.13166">[Paper]</a> |
-  🤗 <a href="https://huggingface.co/SakanaAI">[Hugging Face]</a>
-  📁 <a href="https://huggingface.co/datasets/SakanaAI/ChouBun">[Dataset]</a>
-</p>
+Reproduction of [An Evolved Universal Transformer Memory](https://arxiv.org/abs/2410.13166) (SakanaAI)
+ported to LLaMA 3.2-1B, with fixes for PyTorch 2.7 compatibility and batch parallelism in the scoring network.
 
-## Installation
+---
 
-We provide means to install this repository with [conda](https://docs.conda.io/projects/conda/en/latest/index.html):
+## Dependencies — read this first
 
-For the full set of dependencies with fixed versions (provided to ensure some level of long-term reproducibility):
+This is where most setup time goes. Pin these versions exactly.
+
+**System requirement: GLIBC ≥ 2.28**
+Check with `ldd --version`. RHEL 7 / CentOS 7 (GLIBC 2.17) will not work with
+PyTorch 2.3+. You need RHEL 8/9, Rocky 8/9, Ubuntu 20.04+, or equivalent.
+
+**Critical version pins:**
+```
+torch==2.3.1          (cu121 build)
+transformers==4.41.2  (4.45+ breaks DynamicCache API — hard failure at runtime)
+peft==0.11.1          (newer versions depend on transformers 4.45+)
+numpy<2               (numpy 2.x breaks many downstream packages)
+```
+
+**Install:**
+```bash
+conda env create -f env_namm.yaml
+conda activate th2
+```
+
+**HuggingFace access** (LLaMA is a gated model):
+```bash
+huggingface-cli login   # paste your token from huggingface.co/settings/tokens
+```
+Then request access to `meta-llama/Llama-3.2-1B` on HuggingFace if you haven't already.
+
+**HF cache** (avoid filling your home quota):
+```bash
+export HF_HOME=/path/to/large/storage/.hf_cache
+```
+
+**wandb** (optional but recommended):
+```bash
+wandb login   # paste your API key from wandb.ai/authorize
+```
+
+---
+
+## Training NAMM (stage 1)
+
+Trains the NAMM scoring network on QASPER with CMA-ES. LLaMA weights stay frozen.
 
 ```bash
-conda env create --file=env.yaml
+torchrun --standalone --nproc_per_node=1 main.py \
+    run@_global_=namm_bam_i1_llama32_1b.yaml
 ```
 
-For a more minimal and less constrained set of dependencies (for future development/extensions):
+Key config values (`cfgs/run/namm_bam_i1_llama32_1b.yaml`):
+- `max_iters: 200` — CMA-ES iterations
+- `pop_size: 8` — population size
+- `cache_size: 1024` — KV-cache budget during training
+- `batch_size: 4` — prompts per forward pass (sweet spot for 16GB GPU)
+
+The best checkpoint is saved to `exp_local/.../ckpt.pt` when validation F1 improves.
+
+---
+
+## Evaluation
+
+Run all three methods (NAMM, recency, full-cache) across cache sizes:
 
 ```bash
-conda env create --file=env_minimal.yaml
+bash run_eval_comparison.sh
 ```
 
-## Usage
+Edit the `NAMM_CKPT` path at the top of the script to point to your checkpoint.
+Results are logged to wandb under `project=memory_evolution_hf`, `group=Llama-3.2-1B/eval-comparison`.
 
-### Training
-
-Training following the incremental setup described in our work can be replicated via the following [hydra](https://hydra.cc/) commands:
-
-stage 1 training:
-```bash
-torchrun --standalone --nproc_per_node=$NUM_OF_GPUs main.py run@_global_=namm_bam_i1.yaml
-```
-
-stage 2 training:
-```bash
-torchrun --standalone --nproc_per_node=$NUM_OF_GPUs main.py run@_global_=namm_bam_i2.yaml init_from='path/to/stage1/results/ckpt.pt'
-```
-
-stage 3 training:
-```bash
-torchrun --standalone --nproc_per_node=$NUM_OF_GPUs main.py run@_global_=namm_bam_i3.yaml init_from='path/to/stage2/results/ckpt.pt'
-```
-
-### Evaluation
-
-Evaluating trained NAMMs on the full set of LongBench tasks can be replicated for both NAMMs with the following command:
+Or run a single NAMM eval manually:
 
 ```bash
-torchrun --standalone --nproc_per_node=$NUM_OF_GPUs main.py run@_global_=namm_bam_eval.yaml init_from='path/to/results/ckpt.pt'
+python main.py \
+    'run@_global_=namm_bam_eval_llama32_1b.yaml' \
+    init_from=/path/to/ckpt.pt \
+    cache_size=512
 ```
 
-Evaluating trained NAMMs on the full set of ChouBun tasks can be replicated with the following command:
+---
 
-```bash
-torchrun --standalone --nproc_per_node=$NUM_OF_GPUs main.py run@_global_=namm_bam_eval_choubun.yaml init_from='path/to/results/ckpt.pt'
-```
+## Results (LLaMA 3.2-1B, 3-task LongBench subset)
 
-### Additional notes
+| Method      | cache_size | qasper | passage_ret | narrativeqa |
+|-------------|------------|--------|-------------|-------------|
+| Full-cache  | 4096       | 8.30   | 3.59        | 7.32        |
+| NAMM        | 1024       | 7.00   | 3.58        | 6.91        |
+| NAMM        | 512        | 7.07   | 3.52        | 7.03        |
+| NAMM        | 256        | 7.02   | 3.57        | 6.34        |
+| NAMM        | 128        | 6.46   | 2.92        | 5.67        |
+| Recency     | 1024       | 1.76   | 0.78        | 0.80        |
+| Recency     | 512        | 1.12   | 0.00        | 1.01        |
+| Recency     | 256        | 0.76   | 0.00        | 1.03        |
+| Recency     | 128        | 0.44   | 0.00        | 0.60        |
 
-Using [wandb](https://wandb.ai/) to log the results (through the hydra setting wandb_log=true) requires authenticating to the wandb server via the following command:
+NAMM trained only on QASPER generalises to passage retrieval and NarrativeQA zero-shot.
 
-```bash
-wandb login
-```
+---
 
-and using your account's API key (which you should be able to find [here](https://wandb.ai/authorize))
+## Codebase changes vs original SakanaAI repo
 
-### Gated models (e.g., Llama)
+- `memory_trainer.py` — `torch.load(..., weights_only=False)` for PyTorch 2.7 compat
+- `stateless_parallel_modules/attention.py` — attn_mask expansion fix for `pop_size > 1` with `batch_size > 1` in both `StatelessAttention` and `MonoHeadStatelessAttention`
+- `cfgs/model/wrapped_llm/llama32-1b.yaml` — LLaMA 3.2-1B model config (`max_position_id=4096`)
+- `cfgs/run/*_llama32_1b.yaml` — training and eval configs for LLaMA 3.2-1B
+- `cfgs/task/lb_3subset_eval.yaml` — 3-task eval subset (qasper, passage_ret, narrativeqa)
+- `run_eval_comparison.sh` — script to sweep all methods and cache sizes
 
-Using gated models requires authenticating to the hugging face hub by running:
+---
 
-```bash
-huggingface-cli login
-```
-
-and using your account's access tokens (which you should be able to find [here](https://huggingface.co/settings/tokens))
-
-
-## Bibtex
-
-To cite our work, you can use the following:
-
-```
-@article{sakana2024memory,
-title={An Evolved Universal Transformer Memory}, 
-       author={Edoardo Cetin and Qi Sun and Tianyu Zhao and Yujin Tang},
-       year={2024},
-       eprint={2410.13166},
-       archivePrefix={arXiv},
-       primaryClass={cs.LG},
-       url={https://arxiv.org/abs/2410.13166},
-}
-```
-
+Original paper: [arxiv 2410.13166](https://arxiv.org/abs/2410.13166) — Cetin et al., SakanaAI 2024

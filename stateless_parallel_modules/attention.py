@@ -273,6 +273,20 @@ class StatelessAttention(StatelessGeneralizedModule):
             else:
                 causal_mask = None
 
+        # Expand causal_mask to match flattened (pop×batch) query batch dimension.
+        # attn_mask arrives as [batch, seq, seq] but qkv was flattened to
+        # [pop*batch, seq, ...], so we need [pop*batch, 1, seq, seq] here.
+        if causal_mask is not None:
+            # Normalise to 4D: [batch, 1, seq, seq]
+            if causal_mask.dim() == 2:
+                causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)
+            elif causal_mask.dim() == 3:
+                causal_mask = causal_mask.unsqueeze(1)
+            # Expand batch dim for all pop members
+            if causal_mask.shape[0] != query_states.shape[0] and causal_mask.shape[0] > 1:
+                repeats = query_states.shape[0] // causal_mask.shape[0]
+                causal_mask = causal_mask.repeat(repeats, 1, 1, 1)
+
         attn_output = F.scaled_dot_product_attention(
             query=query_states,
             key=key_states,
@@ -377,6 +391,13 @@ class MonoHeadStatelessAttention(StatelessAttention):
             causal_mask = causal_mask*min_dtype
         else:
             causal_mask = None
+
+        # Expand causal_mask to match flattened (pop×batch) query batch dimension.
+        # query is 3D here [total_batch, seq, head_dim], so keep mask 3D.
+        if causal_mask is not None and len(batch_dims) > 1:
+            if causal_mask.shape[0] != query_states.shape[0] and causal_mask.shape[0] > 1:
+                repeats = query_states.shape[0] // causal_mask.shape[0]
+                causal_mask = causal_mask.repeat(repeats, 1, 1)
 
         attn_output = F.scaled_dot_product_attention(
             query=query_states,
