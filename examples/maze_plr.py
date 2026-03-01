@@ -21,7 +21,16 @@ from jaxued.level_sampler import LevelSampler
 from jaxued.utils import compute_max_returns, max_mc, positive_value_loss
 from jaxued.wrappers import AutoReplayWrapper
 import chex
+import yaml
+import pickle
+import sys
 from enum import IntEnum
+
+# VAE + CMA-ES imports (conditional on --use_cmaes flag)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'vae'))
+from vae_model import CluttrVAE
+from vae_level_utils import decode_latent_to_levels
+from cmaes_manager import CMAESManager
 
 class UpdateState(IntEnum):
     DR = 0
@@ -30,6 +39,7 @@ class UpdateState(IntEnum):
 class TrainState(BaseTrainState):
     sampler: core.FrozenDict[str, chex.ArrayTree] = struct.field(pytree_node=True)
     update_state: UpdateState = struct.field(pytree_node=True)
+    es_state: chex.ArrayTree = struct.field(pytree_node=True)
     # === Below is used for logging ===
     num_dr_updates: int
     num_replay_updates: int
@@ -402,6 +412,8 @@ def main(config=None, project="JAXUED_TEST"):
         tags.append("ACCEL")
     else:
         tags.append("PLR")
+    if config.get("use_cmaes"):
+        tags.append("CMA-ES")
     run = wandb.init(config=config, project=project, group=config["run_name"], tags=tags)
     config = wandb.config
     
@@ -412,6 +424,45 @@ def main(config=None, project="JAXUED_TEST"):
     wandb.define_metric("agent/*", step_metric="num_updates")
     wandb.define_metric("return/*", step_metric="num_updates")
     wandb.define_metric("eval_ep_lengths/*", step_metric="num_updates")
+    if config["use_cmaes"]:
+        wandb.define_metric("cmaes/*", step_metric="num_updates")
+
+    # --- CMA-ES + VAE setup ---
+    vae_decode_fn = None
+    cmaes_mgr = None
+    if config["use_cmaes"]:
+        assert config["vae_checkpoint_path"] is not None, "--vae_checkpoint_path required when --use_cmaes"
+        assert config["vae_config_path"] is not None, "--vae_config_path required when --use_cmaes"
+
+        # Load VAE config
+        with open(config["vae_config_path"]) as f:
+            vae_cfg = yaml.safe_load(f)
+
+        # Instantiate model with config dimensions
+        vae = CluttrVAE(
+            vocab_size=vae_cfg["vocab_size"],
+            embed_dim=vae_cfg["embed_dim"],
+            latent_dim=vae_cfg["latent_dim"],
+            seq_len=vae_cfg["seq_len"],
+        )
+
+        # Load checkpoint
+        with open(config["vae_checkpoint_path"], "rb") as f:
+            vae_ckpt = pickle.load(f)
+        vae_params = vae_ckpt["params"] if isinstance(vae_ckpt, dict) and "params" in vae_ckpt else vae_ckpt
+
+        # Build pure decode function: z (latent_dim,) -> logits (seq_len, vocab_size)
+        def vae_decode_fn(z):
+            return vae.apply({"params": vae_params}, z, method=vae.decode)
+
+        # Initialize CMA-ES manager
+        cmaes_mgr = CMAESManager(
+            popsize=config["num_train_envs"],
+            latent_dim=vae_cfg["latent_dim"],
+            sigma_init=config["cmaes_sigma_init"],
+        )
+        print(f"[CMA-ES] VAE loaded from {config['vae_checkpoint_path']}")
+        print(f"[CMA-ES] latent_dim={vae_cfg['latent_dim']}, popsize={config['num_train_envs']}")
 
     def log_eval(stats, train_state_info):
         print(f"Logging update: {stats['update_count']}")
@@ -449,7 +500,17 @@ def main(config=None, project="JAXUED_TEST"):
             frames, episode_length = stats["eval_animation"][0][:, i], stats["eval_animation"][1][i]
             frames = np.array(frames[:episode_length])
             log_dict.update({f"animations/{level_name}": wandb.Video(frames, fps=4)})
-        
+
+        # CMA-ES metrics (averaged over the eval_freq training steps)
+        if config.get("use_cmaes") and "cmaes/valid_structure_pct" in stats:
+            # stats from scan have shape (eval_freq,); take mean of DR steps only (non-zero entries)
+            valid_pct = np.array(stats["cmaes/valid_structure_pct"])
+            dr_mask = valid_pct > 0  # only DR steps have non-zero valid_structure_pct
+            if dr_mask.any():
+                log_dict["cmaes/valid_structure_pct"] = float(valid_pct[dr_mask].mean())
+                log_dict["cmaes/mean_fitness"] = float(np.array(stats["cmaes/mean_fitness"])[dr_mask].mean())
+                log_dict["cmaes/mean_episode_length"] = float(np.array(stats["cmaes/mean_episode_length"])[dr_mask].mean())
+
         wandb.log(log_dict)
     
     # Setup the environment
@@ -498,12 +559,20 @@ def main(config=None, project="JAXUED_TEST"):
         pholder_level = sample_random_level(jax.random.PRNGKey(0))
         sampler = level_sampler.initialize(pholder_level, {"max_return": -jnp.inf})
         pholder_level_batch = jax.tree_util.tree_map(lambda x: jnp.array([x]).repeat(config["num_train_envs"], axis=0), pholder_level)
+
+        # CMA-ES state (None placeholder if not using CMA-ES)
+        if cmaes_mgr is not None:
+            es_state = cmaes_mgr.initialize(jax.random.PRNGKey(42))
+        else:
+            es_state = None
+
         return TrainState.create(
             apply_fn=network.apply,
             params=network_params,
             tx=tx,
             sampler=sampler,
             update_state=0,
+            es_state=es_state,
             num_dr_updates=0,
             num_replay_updates=0,
             num_mutation_updates=0,
@@ -518,14 +587,25 @@ def main(config=None, project="JAXUED_TEST"):
         """
         def on_new_levels(rng: chex.PRNGKey, train_state: TrainState):
             """
-                Samples new (randomly-generated) levels and evaluates the policy on these. It also then adds the levels to the level buffer if they have high-enough scores.
-                The agent is updated on these trajectories iff `config["exploratory_grad_updates"]` is True.
+                Generates new levels and evaluates the policy on them.
+                When use_cmaes=True: uses CMA-ES to search the VAE latent space.
+                When use_cmaes=False: generates random levels (original behavior).
+                Levels are added to the PLR buffer based on scores.
+                The agent is updated iff `config["exploratory_grad_updates"]` is True.
             """
             sampler = train_state.sampler
-            
-            # Reset
+            es_state = train_state.es_state
+
+            # Generate levels
             rng, rng_levels, rng_reset = jax.random.split(rng, 3)
-            new_levels = jax.vmap(sample_random_level)(jax.random.split(rng_levels, config["num_train_envs"]))
+            if config["use_cmaes"]:
+                # CMA-ES: ask for candidate latent vectors, decode to levels
+                rng, rng_ask, rng_decode = jax.random.split(rng, 3)
+                z_population, es_state = cmaes_mgr.ask(rng_ask, es_state)
+                new_levels = decode_latent_to_levels(vae_decode_fn, z_population, rng_decode)
+            else:
+                new_levels = jax.vmap(sample_random_level)(jax.random.split(rng_levels, config["num_train_envs"]))
+
             init_obs, init_env_state = jax.vmap(env.reset_to_level, in_axes=(0, 0, None))(jax.random.split(rng_reset, config["num_train_envs"]), new_levels, env_params)
             # Rollout
             (
@@ -545,8 +625,23 @@ def main(config=None, project="JAXUED_TEST"):
             advantages, targets = compute_gae(config["gamma"], config["gae_lambda"], last_value, values, rewards, dones)
             max_returns = compute_max_returns(dones, rewards)
             scores = compute_score(config, dones, values, max_returns, advantages)
+
+            # CMA-ES: tell fitness and insert into buffer
+            if config["use_cmaes"]:
+                # CMA-ES minimizes; negate scores so high-regret = low fitness
+                es_state = cmaes_mgr.tell(z_population, -scores, es_state)
+
+                # Periodic reset to prevent stagnation
+                should_reset = (train_state.num_dr_updates % config["cmaes_reset_interval"]) == 0
+                rng, rng_reset_es = jax.random.split(rng)
+                fresh_es_state = cmaes_mgr.initialize(rng_reset_es)
+                es_state = jax.tree_util.tree_map(
+                    lambda fresh, old: jnp.where(should_reset, fresh, old),
+                    fresh_es_state, es_state
+                )
+
             sampler, _ = level_sampler.insert_batch(sampler, new_levels, scores, {"max_return": max_returns})
-            
+
             # Update: train_state only modified if exploratory_grad_updates is on
             (rng, train_state), losses = update_actor_critic_rnn(
                 rng,
@@ -562,15 +657,23 @@ def main(config=None, project="JAXUED_TEST"):
                 config["critic_coeff"],
                 update_grad=config["exploratory_grad_updates"],
             )
-            
+
             metrics = {
                 "losses": jax.tree_util.tree_map(lambda x: x.mean(), losses),
                 "mean_num_blocks": new_levels.wall_map.sum() / config["num_train_envs"],
             }
-            
+
+            # CMA-ES monitoring metrics
+            if config["use_cmaes"]:
+                is_valid = jax.vmap(lambda l: l.is_well_formatted())(new_levels)
+                metrics["cmaes/valid_structure_pct"] = is_valid.mean() * 100
+                metrics["cmaes/mean_fitness"] = scores.mean()
+                metrics["cmaes/mean_episode_length"] = dones.sum(axis=0).mean()
+
             train_state = train_state.replace(
                 sampler=sampler,
                 update_state=UpdateState.DR,
+                es_state=es_state,
                 num_dr_updates=train_state.num_dr_updates + 1,
                 dr_last_level_batch=new_levels,
             )
@@ -625,10 +728,15 @@ def main(config=None, project="JAXUED_TEST"):
                 "losses": jax.tree_util.tree_map(lambda x: x.mean(), losses),
                 "mean_num_blocks": levels.wall_map.sum() / config["num_train_envs"],
             }
-            
+            if config["use_cmaes"]:
+                metrics["cmaes/valid_structure_pct"] = jnp.float32(0.0)
+                metrics["cmaes/mean_fitness"] = jnp.float32(0.0)
+                metrics["cmaes/mean_episode_length"] = jnp.float32(0.0)
+
             train_state = train_state.replace(
                 sampler=sampler,
                 update_state=UpdateState.REPLAY,
+                es_state=train_state.es_state,
                 num_replay_updates=train_state.num_replay_updates + 1,
                 replay_last_level_batch=levels,
             )
@@ -687,10 +795,15 @@ def main(config=None, project="JAXUED_TEST"):
                 "losses": jax.tree_util.tree_map(lambda x: x.mean(), losses),
                 "mean_num_blocks": child_levels.wall_map.sum() / config["num_train_envs"],
             }
-            
+            if config["use_cmaes"]:
+                metrics["cmaes/valid_structure_pct"] = jnp.float32(0.0)
+                metrics["cmaes/mean_fitness"] = jnp.float32(0.0)
+                metrics["cmaes/mean_episode_length"] = jnp.float32(0.0)
+
             train_state = train_state.replace(
                 sampler=sampler,
                 update_state=UpdateState.DR,
+                es_state=train_state.es_state,
                 num_mutation_updates=train_state.num_mutation_updates + 1,
                 mutation_last_level_batch=child_levels,
             )
@@ -889,6 +1002,15 @@ if __name__=="__main__":
     group.add_argument("--agent_view_size", type=int, default=5)
     # === DR CONFIG ===
     group.add_argument("--n_walls", type=int, default=25)
+    # === CMA-ES + VAE CONFIG ===
+    group.add_argument("--use_cmaes", action=argparse.BooleanOptionalAction, default=False)
+    group.add_argument("--vae_checkpoint_path", type=str, default=None,
+                       help="Path to VAE .pkl checkpoint file")
+    group.add_argument("--vae_config_path", type=str, default=None,
+                       help="Path to VAE config.yaml (run directory)")
+    group.add_argument("--cmaes_sigma_init", type=float, default=1.0)
+    group.add_argument("--cmaes_reset_interval", type=int, default=500,
+                       help="Reset CMA-ES every N DR updates to prevent stagnation")
     
     config = vars(parser.parse_args())
     if config["num_env_steps"] is not None:
