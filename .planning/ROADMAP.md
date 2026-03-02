@@ -50,7 +50,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Add apply_lora_adapters() to WrappedLlamaForCausalLM; add get_lora_params_flat() / set_lora_params() to MemoryModelWrapper (LORA-01, LORA-02)
+- [x] 02-01-PLAN.md — Add apply_lora_adapters() to WrappedLlamaForCausalLM; add get_lora_params_flat() / set_lora_params() to MemoryModelWrapper (LORA-01, LORA-02) [2026-03-02]
 - [ ] 02-02-PLAN.md — Extend _save_ckpt / _load_ckpt with LoRA state dict, config, joint_es_mode; graceful fallback for NAMM-only checkpoints (LORA-03)
 - [ ] 02-03-PLAN.md — Write tests/test_lora_seam.py with 5 pytest tests covering all LORA-04 assertions; requires GPU on sideswipe/prowl (LORA-04)
 
@@ -194,7 +194,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Branch Setup | 1/1 | Complete | 2026-03-02 |
-| 2. LoRA Seam + Correctness Gate | 0/3 | Planned | - |
+| 2. LoRA Seam + Correctness Gate | 1/3 | In Progress | - |
 | 3. OpenES Implementation | 0/3 | Not started | - |
 | 4. EggRoll Implementation | 0/2 | Not started | - |
 | 5. Mode B Training Loop | 0/4 | Not started | - |
