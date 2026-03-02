@@ -1146,6 +1146,31 @@ class MemoryTrainer():
             self.raw_evolution_algorithm.load_state_dict(state_dict)
             print('Post loading: best population member')
             print(self.raw_evolution_algorithm.best_member)
+            # LoRA restore — present only in joint checkpoints
+            if 'lora_state_dict' in checkpoint:
+                loaded_cfg = checkpoint['lora_config']
+                current_rank = getattr(self.model, '_lora_rank', None)
+                current_targets = getattr(self.model, '_lora_target_modules', None)
+                # Validate config match before loading — mismatched shapes cause silent
+                # corruption or cryptic errors if strict=False is used
+                if (loaded_cfg['rank'] != current_rank or
+                        loaded_cfg['target_modules'] != current_targets):
+                    raise ValueError(
+                        f"LoRA config mismatch: checkpoint has rank={loaded_cfg['rank']}, "
+                        f"target_modules={loaded_cfg['target_modules']}; "
+                        f"current model has rank={current_rank}, "
+                        f"target_modules={current_targets}"
+                    )
+                for n, p in self.model.model.named_parameters():
+                    if p.requires_grad and n in checkpoint['lora_state_dict']:
+                        p.data.copy_(checkpoint['lora_state_dict'][n])
+                print(f"Loaded LoRA state from checkpoint "
+                      f"(rank={loaded_cfg['rank']}, targets={loaded_cfg['target_modules']})")
+            else:
+                # Graceful fallback for NAMM-only checkpoints (e.g., existing best NAMM ckpt)
+                # Current LoRA adapters (if any) remain as PEFT-initialized (zeros/small random)
+                print("WARNING: checkpoint has no lora_state_dict — skipping LoRA restore "
+                      "(NAMM-only checkpoint or pre-Phase-2 checkpoint)")
             if load_randomness:
                 rng_state_dict = torch.load(rng_ckpt_path,
                                             map_location='cpu', weights_only=False)
