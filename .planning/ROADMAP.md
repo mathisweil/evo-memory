@@ -12,7 +12,7 @@ Starting from a working LLaMA 3.2-1B NAMM CMA-ES trainer, this roadmap extends t
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Branch Setup** - Create the working branch and verify the baseline NAMM trainer runs on it
+- [x] **Phase 1: Branch Setup** - Create the working branch and verify the baseline NAMM trainer runs on it
 - [ ] **Phase 2: LoRA Seam + Correctness Gate** - Inject PEFT LoRA into LLaMA, add flat-vector extract/inject, extend checkpoints, and lock correctness with unit tests
 - [ ] **Phase 3: OpenES Implementation** - Build the LoRA_ES class (OpenES with antithetic sampling) and Hydra variant selector
 - [ ] **Phase 4: EggRoll Implementation** - Build the LoRA_EggRoll class (structured rank-r noise variant, PyTorch rewrite)
@@ -36,24 +36,23 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md — Verify branch state, run NAMM smoke eval on GPU, commit phase-1 marker
+- [x] 01-01-PLAN.md — Verify branch state, run NAMM smoke eval on GPU, commit phase-1 marker
 
 ### Phase 2: LoRA Seam + Correctness Gate
 **Goal**: LLaMA 3.2-1B accepts LoRA weights injected from a flat float32 vector, checkpoints save and restore LoRA state, and four critical correctness pitfalls (injection ordering, merge corruption, silent zero-injection, bfloat16 underflow) are caught by passing unit tests before any training attempt.
 **Depends on**: Phase 1
 **Requirements**: LORA-01, LORA-02, LORA-03, LORA-04
 **Success Criteria** (what must be TRUE):
-  1. Running the unit test suite produces zero failures; the test log shows the expected LoRA module count (`num_layers * len(target_modules)`), which is 28 for the default q_proj+v_proj config
+  1. Running the unit test suite produces zero failures; the test log shows the expected LoRA module count (`num_layers * len(target_modules)`) = 32 for the default q_proj+v_proj config (LLaMA 3.2-1B has 16 hidden layers, not 14)
   2. Saving a checkpoint then loading it into a fresh model instance yields bit-identical LoRA weights and restores the LoRA config (rank, target modules); a NAMM-only checkpoint loads without error under the same code (graceful fallback verified)
   3. Running a full population evaluation cycle (pop_size=8, batch_size=4) leaves base model weights bit-for-bit unchanged, confirmed by a checksum assertion in the test suite
   4. LoRA weights are stored in float32 in the checkpoint (not bfloat16), confirmed by inspecting `ckpt['lora_state_dict']` dtypes in the test log
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Add `apply_lora_adapters()` to WrappedLlamaForCausalLM; verify injection ordering post-wrapper-construction
-- [ ] 02-02: Add `get_lora_params_flat()` and `set_lora_params()` to MemoryModelWrapper; verify round-trip
-- [ ] 02-03: Extend `_save_ckpt` / `_load_ckpt` with LoRA state dict and config; add graceful fallback
-- [ ] 02-04: Write unit tests for module count, base weight stability, bfloat16 guard, round-trip injection
+- [ ] 02-01-PLAN.md — Add apply_lora_adapters() to WrappedLlamaForCausalLM; add get_lora_params_flat() / set_lora_params() to MemoryModelWrapper (LORA-01, LORA-02)
+- [ ] 02-02-PLAN.md — Extend _save_ckpt / _load_ckpt with LoRA state dict, config, joint_es_mode; graceful fallback for NAMM-only checkpoints (LORA-03)
+- [ ] 02-03-PLAN.md — Write tests/test_lora_seam.py with 5 pytest tests covering all LORA-04 assertions; requires GPU on sideswipe/prowl (LORA-04)
 
 ### Phase 3: OpenES Implementation
 **Goal**: The `LoRA_ES` class implements OpenES with antithetic sampling against the flat-vector seam, is configurable via Hydra, and the variant selector key (`lora_es_variant=openES`) routes to it correctly.
@@ -194,8 +193,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Branch Setup | 0/1 | Not started | - |
-| 2. LoRA Seam + Correctness Gate | 0/4 | Not started | - |
+| 1. Branch Setup | 1/1 | Complete | 2026-03-02 |
+| 2. LoRA Seam + Correctness Gate | 0/3 | Planned | - |
 | 3. OpenES Implementation | 0/3 | Not started | - |
 | 4. EggRoll Implementation | 0/2 | Not started | - |
 | 5. Mode B Training Loop | 0/4 | Not started | - |

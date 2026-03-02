@@ -31,6 +31,7 @@ from memory_policy import MemoryPolicy
 from utils import empty_gpu_cache, get_all_submodules
 from memory_llms.base import (
     MemoryModelWrapper, MemoryAttention, MemoryDecoderLayer)
+from peft import LoraConfig, get_peft_model
 
 from transformers.modeling_outputs import (
     BaseModelOutputWithPast,
@@ -210,6 +211,39 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         self.lm_head.to(*args, **kwargs)
         return self
 
+    def apply_lora_adapters(self, rank=4, target_modules=None):
+        """Inject PEFT LoRA adapters into self.model (LlamaMemoryModel).
+
+        Must be called AFTER WrappedLlamaForCausalLM construction is complete
+        (i.e., after load_partial_state_dict has loaded real base weights).
+        Never call from __init__.
+
+        Forces LoRA parameters to float32 regardless of base model dtype,
+        preventing bfloat16 underflow at ES sigma=0.001.
+        """
+        if target_modules is None:
+            target_modules = ['q_proj', 'v_proj']
+        peft_config = LoraConfig(
+            r=rank,
+            target_modules=target_modules,
+            lora_alpha=rank,      # standard convention: alpha = rank
+            lora_dropout=0.0,     # no dropout — ES has no gradient flow
+            bias='none',
+        )
+        self.model = get_peft_model(self.model, peft_config)
+        # CRITICAL: force float32 on LoRA params regardless of base model dtype.
+        # get_peft_model() on a bfloat16 model produces bfloat16 LoRA weights,
+        # which causes underflow at sigma=0.001. Cast unconditionally.
+        for p in self.model.parameters():
+            if p.requires_grad:
+                p.data = p.data.to(torch.float32)
+        # Store config for checkpoint save/load
+        self._lora_rank = rank
+        self._lora_target_modules = list(target_modules)
+
+    def has_lora_adapters(self):
+        """Return True if apply_lora_adapters() has been called."""
+        return hasattr(self, '_lora_rank')
 
     def set_max_seq_lens(self, max_seq_lens):
         for l in self.attn_layers:
