@@ -1066,6 +1066,18 @@ class MemoryTrainer():
             'iter_num': iter_num,
             'best_val_loss': self.best_val_perf,
         }
+        # LoRA state — only present in joint checkpoint (Mode B or lora_only)
+        if self.model.has_lora_adapters():
+            checkpoint['lora_state_dict'] = {
+                n: p.data.clone()
+                for n, p in self.model.model.named_parameters()
+                if p.requires_grad
+            }
+            checkpoint['lora_config'] = {
+                'rank': self.model._lora_rank,
+                'target_modules': list(self.model._lora_target_modules),
+            }
+            checkpoint['joint_es_mode'] = getattr(self, '_joint_es_mode', 'B')
         rng_checkpoint = {
             'cpu_rng_state': torch.get_rng_state(),
             'gpu_rng_state': torch.cuda.get_rng_state(),
