@@ -7,7 +7,7 @@ ported to LLaMA 3.2-1B, with fixes for PyTorch 2.7 compatibility and batch paral
 
 ## Dependencies — read this first
 
-This is where most setup time goes. Pin these versions exactly.
+ Pin these versions exactly.
 
 **System requirement: GLIBC ≥ 2.28**
 Check with `ldd --version`. RHEL 7 / CentOS 7 (GLIBC 2.17) will not work with
@@ -33,10 +33,7 @@ huggingface-cli login   # paste your token from huggingface.co/settings/tokens
 ```
 Then request access to `meta-llama/Llama-3.2-1B` on HuggingFace if you haven't already.
 
-**HF cache** (avoid filling your home quota):
-```bash
-export HF_HOME=/path/to/large/storage/.hf_cache
-```
+
 
 **wandb** (optional but recommended):
 ```bash
