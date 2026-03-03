@@ -1,0 +1,19 @@
+lora:
+  enabled: false
+  r: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  target_modules: [q_proj, v_proj]
+  bias: "none"
+  lr: 3.0e-4
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  warmup_steps: 50
+  num_epochs: 3
+  batch_size: 1
+  grad_accum_steps: 4
+  max_seq_len: 2048
+  grad_chunks: 1
+  namm_ckpt: null
+  namm_active: false
+  save_dir: "exp_local/lora_checkpoints"

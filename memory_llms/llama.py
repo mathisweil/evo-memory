@@ -411,13 +411,18 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
             if unspecified_max_seq_lens:
                 self.set_max_seq_lens(None)
 
-        assert use_cache, 'Make sure the KV cache is being used'
+        if not use_cache:
+            assert not apply_memory_policy, (
+                'Memory policy requires KV cache (use_cache=True)')
 
-        output_attentions = (
-            output_attentions or self.memory_policy.requires_attn_scores)
-        
-        output_queries = (
-            output_queries or self.memory_policy.requires_queries)
+        if not apply_memory_policy:
+            output_attentions = False
+            output_queries = False
+        else:
+            output_attentions = (
+                output_attentions or self.memory_policy.requires_attn_scores)
+            output_queries = (
+                output_queries or self.memory_policy.requires_queries)
 
         outputs = self.model(
             input_ids=input_ids,
@@ -499,12 +504,13 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                     )
 
         else:
-            self.memory_policy.update_rotary_offset(
-                num_new_tokens=num_new_tokens,
-                num_all_tokens=(outputs.past_key_values.get_seq_length()
-                                if isinstance(outputs.past_key_values, DynamicCache)
-                                else outputs.past_key_values[0][0].shape[-2])
-                )
+            if use_cache and outputs.past_key_values is not None:
+                self.memory_policy.update_rotary_offset(
+                    num_new_tokens=num_new_tokens,
+                    num_all_tokens=(outputs.past_key_values.get_seq_length()
+                                    if isinstance(outputs.past_key_values, DynamicCache)
+                                    else outputs.past_key_values[0][0].shape[-2])
+                    )
 
         if not return_dict:
             output = (logits,) + outputs[1:]

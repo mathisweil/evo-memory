@@ -7,6 +7,7 @@ defaults:
   - auxiliary_loss@_global_: none
   - evolution@_global_: cma_es
   - task@_global_: passage_retrieval_en
+  - lora@_global_: default
   - run@_global_: default
 
 wandb_config:

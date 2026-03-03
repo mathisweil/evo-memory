@@ -1,0 +1,46 @@
+# @package _global_
+# m1: Llama 3.2 1B — LoRA finetuning only (no NAMM) on Qasper.
+defaults:
+  - override /model/wrapped_llm@_global_: llama_3_2_1b
+  - override /task@_global_: qasper
+  - override /policy@_global_: none
+  - override /typing@_global_: half_attn
+  - override /auxiliary_loss@_global_: none
+  - override /evolution@_global_: dummy
+  - _self_
+
+eval_only: false
+init_from: null
+max_new_tokens: 64
+max_conditioning_length: 6500
+add_bos_token: true
+score_normalization_reference: null
+dtype: bfloat16
+seed: 1337
+batch_size: 1
+samples_batch_size: 4
+
+lora:
+  enabled: true
+  r: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  target_modules: [q_proj, v_proj]
+  bias: "none"
+  lr: 3.0e-4
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  warmup_steps: 50
+  num_epochs: 3
+  batch_size: 1
+  grad_accum_steps: 4
+  max_seq_len: 2048
+  grad_chunks: 1
+  namm_ckpt: null
+  namm_active: false
+  save_dir: exp_local/lora/llama32_qasper_m1
+
+wandb_log: true
+wandb_run_name: llama32_lora_m1_qasper
+wandb_group_name: Llama-3.2-1B
+wandb_project: memory_evolution_hf
