@@ -43,7 +43,7 @@ done
 # ---------------------------------------------------------------------------
 # Config — edit these if your paths differ
 # ---------------------------------------------------------------------------
-WORK_DIR="${HOME}/es-finetuning-workspace"
+WORK_DIR="/cs/student/project_msc/2025/csml/sruppage/SNLP"
 EVO_MEMORY_REPO="https://github.com/mathisweil/evo-memory.git"
 EVO_MEMORY_BRANCH="es-fine-tuning"
 ES_PAPER_REPO="https://github.com/shr1ram/es-fine-tuning-paper.git"
