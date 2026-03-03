@@ -536,6 +536,9 @@ def main(config=None, project="JAXUED_TEST"):
                 log_dict["cmaes/valid_structure_pct"] = float(valid_pct[dr_mask].mean())
                 log_dict["cmaes/mean_fitness"] = float(np.array(stats["cmaes/mean_fitness"])[dr_mask].mean())
                 log_dict["cmaes/mean_episode_length"] = float(np.array(stats["cmaes/mean_episode_length"])[dr_mask].mean())
+                log_dict["cmaes/sigma"] = float(np.array(stats["cmaes/sigma"])[dr_mask].mean())
+                log_dict["cmaes/pop_spread"] = float(np.array(stats["cmaes/pop_spread"])[dr_mask].mean())
+                log_dict["cmaes/mean_z_norm"] = float(np.array(stats["cmaes/mean_z_norm"])[dr_mask].mean())
 
         wandb.log(log_dict)
     
@@ -707,6 +710,12 @@ def main(config=None, project="JAXUED_TEST"):
                 metrics["cmaes/valid_structure_pct"] = is_valid.mean() * 100
                 metrics["cmaes/mean_fitness"] = scores.mean()
                 metrics["cmaes/mean_episode_length"] = dones.sum(axis=0).mean()
+                # Step size (sigma) — tracks exploration vs convergence
+                metrics["cmaes/sigma"] = es_state.std
+                # Spread of population in latent space (std of z-vectors across candidates)
+                metrics["cmaes/pop_spread"] = z_population.std()
+                # Mean norm of latent vectors (how far from origin)
+                metrics["cmaes/mean_z_norm"] = jnp.linalg.norm(z_population, axis=-1).mean()
 
             train_state = train_state.replace(
                 sampler=sampler,
@@ -771,6 +780,9 @@ def main(config=None, project="JAXUED_TEST"):
                 metrics["cmaes/valid_structure_pct"] = jnp.float32(0.0)
                 metrics["cmaes/mean_fitness"] = jnp.float32(0.0)
                 metrics["cmaes/mean_episode_length"] = jnp.float32(0.0)
+                metrics["cmaes/sigma"] = jnp.float32(0.0)
+                metrics["cmaes/pop_spread"] = jnp.float32(0.0)
+                metrics["cmaes/mean_z_norm"] = jnp.float32(0.0)
 
             train_state = train_state.replace(
                 sampler=sampler,
@@ -842,6 +854,9 @@ def main(config=None, project="JAXUED_TEST"):
                 metrics["cmaes/valid_structure_pct"] = jnp.float32(0.0)
                 metrics["cmaes/mean_fitness"] = jnp.float32(0.0)
                 metrics["cmaes/mean_episode_length"] = jnp.float32(0.0)
+                metrics["cmaes/sigma"] = jnp.float32(0.0)
+                metrics["cmaes/pop_spread"] = jnp.float32(0.0)
+                metrics["cmaes/mean_z_norm"] = jnp.float32(0.0)
 
             train_state = train_state.replace(
                 sampler=sampler,
