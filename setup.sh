@@ -11,7 +11,7 @@
 #   bash setup.sh --gpu 2      # pin to GPU 2 on a multi-GPU machine
 #
 # Prerequisites:
-#   - python3 (3.10+) and pip
+#   - python3 (3.9+) and pip
 #   - CUDA 12.1+ GPU drivers
 #   - Internet access (GitHub, PyPI, HuggingFace, npm)
 # =============================================================================
@@ -43,7 +43,7 @@ done
 # ---------------------------------------------------------------------------
 # Config — edit these if your paths differ
 # ---------------------------------------------------------------------------
-WORK_DIR="/cs/student/project_msc/2025/csml/sruppage/SNLP"
+WORK_DIR="/cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM"
 EVO_MEMORY_REPO="https://github.com/mathisweil/evo-memory.git"
 EVO_MEMORY_BRANCH="es-fine-tuning"
 ES_PAPER_REPO="https://github.com/shr1ram/es-fine-tuning-paper.git"
