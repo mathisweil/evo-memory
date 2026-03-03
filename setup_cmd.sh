@@ -4,11 +4,13 @@
 # The one-liner clones the repo first, then runs setup.sh from the local
 # copy — so you always execute the latest version (no stale curl cache).
 #
+# Works from any shell (bash, zsh, csh, tcsh — doesn't matter).
+#
 # Auto-detect first GPU:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup_cmd.sh)"
+#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh
 #
 # Pin to a specific GPU (e.g. GPU 2 on a multi-GPU machine):
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup_cmd.sh)" -- --gpu 2
+#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh --gpu 2
 #
 # Or if you've already cloned the repo:
 #   bash ~/es-finetuning-workspace/evo-memory/setup.sh
