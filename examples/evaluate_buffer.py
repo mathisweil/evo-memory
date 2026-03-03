@@ -41,10 +41,10 @@ from vae_level_utils import level_to_tokens
 
 def load_checkpoint(checkpoint_dir, checkpoint_step, config):
     """Load agent from orbax checkpoint."""
-    env = Maze(max_height=13, max_width=13, agent_view_size=config["agent_view_size"], normalize_obs=True)
-    env = AutoReplayWrapper(env)
+    base_env = Maze(max_height=13, max_width=13, agent_view_size=config["agent_view_size"], normalize_obs=True)
+    env = AutoReplayWrapper(base_env)
     env_params = env.default_params
-    sample_random_level = make_level_generator(env.max_height, env.max_width, config.get("n_walls", 25))
+    sample_random_level = make_level_generator(base_env.max_height, base_env.max_width, config.get("n_walls", 25))
 
     level_sampler = LevelSampler(
         capacity=config["level_buffer_capacity"],
