@@ -13,12 +13,12 @@
 #   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh --gpu 2
 #
 # Or if you've already cloned the repo:
-#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/evo-memory/setup.sh
-#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/evo-memory/setup.sh --gpu 2
+#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM/evo-memory/setup.sh
+#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM/evo-memory/setup.sh --gpu 2
 
 set -euo pipefail
 
-WORK_DIR="/cs/student/project_msc/2025/csml/sruppage/SNLP"
+WORK_DIR="/cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM"
 REPO_DIR="${WORK_DIR}/evo-memory"
 BRANCH="es-fine-tuning"
 REPO_URL="https://github.com/mathisweil/evo-memory.git"
