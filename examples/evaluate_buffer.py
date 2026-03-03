@@ -102,9 +102,23 @@ def load_checkpoint(checkpoint_dir, checkpoint_step, config):
     print(f"[Checkpoint] Loading step {step} from {models_dir}")
 
     restored = checkpoint_manager.restore(step)
+
+    # Orbax restores Level as a plain dict — convert back to Level namedtuple
+    sampler = restored["sampler"]
+    if isinstance(sampler["levels"], dict):
+        sampler = dict(sampler)
+        sampler["levels"] = Level(
+            wall_map=sampler["levels"]["wall_map"],
+            goal_pos=sampler["levels"]["goal_pos"],
+            agent_pos=sampler["levels"]["agent_pos"],
+            agent_dir=sampler["levels"]["agent_dir"],
+            width=sampler["levels"]["width"],
+            height=sampler["levels"]["height"],
+        )
+
     train_state = template_state.replace(
         params=restored["params"],
-        sampler=restored["sampler"],
+        sampler=sampler,
     )
 
     return train_state, env, env_params, network
