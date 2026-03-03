@@ -6,7 +6,9 @@
 # installs Claude Code, and configures wandb + HuggingFace.
 #
 # Usage:
-#   bash setup.sh
+#   bash setup.sh              # auto-detect first available GPU
+#   bash setup.sh --gpu 0      # pin to GPU 0
+#   bash setup.sh --gpu 2      # pin to GPU 2 on a multi-GPU machine
 #
 # Prerequisites:
 #   - conda or miniconda installed
@@ -15,6 +17,28 @@
 # =============================================================================
 
 set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# Parse arguments
+# ---------------------------------------------------------------------------
+GPU_ID=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --gpu)
+            GPU_ID="$2"
+            shift 2
+            ;;
+        --gpu=*)
+            GPU_ID="${1#*=}"
+            shift
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            echo "Usage: bash setup.sh [--gpu GPU_ID]"
+            exit 1
+            ;;
+    esac
+done
 
 # ---------------------------------------------------------------------------
 # Config — edit these if your paths differ
@@ -32,6 +56,26 @@ echo ' ES Fine-Tuning + NAMM — GPU VM Setup'
 echo '============================================================'
 echo ''
 echo "Workspace: ${WORK_DIR}"
+
+# ---------------------------------------------------------------------------
+# GPU selection — pin to a single GPU
+# ---------------------------------------------------------------------------
+if [ -n "${GPU_ID}" ]; then
+    export CUDA_VISIBLE_DEVICES="${GPU_ID}"
+    echo "GPU:       ${GPU_ID} (set via --gpu)"
+elif [ -z "${CUDA_VISIBLE_DEVICES:-}" ]; then
+    # Auto-detect: pick the first available GPU
+    if command -v nvidia-smi &>/dev/null; then
+        GPU_ID=$(nvidia-smi --query-gpu=index --format=csv,noheader | head -1 | tr -d ' ')
+        export CUDA_VISIBLE_DEVICES="${GPU_ID}"
+        echo "GPU:       ${GPU_ID} (auto-detected first GPU)"
+    else
+        echo "GPU:       nvidia-smi not found, skipping GPU pinning"
+    fi
+else
+    GPU_ID="${CUDA_VISIBLE_DEVICES}"
+    echo "GPU:       ${CUDA_VISIBLE_DEVICES} (from existing CUDA_VISIBLE_DEVICES)"
+fi
 echo ''
 
 # ---------------------------------------------------------------------------
@@ -146,11 +190,18 @@ mkdir -p "${HF_CACHE_DIR}"
 export HF_HOME="${HF_CACHE_DIR}"
 echo "  HF_HOME=${HF_HOME}"
 
-# Persist HF_HOME in conda env activation
+# Persist HF_HOME and CUDA_VISIBLE_DEVICES in conda env activation
 mkdir -p "${CONDA_PREFIX}/etc/conda/activate.d"
-cat > "${CONDA_PREFIX}/etc/conda/activate.d/hf_home.sh" << HFEOF
+cat > "${CONDA_PREFIX}/etc/conda/activate.d/env_vars.sh" << ENVEOF
 export HF_HOME="${HF_CACHE_DIR}"
-HFEOF
+ENVEOF
+
+if [ -n "${GPU_ID}" ]; then
+    cat >> "${CONDA_PREFIX}/etc/conda/activate.d/env_vars.sh" << GPUEOF
+export CUDA_VISIBLE_DEVICES="${GPU_ID}"
+GPUEOF
+    echo "  CUDA_VISIBLE_DEVICES=${GPU_ID} (persisted in conda activate)"
+fi
 
 # Check if already logged in
 if python -c "from huggingface_hub import HfFolder; assert HfFolder.get_token()" 2>/dev/null; then
@@ -220,6 +271,9 @@ echo "evo-memory:       ${WORK_DIR}/evo-memory (branch: ${EVO_MEMORY_BRANCH})"
 echo "es-fine-tuning:   ${WORK_DIR}/es-fine-tuning-paper (branch: ${ES_PAPER_BRANCH})"
 echo "Conda env:        ${CONDA_ENV_NAME}"
 echo "HF cache:         ${HF_CACHE_DIR}"
+if [ -n "${GPU_ID}" ]; then
+    echo "GPU:              ${GPU_ID} (CUDA_VISIBLE_DEVICES persisted in conda activate)"
+fi
 echo ''
 echo 'To run ES fine-tuning:'
 echo "  conda activate ${CONDA_ENV_NAME}"
