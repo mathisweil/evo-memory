@@ -6,7 +6,7 @@ defaults:
 
 
 memory_policy:
-  _target_: memory_policy.DeepMP
+  _target_: namm.policy.DeepMP
   pop_size: ${pop_size}
   per_head: ${per_head}
   per_layer: ${per_layer}

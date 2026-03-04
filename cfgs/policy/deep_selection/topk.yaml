@@ -1,7 +1,7 @@
 selection_criteria: ${topk_selection}
 
 topk_selection:
-  _target_: memory_policy.TopKSelection
+  _target_: namm.policy.TopKSelection
   cache_size: ${cache_size}
 
 cache_size: 8192

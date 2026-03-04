@@ -1,5 +1,5 @@
 evolution_algorithm:
-  _target_: memory_evolution.base.DummyEvolution
+  _target_: namm.evolution.base.DummyEvolution
   pop_size: ${pop_size}
   param_size: ${param_size}
   param_clip: ${param_clip}

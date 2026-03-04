@@ -1,5 +1,5 @@
 evolution_algorithm:
-  _target_: memory_evolution.cma_es.CMA_ES
+  _target_: namm.evolution.cma_es.CMA_ES
   pop_size: ${pop_size}
   param_size: ${param_size}
   param_clip: ${param_clip}

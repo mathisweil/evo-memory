@@ -4,7 +4,7 @@ defaults:
   - _self_
 
 token_embedding: 
-  _target_: memory_policy.RecencyEmbeddingWrapper
+  _target_: namm.policy.RecencyEmbeddingWrapper
   token_embedding: ${attn_spectrogram}
   recency_embedding: ${recency_deep_embedding}
   start_recency_from: ${start_recency_from}
@@ -15,7 +15,7 @@ token_embedding:
 
  
 recency_deep_embedding:
-  _target_: memory_policy.PositionalEmbedding
+  _target_: namm.policy.PositionalEmbedding
   max_position_id: ${max_position_id}
   embed_dim: ${recency_embed_dim}
   max_freq: ${recency_max_freq}

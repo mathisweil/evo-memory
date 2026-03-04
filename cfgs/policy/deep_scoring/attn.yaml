@@ -1,7 +1,7 @@
 scoring_network: ${generalized_scoring_net}
 
 generalized_scoring_net:
-  _target_: memory_policy.GeneralizedScoring
+  _target_: namm.policy.GeneralizedScoring
   per_layer: ${per_layer}
   per_head: ${per_head}
   shared: ${scoring_shared}
@@ -13,7 +13,7 @@ generalized_scoring_net:
   mult_nonlinearity: ${mult_nonlinearity}
   
 mlp_layer:
-  _target_: stateless_parallel_modules.StatelessGeneralizedMLP
+  _target_: namm.modules.StatelessGeneralizedMLP
   input_features: ${scoring_attn_output_dim}
   hidden_features: ${scoring_mlp_hidden_features}
   hidden_depth: ${scoring_mlp_hidden_depth}
@@ -33,11 +33,11 @@ scoring_mlp_residual_first: false
   
 
 attention_layer:
-  _target_: stateless_parallel_modules.StatelessAttention
+  _target_: namm.modules.StatelessAttention
   attention_params: ${attention_params}
 
 attention_params:
-  _target_: stateless_parallel_modules.StatelessAttentionParams
+  _target_: namm.modules.StatelessAttentionParams
   input_dim:
   hidden_dim: ${scoring_attn_hidden_dim}
   output_dim: ${scoring_attn_output_dim}
@@ -57,7 +57,7 @@ scoring_attn_rope_theta: 10000
 scoring_attn_masking_strategy:
 
 scoring_output_params:
-  _target_: memory_policy.ComponentOutputParams
+  _target_: namm.policy.ComponentOutputParams
   requires_recomputation: ${scoring_requires_recomputation}
   reduction_mode: ${scoring_reduction_mode}
   ema_params: ${scoring_ema_params}
@@ -65,7 +65,7 @@ scoring_output_params:
   max_non_reduced_history_len: ${scoring_max_non_reduced_history_len}
 
 scoring_ema_params:
-  _target_: memory_policy.EMAParams
+  _target_: namm.policy.EMAParams
   coeff: ${scoring_ema_coeff}
   learned: ${scoring_reduction_learned}
   reduction_stride: ${hop_length}

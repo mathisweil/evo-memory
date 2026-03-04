@@ -31,7 +31,7 @@ from  .base_deep_components import (DeepMemoryPolicyComponent,
     call_for_all, get_property_list_from_elements)
 from .deep_embedding_shared import Embedding, PositionalEmbedding
 
-from stateless_parallel_modules import StatelessGeneralizedMLP
+from namm.modules import StatelessGeneralizedMLP
 
 
 class BaseEmbeddingWrapper(TokenEmbedding, abc.ABC):

@@ -27,9 +27,9 @@ from transformers.models.llama.modeling_llama import (
     LlamaModel,
     AttentionMaskConverter,
     )
-from memory_policy import MemoryPolicy
+from namm.policy import MemoryPolicy
 from utils import empty_gpu_cache, get_all_submodules
-from memory_llms.base import (
+from namm.llms.base import (
     MemoryModelWrapper, MemoryAttention, MemoryDecoderLayer)
 
 from transformers.modeling_outputs import (

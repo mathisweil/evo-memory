@@ -1,6 +1,6 @@
 import abc
 from typing import Optional
-from memory_policy import MemoryPolicy
+from namm.policy import MemoryPolicy
 
 
 class MemoryModelWrapper(abc.ABC):

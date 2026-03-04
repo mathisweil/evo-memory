@@ -25,7 +25,7 @@ from .base_dynamic import (
 from .base_deep_components import (
     ScoringNetwork, TokenEmbedding, SelectionNetwork, wrap_torch_initializer,
     ComponentOutputParams, reduce_ema_values)
-from stateless_parallel_modules import StatelessGeneralizedMLP
+from namm.modules import StatelessGeneralizedMLP
 
 
 def fft_ema_mask(window_length, ema_coeff, hop_length):
