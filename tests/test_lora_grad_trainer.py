@@ -224,6 +224,7 @@ def test_loss_requires_grad(lora_trainer_fixture):
         input_ids=input_ids,
         labels=labels,
         apply_memory_policy=False,
+        use_cache=True,
     )
 
     assert outputs.loss.requires_grad, (
@@ -254,6 +255,7 @@ def test_lora_grads_nonzero(lora_trainer_fixture):
         input_ids=input_ids,
         labels=labels,
         apply_memory_policy=False,
+        use_cache=True,
     )
     outputs.loss.backward()
 
@@ -289,6 +291,7 @@ def test_base_grads_none(lora_trainer_fixture):
         input_ids=input_ids,
         labels=labels,
         apply_memory_policy=False,
+        use_cache=True,
     )
     outputs.loss.backward()
 
@@ -372,6 +375,7 @@ def test_checkpoint_resume(lora_trainer_fixture, tmp_path):
         input_ids=input_ids,
         labels=labels,
         apply_memory_policy=False,
+        use_cache=True,
     )
     loss = outputs.loss / trainer.trainer_config.gradient_accumulation_steps
     loss.backward()
@@ -475,6 +479,7 @@ def test_namm_active_lora_grads(lora_trainer_fixture):
             input_ids=input_ids,
             labels=labels,
             apply_memory_policy=True,
+            use_cache=True,
         )
         outputs.loss.backward()
 

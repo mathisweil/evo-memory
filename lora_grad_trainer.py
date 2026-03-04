@@ -260,6 +260,7 @@ class LoRAGradTrainer:
         outputs = self.model(
             input_ids=input_ids,
             labels=labels,
+            use_cache=True,
             apply_memory_policy=cfg.namm_active,
         )
 

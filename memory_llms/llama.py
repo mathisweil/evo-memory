@@ -231,6 +231,12 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
             bias='none',
         )
         self.model = get_peft_model(self.model, peft_config)
+        # Freeze lm_head: PEFT only freezes self.model's params (the backbone
+        # passed to get_peft_model), not self.lm_head which lives on the outer
+        # WrappedLlamaForCausalLM. Freeze it explicitly so it doesn't leak into
+        # the LoRA param list (it would be bfloat16 and break the float32 check).
+        for p in self.lm_head.parameters():
+            p.requires_grad_(False)
         # CRITICAL: force float32 on LoRA params regardless of base model dtype.
         # get_peft_model() on a bfloat16 model produces bfloat16 LoRA weights,
         # which causes underflow at sigma=0.001. Cast unconditionally.
