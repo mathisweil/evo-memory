@@ -27,7 +27,7 @@ from utils import CtxCollator
 
 import json
 
-from utils_longbench import build_chat
+from utils.longbench import build_chat
 
 
 class MemoryHFEvaluator():
@@ -106,7 +106,7 @@ class MemoryHFEvaluator():
             else:
                 # use model2maxlen specified in longbench
                 model2maxlen = json.load(open(
-                    "LongBench/config/model2maxlen.json", "r"))
+                    "data/longbench/model2maxlen.json", "r"))
 
                 model_suffix = self.model_name.split('/')[-1]
                 if model_suffix in model2maxlen:

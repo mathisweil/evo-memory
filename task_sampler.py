@@ -13,7 +13,7 @@ import copy
 
 import numpy as np
 
-from utils_longbench import get_score
+from utils.longbench import get_score
 
 
 def merge_list_of_dicts(dicts, other_dicts):
@@ -101,32 +101,16 @@ class TaskSampler():
 
     def init_tasks(self,):
         # LongBench
-        longbench_path = 'LongBench/'
         self.lb_task2prompt = json.load(open(
-            f"{longbench_path}config/dataset2prompt.json", "r"))
+            "data/longbench/dataset2prompt.json", "r"))
         self.lb_task2prompt = {'lb/' + t: v
                                for t, v in self.lb_task2prompt.items()}
         self.lb_task2maxlen = json.load(open(
-            f"{longbench_path}config/dataset2maxlen.json", "r"))
+            "data/longbench/dataset2maxlen.json", "r"))
         self.lb_task2maxlen = {'lb/' + t: v
                                for t, v in self.lb_task2maxlen.items()}
         self.lb_taskstopgen = {t: [] for t in self.lb_task2maxlen}
         self.lb_taskstopgen["lb/samsum"].append('\n')
-
-        # ChouBun
-        choubun_path = 'ChouBun/'
-        choubun_task2prompt = json.load(open(
-            f"{choubun_path}config/dataset2prompt.json", "r"))
-        choubun_task2prompt = {'choubun/' + t: v
-                                 for t, v in choubun_task2prompt.items()}
-        choubun_task2maxlen = json.load(open(
-            f"{choubun_path}config/dataset2maxlen.json", "r"))
-        choubun_task2maxlen = {'choubun/' + t: v
-                               for t, v in choubun_task2maxlen.items()}
-        choubun_taskstopgen = {t: [] for t in choubun_task2maxlen}
-        self.lb_task2prompt.update(choubun_task2prompt)
-        self.lb_task2maxlen.update(choubun_task2maxlen)
-        self.lb_taskstopgen.update(choubun_taskstopgen)
 
         self.lb_dataset_per_task = {t: d for t, d in zip(
             self.lb_tasks, self.lb_datasets)}

@@ -23,8 +23,7 @@ numpy<2               (numpy 2.x breaks many downstream packages)
 
 **Install:**
 ```bash
-conda env create -f env_namm.yaml
-conda activate th2
+source activate.sh
 ```
 
 **HuggingFace access** (LLaMA is a gated model):
@@ -60,7 +59,7 @@ Key config values (`cfgs/run/namm_bam_i1_llama32_1b.yaml`):
 - `cache_size: 1024` — KV-cache budget during training
 - `batch_size: 4` — prompts per forward pass (sweet spot for 16GB GPU)
 
-The best checkpoint is saved to `exp_local/.../ckpt.pt` when validation F1 improves.
+The best checkpoint is saved to `experiments/.../ckpt.pt` when validation F1 improves.
 
 ---
 
@@ -69,7 +68,7 @@ The best checkpoint is saved to `exp_local/.../ckpt.pt` when validation F1 impro
 Run all three methods (NAMM, recency, full-cache) across cache sizes:
 
 ```bash
-bash run_eval_comparison.sh
+bash scripts/run_eval_comparison.sh
 ```
 
 Edit the `NAMM_CKPT` path at the top of the script to point to your checkpoint.
@@ -111,7 +110,7 @@ NAMM trained only on QASPER generalises to passage retrieval and NarrativeQA zer
 - `cfgs/model/wrapped_llm/llama32-1b.yaml` — LLaMA 3.2-1B model config (`max_position_id=4096`)
 - `cfgs/run/*_llama32_1b.yaml` — training and eval configs for LLaMA 3.2-1B
 - `cfgs/task/lb_3subset_eval.yaml` — 3-task eval subset (qasper, passage_ret, narrativeqa)
-- `run_eval_comparison.sh` — script to sweep all methods and cache sizes
+- `scripts/run_eval_comparison.sh` — script to sweep all methods and cache sizes
 
 ---
 

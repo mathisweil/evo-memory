@@ -8,7 +8,7 @@ pretrained_llm_name: .hf_cache/models--meta-llama--Llama-3.2-1B/snapshots/4e20de
 # Use LlamaCompatModel to patch rope_scaling (llama3 type not in transformers 4.41.x)
 # max_position_embeddings=4096 reduces RoPE cache to 4096 positions (saves ~400MB)
 pretrained_llm:
-  _target_: utils_hydra.LlamaCompatModel.from_pretrained
+  _target_: utils.hydra_helpers.LlamaCompatModel.from_pretrained
   pretrained_model_name_or_path: ${pretrained_llm_name}
   max_position_embeddings: 4096
 

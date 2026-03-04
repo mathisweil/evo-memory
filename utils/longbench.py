@@ -3,11 +3,7 @@ import json
 import argparse
 import numpy as np
 
-from choubun_metrics import (
-    rouge_ja_score,
-    qa_f1_ja_score
-)
-from longbench_metrics import (
+from utils.longbench_metrics import (
     qa_f1_score,
     rouge_zh_score,
     qa_f1_zh_score,
@@ -42,12 +38,6 @@ dataset2metric = {
     "passage_retrieval_zh": retrieval_zh_score,
     "lcc": code_sim_score,
     "repobench-p": code_sim_score,
-    # ChouBun
-    "wiki_qa": qa_f1_ja_score,
-    "edinet_qa": qa_f1_ja_score,
-    "corp_sec_qa": qa_f1_ja_score,
-    "corp_sec_sum": rouge_ja_score
-
 }
 
 # This is the customized building prompt for chat models
@@ -144,13 +134,6 @@ def get_score(task, predictions, answers, all_classes):
     total_score = 0.
     all_scores = []
 
-    # Instantiate tokenizer for ChouBun tasks
-    if task in ["wiki_qa", "edinet_qa", "corp_sec_qa", "corp_sec_sum"]:
-        from fugashi import Tagger
-        tokenizer = Tagger('-Owakati')
-    else:
-        tokenizer = None
-
     for (prediction, ground_truths) in zip(predictions, answers):
         score = 0.
         if task in ["trec", "triviaqa", "samsum", "lsht"]:
@@ -159,7 +142,6 @@ def get_score(task, predictions, answers, all_classes):
             cur_score = dataset2metric[task](
                 prediction,
                 ground_truth,
-                tokenizer=tokenizer,
                 all_classes=all_classes
             )
             score = max(score, cur_score)
