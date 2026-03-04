@@ -32,6 +32,11 @@ SKIP_NO_CUDA = pytest.mark.skipif(
 
 HF_MODEL_ID = "meta-llama/Llama-3.2-1B"
 HF_CACHE = "/cs/student/project_msc/2025/csml/gmaralla/.hf_cache"
+LOCAL_MODEL_PATH = (
+    "/cs/student/project_msc/2025/csml/gmaralla/.hf_cache/hub/"
+    "models--meta-llama--Llama-3.2-1B/snapshots/"
+    "4e20de362430cd3b72f300e6b0f18e50e7166e08"
+)
 NAMM_CKPT = (
     "/cs/student/project_msc/2025/csml/gmaralla/NAMM_implementation/"
     "exp_local/memory_evolution_hf/Llama-3.2-1B/NAMM/attn-spec-norm/bam/"
@@ -46,18 +51,17 @@ def _build_wrapped_llama():
     Returns the wrapper on CUDA, in bfloat16 (matching real training conditions),
     WITHOUT LoRA injected yet (apply_lora_adapters() is called in the fixture).
 
-    NOTE: Uses Recency(cache_size=None) as the no-eviction passthrough policy.
-    FullCachePolicy does not exist in this codebase — Recency with cache_size=None
-    disables eviction (limit_cache=False), equivalent to an infinite cache.
+    Uses LlamaCompatModel to patch rope_scaling=None before loading — required
+    with transformers 4.41.x which rejects the llama3 rope_type format.
+    Uses Recency(cache_size=None) as the no-eviction passthrough policy.
     """
-    from transformers import AutoModelForCausalLM
+    from utils_hydra import LlamaCompatModel
     from memory_llms.llama import WrappedLlamaForCausalLM
     from memory_policy import Recency
 
     # Load base model in bfloat16 (matches training dtype)
-    base = AutoModelForCausalLM.from_pretrained(
-        HF_MODEL_ID,
-        cache_dir=HF_CACHE,
+    base = LlamaCompatModel.from_pretrained(
+        LOCAL_MODEL_PATH,
         torch_dtype=torch.bfloat16,
     )
 

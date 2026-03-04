@@ -30,6 +30,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B"
 HF_CACHE = "/cs/student/project_msc/2025/csml/gmaralla/.hf_cache"
+# Local snapshot path — LlamaCompatModel reads config.json from here to patch rope_scaling
+LOCAL_MODEL_PATH = (
+    "/cs/student/project_msc/2025/csml/gmaralla/.hf_cache/hub/"
+    "models--meta-llama--Llama-3.2-1B/snapshots/"
+    "4e20de362430cd3b72f300e6b0f18e50e7166e08"
+)
 DEVICE = "cuda"
 LORA_RANK = 8
 LORA_TARGETS = ["q_proj", "v_proj"]
@@ -54,16 +60,17 @@ pytestmark = pytest.mark.skipif(
 def _build_wrapped_llama():
     """Construct WrappedLlamaForCausalLM in bfloat16 on CUDA.
 
-    Follows the same loading pattern as tests/test_lora_seam.py for consistency.
+    Uses LlamaCompatModel (not AutoModelForCausalLM) so that the llama3
+    rope_scaling format is patched to None before loading — required with
+    transformers 4.41.x which only accepts the old {type, factor} format.
     Uses Recency(cache_size=None) as the no-eviction passthrough policy.
     """
-    from transformers import AutoModelForCausalLM
+    from utils_hydra import LlamaCompatModel
     from memory_llms.llama import WrappedLlamaForCausalLM
     from memory_policy import Recency
 
-    base = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME,
-        cache_dir=HF_CACHE,
+    base = LlamaCompatModel.from_pretrained(
+        LOCAL_MODEL_PATH,
         torch_dtype=torch.bfloat16,
     )
 
