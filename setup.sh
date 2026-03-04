@@ -50,7 +50,7 @@ ES_PAPER_REPO="https://github.com/shr1ram/es-fine-tuning-paper.git"
 ES_PAPER_BRANCH="claude-inshallah"
 VENV_DIR="${WORK_DIR}/venv"
 HF_CACHE_DIR="${WORK_DIR}/.hf_cache"
-ENV_SCRIPT="${WORK_DIR}/activate.sh"
+SCRIPT_DIR="${WORK_DIR}/evo-memory"
 
 echo '============================================================'
 echo ' ES Fine-Tuning + NAMM — GPU VM Setup'
@@ -88,7 +88,7 @@ cd "${WORK_DIR}"
 # ---------------------------------------------------------------------------
 # 2. Clone repos (or update if already cloned)
 # ---------------------------------------------------------------------------
-echo '[1/7] Cloning repositories...'
+echo '[1/5] Cloning repositories...'
 
 if [ -d "evo-memory" ]; then
     echo '  evo-memory already exists, pulling latest...'
@@ -116,81 +116,24 @@ echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 3. Create Python venv and install dependencies
+# 3. Install Python dependencies via activate.sh
 # ---------------------------------------------------------------------------
-echo '[2/7] Setting up Python venv...'
+echo '[2/5] Installing Python dependencies...'
 
-if [ ! -d "${VENV_DIR}" ]; then
-    python3 -m venv "${VENV_DIR}"
-    echo "  Created venv at ${VENV_DIR}"
-else
-    echo "  venv already exists at ${VENV_DIR}"
-fi
+export CUDA_VISIBLE_DEVICES="${GPU_ID:-0}"
+source "${SCRIPT_DIR}/activate.sh"
 
-source "${VENV_DIR}/bin/activate"
-
-echo '  Installing pinned dependencies...'
 pip install --upgrade pip 2>&1 | tail -1
-
-# PyTorch with CUDA 12.1 (must be installed separately for --index-url)
-pip install \
-    "torch==2.3.1" "torchvision==0.18.1" "torchaudio==2.3.1" \
-    --index-url https://download.pytorch.org/whl/cu121 \
-    2>&1 | tail -1
-
-# All other deps (versions match env_namm.yaml)
-pip install \
-    "numpy<2" \
-    "transformers==4.41.2" \
-    "accelerate" \
-    "datasets==2.20.0" \
-    "tiktoken" \
-    "wandb==0.16.6" \
-    "tqdm" \
-    "hydra-core==1.3.2" \
-    "pandas==2.2.2" \
-    "lm-eval==0.4.2" \
-    "fugashi==1.3.2" \
-    "ftfy" \
-    "peft==0.11.1" \
-    "bitsandbytes" \
-    "rouge" \
-    "jieba" \
-    "fuzzywuzzy" \
-    "einops" \
-    "scipy==1.13.0" \
-    "sentencepiece" \
-    2>&1 | tail -3
+python -c "from es_finetuning import ESTrainer, ESConfig; print('  es_finetuning imports OK')"
 
 echo "  Python: $(python --version)"
 echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 4. Install es-finetuning package (editable)
+# 4. HuggingFace setup
 # ---------------------------------------------------------------------------
-echo '[3/7] Installing es-finetuning package...'
-
-pip install -e "${WORK_DIR}/es-fine-tuning-paper/" 2>&1 | tail -3
-python -c "from es_finetuning import ESTrainer, ESConfig; print('  es_finetuning imports OK')"
-
-echo '  Done.'
-echo ''
-
-# ---------------------------------------------------------------------------
-# 5. Install tensorboard (not in env_namm.yaml but needed by es_finetuning)
-# ---------------------------------------------------------------------------
-echo '[4/7] Installing additional dependencies...'
-
-pip install tensorboard 2>&1 | tail -3
-
-echo '  Done.'
-echo ''
-
-# ---------------------------------------------------------------------------
-# 6. HuggingFace setup
-# ---------------------------------------------------------------------------
-echo '[5/7] Setting up HuggingFace...'
+echo '[3/5] Setting up HuggingFace...'
 
 mkdir -p "${HF_CACHE_DIR}"
 export HF_HOME="${HF_CACHE_DIR}"
@@ -209,9 +152,9 @@ echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 7. wandb setup
+# 5. wandb setup
 # ---------------------------------------------------------------------------
-echo '[6/7] Setting up wandb...'
+echo '[4/5] Setting up wandb...'
 
 if python -c "import wandb; wandb.api.api_key" 2>/dev/null; then
     echo '  Already logged into wandb.'
@@ -225,9 +168,9 @@ echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 8. Install Claude Code
+# 6. Install Claude Code
 # ---------------------------------------------------------------------------
-echo '[7/7] Installing Claude Code...'
+echo '[5/5] Installing Claude Code...'
 
 if command -v claude &>/dev/null; then
     echo '  Claude Code already installed.'
@@ -253,20 +196,6 @@ fi
 echo ''
 
 # ---------------------------------------------------------------------------
-# 9. Write activate.sh convenience script
-# ---------------------------------------------------------------------------
-cat > "${ENV_SCRIPT}" << ACTIVATEEOF
-#!/usr/bin/env bash
-# Source this to activate the environment:
-#   source ${ENV_SCRIPT}
-source "${VENV_DIR}/bin/activate"
-export HF_HOME="${HF_CACHE_DIR}"
-export CUDA_VISIBLE_DEVICES="${GPU_ID:-0}"
-cd "${WORK_DIR}/evo-memory"
-ACTIVATEEOF
-chmod +x "${ENV_SCRIPT}"
-
-# ---------------------------------------------------------------------------
 # Done — print summary
 # ---------------------------------------------------------------------------
 echo '============================================================'
@@ -283,13 +212,13 @@ if [ -n "${GPU_ID}" ]; then
 fi
 echo ''
 echo 'To activate the environment in a new shell:'
-echo "  source ${ENV_SCRIPT}"
+echo "  source ${SCRIPT_DIR}/activate.sh"
 echo ''
 echo 'To run ES fine-tuning:'
-echo "  source ${ENV_SCRIPT}"
+echo "  source ${SCRIPT_DIR}/activate.sh"
 echo '  python run_es_finetuning.py --num_iterations 2 --population_size 2 --mini_batch_size 2'
 echo ''
 echo 'To start Claude Code:'
-echo "  source ${ENV_SCRIPT}"
+echo "  source ${SCRIPT_DIR}/activate.sh"
 echo '  claude'
 echo ''
