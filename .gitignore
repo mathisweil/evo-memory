@@ -32,3 +32,6 @@ multirun/
 
 # HF model cache (symlinked)
 .hf_cache/
+
+# ES smoke test outputs
+es_smoke_test*/

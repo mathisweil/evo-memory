@@ -84,7 +84,8 @@ class TaskSampler():
     def add_long_bench_task(self, task, metric):
         bench_name, task_name = task.split('/')
         assert bench_name == 'lb'
-        dataset = load_dataset('THUDM/LongBench', task_name, split='test')
+        dataset = load_dataset('THUDM/LongBench', task_name, split='test',
+                               trust_remote_code=True)
         self.lb_datasets.append(dataset)
         self.lb_tasks.append(task)
         self.lb_metrics.append(metric)
@@ -92,7 +93,8 @@ class TaskSampler():
     def add_choubun_task(self, task, metric):
         bench_name, task_name = task.split('/')
         assert bench_name == 'choubun'
-        dataset = load_dataset('SakanaAI/ChouBun', task_name, split='test')
+        dataset = load_dataset('SakanaAI/ChouBun', task_name, split='test',
+                               trust_remote_code=True)
         self.lb_datasets.append(dataset)
         self.lb_tasks.append(task)
         self.lb_metrics.append(metric)
