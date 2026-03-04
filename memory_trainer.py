@@ -1198,6 +1198,11 @@ class MemoryTrainer():
             t1 = time.time()
             dt = t1 - t0
             t0 = t1
+            if self.master_process:
+                mean_s = sum(all_scores) / len(all_scores) if all_scores else 0
+                print(f"[iter {iter_num}/{max_iters}] "
+                      f"time={dt:.1f}s mean_score={mean_s:.4f} "
+                      f"pop={len(all_scores)}", flush=True)
             if iter_num % self.log_interval == 0:
                 aggregated_result_dict = convert_to_dict_of_lists(
                     all_scores_dict)
