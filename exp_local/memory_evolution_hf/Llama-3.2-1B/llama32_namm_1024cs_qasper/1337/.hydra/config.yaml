@@ -1,0 +1,361 @@
+wandb_config:
+  _target_: memory_trainer.WandbConfig
+  wandb_log: ${wandb_log}
+  wandb_project: ${wandb_project}
+  wandb_run_name: ${wandb_run_name}
+  wandb_group_name: ${wandb_group_name}
+out_folder: ./exp_local
+out_dir: ${out_folder}/${wandb_project}/${wandb_group_name}/${wandb_run_name}/${seed}
+wandb_log: true
+wandb_project: memory_evolution_hf
+wandb_run_name: llama32_namm_1024cs_qasper
+wandb_group_name: Llama-3.2-1B
+device: cuda
+seed: 1337
+deterministic_behavior: false
+backend: nccl
+ddp_timeout_limit: 0:6:0
+trainer:
+  _target_: memory_trainer.MemoryTrainer
+  trainer_config: ${trainer_config}
+  wandb_config: ${wandb_config}
+  device: ${device}
+  scratch: ${scratch}
+trainer_config:
+  _target_: memory_trainer.TrainerConfig
+  out_dir: ${out_dir}
+  max_iters: ${max_iters}
+  task_batch_size: ${task_batch_size}
+  samples_batch_size: ${samples_batch_size}
+  eval_samples_batch_size: ${eval_samples_batch_size}
+  allow_distributed_eval: ${allow_distributed_eval}
+  pop_accumulation_steps: ${pop_accumulation_steps}
+  score_aggregation: ${score_aggregation}
+  score_normalization_reference: ${score_normalization_reference}
+  synchronized_buffers_aggregation: ${synchronized_buffers_aggregation}
+  synchronized_buffers_freeze_after: ${synchronized_buffers_freeze_after}
+  prefetch_task_tensors: ${prefetch_task_tensors}
+  override_prefetched_tensors: ${override_prefetched_tensors}
+  eval_interval: ${eval_interval}
+  early_stop_patience: ${early_stop_patience}
+  log_interval: ${log_interval}
+  eval_iters: ${eval_iters}
+  eval_only: ${eval_only}
+  eval_candidate_samples: ${eval_candidate_samples}
+  eval_candidate_temp: ${eval_candidate_temp}
+  record_advanced_eval_stats: ${record_advanced_eval_stats}
+  store_eval_results_locally: ${store_eval_results_locally}
+  record_per_task_eval_stats: ${record_per_task_eval_stats}
+  always_save_checkpoint: ${always_save_checkpoint}
+  keep_past_epoch_checkpoints_every: ${keep_past_epoch_checkpoints_every}
+  use_amp: ${use_amp}
+  init_from: ${init_from}
+  dtype: ${dtype}
+max_iters: 200
+task_batch_size: null
+samples_batch_size: 4
+eval_samples_batch_size: null
+allow_distributed_eval: true
+pop_accumulation_steps: 1
+score_aggregation: mean
+score_normalization_reference: null
+synchronized_buffers_aggregation: mean
+synchronized_buffers_freeze_after: 1
+prefetch_task_tensors: false
+override_prefetched_tensors: false
+eval_interval: 10
+early_stop_patience: -1
+log_interval: 1
+eval_iters: 1
+eval_only: false
+eval_candidate_samples: null
+eval_candidate_temp: null
+always_save_checkpoint: true
+keep_past_epoch_checkpoints_every: null
+scratch: true
+record_advanced_eval_stats: true
+store_eval_results_locally: true
+record_per_task_eval_stats: false
+use_amp: false
+init_from: null
+dtype: bfloat16
+memory_evaluator:
+  _target_: memory_evaluator.MemoryHFEvaluator
+  model: ${pretrained_llm}
+  tokenizer: ${tokenizer}
+  evaluation_ctx_steps: ${evaluation_ctx_steps}
+  add_bos_token: ${add_bos_token}
+  eval_max_batch_size: ${eval_max_batch_size}
+  memory_batch_size: ${memory_batch_size}
+  batch_size: ${batch_size}
+  max_conditioning_length: ${max_conditioning_length}
+  max_memory_length: ${max_memory_length}
+  max_gen_tokens: ${max_gen_tokens}
+  full_context_gen: ${full_context_gen}
+  per_timestep_loglikelihood: ${per_timestep_loglikelihood}
+  force_clear_cache: ${force_clear_cache}
+  device: ${device}
+  log_misc: ${log_misc}
+evaluation_ctx_steps: 1
+add_bos_token: true
+eval_max_batch_size: 32
+memory_batch_size: false
+batch_size: 4
+max_memory_length: 2048
+max_gen_tokens: 512
+full_context_gen: true
+per_timestep_loglikelihood: false
+force_clear_cache: true
+log_misc: false
+pretrained_llm:
+  _target_: utils_hydra.AutoModelForCausalLM.from_pretrained
+  pretrained_model_name_or_path: ${pretrained_llm_name}
+tokenizer:
+  _target_: utils_hydra.AutoTokenizer.from_pretrained
+  pretrained_model_name_or_path: ${pretrained_llm_name}
+pretrained_llm_name: ./llama-1b-hf
+memory_model:
+  _target_: memory_llms.llama.WrappedLlamaForCausalLM
+  model: ${pretrained_llm}
+  memory_policy: ${memory_policy}
+  max_new_tokens: ${max_new_tokens}
+  memory_policy_fixed_delay: ${memory_policy_fixed_delay}
+  output_attentions_full_precision: ${output_attentions_full_precision}
+max_new_tokens: 64
+max_position_id: 131072
+max_conditioning_length: 6500
+memory_policy_fixed_delay: 256
+llm_log_name: Llama-3.2-1B
+output_attentions_full_precision: false
+dtype_conf_name: halfAttn
+memory_policy:
+  _target_: memory_policy.DeepMP
+  pop_size: ${pop_size}
+  per_head: ${per_head}
+  per_layer: ${per_layer}
+  token_embedding: ${token_embedding}
+  scoring_network: ${scoring_network}
+  selection_criteria: ${selection_criteria}
+  lazy_param_num: ${lazy_param_num}
+per_head: false
+per_layer: false
+lazy_param_num: false
+mp_log_name: NAMM/${embedding_mp_log_name}/${scoring_mp_log_name}/${selection_mp_log_name}
+attn_spectrogram:
+  _target_: memory_policy.AttentionSpectrogram
+  per_layer: ${per_layer}
+  per_head: ${per_head}
+  shared: ${embedding_shared}
+  output_params: ${embedding_output_params}
+  stft_params: ${stft_params}
+embedding_output_params:
+  _target_: memory_policy.ComponentOutputParams
+  requires_recomputation: ${embedding_requires_recomputation}
+  reduction_mode: ${embedding_reduction_mode}
+  ema_params: ${embedding_ema_params}
+  output_past_non_reduced_history: ${embedding_output_past_non_reduced_history}
+  max_non_reduced_history_len: ${embedding_max_non_reduced_history_len}
+  online_output_normalization: ${emb_online_output_normalization}
+  update_norm_during_training: ${emb_update_norm_during_training}
+  update_norm_during_eval: ${emb_update_norm_during_eval}
+embedding_ema_params:
+  _target_: memory_policy.EMAParams
+  coeff: ${embedding_ema_coeff}
+  learned: ${embedding_reduction_learned}
+  reduction_stride: ${hop_length}
+stft_params:
+  _target_: memory_policy.STFTParams
+  n_fft: ${n_fft}
+  hop_length: ${hop_length}
+  window_fn: ${window_fn}
+  pad_mode: ${pad_mode}
+  output_magnitudes: ${output_magnitudes}
+embedding_shared: true
+embedding_requires_recomputation: true
+embedding_reduction_mode: ema
+embedding_ema_coeff: 0.99
+embedding_reduction_learned: false
+embedding_output_past_non_reduced_history: false
+embedding_max_non_reduced_history_len: null
+n_fft: 32
+hop_length: 16
+window_fn:
+  _target_: utils_hydra.torch.hann_window
+  window_length: ${n_fft}
+  periodic: true
+pad_mode: constant
+output_magnitudes: true
+window_fn_log_name: hann
+embedding_spec_mp_log_name: attn-spec
+emb_online_output_normalization: true
+emb_update_norm_during_training: false
+emb_update_norm_during_eval: true
+token_embedding:
+  _target_: memory_policy.RecencyEmbeddingWrapper
+  token_embedding: ${attn_spectrogram}
+  recency_embedding: ${recency_deep_embedding}
+  start_recency_from: ${start_recency_from}
+  wrapper_output_dim: ${wrapper_output_dim}
+  processing_layers: ${processing_layers}
+  joining_strategy: ${joining_strategy}
+  output_params: ${wrapper_output_params}
+recency_deep_embedding:
+  _target_: memory_policy.PositionalEmbedding
+  max_position_id: ${max_position_id}
+  embed_dim: ${recency_embed_dim}
+  max_freq: ${recency_max_freq}
+wrapper_output_dim: null
+processing_layers: 0
+joining_strategy: append
+wrapper_output_params: null
+recency_embedding_name: ${joining_strategy}RecAbsPoc${recency_embed_dim}D
+recency_embed_dim: 8
+recency_max_freq: 50000
+start_recency_from: 0
+embedding_mp_log_name: attn-spec-norm
+scoring_network: ${generalized_scoring_net}
+generalized_scoring_net:
+  _target_: memory_policy.GeneralizedScoring
+  per_layer: ${per_layer}
+  per_head: ${per_head}
+  shared: ${scoring_shared}
+  output_params: ${scoring_output_params}
+  initializer: ${scoring_initializer}
+  stateless_modules_list: ${stateless_modules_list}
+  residual: ${residual}
+  mult: ${mult}
+  mult_nonlinearity: ${mult_nonlinearity}
+mlp_layer:
+  _target_: stateless_parallel_modules.StatelessGeneralizedMLP
+  input_features: ${scoring_attn_output_dim}
+  hidden_features: ${scoring_mlp_hidden_features}
+  hidden_depth: ${scoring_mlp_hidden_depth}
+  output_features: ${scoring_mlp_output_features}
+  bias: ${scoring_mlp_bias}
+  non_linearity: ${scoring_mlp_non_linearity}
+  residual: ${scoring_mlp_residual}
+  residual_first: ${scoring_mlp_residual_first}
+scoring_mlp_hidden_features: null
+scoring_mlp_hidden_depth: 1
+scoring_mlp_output_features: 1
+scoring_mlp_bias: true
+scoring_mlp_non_linearity: relu
+scoring_mlp_residual: true
+scoring_mlp_residual_first: false
+attention_layer:
+  _target_: stateless_parallel_modules.StatelessAttention
+  attention_params: ${attention_params}
+attention_params:
+  _target_: stateless_parallel_modules.StatelessAttentionParams
+  input_dim: null
+  hidden_dim: ${scoring_attn_hidden_dim}
+  output_dim: ${scoring_attn_output_dim}
+  num_heads: ${scoring_attn_num_heads}
+  bias: ${scoring_attn_bias}
+  max_position_id: ${max_position_id}
+  use_rope: ${scoring_attn_use_rope}
+  rope_theta: ${scoring_attn_rope_theta}
+  masking_strategy: ${scoring_attn_masking_strategy}
+scoring_attn_hidden_dim: 32
+scoring_attn_output_dim: null
+scoring_attn_num_heads: 1
+scoring_attn_bias: true
+scoring_attn_use_rope: false
+scoring_attn_rope_theta: 50000
+scoring_attn_masking_strategy: backward
+scoring_output_params:
+  _target_: memory_policy.ComponentOutputParams
+  requires_recomputation: ${scoring_requires_recomputation}
+  reduction_mode: ${scoring_reduction_mode}
+  ema_params: ${scoring_ema_params}
+  output_past_non_reduced_history: ${scoring_output_past_non_reduced_history}
+  max_non_reduced_history_len: ${scoring_max_non_reduced_history_len}
+scoring_ema_params:
+  _target_: memory_policy.EMAParams
+  coeff: ${scoring_ema_coeff}
+  learned: ${scoring_reduction_learned}
+  reduction_stride: ${hop_length}
+scoring_shared: true
+scoring_requires_recomputation: true
+scoring_reduction_mode: null
+scoring_ema_coeff: 0.99
+scoring_reduction_learned: false
+scoring_output_past_non_reduced_history: false
+scoring_max_non_reduced_history_len: null
+scoring_initializer: 0
+stateless_modules_list:
+- ${attention_layer}
+- ${mlp_layer}
+residual: true
+mult: true
+mult_nonlinearity: null
+scoring_mp_log_name: bam
+selection_criteria: ${dynamic_selection}
+dynamic_selection:
+  _target_: memory_policy.BinarySelection
+  per_layer: ${per_layer}
+  per_head: ${per_head}
+  shared: ${selection_shared}
+  cache_size: ${cache_size}
+  is_probabilistic: ${is_probabilistic}
+  temp: ${temp}
+  learned_temp: ${learned_temp}
+is_probabilistic: false
+temp: 1.0
+learned_temp: false
+selection_shared: true
+cache_size: 1024
+selection_mp_log_name: binary-${cache_size}cs
+auxiliary_loss: null
+evolution_algorithm:
+  _target_: memory_evolution.cma_es.CMA_ES
+  pop_size: ${pop_size}
+  param_size: ${param_size}
+  param_clip: ${param_clip}
+  clip_param_min: ${clip_param_min}
+  clip_param_max: ${clip_param_max}
+  score_processing: ${score_processing}
+  elite_ratio: ${elite_ratio}
+  c_1: ${c_1}
+  c_mu: ${c_mu}
+  c_sigma: ${c_sigma}
+  d_sigma: ${d_sigma}
+  c_c: ${c_c}
+  c_m: ${c_m}
+  init_sigma: ${init_sigma}
+  init_param_range: ${init_param_range}
+  prefer_mean_to_best: ${prefer_mean_to_best}
+pop_size: 8
+param_size: null
+param_clip: null
+clip_param_min: null
+clip_param_max: null
+score_processing: null
+elite_ratio: 0.5
+c_1: null
+c_mu: null
+c_sigma: null
+d_sigma: null
+c_c: null
+c_m: 1.0
+init_sigma: 0.065
+init_param_range: null
+prefer_mean_to_best: true
+evolution_algorithm_name: cma-es
+evolution_algorithm_log_name: ${evolution_algorithm_name}-p${pop_size}-rMean${prefer_mean_to_best}
+task_sampler:
+  _target_: task_sampler.TaskSampler
+  tasks: ${tasks}
+  metrics: ${metrics}
+  training_tasks_subset: ${training_tasks_subset}
+  test_tasks_subset: ${test_tasks_subset}
+  max_conditioning_length: ${max_conditioning_length}
+tasks:
+- lb/qasper
+metrics: perf
+training_tasks_subset: null
+test_tasks_subset: null
+tasks_log_name: qasper
+run_name_suffix: ''
+init_mean: 0.0
+init_stdev: 1.0
