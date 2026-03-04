@@ -68,7 +68,7 @@ def parse_args():
                         help="Save checkpoint every N iterations")
     parser.add_argument("--eval_every", type=int, default=25,
                         help="Run validation every N iterations")
-    parser.add_argument("--log_dir", type=str, default="es_runs",
+    parser.add_argument("--log_dir", type=str, default="experiments/es_runs",
                         help="Directory for TensorBoard logs and checkpoints")
 
     # NAMM config
