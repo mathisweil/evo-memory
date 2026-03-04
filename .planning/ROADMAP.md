@@ -47,7 +47,7 @@ Plans:
 
 **Milestone Goal:** Implement gradient-based LoRA finetuning alongside NAMM CMA-ES training, run all four main conditions (m1, m3, m4-frozen, m4-iterative) and secondary experiments, collect analysis metrics across all conditions, and produce a comparison table with multi-seed error bars that answers whether NAMM's presence during finetuning matters.
 
-- [ ] **Phase 3: Gradient Training Loop** - Build LoRAGradTrainer, LongBenchNTPDataset, and artifact/eval infrastructure; gate with gradient-flow unit test; bake in FAIR-02 and ARTIFACT-01 from the start
+- [x] **Phase 3: Gradient Training Loop** - Build LoRAGradTrainer, LongBenchNTPDataset, and artifact/eval infrastructure; gate with gradient-flow unit test; bake in FAIR-02 and ARTIFACT-01 from the start (complete 2026-03-04)
 - [ ] **Phase 4: m1 + m4-frozen Runs** - Run and validate LoRA-only (m1) and NAMM-active LoRA (m4-frozen) on QASPER; enforce FAIR-01 token budget; collect token retention metrics; produce anchor checkpoints
 - [ ] **Phase 5: m4-iterative Run** - Build interleaving orchestration controller; run alternating NAMM CMA-ES and LoRA gradient training; validate after m4-frozen is confirmed working
 - [ ] **Phase 6: Analysis Metrics + m3 Run** - Add post-hoc attention entropy script; run m3 two-stage pipeline using m1 checkpoint; produce four-condition comparison table
@@ -71,8 +71,8 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — Write `lora_ntp_dataset.py` with `LongBenchNTPDataset` — wraps HF LongBench splits into teacher-forced (input_ids, labels) pairs with left-truncation to max_seq_len and pad-collate (TRAIN-01) [2026-03-04]
 - [x] 03-02-PLAN.md — Write `lora_grad_trainer.py` with `LoRAGradTrainer` — AdamW, cosine LR with warmup, gradient clipping, gradient accumulation, NTP loss, wandb logging; PEFT gradient fix forward hook; checkpoint I/O with AdamW state; NAMM-active mode; artifact contract (TRAIN-02, TRAIN-03, TRAIN-05, TRAIN-06, ARTIFACT-01) [2026-03-04]
-- [ ] 03-03-PLAN.md — Write `tests/test_lora_grad_trainer.py` with 6 pytest tests: loss.requires_grad, LoRA grad non-None, base grad None, float32 dtype, AdamW state saved/loaded, NAMM-active LoRA grads (TRAIN-04, TRAIN-05, TRAIN-06)
-- [ ] 03-04-PLAN.md — Add `trainer_type` dispatch to `main.py`; create `cfgs/trainer/lora_grad.yaml` with locked hyperparameters; write `run_eval.py` skeleton enforcing shared eval protocol (PIPE-01, FAIR-02)
+- [x] 03-03-PLAN.md — Write `tests/test_lora_grad_trainer.py` with 6 pytest tests: loss.requires_grad, LoRA grad non-None, base grad None, float32 dtype, AdamW state saved/loaded, NAMM-active LoRA grads (TRAIN-04, TRAIN-05, TRAIN-06) [2026-03-04]
+- [x] 03-04-PLAN.md — Add `trainer_type` dispatch to `main.py`; create `cfgs/trainer/lora_grad.yaml` with locked hyperparameters; write `run_eval.py` skeleton enforcing shared eval protocol (PIPE-01, FAIR-02) [2026-03-04]
 
 ### Phase 4: m1 + m4-frozen Runs
 **Goal**: The m1 condition (LoRA finetuning, no NAMM, full cache) and the m4-frozen condition (NAMM frozen at best params, LoRA trained with NAMM active and evicting at cache_size=128) both run end-to-end on QASPER using the same total token budget (FAIR-01), produce validated checkpoints, and deliver eval scores on all three LongBench tasks; token retention is logged during m4-frozen training.
@@ -163,7 +163,7 @@ Note: Phase 5 (m4-iterative) depends on Phase 4 (m4-frozen validated) — must n
 |-------|-----------|----------------|--------|-----------|
 | 1. Branch Setup | v1.0 | 1/1 | Complete | 2026-03-02 |
 | 2. LoRA Seam + Correctness Gate | v1.0 | 3/3 | Complete (GPU test pending) | 2026-03-02 |
-| 3. Gradient Training Loop | v2.0 | 2/4 | In progress | - |
+| 3. Gradient Training Loop | 4/4 | Complete   | 2026-03-04 | 2026-03-04 |
 | 4. m1 + m4-frozen Runs | v2.0 | 0/4 | Not started | - |
 | 5. m4-iterative Run | v2.0 | 0/3 | Not started | - |
 | 6. Analysis Metrics + m3 Run | v2.0 | 0/4 | Not started | - |
