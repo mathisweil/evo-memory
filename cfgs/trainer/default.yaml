@@ -2,14 +2,14 @@ defaults:
   - _self_
   
 trainer:
-  _target_: memory_trainer.MemoryTrainer
+  _target_: namm.trainer.MemoryTrainer
   trainer_config: ${trainer_config}
   wandb_config: ${wandb_config}
   device: ${device}
   scratch: ${scratch}
 
 trainer_config:
-  _target_: memory_trainer.TrainerConfig
+  _target_: namm.trainer.TrainerConfig
   out_dir: ${out_dir}
   max_iters: ${max_iters}
   task_batch_size: ${task_batch_size}

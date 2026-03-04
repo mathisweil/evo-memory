@@ -10,7 +10,7 @@ defaults:
   - run@_global_: default
 
 wandb_config:
-  _target_: memory_trainer.WandbConfig
+  _target_: namm.trainer.WandbConfig
   wandb_log: ${wandb_log}
   wandb_project: ${wandb_project}
   wandb_run_name: ${wandb_run_name}

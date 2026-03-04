@@ -32,7 +32,7 @@ import sys
 import numpy as np
 import torch
 
-# Ensure evo-memory root is on the path (for task_sampler, memory_evaluator, etc.)
+# Ensure evo-memory root is on the path (for namm package, utils, etc.)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
