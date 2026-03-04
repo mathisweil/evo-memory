@@ -144,30 +144,97 @@ def main(cfg: DictConfig):
     torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
     torch.backends.cudnn.allow_tf32 = True  # allow tf32 on cudnn
 
-    with torch.no_grad():
-        (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
-            auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
+    # Determine trainer type — defaults to namm_es (existing path) if not set
+    trainer_type = cfg.get('trainer_type', 'namm_es')
+    print(f"Trainer type: {trainer_type}")
 
-        task_sampler = make_task_sampler(cfg=cfg, log_prefix=log_prefix)
+    if trainer_type == 'lora_grad':
+        # LoRA gradient training path — NO torch.no_grad() wrapper around train()
+        from lora_grad_trainer import LoRAGradTrainer, LoRATrainerConfig
 
-        trainer = hydra.utils.instantiate(
-            cfg.trainer,
-            evaluation_model=memory_evaluator,
-            task_sampler=task_sampler,
-            evolution_algorithm=evolution_algorithm,
-            auxiliary_loss=auxiliary_loss,
+        # Model construction is safe under no_grad (no gradient graph needed yet)
+        with torch.no_grad():
+            (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
+                auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
+            # Note: task_sampler NOT needed — LoRAGradTrainer uses LongBenchNTPDataset internally
+
+        # Build LoRATrainerConfig from Hydra cfg
+        lora_cfg = LoRATrainerConfig(
+            out_dir=cfg.out_dir,
+            method=cfg.get('lora_method', 'lora_grad'),
+            seed=cfg.seed,
+            max_seq_len=cfg.get('lora_max_seq_len', 3500),
+            task_names=list(cfg.get('lora_task_names', ['qasper', 'narrativeqa', 'passage_retrieval_en'])),
+            cache_dir=cfg.get('cache_dir', '/cs/student/project_msc/2025/csml/gmaralla/.hf_cache'),
+            num_epochs=cfg.get('lora_num_epochs', 3),
+            batch_size=cfg.get('lora_batch_size', 1),
+            gradient_accumulation_steps=cfg.get('lora_gradient_accumulation_steps', 16),
+            learning_rate=cfg.get('lora_lr', 2e-4),
+            weight_decay=cfg.get('lora_weight_decay', 0.01),
+            max_grad_norm=cfg.get('lora_max_grad_norm', 1.0),
+            warmup_ratio=cfg.get('lora_warmup_ratio', 0.03),
+            namm_active=cfg.get('lora_namm_active', False),
+            eval_interval=cfg.get('eval_interval', 100),
+            log_interval=cfg.get('log_interval', 10),
+            always_save_checkpoint=cfg.get('always_save_checkpoint', True),
+            init_from=cfg.get('init_from', None),
+            dtype=cfg.get('dtype', 'bfloat16'),
         )
 
+        # Apply LoRA adapters BEFORE trainer construction (assert in __init__ checks this)
+        lora_rank = cfg.get('lora_rank', 8)
+        lora_targets = list(cfg.get('lora_target_modules', ['q_proj', 'v_proj']))
+        memory_model.apply_lora_adapters(lora_rank=lora_rank, target_modules=lora_targets)
+        print(f"LoRA applied: rank={lora_rank}, targets={lora_targets}")
+
+        # wandb init (before trainer so run.id is available for artifact contract)
         if cfg.wandb_config.wandb_log and master_process:
             wandb_init(cfg=cfg)
 
+        # Build trainer — NO torch.no_grad() wrapper so autograd graph survives
+        cfg_yaml = OmegaConf.to_yaml(cfg)
         with torch.no_grad():
-            trainer.train()
+            tokenizer = hydra.utils.call(cfg.tokenizer)
+        trainer = LoRAGradTrainer(
+            model=memory_model,
+            tokenizer=tokenizer,
+            evaluation_model=memory_evaluator,
+            trainer_config=lora_cfg,
+            wandb_config=cfg.wandb_config,
+            device=cfg.device,
+        )
+        print(f"Trainer: lora_grad [{type(trainer).__name__}]")  # PIPE-01
 
-        if is_ddp:
-            destroy_process_group()
+        trainer.train()
+
+    else:
+        # Existing MemoryTrainer path — UNCHANGED, no modifications
+        with torch.no_grad():
+            (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
+                auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
+
+            task_sampler = make_task_sampler(cfg=cfg, log_prefix=log_prefix)
+
+            trainer = hydra.utils.instantiate(
+                cfg.trainer,
+                evaluation_model=memory_evaluator,
+                task_sampler=task_sampler,
+                evolution_algorithm=evolution_algorithm,
+                auxiliary_loss=auxiliary_loss,
+            )
+
+            if cfg.wandb_config.wandb_log and master_process:
+                wandb_init(cfg=cfg)
+
+            with torch.no_grad():
+                trainer.train()
+
+    if is_ddp:
+        destroy_process_group()
 
 
 if __name__ == "__main__":
-    with torch.no_grad():
-        main()
+    # Note: no global torch.no_grad() here — the lora_grad path inside main()
+    # must NOT have no_grad active around trainer.train() for gradient flow.
+    # The namm_es path applies its own no_grad context internally.
+    main()

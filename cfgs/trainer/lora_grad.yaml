@@ -1,0 +1,44 @@
+defaults:
+  - _self_
+
+# Trainer type routing key — read by main.py to select LoRAGradTrainer path
+trainer_type: lora_grad
+
+# Method identifier for artifact directory naming (results/{lora_method}/{seed}/)
+lora_method: lora_grad
+
+# HF cache directory (cluster persistent path)
+cache_dir: /cs/student/project_msc/2025/csml/gmaralla/.hf_cache
+
+# LoRA adapter config
+lora_rank: 8
+lora_target_modules:
+  - q_proj
+  - v_proj
+
+# Training hyperparameters (LOCKED from CONTEXT.md)
+lora_lr: 2.0e-4
+lora_weight_decay: 0.01
+lora_max_grad_norm: 1.0
+lora_batch_size: 1
+lora_gradient_accumulation_steps: 16
+lora_warmup_ratio: 0.03
+lora_num_epochs: 3
+lora_max_seq_len: 3500
+
+# NAMM-active flag (false for m1/m3; true for m4-frozen)
+lora_namm_active: false
+
+# Task selection (TRAIN-01 — supports subset for EXP-06)
+lora_task_names:
+  - qasper
+  - narrativeqa
+  - passage_retrieval_en
+
+# wandb group for all gradient-lora-study conditions (FAIR-02)
+wandb_group_name: Llama-3.2-1B/grad-lora-study
+wandb_project: memory_evolution_hf
+
+# Logging intervals
+log_interval: 10
+eval_interval: 100
