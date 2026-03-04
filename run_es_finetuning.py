@@ -184,11 +184,35 @@ def main():
         (memory_policy, memory_model, memory_evaluator,
          evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
 
+    # Move model to GPU
+    memory_model.cuda()
+
     # 2. Optionally load pre-trained NAMM scoring network weights
     if args.namm_checkpoint:
         print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
-        namm_state = torch.load(args.namm_checkpoint, map_location="cpu")
-        memory_policy.load_state_dict(namm_state, strict=False)
+        ckpt = torch.load(args.namm_checkpoint, map_location="cpu",
+                          weights_only=False)
+        evo_state = ckpt['evolution_state']
+
+        # Extract best_member (flat param vector for NAMM scoring network)
+        best_member = evo_state['best_member']
+        params = best_member.unsqueeze(0).to('cuda')
+        memory_model.set_memory_params(params)
+
+        # Load stored normalization buffers (EMA mean/var for embeddings)
+        buffers_prefix = 'stored_buffers_to_save.'
+        buffers_dict = {
+            k[len(buffers_prefix):]: v.to('cuda')
+            for k, v in evo_state.items()
+            if k.startswith(buffers_prefix)
+        }
+        if buffers_dict:
+            memory_model.load_buffers_dict(buffers_dict=buffers_dict)
+            print(f"  Loaded {len(buffers_dict)} normalization buffers")
+
+        print(f"  Loaded NAMM best_member ({best_member.shape[0]} params) "
+              f"from iter {ckpt.get('iter_num', '?')}, "
+              f"best_val={ckpt.get('best_val_loss', '?')}")
 
     # Set NAMM to use fixed params (index 0) for all evals
     batch_idxs = np.zeros([1])

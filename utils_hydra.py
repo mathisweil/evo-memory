@@ -30,6 +30,16 @@ class LlamaCompatModel:
         import os
         from transformers import LlamaConfig
 
+        # Resolve relative paths from the original working directory
+        # (Hydra changes cwd to the output dir at runtime)
+        if not os.path.isabs(pretrained_model_name_or_path):
+            try:
+                from hydra.utils import get_original_cwd
+                pretrained_model_name_or_path = os.path.join(
+                    get_original_cwd(), pretrained_model_name_or_path)
+            except ValueError:
+                pass  # Not running under Hydra, relative path is fine
+
         config_file = os.path.join(pretrained_model_name_or_path, 'config.json')
         with open(config_file) as f:
             cfg = json.load(f)

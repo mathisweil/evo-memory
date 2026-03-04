@@ -29,3 +29,6 @@ build/
 
 # Hydra outputs
 multirun/
+
+# HF model cache (symlinked)
+.hf_cache/
