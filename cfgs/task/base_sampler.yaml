@@ -1,5 +1,5 @@
 task_sampler:
-  _target_: task_sampler.TaskSampler
+  _target_: namm.tasks.TaskSampler
   tasks: ${tasks}
   metrics: ${metrics}
   training_tasks_subset: ${training_tasks_subset}

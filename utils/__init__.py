@@ -26,5 +26,5 @@ from utils.helpers import (
 
 # Note: utils.hydra_helpers and utils.longbench are NOT imported here to
 # avoid circular imports (hydra_helpers imports from main which imports
-# from memory_trainer which imports from utils). Hydra _target_ references
+# from namm.trainer which imports from utils). Hydra _target_ references
 # use the full path e.g. utils.hydra_helpers.LlamaCompatModel.

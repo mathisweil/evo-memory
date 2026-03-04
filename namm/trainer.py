@@ -13,13 +13,13 @@ import wandb
 import torch.distributed as dist
 from utils import aggregate_score_dict
 
-from task_sampler import TaskSampler
+from namm.tasks import TaskSampler
 from namm.evolution import MemoryEvolution
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
 from namm.llms import MemoryModelWrapper
 
-from memory_evaluator import MemoryHFEvaluator
+from namm.evaluator import MemoryHFEvaluator
 from namm.policy import ParamMemoryPolicy, MemoryPolicyAuxiliaryLoss
 from utils import (
     COLOR, convert_to_dict_of_lists, pop_stats_from_dict_of_lists,
