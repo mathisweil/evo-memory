@@ -24,7 +24,7 @@ from .base_dynamic import (
 from  .base_deep_components import (
     ScoringNetwork, TokenEmbedding, SelectionNetwork, wrap_torch_initializer,
     ComponentOutputParams)
-from stateless_parallel_modules import StatelessGeneralizedMLP
+from namm.modules import StatelessGeneralizedMLP
 
 
 def make_scaled_one_hot_init(

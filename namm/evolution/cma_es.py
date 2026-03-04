@@ -2,7 +2,7 @@ import typing as tp
 from abc import ABC, abstractmethod
 import torch
 import torch.nn as nn
-from memory_evolution.base import MemoryEvolution
+from namm.evolution.base import MemoryEvolution
 from omegaconf import OmegaConf, DictConfig
 import hydra
 import numpy as np

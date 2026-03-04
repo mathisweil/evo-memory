@@ -28,7 +28,7 @@ from  .base_deep_components import (
 
 from .deep_embedding_shared import Embedding, PositionalEmbedding
 
-from stateless_parallel_modules import StatelessGeneralizedMLP
+from namm.modules import StatelessGeneralizedMLP
 
 def convert_to_tensor(
         el: Union[List[float], np.ndarray, torch.Tensor],

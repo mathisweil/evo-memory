@@ -13,7 +13,7 @@ pretrained_llm:
   max_position_embeddings: 4096
 
 memory_model:
-  _target_: memory_llms.llama.WrappedLlamaForCausalLM
+  _target_: namm.llms.llama.WrappedLlamaForCausalLM
   model: ${pretrained_llm}
   memory_policy: ${memory_policy}
   max_new_tokens: ${max_new_tokens}

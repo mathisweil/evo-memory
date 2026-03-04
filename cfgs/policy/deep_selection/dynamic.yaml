@@ -1,7 +1,7 @@
 selection_criteria: ${dynamic_selection}
 
 dynamic_selection:
-  _target_: memory_policy.DynamicSelection
+  _target_: namm.policy.DynamicSelection
   per_layer: ${per_layer}
   per_head: ${per_head}
   shared: ${selection_shared}

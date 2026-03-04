@@ -1,5 +1,5 @@
 attn_spectrogram:
-  _target_: memory_policy.AttentionSpectrogram
+  _target_: namm.policy.AttentionSpectrogram
   per_layer: ${per_layer}
   per_head: ${per_head}
   shared: ${embedding_shared}
@@ -7,7 +7,7 @@ attn_spectrogram:
   stft_params: ${stft_params}
 
 embedding_output_params:
-  _target_: memory_policy.ComponentOutputParams
+  _target_: namm.policy.ComponentOutputParams
   requires_recomputation: ${embedding_requires_recomputation}
   reduction_mode: ${embedding_reduction_mode}
   ema_params: ${embedding_ema_params}
@@ -15,13 +15,13 @@ embedding_output_params:
   max_non_reduced_history_len: ${embedding_max_non_reduced_history_len}
 
 embedding_ema_params:
-  _target_: memory_policy.EMAParams
+  _target_: namm.policy.EMAParams
   coeff: ${embedding_ema_coeff}
   learned: ${embedding_reduction_learned}
   reduction_stride: ${hop_length}
 
 stft_params:
-  _target_: memory_policy.STFTParams
+  _target_: namm.policy.STFTParams
   n_fft: ${n_fft}
   hop_length: ${hop_length}
   window_fn: ${window_fn}
@@ -44,7 +44,7 @@ embedding_max_non_reduced_history_len:
 n_fft: 32
 hop_length: 16
 window_fn:
-  _target_: memory_policy.fft_avg_mask
+  _target_: namm.policy.fft_avg_mask
   window_length: ${n_fft}
 pad_mode: constant
 output_magnitudes: true

@@ -1,5 +1,5 @@
 memory_policy:
-  _target_: memory_policy.Recency
+  _target_: namm.policy.Recency
   cache_size: ${cache_size}
 
 cache_size: null
