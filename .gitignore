@@ -1,4 +1,5 @@
 # Experiment outputs and checkpoints
+experiments/
 exp_local/
 exp/
 outputs/
@@ -33,5 +34,5 @@ multirun/
 # HF model cache (symlinked)
 .hf_cache/
 
-# ES smoke test outputs
+# ES smoke test outputs (legacy, now under experiments/)
 es_smoke_test*/

@@ -17,7 +17,7 @@ wandb_config:
   wandb_group_name: ${wandb_group_name}
 
 
-out_folder: ./exp_local
+out_folder: ./experiments
 out_dir: '${out_folder}/${wandb_project}/${wandb_group_name}/${wandb_run_name}/${seed}'
 
 # wandb logging

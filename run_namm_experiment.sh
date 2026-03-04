@@ -7,18 +7,13 @@
 #   bash run_namm_experiment.sh
 #
 # Then detach with Ctrl+b d. Reattach with: tmux attach -t namm
-# Results land in: ./exp_local/memory_evolution_hf/
+# Results land in: ./experiments/memory_evolution_hf/
 # =============================================================================
 
 set -euo pipefail
 
-CONDA_SH="/cs/student/project_msc/2025/csml/gmaralla/miniconda3/etc/profile.d/conda.sh"
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-source "${CONDA_SH}"
-conda activate th2
-export HF_HOME="/cs/student/project_msc/2025/csml/gmaralla/.hf_cache"
-cd "${REPO_DIR}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/activate.sh"
 
 echo '============================================================'
 echo ' NAMM Training — LLaMA 3.2-1B, Stage 1 (qasper)'
@@ -33,13 +28,13 @@ echo '============================================================'
 echo ' Training complete!'
 echo '============================================================'
 echo ''
-echo 'Checkpoints are in: ./exp_local/memory_evolution_hf/'
+echo 'Checkpoints are in: ./experiments/memory_evolution_hf/'
 echo 'Find the best checkpoint (ckpt.pt) and run evaluation:'
 echo ''
 echo '  # NAMM eval (pass your checkpoint path):'
 echo '  torchrun --standalone --nproc_per_node=1 main.py \'
 echo '      run@_global_=namm_bam_eval_llama32_1b.yaml \'
-echo "      init_from='./exp_local/.../ckpt.pt'"
+echo "      init_from='./experiments/.../ckpt.pt'"
 echo ''
 echo '  # Recency baseline eval (no checkpoint needed):'
 echo '  torchrun --standalone --nproc_per_node=1 main.py \'
