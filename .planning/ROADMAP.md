@@ -86,9 +86,9 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Write `cfgs/run/m1_lora_only.yaml` (FAIR-01 token budget anchor) and complete `run_eval.py` stubs with `initialize_cfg` + `make_eval_model` + `task_sampler.evaluate` wiring (PIPE-02, FAIR-01)
-- [ ] 04-02-PLAN.md — Write `cfgs/run/m4_frozen.yaml` (cache_size=128, pop_size=8, absolute NAMM ckpt path) and add per-layer retention logging to `LoRAGradTrainer._train_step` via `_last_retention_dict` (PIPE-04, ANLYS-01)
-- [ ] 04-03-PLAN.md — GPU: run m1 training on sideswipe/prowl; checkpoint inspector; eval on all three tasks; verify artifact set in results/m1/1337/ (EXP-01)
+- [x] 04-01-PLAN.md — Write `cfgs/run/m1_lora_only.yaml` (FAIR-01 token budget anchor) and complete `run_eval.py` stubs with `initialize_cfg` + `make_eval_model` + `task_sampler.evaluate` wiring (PIPE-02, FAIR-01) [2026-03-04]
+- [x] 04-02-PLAN.md — Write `cfgs/run/m4_frozen.yaml` (cache_size=128, pop_size=8, absolute NAMM ckpt path) and add per-layer retention logging to `LoRAGradTrainer._train_step` via `_last_retention_dict` (PIPE-04, ANLYS-01) [2026-03-04]
+- [ ] 04-03-PLAN.md — GPU: run m1 training on sideswipe/prowl; checkpoint inspector; eval on all three tasks; verify artifact set in results/m1/1337/ (EXP-01) [AWAITING GPU]
 - [ ] 04-04-PLAN.md — GPU: run m4-frozen training; verify retention/layer_i < 1.0 in wandb; checkpoint inspector; eval on all three tasks; verify artifact set in results/m4_frozen/1337/ (EXP-03)
 
 ### Phase 5: m4-iterative Run
@@ -164,7 +164,7 @@ Note: Phase 5 (m4-iterative) depends on Phase 4 (m4-frozen validated) — must n
 | 1. Branch Setup | v1.0 | 1/1 | Complete | 2026-03-02 |
 | 2. LoRA Seam + Correctness Gate | v1.0 | 3/3 | Complete (GPU test pending) | 2026-03-02 |
 | 3. Gradient Training Loop | 4/4 | Complete   | 2026-03-04 | 2026-03-04 |
-| 4. m1 + m4-frozen Runs | v2.0 | 0/4 | Planned 2026-03-04 | - |
+| 4. m1 + m4-frozen Runs | 2/4 | In Progress (awaiting GPU run) |  | - |
 | 5. m4-iterative Run | v2.0 | 0/3 | Not started | - |
 | 6. Analysis Metrics + m3 Run | v2.0 | 0/4 | Not started | - |
 | 7. Secondary Experiments | v2.0 | 0/4 | Not started | - |

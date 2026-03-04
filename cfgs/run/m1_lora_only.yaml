@@ -7,6 +7,7 @@
 defaults:
   - override /trainer@_global_: lora_grad
   - override /model/wrapped_llm@_global_: llama32-1b
+  - override /policy@_global_: none
   - _self_
 
 trainer_type: lora_grad
