@@ -7,14 +7,14 @@
 # Works from any shell (bash, zsh, csh, tcsh — doesn't matter).
 #
 # Auto-detect first GPU:
-#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh
+#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/scripts/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh
 #
 # Pin to a specific GPU (e.g. GPU 2 on a multi-GPU machine):
-#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh --gpu 2
+#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/scripts/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh --gpu 2
 #
 # Or if you've already cloned the repo:
-#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM/evo-memory/setup.sh
-#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM/evo-memory/setup.sh --gpu 2
+#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM/evo-memory/scripts/setup.sh
+#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM/evo-memory/scripts/setup.sh --gpu 2
 
 set -euo pipefail
 
@@ -36,4 +36,4 @@ else
 fi
 
 # Now run the real setup.sh from the local clone (never stale)
-exec bash "${REPO_DIR}/setup.sh" "$@"
+exec bash "${REPO_DIR}/scripts/setup.sh" "$@"
