@@ -163,6 +163,10 @@ class LoRAGradTrainer:
         embed_layer.register_forward_hook(make_inputs_require_grad)
         print("LoRAGradTrainer: PEFT embedding forward hook registered.")
 
+        # --- ANLYS-01: per-layer retention dict (populated in _train_step) ---
+        # Non-empty only when namm_active=True; m1 training path is unaffected.
+        self._last_retention_dict = {}
+
         # --- Build dataset and DataLoader ---
         dataset = LongBenchNTPDataset(
             task_names=cfg.task_names,
@@ -266,6 +270,39 @@ class LoRAGradTrainer:
 
         loss = outputs.loss / cfg.gradient_accumulation_steps
         loss.backward()
+
+        # ANLYS-01: per-layer token retention logging for NAMM-active training.
+        # CONFIRMED: outputs.past_key_values is POST-eviction — memory_policy.update_cache()
+        # reassigns outputs.past_key_values before return (llama.py lines 501-509).
+        # Each layer_kv[0] has shape [batch, n_heads, seq_len_post_eviction, head_dim].
+        # retention_rate = seq_len_post_eviction / n_input  (0.0 to 1.0).
+        # This dict is read by train() at log_interval to push to wandb.
+        self._last_retention_dict = {}
+        if cfg.namm_active and hasattr(outputs, 'past_key_values') \
+                and outputs.past_key_values is not None:
+            n_input = input_ids.shape[1]
+            if n_input > 0:
+                for layer_i, layer_kv in enumerate(outputs.past_key_values):
+                    if layer_kv is not None and layer_kv[0] is not None:
+                        # layer_kv[0]: key cache [batch, n_heads, seq_len_post_eviction, head_dim]
+                        n_retained = layer_kv[0].shape[-2]
+                        self._last_retention_dict[f'retention/layer_{layer_i}'] = (
+                            n_retained / n_input
+                        )
+                # Runtime guard: warn if all retention values are >= 1.0.
+                # If outputs.past_key_values were pre-eviction (a bug), all values equal 1.0.
+                # This guard catches that pre/post-eviction confusion early so it does not
+                # silently corrupt all ANLYS-01 data for the entire run.
+                if self._last_retention_dict and all(
+                        v >= 1.0 for v in self._last_retention_dict.values()):
+                    import warnings
+                    warnings.warn(
+                        "ANLYS-01 WARNING: all retention/layer_i values are >= 1.0. "
+                        "NAMM may not be evicting tokens (check apply_memory_policy=True "
+                        "and that cache_size < sequence length). "
+                        "Expected post-eviction KV cache from memory_policy.update_cache().",
+                        stacklevel=2,
+                    )
 
         # Return unscaled loss for logging and the updated KV cache
         return loss.item() * cfg.gradient_accumulation_steps, getattr(outputs, 'past_key_values', None)
@@ -492,6 +529,10 @@ class LoRAGradTrainer:
                                 'train/lr': current_lr,
                                 'train/step': global_step,
                             }, step=global_step)
+                            # Log per-layer retention rates (ANLYS-01).
+                            # Non-empty only for namm_active=True; m1 training is unaffected.
+                            if self._last_retention_dict:
+                                wandb.log(self._last_retention_dict, step=global_step)
 
                         if self._metrics_csv_path is not None:
                             self._append_metrics(
