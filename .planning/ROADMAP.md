@@ -69,7 +69,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Write `lora_ntp_dataset.py` with `LongBenchNTPDataset` — wraps HF LongBench splits into teacher-forced (input_ids, labels) pairs with left-truncation to max_seq_len and pad-collate (TRAIN-01)
+- [x] 03-01-PLAN.md — Write `lora_ntp_dataset.py` with `LongBenchNTPDataset` — wraps HF LongBench splits into teacher-forced (input_ids, labels) pairs with left-truncation to max_seq_len and pad-collate (TRAIN-01) [2026-03-04]
 - [ ] 03-02-PLAN.md — Write `lora_grad_trainer.py` with `LoRAGradTrainer` — AdamW, cosine LR with warmup, gradient clipping, gradient accumulation, NTP loss, wandb logging; PEFT gradient fix forward hook; checkpoint I/O with AdamW state; NAMM-active mode; artifact contract (TRAIN-02, TRAIN-03, TRAIN-05, TRAIN-06, ARTIFACT-01)
 - [ ] 03-03-PLAN.md — Write `tests/test_lora_grad_trainer.py` with 6 pytest tests: loss.requires_grad, LoRA grad non-None, base grad None, float32 dtype, AdamW state saved/loaded, NAMM-active LoRA grads (TRAIN-04, TRAIN-05, TRAIN-06)
 - [ ] 03-04-PLAN.md — Add `trainer_type` dispatch to `main.py`; create `cfgs/trainer/lora_grad.yaml` with locked hyperparameters; write `run_eval.py` skeleton enforcing shared eval protocol (PIPE-01, FAIR-02)
@@ -163,7 +163,7 @@ Note: Phase 5 (m4-iterative) depends on Phase 4 (m4-frozen validated) — must n
 |-------|-----------|----------------|--------|-----------|
 | 1. Branch Setup | v1.0 | 1/1 | Complete | 2026-03-02 |
 | 2. LoRA Seam + Correctness Gate | v1.0 | 3/3 | Complete (GPU test pending) | 2026-03-02 |
-| 3. Gradient Training Loop | v2.0 | 0/4 | Planned | - |
+| 3. Gradient Training Loop | v2.0 | 1/4 | In progress | - |
 | 4. m1 + m4-frozen Runs | v2.0 | 0/4 | Not started | - |
 | 5. m4-iterative Run | v2.0 | 0/3 | Not started | - |
 | 6. Analysis Metrics + m3 Run | v2.0 | 0/4 | Not started | - |
