@@ -12,7 +12,7 @@ through this script to guarantee:
 Usage:
   python run_eval.py --ckpt <path/to/ckpt.pt> --method <m1|m2|m3|m4_frozen|m4_iterative> --seed <int>
 
-Do NOT add per-condition branching to this file. If a condition needs
+Do NOT add per-condition branching to run_eval(). If a condition needs
 different eval behavior, fix the checkpoint or model, not this script.
 """
 import argparse
@@ -44,37 +44,148 @@ def parse_args():
     return p.parse_args()
 
 
-def load_model_from_ckpt(ckpt_path: str, device: str):
+def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir: str):
     """
     Load model from checkpoint. Handles both lora_grad and namm_es checkpoint types.
 
-    Phase 3 skeleton — full implementation in Phase 4.
-    # TODO (Phase 4): instantiate WrappedLlamaForCausalLM, apply LoRA if lora_grad,
-    #   load weights via _load_ckpt, instantiate MemoryHFEvaluator for eval loop.
+    Strategy:
+      - Read saved trainer config from artifact_dir/config.yaml to get init_from,
+        lora_rank, lora_target_modules.
+      - Select Hydra run config based on method:
+          m1          -> full_cache_baseline_llama32_1b (no NAMM, full KV cache)
+          m4_frozen   -> namm_bam_eval_llama32_1b  (BAM policy, NAMM architecture)
+          m2, m3      -> namm_bam_eval_llama32_1b  (NAMM architecture)
+          fallback    -> full_cache_baseline_llama32_1b
+      - Call initialize_cfg + make_eval_model to reconstruct the model.
+      - Apply LoRA adapters and load LoRA weights from ckpt_path.
+
+    Returns:
+        (model, tokenizer, evaluator, task_sampler)
     """
-    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
-    trainer_type = ckpt.get('trainer_type', 'namm_es')
-    print(f"Checkpoint trainer_type: {trainer_type}")
-    raise NotImplementedError("load_model_from_ckpt: full implementation in Phase 4")
+    # --- Lazy imports to keep 'python run_eval.py --help' fast and import-safe ---
+    import yaml
+    from hydra.core.global_hydra import GlobalHydra
+    from utils_hydra import initialize_cfg
+    from main import make_eval_model, make_task_sampler
+
+    # 1. Read saved trainer config from artifact_dir/config.yaml
+    config_yaml_path = os.path.join(artifact_dir, 'config.yaml')
+    saved_cfg = {}
+    if os.path.exists(config_yaml_path):
+        with open(config_yaml_path, 'r') as f:
+            saved_cfg = yaml.safe_load(f) or {}
+    else:
+        print(f"WARNING: {config_yaml_path} not found. Using defaults for LoRA config.")
+
+    namm_ckpt_path = saved_cfg.get('init_from', None)
+    lora_rank = saved_cfg.get('lora_rank', 8)
+    lora_target_modules = saved_cfg.get('lora_target_modules', ['q_proj', 'v_proj'])
+
+    # 2. Guard for m4_frozen: init_from must be non-None
+    #    LoRAGradTrainer.train() serialises LoRATrainerConfig via dataclasses.asdict()
+    #    and writes it to config.yaml via _write_artifact_contract, so init_from is
+    #    always present. None here means the checkpoint was trained without a NAMM base.
+    if method == 'm4_frozen':
+        assert namm_ckpt_path is not None, (
+            f"m4_frozen eval requires init_from in {artifact_dir}/config.yaml "
+            f"but it was None. Check that _write_artifact_contract serialized "
+            f"LoRATrainerConfig.init_from correctly."
+        )
+
+    # 3. Select Hydra run config based on method
+    if method in ('m4_frozen', 'm2', 'm3'):
+        run_cfg_name = 'namm_bam_eval_llama32_1b'
+    else:
+        # m1, m4_iterative (no NAMM during eval), and any future methods
+        run_cfg_name = 'full_cache_baseline_llama32_1b'
+
+    # 4. Build Hydra overrides
+    hydra_overrides = [
+        f'run@_global_={run_cfg_name}',
+        f'wandb_log=false',       # eval script manages wandb independently
+        f'eval_only=true',
+    ]
+    if method in ('m4_frozen', 'm2', 'm3') and namm_ckpt_path is not None:
+        hydra_overrides.append(f'init_from={namm_ckpt_path}')
+
+    # 5. Initialize Hydra config (handle singleton — can only call initialize once/process)
+    GlobalHydra.instance().clear()
+    cfg = initialize_cfg('cfgs', hydra_overrides=hydra_overrides)
+
+    # 6. Build model, evaluator, task_sampler via the standard make_eval_model path
+    (memory_policy, model, evaluator, evo_alg, aux_loss) = make_eval_model(cfg)
+    task_sampler = make_task_sampler(cfg)
+
+    # Retrieve tokenizer from evaluator (MemoryHFEvaluator stores it)
+    tokenizer = evaluator.tokenizer if hasattr(evaluator, 'tokenizer') else None
+
+    # 7. Apply LoRA adapters and load LoRA weights for lora_grad conditions
+    lora_conditions = ('m1', 'm2', 'm3', 'm4_frozen', 'm4_iterative')
+    if method in lora_conditions:
+        # apply_lora_adapters injects PEFT LoRA A/B matrices into the base model
+        model.apply_lora_adapters(
+            rank=lora_rank,
+            target_modules=lora_target_modules,
+        )
+        # Load LoRA weights from the checkpoint
+        lora_ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
+        if 'lora_state_dict' in lora_ckpt:
+            loaded = 0
+            for n, p in model.model.named_parameters():
+                if p.requires_grad and n in lora_ckpt['lora_state_dict']:
+                    p.data.copy_(lora_ckpt['lora_state_dict'][n])
+                    loaded += 1
+            print(f"Loaded LoRA weights: {loaded} tensors from {ckpt_path}")
+        else:
+            print(f"WARNING: no 'lora_state_dict' in checkpoint {ckpt_path}. "
+                  f"Available keys: {list(lora_ckpt.keys())}")
+
+    # 8. Move model to device
+    model.to(device)
+
+    return model, tokenizer, evaluator, task_sampler
 
 
-def run_eval(model, tokenizer, evaluator, artifact_dir: str):
+def run_eval(model, tokenizer, evaluator, task_sampler, artifact_dir: str):
     """
     Run LongBench evaluation on all EVAL_TASKS using shared MemoryHFEvaluator.
 
     No per-condition branching here — same evaluator, same tasks, same metrics.
+    task_sampler already knows which tasks to evaluate (lb_3subset_eval config).
 
-    Phase 3 skeleton — full implementation in Phase 4.
-    # TODO (Phase 4): replace placeholder loop with real MemoryHFEvaluator calls:
-    #   from memory_evaluator import MemoryHFEvaluator
-    #   for task, metric in zip(EVAL_TASKS, EVAL_METRICS):
-    #       score = evaluator.evaluate(task)
-    #       results[task] = score
+    Returns:
+        results: dict mapping task name (no 'lb/' prefix) -> float score
     """
+    # Set model to eval mode before running inference
+    model.eval()
+
+    # Run full evaluation over all tasks in the task_sampler's test split.
+    # task_sampler.evaluate() calls evaluate_lb_tasks_for_pop internally,
+    # which calls evaluator.evaluate_lb() for each task.
+    score_dicts = task_sampler.evaluate(
+        lm=evaluator,
+        train=False,
+        evolved_model=False,
+    )
+
+    # score_dicts is a list of dicts (one per pop_rep); we use index 0 (pop_size=1 for eval).
+    # Keys are 'lb/{task}' e.g. 'lb/qasper'.
+    raw = score_dicts[0] if len(score_dicts) > 0 else {}
+
     results = {}
-    for task, metric in zip(EVAL_TASKS, EVAL_METRICS):
-        print(f"Evaluating: {task} (metric: {metric})")
-        results[task] = None   # placeholder — Phase 4 fills this in
+    for task in EVAL_TASKS:
+        score = raw.get(f'lb/{task}', None)
+        results[task] = score
+        print(f"  {task}: {score}")
+
+    # Save per-task score files to artifact_dir/eval_outputs/
+    eval_dir = os.path.join(artifact_dir, 'eval_outputs')
+    os.makedirs(eval_dir, exist_ok=True)
+    for task, score in results.items():
+        score_file = os.path.join(eval_dir, f'{task}_score.txt')
+        with open(score_file, 'w') as f:
+            f.write(str(score) if score is not None else 'None')
+
     return results
 
 
@@ -86,7 +197,10 @@ def log_results(results: dict, method: str, seed: int, artifact_dir: str):
     # Save eval_outputs to artifact_dir
     eval_dir = os.path.join(artifact_dir, 'eval_outputs')
     os.makedirs(eval_dir, exist_ok=True)
-    # TODO (Phase 4): write per-task score files
+    for task, score in results.items():
+        score_file = os.path.join(eval_dir, f'{task}_score.txt')
+        with open(score_file, 'w') as f:
+            f.write(str(score) if score is not None else 'None')
 
 
 def main():
@@ -108,8 +222,26 @@ def main():
             config={'method': args.method, 'seed': args.seed, 'ckpt': args.ckpt},
         )
 
-    # TODO (Phase 4): implement load_model_from_ckpt and run_eval
-    print("run_eval.py skeleton ready (Phase 3). Full implementation in Phase 4.")
+    # Load model, tokenizer, evaluator, and task_sampler from checkpoint
+    model, tokenizer, evaluator, task_sampler = load_model_from_ckpt(
+        ckpt_path=args.ckpt,
+        device=args.device,
+        method=args.method,
+        artifact_dir=artifact_dir,
+    )
+
+    # Run evaluation on all EVAL_TASKS
+    results = run_eval(model, tokenizer, evaluator, task_sampler, artifact_dir)
+
+    # Log to wandb and write score files
+    log_results(results, args.method, args.seed, artifact_dir)
+
+    print(f"\n=== Eval complete | method={args.method} seed={args.seed} ===")
+    for task, score in results.items():
+        print(f"  {task}: {score}")
+
+    if not args.no_wandb and wandb.run is not None:
+        wandb.finish()
 
 
 if __name__ == '__main__':
