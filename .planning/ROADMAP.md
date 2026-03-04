@@ -1,29 +1,14 @@
 # Roadmap: Joint NAMM + LoRA-ES Training
 
-## Overview
+## Milestones
 
-Starting from a working LLaMA 3.2-1B NAMM CMA-ES trainer, this roadmap extends the system to jointly evolve LoRA adapter weights alongside the NAMM memory policy using Evolution Strategies. The work proceeds bottom-up: git branch first, then a correctness-gated LoRA seam, then ES algorithm implementations, then Mode B training, then diagnostic observability, then evaluation infrastructure, then the ablation and transferability experiments that constitute the scientific contribution. Every phase delivers a verifiable capability; no phase begins before its predecessor's unit tests pass.
+- [x] **v1.0 Branch + LoRA Seam** - Phases 1-2 (complete 2026-03-02)
+- [ ] **v2.0 NAMM + Gradient LoRA Study** - Phases 3-8 (in progress)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [x] **Phase 1: Branch Setup** - Create the working branch and verify the baseline NAMM trainer runs on it
-- [x] **Phase 2: LoRA Seam + Correctness Gate** - Inject PEFT LoRA into LLaMA, add flat-vector extract/inject, extend checkpoints, and lock correctness with unit tests (GPU test run pending)
-- [ ] **Phase 3: OpenES Implementation** - Build the LoRA_ES class (OpenES with antithetic sampling) and Hydra variant selector
-- [ ] **Phase 4: EggRoll Implementation** - Build the LoRA_EggRoll class (structured rank-r noise variant, PyTorch rewrite)
-- [ ] **Phase 5: Mode B Training Loop** - Extend _train_step for joint NAMM+LoRA Mode B and lora_only ablation mode with run configs
-- [ ] **Phase 6: Diagnostic Logging** - Add per-component wandb metrics for observability: param counts, L2 norms, fitness correlations, diversity, sigma
-- [ ] **Phase 7: Evaluation Harness Extension** - Extend evaluator to load joint checkpoints, multi-task eval config, zero-shot baseline
-- [ ] **Phase 8: Baseline Ablation Runs** - Execute and record NAMM-only, LoRA-only, and joint Mode B training runs on QASPER with both ES variants
-- [ ] **Phase 9: Task Transferability Experiments** - Train on one task, evaluate on all three; collect transferability matrix
-- [ ] **Phase 10: Analysis and Synthesis** - Interpret diagnostic logs, compare conditions, document findings, produce paper-ready result tables
-
-## Phase Details
+<details>
+<summary>v1.0 Branch + LoRA Seam (Phases 1-2) - COMPLETE 2026-03-02</summary>
 
 ### Phase 1: Branch Setup
 **Goal**: The working branch exists, the existing NAMM trainer runs cleanly on it, and there is a verified starting point for all subsequent work.
@@ -54,152 +39,133 @@ Plans:
 - [x] 02-02-PLAN.md — Extend _save_ckpt / _load_ckpt with LoRA state dict, config, joint_es_mode; graceful fallback for NAMM-only checkpoints (LORA-03) [2026-03-02]
 - [x] 02-03-PLAN.md — Write tests/test_lora_seam.py with 6 pytest tests covering all LORA-04 assertions; requires GPU on sideswipe/prowl (LORA-04) [2026-03-02]
 
-### Phase 3: OpenES Implementation
-**Goal**: The `LoRA_ES` class implements OpenES with antithetic sampling against the flat-vector seam, is configurable via Hydra, and the variant selector key (`lora_es_variant=openES`) routes to it correctly.
+</details>
+
+---
+
+### v2.0 NAMM + Gradient LoRA Study (In Progress)
+
+**Milestone Goal:** Implement gradient-based LoRA finetuning alongside NAMM CMA-ES training, run all four main conditions (m1, m3, m4-frozen, m4-iterative) and secondary experiments, collect analysis metrics across all conditions, and produce a comparison table with multi-seed error bars that answers whether NAMM's presence during finetuning matters.
+
+- [ ] **Phase 3: Gradient Training Loop** - Build LoRAGradTrainer, LongBenchNTPDataset, and artifact/eval infrastructure; gate with gradient-flow unit test; bake in FAIR-02 and ARTIFACT-01 from the start
+- [ ] **Phase 4: m1 + m4-frozen Runs** - Run and validate LoRA-only (m1) and NAMM-active LoRA (m4-frozen) on QASPER; enforce FAIR-01 token budget; collect token retention metrics; produce anchor checkpoints
+- [ ] **Phase 5: m4-iterative Run** - Build interleaving orchestration controller; run alternating NAMM CMA-ES and LoRA gradient training; validate after m4-frozen is confirmed working
+- [ ] **Phase 6: Analysis Metrics + m3 Run** - Add post-hoc attention entropy script; run m3 two-stage pipeline using m1 checkpoint; produce four-condition comparison table
+- [ ] **Phase 7: Secondary Experiments** - Run E2 (cache sweep), E3 (dataset variation), E4 (NAMM deactivation), E5 (general-text NTP) as config-driven variations
+- [ ] **Phase 8: Multi-seed Reproduction** - Rerun all four main conditions (m1, m3, m4-frozen, m4-iterative) with 2-3 seeds; export final comparison table with error bars
+
+## Phase Details
+
+### Phase 3: Gradient Training Loop
+**Goal**: A standalone `LoRAGradTrainer` class and `LongBenchNTPDataset` exist with the correct artifact contract (ARTIFACT-01) and eval protocol (FAIR-02) baked in from the start; a 10-step smoke test confirms loss decreases and LoRA parameters have non-zero gradients; `main.py` routes to the trainer via Hydra config.
 **Depends on**: Phase 2
-**Requirements**: ES-01, ES-04
+**Requirements**: TRAIN-01, TRAIN-02, TRAIN-03, TRAIN-04, TRAIN-05, TRAIN-06, PIPE-01, FAIR-02, ARTIFACT-01
 **Success Criteria** (what must be TRUE):
-  1. Calling `lora_es.ask()` returns a population matrix of shape `[pop_size, lora_dim]` where adjacent pairs are antithetic (`row[2i] + row[2i+1] ≈ 2 * mean` within float32 tolerance)
-  2. Calling `lora_es.tell(fitness)` updates the internal mean in the direction predicted by z-score-normalized fitness-weighted perturbations, verified by a unit test on a 2D quadratic fitness landscape where the mean moves toward the optimum after 10 steps
-  3. `lora_es_variant: openES` in a Hydra config instantiates `LoRA_ES` (not `LoRA_EggRoll`); confirmed by checking the class name in the instantiated object's `__class__.__name__`
-  4. The `cfgs/evolution/lora_es.yaml` config file exists and contains `sigma`, `pop_size`, and `lora_es_variant` keys with documented defaults
-**Plans**: TBD
+  1. Running a 10-step smoke test on the `LongBenchNTPDataset` with `LoRAGradTrainer` shows monotonically decreasing NTP loss over the 10 steps and `assert loss.requires_grad` passes after the first forward pass
+  2. After the first backward pass, `all(p.grad is not None for p in lora_params)` is True; base model parameters have `grad is None` (frozen base confirmed); `all(p.dtype == torch.float32 for p in lora_params)` passes (no AMP downcast)
+  3. A checkpoint saved by `LoRAGradTrainer` contains the AdamW optimizer state dict alongside the LoRA state dict; loading it into a fresh `LoRAGradTrainer` resumes without error (TRAIN-05)
+  4. Setting `trainer_type: namm_es` routes to `MemoryTrainer`; setting `trainer_type: lora_grad` routes to `LoRAGradTrainer` — confirmed by the class name printed at run start; every run writes its artifacts into `results/{method}/{seed}/` with checkpoint, config YAML, metrics CSV, wandb run ID, and eval outputs present (ARTIFACT-01)
+  5. All conditions share the same eval code path and wandb group (`Llama-3.2-1B/grad-lora-study`); a single `run_eval.py` entry point handles all conditions without per-condition branching (FAIR-02)
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: Copy `utils/worker_extn.py` (seeded noise + ES update math) from `shr1ram/es-fine-tuning-paper` (warming-up branch) into `memory_evolution/`; adapt parameter access from vLLM to standard `model.named_parameters()`
-- [ ] 03-02: Build `LoRA_ES` class in `memory_evolution/lora_es.py` wrapping the ported update math; add antithetic pairs on top (+σε / −σε per seed); expose `ask()`/`tell()` interface matching `MemoryEvolution`
-- [ ] 03-03: Write `cfgs/evolution/lora_es.yaml` Hydra config
-- [ ] 03-04: Implement `lora_es_variant` dispatch; write unit tests for antithetic pairing and tell() convergence
+- [ ] 03-01-PLAN.md — Write `lora_ntp_dataset.py` with `LongBenchNTPDataset` — wraps HF LongBench splits into teacher-forced (input_ids, labels) pairs with left-truncation to max_seq_len and pad-collate (TRAIN-01)
+- [ ] 03-02-PLAN.md — Write `lora_grad_trainer.py` with `LoRAGradTrainer` — AdamW, cosine LR with warmup, gradient clipping, gradient accumulation, NTP loss, wandb logging; PEFT gradient fix forward hook; checkpoint I/O with AdamW state; NAMM-active mode; artifact contract (TRAIN-02, TRAIN-03, TRAIN-05, TRAIN-06, ARTIFACT-01)
+- [ ] 03-03-PLAN.md — Write `tests/test_lora_grad_trainer.py` with 6 pytest tests: loss.requires_grad, LoRA grad non-None, base grad None, float32 dtype, AdamW state saved/loaded, NAMM-active LoRA grads (TRAIN-04, TRAIN-05, TRAIN-06)
+- [ ] 03-04-PLAN.md — Add `trainer_type` dispatch to `main.py`; create `cfgs/trainer/lora_grad.yaml` with locked hyperparameters; write `run_eval.py` skeleton enforcing shared eval protocol (PIPE-01, FAIR-02)
 
-### Phase 4: EggRoll Implementation
-**Goal**: The `LoRA_EggRoll` class implements structured rank-r noise perturbation (rewritten in PyTorch from the HyperscaleES eggroll concept), exposes the same `ask()`/`tell()` interface as `LoRA_ES`, and routes correctly from the variant selector.
+### Phase 4: m1 + m4-frozen Runs
+**Goal**: The m1 condition (LoRA finetuning, no NAMM, full cache) and the m4-frozen condition (NAMM frozen at best params, LoRA trained with NAMM active and evicting at cache_size=128) both run end-to-end on QASPER using the same total token budget (FAIR-01), produce validated checkpoints, and deliver eval scores on all three LongBench tasks; token retention is logged during m4-frozen training.
 **Depends on**: Phase 3
-**Requirements**: ES-02
+**Requirements**: PIPE-02, PIPE-04, FAIR-01, ANLYS-01, EXP-01, EXP-03
 **Success Criteria** (what must be TRUE):
-  1. `lora_eggroll.ask()` returns perturbations of the form `ΔW = A @ B.T` where A and B are seeded random matrices with shapes matching the LoRA rank; the flat perturbation vector is reproducible given the same seed
-  2. `lora_es_variant: eggroll` in a Hydra config instantiates `LoRA_EggRoll`; swapping variant between `openES` and `eggroll` in the same training config produces different perturbation patterns but the same tell() interface
-  3. A 200-step LoRA-only dry run (no NAMM, full cache, dummy fitness) completes without error using the eggroll variant, and the LoRA mean drifts non-zero from its zero init
+  1. Both m1 and m4-frozen training runs complete on GPU (sideswipe/prowl); wandb shows `train/loss` and `train/grad_norm` time series with non-constant values for each; token budgets match within 1% (same number of gradient updates on the same total tokens, confirmed from run logs) — FAIR-01 enforced
+  2. Both checkpoints pass the inspector: `lora_B.weight.norm() > 0` (LoRA trained, not zero-initialized) and `lora_config` fields match the run config; m4-frozen NAMM policy param norms are identical between iteration 0 and final iteration (NAMM is frozen, not updated)
+  3. Per-layer token retention rates appear in wandb as `retention/layer_{i}` time series during m4-frozen training; values are strictly between 0.0 and 1.0 (NAMM is actively evicting tokens) — ANLYS-01
+  4. Evaluating both checkpoints on all three LongBench tasks produces scores logged to wandb under `Llama-3.2-1B/grad-lora-study`; both runs have complete artifact sets in `results/m1/{seed}/` and `results/m4_frozen/{seed}/` (ARTIFACT-01 contract satisfied)
 **Plans**: TBD
 
 Plans:
-- [ ] 04-01: Study `shr1ram/HyperscaleES` (warming-up) `src/hyperscalees/noiser/eggroll.py` and `alteggroll.py` to understand the rank-r noise design; port to PyTorch in `memory_evolution/lora_eggroll.py` staying as close to his class structure and naming as the JAX→PyTorch translation allows (replace `jax.random` with seeded `torch.Generator`, `jax.tree.map` with parameter iteration, `optax` update with direct `param.data +=`)
-- [ ] 04-02: Wire eggroll into the variant dispatch; write unit tests for structured perturbation shape correctness and interface compatibility
+- [ ] 04-01: Write `cfgs/run/m1_lora_only.yaml` — LoRA gradient training, full cache (namm_active: false), QASPER training split; set token budget (num_steps x batch_tokens) as the shared FAIR-01 baseline (PIPE-02, FAIR-01)
+- [ ] 04-02: Write `cfgs/run/m4_frozen.yaml` — loads existing NAMM checkpoint, freezes NAMM params, enables namm_active: true, cache_size=128, same token budget as m1; add token retention logging hooks to `LoRAGradTrainer` for namm_active mode (PIPE-04, ANLYS-01)
+- [ ] 04-03: SSH to sideswipe/prowl; run m1 training; verify loss curve and checkpoint inspector; eval on all three tasks; save artifact set (EXP-01)
+- [ ] 04-04: SSH to sideswipe/prowl; run m4-frozen training; verify gradient norms non-zero through retained tokens; verify NAMM params frozen; eval on all three tasks; save artifact set (EXP-03)
 
-### Phase 5: Mode B Training Loop
-**Goal**: The training loop supports `joint_es_mode=B` (NAMM CMA-ES + LoRA ES simultaneously on shared fitness) and `joint_es_mode=lora_only` (LoRA ES only, policy=none, full cache); run configs exist for both; a joint Mode B training run produces a checkpoint containing both NAMM and LoRA state.
+### Phase 5: m4-iterative Run
+**Goal**: An interleaving orchestration controller alternates between NAMM CMA-ES steps and LoRA gradient steps at a configurable frequency; the m4-iterative condition runs end-to-end on QASPER and produces a validated checkpoint and eval scores comparable to m4-frozen.
 **Depends on**: Phase 4
-**Requirements**: ES-03, ES-05, INFRA-02, INFRA-03
+**Requirements**: TRAIN-07, PIPE-05, EXP-04
 **Success Criteria** (what must be TRUE):
-  1. Launching `cfgs/run/joint_namm_lora_b.yaml` runs 10 training iterations without error, and the output checkpoint at iter 10 contains both `namm_state` and `lora_state_dict` keys; loading that checkpoint into an evaluator reproduces non-trivial (non-zero) scores on QASPER
-  2. Launching `cfgs/run/lora_only.yaml` runs 10 training iterations without error; `namm_param_size` in the wandb config shows 0 or absent; the checkpoint contains `lora_state_dict` but no NAMM params
-  3. In both modes, each population member receives a distinct combination of NAMM params (or none) and LoRA params per iteration, confirmed by asserting `lora_param_matrix[0] != lora_param_matrix[1]` in a debug log
-  4. The `joint_es_mode` Hydra key is the only switch needed to move between `namm_only`, `lora_only`, and `B`; no other config keys require manual change
+  1. The interleaving controller exists as a standalone orchestration class; setting `interleave_freq: N` in config causes it to run N LoRA gradient steps then 1 NAMM CMA-ES step, cycling until the total token budget is exhausted; the wandb run shows alternating `namm/fitness` and `lora/loss` log entries confirming both are updating
+  2. After each NAMM CMA-ES step within the interleaved run, NAMM fitness is non-decreasing (NAMM is learning, not degrading under LoRA interference); after each LoRA gradient step, `all(p.grad is not None for p in lora_params)` would pass (LoRA is still receiving gradient signal)
+  3. The m4-iterative checkpoint passes the inspector; eval on all three LongBench tasks produces scores logged to wandb alongside m1 and m4-frozen; artifact set is complete in `results/m4_iterative/{seed}/`
 **Plans**: TBD
 
 Plans:
-- [ ] 05-01: Extend `_train_step` with Mode B branch: `cma_es.ask()` + `lora_es.ask()` before loop, `set_memory_params` + `set_lora_params` per member, `cma_es.tell()` + `lora_es.tell()` after
-- [ ] 05-02: Add `lora_only` mode branch: skip CMA-ES, run `lora_es.ask()/tell()` only, policy=none
-- [ ] 05-03: Write `cfgs/run/joint_namm_lora_b.yaml` and `cfgs/run/lora_only.yaml`
-- [ ] 05-04: Integration test: 10-iter run in each mode; verify checkpoint structure and score
+- [ ] 05-01: Write interleaving orchestration controller (`lora_namm_interleaver.py`) — alternates `LoRAGradTrainer` gradient steps and `MemoryTrainer` CMA-ES steps with configurable frequency; coordinates checkpoint handoff between the two trainers each cycle; respects total token budget for gradient steps (TRAIN-07)
+- [ ] 05-02: Write `cfgs/run/m4_iterative.yaml` — uses interleaving controller, configures interleave_freq, same FAIR-01 token budget for LoRA steps; same token budget constraint as m4-frozen (PIPE-05)
+- [ ] 05-03: SSH to sideswipe/prowl; run m4-iterative; monitor both fitness and loss curves in wandb; eval checkpoint on all three tasks; save artifact set (EXP-04)
 
-### Phase 6: Diagnostic Logging
-**Goal**: Per-run and per-step wandb metrics give full observability into NAMM and LoRA evolution: parameter sizes, L2 norms, perturbation-fitness correlations, population diversity, and LoRA sigma — enabling mechanistic claims about whether the two components cooperate or interfere.
-**Depends on**: Phase 5
-**Requirements**: DIAG-01, DIAG-02, DIAG-03, DIAG-04, DIAG-05
+### Phase 6: Analysis Metrics + m3 Run
+**Goal**: A post-hoc attention entropy analysis script loads any checkpoint and produces per-head entropy comparisons across conditions; the m3 two-stage pipeline (LoRA finetuning then NAMM CMA-ES) runs using the m1 checkpoint as handoff; a four-condition comparison table (m1, m3, m4-frozen, m4-iterative) plus the existing m2 baseline is exported as CSV and logged to wandb.
+**Depends on**: Phase 4, Phase 5
+**Requirements**: ANLYS-02, ANLYS-03, PIPE-03, EXP-02
 **Success Criteria** (what must be TRUE):
-  1. The wandb run page for a joint Mode B run shows `namm_param_size`, `lora_param_size`, `joint_param_size`, `lora_rank`, and `lora_target_modules` populated in the Config tab at run start
-  2. The wandb Metrics tab shows `component_norm/namm_l2_mean` and `component_norm/lora_l2_mean` as time series over training steps, with non-constant values indicating active evolution in both components
-  3. The wandb Metrics tab shows `signal/namm_fitness_correlation` and `signal/lora_fitness_correlation` as time series; in a LoRA-only run, `signal/namm_fitness_correlation` is absent or NaN (not a spurious zero)
-  4. `pop/diversity_l2` and `evo_stats/sigma_lora` appear in wandb metrics every step during Mode B training, and `evo_stats/sigma_lora` is non-zero and non-constant
+  1. Running `python analysis/attention_entropy.py --ckpt [path]` outputs a per-head entropy CSV; entropy values measurably differ between the base model and an m1/m4-frozen checkpoint on the same input (script is capturing LoRA-modified activations, not pre-LoRA)
+  2. The m3 Stage 2 input checkpoint passes the inspector: `lora_B.weight.norm() > 0` confirming the m1-trained LoRA weights are present; the NAMM CMA-ES Stage 2 run completes with a non-flat `fitness/best` curve (NAMM learns on top of the LoRA-finetuned model)
+  3. The five-condition comparison table (m1, m2, m3, m4-frozen, m4-iterative) on all three LongBench tasks exists as both a wandb Summary table and a local `results/comparison_all_conditions.csv` file; every cell is populated (no missing scores)
 **Plans**: TBD
 
 Plans:
-- [ ] 06-01: Add param count logging to `wandb.config` at run start
-- [ ] 06-02: Add per-step L2 norm logging for NAMM and LoRA population means
-- [ ] 06-03: Add per-step Pearson r correlation logging (perturbation direction vs. fitness rank)
-- [ ] 06-04: Add population diversity (mean pairwise L2) and sigma_lora logging
-- [ ] 06-05: Verify all metrics appear correctly in wandb for Mode B and lora_only runs
+- [ ] 06-01: Write `analysis/attention_entropy.py` — loads checkpoint, patches LlamaAttention to output weights (non-SDPA path), computes per-head entropy per layer, saves CSV; smoke-test that entropy differs between base and finetuned model on the same input (ANLYS-02)
+- [ ] 06-02: Write `cfgs/run/m3_lora_then_namm.yaml` and pipeline shell script — Stage 1 uses m1 config, Stage 2 passes m1 checkpoint path to MemoryTrainer init_from; add checkpoint inspector validation at handoff (PIPE-03)
+- [ ] 06-03: SSH to sideswipe/prowl; run m3 pipeline (Stage 1: LoRA, Stage 2: NAMM CMA-ES); eval final m3 checkpoint on all three tasks; save artifact set (EXP-02)
+- [ ] 06-04: Write comparison table script — aggregates wandb eval runs for all five conditions into CSV and wandb Summary table; include all three task columns (ANLYS-03)
 
-### Phase 7: Evaluation Harness Extension
-**Goal**: The evaluator loads joint NAMM+LoRA checkpoints correctly; a single config invocation evaluates all three tasks (QASPER, NarrativeQA, PassageRetrieval) from one checkpoint; and a zero-shot baseline (iter=0, no NAMM, full cache, no LoRA) is measured to establish the pre-adaptation reference.
+### Phase 7: Secondary Experiments
+**Goal**: E2 (cache size sweep on m4-frozen), E3 (dataset variation — m1 and m4-frozen on NarrativeQA and PassageRetrieval), E4 (NAMM deactivation — eval m4-frozen checkpoint with NAMM off), and E5 (general-text NTP finetuning) are run as config-driven variations and their results are logged and added to the results directory.
 **Depends on**: Phase 6
-**Requirements**: EVAL-01, EVAL-02, EVAL-03
+**Requirements**: EXP-05, EXP-06, EXP-07, EXP-08
 **Success Criteria** (what must be TRUE):
-  1. Running `cfgs/run/joint_eval_all_tasks.yaml` against the Phase 5 joint Mode B checkpoint produces scores on all three tasks in a single script invocation without manually editing the config between tasks
-  2. The eval log confirms LoRA weights are loaded and active during evaluation (LoRA norm non-zero in eval-time diagnostic output or wandb eval config)
-  3. A zero-shot eval run (no checkpoint, `init_from=null`, `cache_size=4096`, no LoRA) completes and logs scores for all three tasks to the `Llama-3.2-1B/joint-es` wandb group under a `zero_shot_baseline` run name
-  4. The evaluator handles a NAMM-only checkpoint (no `lora_state_dict` key) without error, falling back to full-cache evaluation — confirming backward compatibility
+  1. Four m4-frozen runs at cache_size={64, 128, 256, 512} complete on GPU; wandb shows four separate runs each logging eval scores on all three tasks; QASPER score varies across cache sizes (not all identical), indicating NAMM sensitivity to memory budget (E2)
+  2. m1 and m4-frozen runs using NarrativeQA and PassageRetrieval as training tasks complete and produce checkpoint + artifact sets; at least one condition shows a different relative ordering across training datasets (E3 reveals dataset structure sensitivity or confirms robustness)
+  3. Evaluating the m4-frozen checkpoint with `namm_active: false` (full cache passthrough) produces QASPER/NarrativeQA/PassageRetrieval scores logged to wandb; the delta between m4-frozen-with-NAMM and m4-frozen-without-NAMM is recorded in the results CSV (E4 quantifies NAMM dependence at inference time)
+  4. The E5 general-text NTP run completes using a subset of C4/RedPajama as training data; eval on all three tasks produces scores logged to wandb; the result can be compared to m1 (task-specific NTP) to assess the value of task-specific finetuning (E5)
 **Plans**: TBD
 
 Plans:
-- [ ] 07-01: Extend `MemoryHFEvaluator._load_checkpoint()` to restore LoRA state if present
-- [ ] 07-02: Write `cfgs/run/joint_eval_all_tasks.yaml` multi-task eval config
-- [ ] 07-03: Run and record zero-shot baseline (iter=0) on all three tasks
-- [ ] 07-04: Verify backward compatibility with NAMM-only checkpoints
+- [ ] 07-01: Write `cfgs/run/e2_cache_sweep.yaml` — m4-frozen config with cache_size as a Hydra sweep variable over {64, 128, 256, 512}; SSH to GPU and run sweep (EXP-05)
+- [ ] 07-02: Write `cfgs/run/e3_narrativeqa.yaml` and `cfgs/run/e3_passageret.yaml` — m1 and m4-frozen configs with training task swapped to NarrativeQA and PassageRetrieval respectively; SSH to GPU and run (EXP-06)
+- [ ] 07-03: Write `cfgs/run/e4_namm_deactivation.yaml` — m4-frozen checkpoint eval with namm_active: false; run eval and add delta column to results CSV (EXP-07)
+- [ ] 07-04: Write `cfgs/run/e5_general_text.yaml` — LoRA training on C4/RedPajama subset (add `GeneralTextNTPDataset` if needed); eval on all three tasks; log to wandb (EXP-08)
 
-### Phase 8: Baseline Ablation Runs
-**Goal**: Controlled training runs across all four conditions (NAMM-only, LoRA-only/openES, LoRA-only/eggroll, joint Mode B/openES, joint Mode B/eggroll) on QASPER produce valid checkpoints and comparable eval scores that form the core result table of the paper.
+### Phase 8: Multi-seed Reproduction
+**Goal**: The four main conditions (m1, m3, m4-frozen, m4-iterative) are rerun with 2-3 random seeds; results are reported with mean and standard deviation across seeds; a final comparison table with error bars is exported as the definitive v2.0 scientific output.
 **Depends on**: Phase 7
-**Requirements**: None (v1 reqs fully satisfied by Phase 7; this phase serves the PROJECT.md core value: "verified through controlled ablations")
+**Requirements**: REPRO-01, EXP-09
 **Success Criteria** (what must be TRUE):
-  1. All five ablation conditions complete 200 training iterations on QASPER without crashing; wandb shows full training curves for all conditions in the `Llama-3.2-1B/joint-es` group
-  2. Each completed run produces a valid checkpoint that loads cleanly into the evaluator and scores non-trivially on at least one task (QASPER score > 1.0 for all conditions)
-  3. The eval table shows measurable differences between conditions (at least two conditions differ by > 0.5 QASPER F1), providing scientific signal for the ablation comparison
-  4. NAMM-only condition (run from existing checkpoint, re-evaluated) scores within 0.2 of the previously recorded 6.46 QASPER F1, confirming reproducibility of the baseline
+  1. Each of the four main conditions has at least 2 completed runs with different seeds (seeds from {1337, 42, 0}); each run has its artifact set in `results/{method}/{seed}/`; the wandb group shows at minimum 8 runs (4 conditions x 2 seeds) with complete eval scores
+  2. The final comparison table (`results/final_comparison.csv`) contains one row per condition, with mean and standard deviation columns for each of the three tasks; standard deviations are non-zero (runs with different seeds produce different scores, confirming seed sensitivity is measured, not assumed zero)
+  3. The comparison table is reproduced by a single deterministic script (`analysis/make_final_table.py`) that reads only from `results/` artifact directories — not from wandb API calls — so it can be regenerated offline
 **Plans**: TBD
 
 Plans:
-- [ ] 08-01: Run NAMM-only (existing checkpoint re-eval) on all three tasks to confirm baseline
-- [ ] 08-02: Run LoRA-only 200 iters with openES variant; eval on all three tasks
-- [ ] 08-03: Run LoRA-only 200 iters with eggroll variant; eval on all three tasks
-- [ ] 08-04: Run joint Mode B 200 iters with openES variant; eval on all three tasks
-- [ ] 08-05: Run joint Mode B 200 iters with eggroll variant; eval on all three tasks
-- [ ] 08-06: Collect all scores into a comparison table; log to wandb summary
-
-### Phase 9: Task Transferability Experiments
-**Goal**: Training on QASPER and evaluating on NarrativeQA and PassageRetrieval (and vice versa) reveals whether joint NAMM+LoRA representations transfer across tasks, completing the transferability matrix that is a stated goal in PROJECT.md.
-**Depends on**: Phase 8
-**Requirements**: None (extends Phase 8 checkpoints; serves PROJECT.md "Task transferability evaluation" goal)
-**Success Criteria** (what must be TRUE):
-  1. The QASPER-trained joint Mode B checkpoint scores non-trivially on NarrativeQA (> 1.0 F1) without any additional training, confirming cross-task transfer is at least partially present
-  2. A NarrativeQA-trained joint Mode B run completes 200 iters and produces a checkpoint; evaluating it on QASPER gives a score > the zero-shot baseline, confirming bidirectional transfer possibility
-  3. The full transferability matrix (2 training tasks × 3 eval tasks) is recorded in wandb and a local CSV, with clear labels for which checkpoint was used for each row
-**Plans**: TBD
-
-Plans:
-- [ ] 09-01: Evaluate QASPER-trained checkpoints (NAMM-only, joint B) on all three tasks
-- [ ] 09-02: Run joint Mode B training on NarrativeQA; eval on all three tasks
-- [ ] 09-03: Compile transferability matrix; identify best-transferring condition
-
-### Phase 10: Analysis and Synthesis
-**Goal**: Diagnostic logs are interpreted, conditions are compared mechanistically (do NAMM and LoRA cooperate or interfere?), and findings are organized into a coherent narrative with paper-ready tables and figures.
-**Depends on**: Phase 9
-**Requirements**: None (synthesis phase; no new code requirements)
-**Success Criteria** (what must be TRUE):
-  1. The `signal/namm_fitness_correlation` and `signal/lora_fitness_correlation` time series from wandb are plotted side-by-side for joint Mode B runs; the plot shows at least one condition where both correlations are positive (indicating cooperation) or reveals interference patterns that explain performance differences
-  2. A result table exists that lists all ablation conditions × all eval tasks with scores, standard deviations (if multi-seed), and the delta from the zero-shot baseline — formatted to drop into a paper or report
-  3. Key findings are recorded as numbered conclusions in a FINDINGS.md file under `.planning/`, each citing the specific wandb metric or eval score that supports it
-**Plans**: TBD
-
-Plans:
-- [ ] 10-01: Export and plot diagnostic time series from wandb for all training runs
-- [ ] 10-02: Compile final result table (all conditions × all tasks × all metrics)
-- [ ] 10-03: Write FINDINGS.md with numbered conclusions and supporting evidence
+- [ ] 08-01: Write multi-seed runner script — iterates over seeds {1337, 42, 0} and methods {m1, m3, m4-frozen, m4-iterative}; skips already-completed seed/method combinations (idempotent); SSH to GPU and run all outstanding combinations (REPRO-01, EXP-09)
+- [ ] 08-02: Write `analysis/make_final_table.py` — reads artifact directories, computes mean/std per condition per task, exports `results/final_comparison.csv` and a markdown-formatted table for the paper; smoke-test by regenerating from existing single-seed results (REPRO-01, EXP-09)
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 3 → 4 → 5 → 6 → 7 → 8
+Note: Phase 5 (m4-iterative) depends on Phase 4 (m4-frozen validated) — must not start before m4-frozen is confirmed working. Phase 6 (m3 + analysis) depends on Phase 4 (m1 checkpoint) and Phase 5 (m4-iterative results available for comparison table).
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Branch Setup | 1/1 | Complete | 2026-03-02 |
-| 2. LoRA Seam + Correctness Gate | 3/3 | Complete (GPU test run pending) | 2026-03-02 |
-| 3. OpenES Implementation | 0/3 | Not started | - |
-| 4. EggRoll Implementation | 0/2 | Not started | - |
-| 5. Mode B Training Loop | 0/4 | Not started | - |
-| 6. Diagnostic Logging | 0/5 | Not started | - |
-| 7. Evaluation Harness Extension | 0/4 | Not started | - |
-| 8. Baseline Ablation Runs | 0/6 | Not started | - |
-| 9. Task Transferability Experiments | 0/3 | Not started | - |
-| 10. Analysis and Synthesis | 0/3 | Not started | - |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Branch Setup | v1.0 | 1/1 | Complete | 2026-03-02 |
+| 2. LoRA Seam + Correctness Gate | v1.0 | 3/3 | Complete (GPU test pending) | 2026-03-02 |
+| 3. Gradient Training Loop | v2.0 | 0/4 | Planned | - |
+| 4. m1 + m4-frozen Runs | v2.0 | 0/4 | Not started | - |
+| 5. m4-iterative Run | v2.0 | 0/3 | Not started | - |
+| 6. Analysis Metrics + m3 Run | v2.0 | 0/4 | Not started | - |
+| 7. Secondary Experiments | v2.0 | 0/4 | Not started | - |
+| 8. Multi-seed Reproduction | v2.0 | 0/2 | Not started | - |
