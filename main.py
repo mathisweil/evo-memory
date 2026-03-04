@@ -184,7 +184,7 @@ def main(cfg: DictConfig):
         # Apply LoRA adapters BEFORE trainer construction (assert in __init__ checks this)
         lora_rank = cfg.get('lora_rank', 8)
         lora_targets = list(cfg.get('lora_target_modules', ['q_proj', 'v_proj']))
-        memory_model.apply_lora_adapters(lora_rank=lora_rank, target_modules=lora_targets)
+        memory_model.apply_lora_adapters(rank=lora_rank, target_modules=lora_targets)
         print(f"LoRA applied: rank={lora_rank}, targets={lora_targets}")
 
         # wandb init (before trainer so run.id is available for artifact contract)
