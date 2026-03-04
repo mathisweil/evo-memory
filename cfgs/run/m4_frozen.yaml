@@ -1,0 +1,38 @@
+# @package _global_
+#
+# m4-frozen condition: NAMM policy loaded from best checkpoint and frozen.
+# LoRA trained with NAMM actively evicting KV cache at cache_size=128.
+# Token budget identical to m1 (FAIR-01).
+
+defaults:
+  - override /trainer@_global_: lora_grad
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - _self_
+
+trainer_type: lora_grad
+lora_method: m4_frozen
+
+# NAMM is active and frozen during LoRA training
+lora_namm_active: true
+
+# NAMM evicts to this token budget during training
+cache_size: 128
+
+# CRITICAL: must match the NAMM checkpoint trained with pop_size=8
+# (mismatch causes state dict shape error at load time)
+pop_size: 8
+
+# Absolute path required — Hydra changes cwd to out_dir before main() runs
+init_from: /cs/student/project_msc/2025/csml/gmaralla/NAMM_implementation/exp_local/memory_evolution_hf/Llama-3.2-1B/NAMM/attn-spec-norm/bam/binary-1024cs/qasper-cma-es-p8-rMeanTrue-shared-8pop-16qs-256fixDel-llama32-1b-stage1/1337/ckpt.pt
+
+# FAIR-01: identical to m1_lora_only.yaml
+lora_num_epochs: 3
+lora_task_names:
+  - qasper
+lora_gradient_accumulation_steps: 16
+
+# wandb
+wandb_run_name: m4-frozen-cs128-llama32-1b-seed${seed}
+wandb_group_name: Llama-3.2-1B/grad-lora-study
+wandb_project: memory_evolution_hf
+wandb_log: true
