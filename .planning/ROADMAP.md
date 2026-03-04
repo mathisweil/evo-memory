@@ -83,13 +83,13 @@ Plans:
   2. Both checkpoints pass the inspector: `lora_B.weight.norm() > 0` (LoRA trained, not zero-initialized) and `lora_config` fields match the run config; m4-frozen NAMM policy param norms are identical between iteration 0 and final iteration (NAMM is frozen, not updated)
   3. Per-layer token retention rates appear in wandb as `retention/layer_{i}` time series during m4-frozen training; values are strictly between 0.0 and 1.0 (NAMM is actively evicting tokens) — ANLYS-01
   4. Evaluating both checkpoints on all three LongBench tasks produces scores logged to wandb under `Llama-3.2-1B/grad-lora-study`; both runs have complete artifact sets in `results/m1/{seed}/` and `results/m4_frozen/{seed}/` (ARTIFACT-01 contract satisfied)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 04-01: Write `cfgs/run/m1_lora_only.yaml` — LoRA gradient training, full cache (namm_active: false), QASPER training split; set token budget (num_steps x batch_tokens) as the shared FAIR-01 baseline (PIPE-02, FAIR-01)
-- [ ] 04-02: Write `cfgs/run/m4_frozen.yaml` — loads existing NAMM checkpoint, freezes NAMM params, enables namm_active: true, cache_size=128, same token budget as m1; add token retention logging hooks to `LoRAGradTrainer` for namm_active mode (PIPE-04, ANLYS-01)
-- [ ] 04-03: SSH to sideswipe/prowl; run m1 training; verify loss curve and checkpoint inspector; eval on all three tasks; save artifact set (EXP-01)
-- [ ] 04-04: SSH to sideswipe/prowl; run m4-frozen training; verify gradient norms non-zero through retained tokens; verify NAMM params frozen; eval on all three tasks; save artifact set (EXP-03)
+- [ ] 04-01-PLAN.md — Write `cfgs/run/m1_lora_only.yaml` (FAIR-01 token budget anchor) and complete `run_eval.py` stubs with `initialize_cfg` + `make_eval_model` + `task_sampler.evaluate` wiring (PIPE-02, FAIR-01)
+- [ ] 04-02-PLAN.md — Write `cfgs/run/m4_frozen.yaml` (cache_size=128, pop_size=8, absolute NAMM ckpt path) and add per-layer retention logging to `LoRAGradTrainer._train_step` via `_last_retention_dict` (PIPE-04, ANLYS-01)
+- [ ] 04-03-PLAN.md — GPU: run m1 training on sideswipe/prowl; checkpoint inspector; eval on all three tasks; verify artifact set in results/m1/1337/ (EXP-01)
+- [ ] 04-04-PLAN.md — GPU: run m4-frozen training; verify retention/layer_i < 1.0 in wandb; checkpoint inspector; eval on all three tasks; verify artifact set in results/m4_frozen/1337/ (EXP-03)
 
 ### Phase 5: m4-iterative Run
 **Goal**: An interleaving orchestration controller alternates between NAMM CMA-ES steps and LoRA gradient steps at a configurable frequency; the m4-iterative condition runs end-to-end on QASPER and produces a validated checkpoint and eval scores comparable to m4-frozen.
@@ -164,7 +164,7 @@ Note: Phase 5 (m4-iterative) depends on Phase 4 (m4-frozen validated) — must n
 | 1. Branch Setup | v1.0 | 1/1 | Complete | 2026-03-02 |
 | 2. LoRA Seam + Correctness Gate | v1.0 | 3/3 | Complete (GPU test pending) | 2026-03-02 |
 | 3. Gradient Training Loop | 4/4 | Complete   | 2026-03-04 | 2026-03-04 |
-| 4. m1 + m4-frozen Runs | v2.0 | 0/4 | Not started | - |
+| 4. m1 + m4-frozen Runs | v2.0 | 0/4 | Planned 2026-03-04 | - |
 | 5. m4-iterative Run | v2.0 | 0/3 | Not started | - |
 | 6. Analysis Metrics + m3 Run | v2.0 | 0/4 | Not started | - |
 | 7. Secondary Experiments | v2.0 | 0/4 | Not started | - |

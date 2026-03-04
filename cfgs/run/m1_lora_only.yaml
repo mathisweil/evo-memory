@@ -1,0 +1,29 @@
+# @package _global_
+#
+# m1 condition: LoRA-only finetuning on QASPER, no NAMM eviction, full KV cache.
+# Token budget anchor for FAIR-01: all other conditions must use the same
+# lora_num_epochs, lora_task_names, and lora_gradient_accumulation_steps.
+
+defaults:
+  - override /trainer@_global_: lora_grad
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - _self_
+
+trainer_type: lora_grad
+lora_method: m1
+lora_namm_active: false
+
+# No NAMM checkpoint — m1 starts from the base LLM directly
+init_from: ~
+
+# FAIR-01: token budget anchor — identical across all conditions
+lora_num_epochs: 3
+lora_task_names:
+  - qasper
+lora_gradient_accumulation_steps: 16
+
+# wandb
+wandb_run_name: m1-lora-only-llama32-1b-seed${seed}
+wandb_group_name: Llama-3.2-1B/grad-lora-study
+wandb_project: memory_evolution_hf
+wandb_log: true
