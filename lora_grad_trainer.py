@@ -1,7 +1,7 @@
 """
 lora_grad_trainer.py — Gradient-based LoRA training class for NAMM interaction study.
 
-This module is entirely separate from MemoryTrainer and carries NO @torch.no_grad()
+This module is entirely separate from MemoryTrainer and carries no gradient-disabling
 decorators anywhere, so the autograd graph survives from the NTP loss back through
 the LLM to the LoRA A/B matrices.
 
