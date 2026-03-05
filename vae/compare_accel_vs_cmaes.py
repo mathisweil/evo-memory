@@ -560,13 +560,18 @@ def diversity_metrics(latents, tokens, n_sample=2000):
     except Exception:
         hull_vol = 0.0
 
-    # Token-level diversity
+    # Token-level diversity (compare actual wall indices = grid positions)
     wall_tokens = tokens[:, :50]
+    # Unique wall configurations (exact match on sorted wall index sequences)
+    unique_configs = len(set(map(tuple, wall_tokens)))
+    # Convert to binary wall maps (169 cells) for structural comparison
+    wall_maps = np.zeros((min(n_sample, n), 169), dtype=np.uint8)
+    for i, wt in enumerate(wall_tokens[:min(n_sample, n)]):
+        nonzero = wt[wt > 0]
+        wall_maps[i, nonzero.astype(int) - 1] = 1  # 1-based to 0-based
+    # Pairwise Hamming on actual grid positions
+    pw_hamming = pdist(wall_maps.astype(float), metric="hamming")
     wall_binary = (wall_tokens > 0).astype(np.uint8)
-    # Unique wall configurations
-    unique_configs = len(set(map(tuple, wall_binary)))
-    # Pairwise Hamming on wall presence/absence
-    pw_hamming = pdist(wall_binary[:min(n_sample, n)].astype(float), metric="hamming")
 
     # Wall count entropy
     wc = wall_binary.sum(axis=1)
