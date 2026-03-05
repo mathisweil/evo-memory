@@ -159,6 +159,27 @@ def make_evaluate_fn(task_sampler, evaluator, mini_batch_size, train=True,
     return evaluate_fn
 
 
+def make_full_eval_fn(task_sampler, evaluator):
+    """Create a full_eval_fn that evaluates on ALL validation samples.
+
+    Returns a dict with {"scores": {"lb/qasper": F1}, "num_samples": N}.
+    """
+    def full_eval_fn(model):
+        score_dicts = task_sampler.evaluate(
+            lm=evaluator,
+            train=False,
+            evolved_model=False,
+            pop_reps=1,
+            resample_requests=True,
+            sampled_requests_per_task=None,  # All samples
+        )
+        scores = score_dicts[0]
+        num_samples = sum(task_sampler.num_prompts_per_lb_task.values())
+        return {"scores": scores, "num_samples": num_samples}
+
+    return full_eval_fn
+
+
 def get_base_llm_param_names(model):
     """Get parameter names for the base LLM only (not NAMM scoring network).
 
@@ -263,6 +284,7 @@ def main():
     validate_fn = make_evaluate_fn(
         task_sampler, memory_evaluator, args.val_samples, train=False,
         resample=True)  # Validation runs once, not in a per-member loop
+    full_eval_fn = make_full_eval_fn(task_sampler, memory_evaluator)
 
     # 6. Configure and run ES
     es_config = ESConfig(
@@ -285,6 +307,7 @@ def main():
         config=es_config,
         validate_fn=validate_fn,
         pre_step_fn=resample_fn,
+        full_eval_fn=full_eval_fn,
         metadata={
             "namm_checkpoint": args.namm_checkpoint,
             "run_config": args.run_config,
