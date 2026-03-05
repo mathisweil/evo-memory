@@ -49,6 +49,7 @@ from functools import partial
 from typing import List, Optional
 
 import torch
+import torch.nn.functional as F
 import wandb
 from torch.utils.data import DataLoader
 from transformers import get_cosine_schedule_with_warmup
@@ -267,12 +268,21 @@ class LoRAGradTrainer:
         # CRITICAL: never pass limit_new_tokens from the training loop.
         outputs = self.model(
             input_ids=input_ids,
-            labels=labels,
             use_cache=True,
             apply_memory_policy=cfg.namm_active,
         )
 
-        loss = outputs.loss / cfg.gradient_accumulation_steps
+        # Compute NTP loss manually — do NOT pass labels to the model because
+        # WrappedLlamaForCausalLM asserts labels is None when split_processing=True.
+        # Standard causal LM shift: predict token[i+1] from position i.
+        shift_logits = outputs.logits[:, :-1, :].contiguous()
+        shift_labels = labels[:, 1:].contiguous()
+        loss = F.cross_entropy(
+            shift_logits.view(-1, shift_logits.size(-1)),
+            shift_labels.view(-1),
+            ignore_index=-100,
+        )
+        loss = loss / cfg.gradient_accumulation_steps
         loss.backward()
 
         # ANLYS-01: per-layer token retention logging for NAMM-active training.
