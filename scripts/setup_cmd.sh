@@ -6,19 +6,28 @@
 #
 # Works from any shell (bash, zsh, csh, tcsh — doesn't matter).
 #
-# Auto-detect first GPU:
+# Auto-detect first GPU (uses whoami for username):
 #   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/scripts/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh
 #
-# Pin to a specific GPU (e.g. GPU 2 on a multi-GPU machine):
-#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/scripts/setup_cmd.sh -o /tmp/setup_cmd.sh && bash /tmp/setup_cmd.sh --gpu 2
+# Explicit username + GPU:
+#   bash /tmp/setup_cmd.sh --user jsmith --gpu 2
 #
-# Or if you've already cloned the repo:
-#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM/evo-memory/scripts/setup.sh
-#   bash /cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM/evo-memory/scripts/setup.sh --gpu 2
+# Skip Claude Code install:
+#   bash /tmp/setup_cmd.sh --noclaude
 
 set -euo pipefail
 
-WORK_DIR="/cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM"
+# Parse --user from args (need it before forwarding to setup.sh)
+USER_NAME=""
+for arg in "$@"; do
+    if [ "${prev:-}" = "--user" ]; then
+        USER_NAME="$arg"
+    fi
+    prev="$arg"
+done
+USER_NAME="${USER_NAME:-$(whoami)}"
+
+WORK_DIR="/cs/student/project_msc/2025/csml/${USER_NAME}/SNLP/FT-NAMM"
 REPO_DIR="${WORK_DIR}/evo-memory"
 BRANCH="es-fine-tuning"
 REPO_URL="https://github.com/mathisweil/evo-memory.git"

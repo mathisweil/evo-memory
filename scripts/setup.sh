@@ -6,9 +6,10 @@
 # deps, installs Claude Code, and configures wandb + HuggingFace.
 #
 # Usage:
-#   bash setup.sh              # auto-detect first available GPU
-#   bash setup.sh --gpu 0      # pin to GPU 0
-#   bash setup.sh --gpu 2      # pin to GPU 2 on a multi-GPU machine
+#   bash setup.sh                        # uses $(whoami) as username
+#   bash setup.sh --user jsmith          # explicit username
+#   bash setup.sh --user jsmith --gpu 0  # explicit username + GPU
+#   bash setup.sh --noclaude             # skip Claude Code install
 #
 # Prerequisites:
 #   - python3 (3.9+) and pip
@@ -22,6 +23,8 @@ set -euo pipefail
 # Parse arguments
 # ---------------------------------------------------------------------------
 GPU_ID=""
+USER_NAME=""
+INSTALL_CLAUDE=true
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --gpu)
@@ -32,25 +35,40 @@ while [[ $# -gt 0 ]]; do
             GPU_ID="${1#*=}"
             shift
             ;;
+        --user)
+            USER_NAME="$2"
+            shift 2
+            ;;
+        --user=*)
+            USER_NAME="${1#*=}"
+            shift
+            ;;
+        --noclaude)
+            INSTALL_CLAUDE=false
+            shift
+            ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: bash setup.sh [--gpu GPU_ID]"
+            echo "Usage: bash setup.sh [--user USERNAME] [--gpu GPU_ID] [--noclaude]"
             exit 1
             ;;
     esac
 done
 
+USER_NAME="${USER_NAME:-$(whoami)}"
+
 # ---------------------------------------------------------------------------
 # Config — edit these if your paths differ
 # ---------------------------------------------------------------------------
-WORK_DIR="/cs/student/project_msc/2025/csml/sruppage/SNLP/FT-NAMM"
+WORK_DIR="/cs/student/project_msc/2025/csml/${USER_NAME}/SNLP/FT-NAMM"
 EVO_MEMORY_REPO="https://github.com/mathisweil/evo-memory.git"
 EVO_MEMORY_BRANCH="es-fine-tuning"
 ES_PAPER_REPO="https://github.com/shr1ram/es-fine-tuning-paper.git"
 ES_PAPER_BRANCH="claude-inshallah"
 VENV_DIR="${WORK_DIR}/venv"
 HF_CACHE_DIR="${WORK_DIR}/.hf_cache"
-SCRIPT_DIR="${WORK_DIR}/evo-memory"
+REPO_DIR="${WORK_DIR}/evo-memory"
+SCRIPT_DIR="${REPO_DIR}/scripts"
 
 echo '============================================================'
 echo ' ES Fine-Tuning + NAMM — GPU VM Setup'
@@ -170,27 +188,31 @@ echo ''
 # ---------------------------------------------------------------------------
 # 6. Install Claude Code
 # ---------------------------------------------------------------------------
-echo '[5/5] Installing Claude Code...'
+if [ "${INSTALL_CLAUDE}" = true ]; then
+    echo '[5/5] Installing Claude Code...'
 
-if command -v claude &>/dev/null; then
-    echo '  Claude Code already installed.'
-    claude --version
-else
-    if command -v npm &>/dev/null; then
-        npm install -g @anthropic-ai/claude-code 2>&1 | tail -3
-        echo '  Claude Code installed.'
-    elif command -v node &>/dev/null; then
-        echo '  npm not found but node is available. Installing npm...'
-        curl -fsSL https://npmjs.org/install.sh | sh
-        npm install -g @anthropic-ai/claude-code 2>&1 | tail -3
+    if command -v claude &>/dev/null; then
+        echo '  Claude Code already installed.'
+        claude --version
     else
-        echo '  Node.js not found. Installing via nvm...'
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        nvm install --lts
-        npm install -g @anthropic-ai/claude-code 2>&1 | tail -3
+        if command -v npm &>/dev/null; then
+            npm install -g @anthropic-ai/claude-code 2>&1 | tail -3
+            echo '  Claude Code installed.'
+        elif command -v node &>/dev/null; then
+            echo '  npm not found but node is available. Installing npm...'
+            curl -fsSL https://npmjs.org/install.sh | sh
+            npm install -g @anthropic-ai/claude-code 2>&1 | tail -3
+        else
+            echo '  Node.js not found. Installing via nvm...'
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install --lts
+            npm install -g @anthropic-ai/claude-code 2>&1 | tail -3
+        fi
     fi
+else
+    echo '[5/5] Skipping Claude Code install (--noclaude)'
 fi
 
 echo ''
