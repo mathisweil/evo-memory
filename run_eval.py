@@ -23,7 +23,7 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from hydra import compose, initialize
-from main import make_eval_model, make_task_sampler
+from run_namm_training import make_eval_model, make_task_sampler
 
 
 def parse_args():

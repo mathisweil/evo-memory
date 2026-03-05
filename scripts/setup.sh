@@ -6,9 +6,9 @@
 # deps, installs Claude Code, and configures wandb + HuggingFace.
 #
 # Usage:
-#   bash setup.sh                        # uses $(whoami) as username
-#   bash setup.sh --user jsmith          # explicit username
-#   bash setup.sh --user jsmith --gpu 0  # explicit username + GPU
+#   bash setup.sh                        # UCL VM, uses $(whoami)
+#   bash setup.sh --user jsmith --gpu 0  # UCL VM, explicit username + GPU
+#   bash setup.sh --dir ~/ft-namm        # any machine, custom workspace dir
 #   bash setup.sh --noclaude             # skip Claude Code install
 #
 # Prerequisites:
@@ -24,6 +24,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 GPU_ID=""
 USER_NAME=""
+CUSTOM_DIR=""
 INSTALL_CLAUDE=true
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -43,13 +44,21 @@ while [[ $# -gt 0 ]]; do
             USER_NAME="${1#*=}"
             shift
             ;;
+        --dir)
+            CUSTOM_DIR="$2"
+            shift 2
+            ;;
+        --dir=*)
+            CUSTOM_DIR="${1#*=}"
+            shift
+            ;;
         --noclaude)
             INSTALL_CLAUDE=false
             shift
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: bash setup.sh [--user USERNAME] [--gpu GPU_ID] [--noclaude]"
+            echo "Usage: bash setup.sh [--dir DIR | --user USERNAME] [--gpu GPU_ID] [--noclaude]"
             exit 1
             ;;
     esac
@@ -58,9 +67,13 @@ done
 USER_NAME="${USER_NAME:-$(whoami)}"
 
 # ---------------------------------------------------------------------------
-# Config — edit these if your paths differ
+# Config
 # ---------------------------------------------------------------------------
-WORK_DIR="/cs/student/project_msc/2025/csml/${USER_NAME}/SNLP/FT-NAMM"
+if [ -n "${CUSTOM_DIR}" ]; then
+    WORK_DIR="${CUSTOM_DIR}"
+else
+    WORK_DIR="/cs/student/project_msc/2025/csml/${USER_NAME}/SNLP/FT-NAMM"
+fi
 EVO_MEMORY_REPO="https://github.com/mathisweil/evo-memory.git"
 EVO_MEMORY_BRANCH="es-fine-tuning"
 ES_PAPER_REPO="https://github.com/shr1ram/es-fine-tuning-paper.git"
