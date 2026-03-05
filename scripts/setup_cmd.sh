@@ -13,18 +13,22 @@
 #   bash /tmp/setup_cmd.sh                        # UCL VM, uses $(whoami)
 #   bash /tmp/setup_cmd.sh --user jsmith --gpu 2  # UCL VM, explicit user + GPU
 #   bash /tmp/setup_cmd.sh --dir ~/ft-namm        # any machine, custom dir
+#   bash /tmp/setup_cmd.sh --branch my-feature     # use a different branch
 #   bash /tmp/setup_cmd.sh --noclaude             # skip Claude Code install
 
 set -euo pipefail
 
-# Parse --user and --dir from args (need WORK_DIR before forwarding to setup.sh)
+# Parse --user, --dir, --branch from args (need them before forwarding to setup.sh)
 USER_NAME=""
 CUSTOM_DIR=""
+CUSTOM_BRANCH=""
 for arg in "$@"; do
     if [ "${prev:-}" = "--user" ]; then
         USER_NAME="$arg"
     elif [ "${prev:-}" = "--dir" ]; then
         CUSTOM_DIR="$arg"
+    elif [ "${prev:-}" = "--branch" ]; then
+        CUSTOM_BRANCH="$arg"
     fi
     prev="$arg"
 done
@@ -36,7 +40,7 @@ else
     WORK_DIR="/cs/student/project_msc/2025/csml/${USER_NAME}/SNLP/FT-NAMM"
 fi
 REPO_DIR="${WORK_DIR}/evo-memory"
-BRANCH="es-fine-tuning"
+BRANCH="${CUSTOM_BRANCH:-es-fine-tuning}"
 REPO_URL="https://github.com/mathisweil/evo-memory.git"
 
 mkdir -p "${WORK_DIR}"
@@ -51,5 +55,13 @@ else
     git clone -b "${BRANCH}" "${REPO_URL}" "${REPO_DIR}"
 fi
 
-# Now run the real setup.sh from the local clone (never stale)
-exec bash "${REPO_DIR}/scripts/setup.sh" "$@"
+# Forward all args except --branch to setup.sh
+SETUP_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --branch) shift 2 ;;
+        --branch=*) shift ;;
+        *) SETUP_ARGS+=("$1"); shift ;;
+    esac
+done
+exec bash "${REPO_DIR}/scripts/setup.sh" "${SETUP_ARGS[@]}"
