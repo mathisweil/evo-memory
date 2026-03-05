@@ -181,8 +181,9 @@ def main(cfg: DictConfig):
             dtype=cfg.get('dtype', 'bfloat16'),
         )
 
-        # Move model to device before LoRA injection so PEFT inherits the right device
-        memory_model.to(cfg.device)
+        # Cast backbone to bfloat16 and move to device before LoRA injection.
+        # apply_lora_adapters() will cast LoRA A/B matrices back to float32 afterward.
+        memory_model.to(dtype=torch.bfloat16, device=cfg.device)
 
         # Apply LoRA adapters BEFORE trainer construction (assert in __init__ checks this)
         lora_rank = cfg.get('lora_rank', 8)

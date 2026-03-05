@@ -18,6 +18,10 @@ lora_namm_active: false
 # No NAMM checkpoint — m1 starts from the base LLM directly
 init_from: ~
 
+# Reduce seq len from default 3500 to fit in 16GB VRAM at bfloat16
+# (full attention at 3500 tokens OOMs on 4070Ti even with bfloat16 backbone)
+lora_max_seq_len: 2048
+
 # FAIR-01: token budget anchor — identical across all conditions
 lora_num_epochs: 3
 lora_task_names:
