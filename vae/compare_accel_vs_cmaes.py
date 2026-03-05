@@ -37,8 +37,8 @@ DUMP_TIMESTEPS = ["10k", "20k", "30k", "40k", "50k"]
 LOCAL_DATA_DIR = "/tmp/accel_comparison_data"
 PLOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plots", "comparison")
 
-VAE_CHECKPOINT_PATH = "runs/20260227_185835_lr5e-05_lat64_baseline_weighted_recon_model_beta1.0_beta1.0/checkpoints/checkpoint_260000.pkl"
-VAE_CONFIG_PATH = "runs/20260227_185835_lr5e-05_lat64_baseline_weighted_recon_model_beta1.0_beta1.0/config.yaml"
+VAE_CHECKPOINT_PATH = "runs/runs/20260227_185835_lr5e-05_lat64_baseline_weighted_recon_model_beta1.0_beta1.0/checkpoints/checkpoint_260000.pkl"
+VAE_CONFIG_PATH = "runs/runs/20260227_185835_lr5e-05_lat64_baseline_weighted_recon_model_beta1.0_beta1.0/config.yaml"
 
 matplotlib.rcParams.update({
     "figure.dpi": 150,
