@@ -29,14 +29,14 @@ CACHE_SIZES=(256 512 1024)
 # ---------------------------------------------------------------------------
 # 1.  Full-cache baseline  (no eviction, upper bound)
 # ---------------------------------------------------------------------------
-# torchrun --standalone --nproc_per_node=1 main.py \
+# torchrun --standalone --nproc_per_node=1 run_namm_training.py \
 #     run@_global_=full_cache_baseline_llama32_1b.yaml
 
 # ---------------------------------------------------------------------------
 # 2.  Recency baseline at each cache size
 # ---------------------------------------------------------------------------
 # for CS in "${CACHE_SIZES[@]}"; do
-#     torchrun --standalone --nproc_per_node=1 main.py \
+#     torchrun --standalone --nproc_per_node=1 run_namm_training.py \
 #         run@_global_=recency_baseline_llama32_1b.yaml \
 #         cache_size="${CS}"
 # done
@@ -50,7 +50,7 @@ for CS in "${CACHE_SIZES[@]}"; do
     echo " wandb run: namm-cs${CS}-llama32-1b"
     echo '============================================================'
 
-    torchrun --standalone --nproc_per_node=1 main.py \
+    torchrun --standalone --nproc_per_node=1 run_namm_training.py \
         run@_global_=namm_bam_eval_llama32_1b.yaml \
         init_from="${NAMM_CKPT}" \
         cache_size="${CS}"

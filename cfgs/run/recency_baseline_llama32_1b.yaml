@@ -3,7 +3,7 @@
 # Identical cache budget (256 default) as the trained NAMM — apples-to-apples comparison.
 #
 # Override cache_size from the CLI to match any NAMM eval budget, e.g.:
-#   torchrun ... main.py run@_global_=recency_baseline_llama32_1b.yaml cache_size=512
+#   torchrun ... run_namm_training.py run@_global_=recency_baseline_llama32_1b.yaml cache_size=512
 defaults:
   - override /model/wrapped_llm@_global_: llama32-1b
   - override /task@_global_: lb_3subset_eval

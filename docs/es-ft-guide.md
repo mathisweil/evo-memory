@@ -45,8 +45,11 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 ```
 for iteration in range(num_iterations):          # 150 iterations
     seeds = random_integers(population_size)      # one seed per population member
-    rewards = []
 
+    resample_batch(mini_batch_size)               # draw a SHARED batch for this iteration
+                                                  # all pop members evaluated on same data
+
+    rewards = []
     for seed in seeds:                            # population_size = 8
         perturb_weights(model, seed, sigma)       # add noise: p += sigma * noise(seed)
         reward = evaluate(model, mini_batch)      # run NAMM inference on mini_batch_size Qasper samples
@@ -66,6 +69,8 @@ for iteration in range(num_iterations):          # 150 iterations
     if iteration % eval_every == 0:
         val_reward = validate(model, val_samples)
 ```
+
+**Important:** All population members in a given iteration are evaluated on the same batch of samples (resampled once via `pre_step_fn`). This matches how NAMM's CMA-ES trainer works and ensures reward differences between members reflect weight quality, not sample variance.
 
 ### Step-by-step breakdown
 
@@ -297,7 +302,7 @@ Record: total wall time, reward curve, does it converge differently with NAMM ac
 ```bash
 # After training, evaluate under all three eviction policies
 for CONFIG in full_cache_baseline_llama32_1b namm_bam_eval_llama32_1b recency_baseline_llama32_1b; do
-    python main.py \
+    python run_namm_training.py \
         "run@_global_=${CONFIG}.yaml" \
         init_from=/path/to/es_checkpoint_final.pt
 done

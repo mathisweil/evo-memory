@@ -7,7 +7,7 @@ import numpy as np
 
 
 from hydra import compose, initialize
-from main import make_eval_model, make_task_sampler, wandb_init
+from run_namm_training import make_eval_model, make_task_sampler, wandb_init
 import omegaconf
 import hydra
 import time

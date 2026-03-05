@@ -178,7 +178,7 @@ These experiments fill in the `[TODO]` timing blanks and answer open questions a
 ```bash
 # Measure time per CMA-ES iteration at different batch_size values
 for BS in 1 2 4 8; do
-    torchrun --standalone --nproc_per_node=1 main.py \
+    torchrun --standalone --nproc_per_node=1 run_namm_training.py \
         run@_global_=namm_bam_i1_llama32_1b.yaml \
         max_iters=3 \
         batch_size=$BS \
@@ -191,7 +191,7 @@ Record: wall time per iteration, GPU memory at each batch_size.
 ```bash
 # Compare pop=4 vs pop=8 vs pop=16 on short runs (50 iters)
 for POP in 4 8 16; do
-    torchrun --standalone --nproc_per_node=1 main.py \
+    torchrun --standalone --nproc_per_node=1 run_namm_training.py \
         run@_global_=namm_bam_i1_llama32_1b.yaml \
         max_iters=50 \
         pop_size=$POP \
@@ -204,7 +204,7 @@ Compare: best fitness at iteration 50, time per iteration.
 ```bash
 # Compare samples=8 vs samples=16 vs samples=32
 for SAMPLES in 8 16 32; do
-    torchrun --standalone --nproc_per_node=1 main.py \
+    torchrun --standalone --nproc_per_node=1 run_namm_training.py \
         run@_global_=namm_bam_i1_llama32_1b.yaml \
         max_iters=50 \
         samples_batch_size=$SAMPLES \
@@ -215,7 +215,7 @@ Compare: fitness variance per iteration, convergence speed.
 
 ### 4. Full 200-iteration training run
 ```bash
-torchrun --standalone --nproc_per_node=1 main.py \
+torchrun --standalone --nproc_per_node=1 run_namm_training.py \
     run@_global_=namm_bam_i1_llama32_1b.yaml
 ```
 Record: total wall time, final fitness, checkpoint path. This is the checkpoint needed for ES fine-tuning (Stage 2).
@@ -223,7 +223,7 @@ Record: total wall time, final fitness, checkpoint path. This is the checkpoint 
 ### 5. Evaluate trained NAMM at different cache sizes
 ```bash
 for CACHE in 128 256 512 1024; do
-    python main.py \
+    python run_namm_training.py \
         'run@_global_=namm_bam_eval_llama32_1b.yaml' \
         init_from=/path/to/ckpt.pt \
         cache_size=$CACHE
@@ -237,13 +237,13 @@ Record: qasper F1, passage_retrieval accuracy, narrativeqa F1 at each cache size
 
 **Train:**
 ```bash
-torchrun --standalone --nproc_per_node=1 main.py \
+torchrun --standalone --nproc_per_node=1 run_namm_training.py \
     run@_global_=namm_bam_i1_llama32_1b.yaml
 ```
 
 **Evaluate:**
 ```bash
-python main.py \
+python run_namm_training.py \
     'run@_global_=namm_bam_eval_llama32_1b.yaml' \
     init_from=/path/to/ckpt.pt \
     cache_size=1024

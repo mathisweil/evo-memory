@@ -262,18 +262,18 @@ Key question: does the NAMM run converge to a similar reward as the no-NAMM run?
 CKPT=experiments/es_ft_namm_full/checkpoints/es_checkpoint_final.pt
 
 # Under NAMM (same policy used during training)
-python main.py \
+python run_namm_training.py \
     'run@_global_=namm_bam_eval_llama32_1b.yaml' \
     init_from=$CKPT \
     cache_size=1024
 
 # Under full cache (upper bound — does fine-tuning under NAMM hurt full-cache perf?)
-python main.py \
+python run_namm_training.py \
     'run@_global_=full_cache_baseline_llama32_1b.yaml' \
     init_from=$CKPT
 
 # Under recency (does it generalise to a different eviction policy?)
-python main.py \
+python run_namm_training.py \
     'run@_global_=recency_baseline_llama32_1b.yaml' \
     init_from=$CKPT \
     cache_size=1024
@@ -300,7 +300,7 @@ Run tests 4 above for both ES-only and ES+NAMM checkpoints. Fill in:
 # Evaluate NAMM on each intermediate checkpoint
 for ITER in 25 50 75 100 125 150; do
     CKPT=experiments/es_ft_namm_full/checkpoints/es_checkpoint_iter${ITER}.pt
-    python main.py \
+    python run_namm_training.py \
         'run@_global_=namm_bam_eval_llama32_1b.yaml' \
         init_from=$CKPT \
         cache_size=1024
@@ -326,7 +326,7 @@ Does the optimal sigma differ with/without NAMM eviction active?
 
 **Train NAMM first (Stage 1):**
 ```bash
-torchrun --standalone --nproc_per_node=1 main.py \
+torchrun --standalone --nproc_per_node=1 run_namm_training.py \
     run@_global_=namm_bam_i1_llama32_1b.yaml
 ```
 
@@ -346,7 +346,7 @@ tensorboard --logdir experiments/es_runs
 
 **Evaluate:**
 ```bash
-python main.py \
+python run_namm_training.py \
     'run@_global_=namm_bam_eval_llama32_1b.yaml' \
     init_from=/path/to/es_checkpoint_final.pt \
     cache_size=1024
