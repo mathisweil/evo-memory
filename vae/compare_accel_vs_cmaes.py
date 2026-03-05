@@ -519,9 +519,178 @@ for run_name, cfg in CONDITIONS.items():
     print()
 
 
-# ── 7. Summary Table ─────────────────────────────────────────────────────
+# ── 7. Diversity Analysis ─────────────────────────────────────────────────
 print("\n" + "=" * 60)
-print("7. Summary Table")
+print("7. Diversity Analysis")
+print("=" * 60)
+
+from scipy.spatial import ConvexHull
+from scipy.spatial.distance import pdist
+
+def diversity_metrics(latents, tokens, n_sample=2000):
+    """Compute diversity metrics for a set of levels.
+
+    Returns dict with:
+      - mean_pairwise_latent_dist: mean pairwise L2 in latent space (sampled)
+      - latent_std: mean per-dim std in latent space
+      - convex_hull_volume: volume of convex hull in PC1-PC2 space
+      - unique_wall_configs: fraction of unique wall configurations
+      - wall_count_entropy: entropy of wall count distribution
+      - mean_pairwise_token_hamming: mean pairwise Hamming distance on wall tokens
+    """
+    n = len(latents)
+    # Sample for pairwise distances (O(n^2) otherwise)
+    if n > n_sample:
+        idx = np.random.choice(n, n_sample, replace=False)
+        lat_sample = latents[idx]
+        tok_sample = tokens[idx]
+    else:
+        lat_sample = latents
+        tok_sample = tokens
+
+    # Latent space metrics
+    pw_latent = pdist(lat_sample, metric="euclidean")
+    latent_std = latents.std(axis=0).mean()
+
+    # Convex hull in PCA space (use the global PCA already fitted)
+    proj2d = pca.transform(latents)
+    try:
+        hull = ConvexHull(proj2d)
+        hull_vol = hull.volume  # area in 2D
+    except Exception:
+        hull_vol = 0.0
+
+    # Token-level diversity
+    wall_tokens = tokens[:, :50]
+    wall_binary = (wall_tokens > 0).astype(np.uint8)
+    # Unique wall configurations
+    unique_configs = len(set(map(tuple, wall_binary)))
+    # Pairwise Hamming on wall presence/absence
+    pw_hamming = pdist(wall_binary[:min(n_sample, n)].astype(float), metric="hamming")
+
+    # Wall count entropy
+    wc = wall_binary.sum(axis=1)
+    counts, _ = np.histogram(wc, bins=range(0, 52))
+    probs = counts / counts.sum()
+    probs = probs[probs > 0]
+    wc_entropy = -(probs * np.log2(probs)).sum()
+
+    return {
+        "mean_pw_latent_dist": pw_latent.mean(),
+        "latent_std": latent_std,
+        "hull_area_pc12": hull_vol,
+        "unique_wall_configs": unique_configs,
+        "frac_unique": unique_configs / n,
+        "mean_pw_hamming": pw_hamming.mean(),
+        "wall_count_entropy": wc_entropy,
+    }
+
+# Compute diversity for final buffers (per condition, averaged over seeds)
+div_results = {}
+for run_name in CONDITIONS:
+    seed_divs = []
+    for seed in SEEDS:
+        if seed not in latent_data.get(run_name, {}):
+            continue
+        ld = latent_data[run_name][seed]
+        dumps = all_data[run_name][seed]["dumps"]
+        d = dumps.get("final", dumps[sorted(dumps.keys())[-1]] if dumps else None)
+        if d is None:
+            continue
+        size = int(d.get("size", len(d["tokens"])))
+        tokens = d["tokens"][:size]
+        latents = ld["latents"]
+        seed_divs.append(diversity_metrics(latents, tokens))
+    div_results[run_name] = seed_divs
+
+# Print diversity table
+print("\n=== Diversity Metrics (final buffer, mean over seeds) ===\n")
+metric_keys = ["mean_pw_latent_dist", "latent_std", "hull_area_pc12",
+               "unique_wall_configs", "frac_unique", "mean_pw_hamming", "wall_count_entropy"]
+metric_labels = ["Pairwise Latent Dist", "Latent Std", "Hull Area (PC1-2)",
+                 "Unique Wall Configs", "Frac Unique", "Pairwise Hamming", "Wall Count Entropy"]
+
+for run_name, cfg in CONDITIONS.items():
+    print(f"--- {cfg['label']} ---")
+    if not div_results[run_name]:
+        print("  No data")
+        continue
+    for key, label in zip(metric_keys, metric_labels):
+        vals = [d[key] for d in div_results[run_name]]
+        print(f"  {label}: {np.mean(vals):.4f} +/- {np.std(vals):.4f}")
+    print()
+
+# Plot 1: Diversity metrics bar chart comparison
+fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+plot_metrics = [
+    ("mean_pw_latent_dist", "Mean Pairwise Latent Distance"),
+    ("latent_std", "Mean Latent Std (per dim)"),
+    ("hull_area_pc12", "Convex Hull Area (PC1-PC2)"),
+    ("frac_unique", "Fraction Unique Wall Configs"),
+    ("mean_pw_hamming", "Mean Pairwise Hamming Distance"),
+    ("wall_count_entropy", "Wall Count Entropy (bits)"),
+]
+
+for ax, (key, title) in zip(axes.flat, plot_metrics):
+    means, stds, clabels, clrs = [], [], [], []
+    for run_name, cfg in CONDITIONS.items():
+        vals = [d[key] for d in div_results[run_name]]
+        means.append(np.mean(vals) if vals else 0)
+        stds.append(np.std(vals) if vals else 0)
+        clabels.append(cfg["label"])
+        clrs.append(cfg["color"])
+    bars = ax.bar(clabels, means, yerr=stds, capsize=5, color=clrs, alpha=0.8)
+    ax.set_title(title, fontweight="bold", fontsize=10)
+    ax.tick_params(axis='x', labelsize=8)
+
+plt.suptitle("Buffer Diversity Metrics (Final Buffer)", fontsize=14, fontweight="bold")
+plt.tight_layout()
+savefig(fig, "07_diversity_metrics.png")
+
+# Plot 2: Diversity evolution over training
+print("Computing diversity evolution over training (seed 0)...")
+div_evolution = {}
+for run_name in CONDITIONS:
+    div_evolution[run_name] = {}
+    dumps = all_data[run_name][0]["dumps"]
+    for ts in sorted(dumps.keys()):
+        d = dumps[ts]
+        size = int(d.get("size", len(d["tokens"])))
+        tokens = d["tokens"][:size]
+        # Use already-encoded latents from evolution_data if available
+        if ts in evolution_data.get(run_name, {}):
+            latents = evolution_data[run_name][ts]
+        else:
+            latents = encode_tokens(vae, vae_params, tokens, batch_size=512)
+        div_evolution[run_name][ts] = diversity_metrics(latents, tokens)
+    print(f"  {run_name}: {len(dumps)} timesteps")
+
+fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+
+for ax, (key, title) in zip(axes.flat, plot_metrics):
+    for run_name, cfg in CONDITIONS.items():
+        xs, ys = [], []
+        ts_keys = sorted(div_evolution[run_name].keys(),
+                         key=lambda x: int(x.replace("k", "").replace("final", "999")))
+        for ts in ts_keys:
+            x_val = int(ts.replace("k", "")) if ts != "final" else 55
+            xs.append(x_val)
+            ys.append(div_evolution[run_name][ts][key])
+        ax.plot(xs, ys, color=cfg["color"], marker=cfg["marker"],
+                label=cfg["label"], linewidth=1.5)
+    ax.set_xlabel("Training Update (k)")
+    ax.set_title(title, fontweight="bold", fontsize=10)
+    if ax == axes.flat[0]:
+        ax.legend(fontsize=7)
+
+plt.suptitle("Buffer Diversity Evolution (seed 0)", fontsize=14, fontweight="bold")
+plt.tight_layout()
+savefig(fig, "08_diversity_evolution.png")
+
+
+# ── 8. Summary Table ─────────────────────────────────────────────────────
+print("\n" + "=" * 60)
+print("8. Summary Table")
 print("=" * 60)
 
 summary_rows = []
@@ -548,6 +717,12 @@ for run_name, cfg in CONDITIONS.items():
             seed_max_scores.append(scores.max())
             seed_sizes.append(size)
 
+    # Diversity metrics
+    divs = div_results.get(run_name, [])
+    pw_lat = [d["mean_pw_latent_dist"] for d in divs] if divs else []
+    frac_uniq = [d["frac_unique"] for d in divs] if divs else []
+    pw_ham = [d["mean_pw_hamming"] for d in divs] if divs else []
+
     summary_rows.append({
         "Condition": cfg["label"],
         "Solve Rate": f"{np.mean(seed_solve_rates):.1%} +/- {np.std(seed_solve_rates):.1%}" if seed_solve_rates else "N/A",
@@ -556,6 +731,9 @@ for run_name, cfg in CONDITIONS.items():
         "Max Score": f"{np.mean(seed_max_scores):.3f}" if seed_max_scores else "N/A",
         "Unsolved": f"{np.mean(seed_unsolved):.0f} +/- {np.std(seed_unsolved):.0f}" if seed_unsolved else "N/A",
         "Buffer Size": f"{np.mean(seed_sizes):.0f}" if seed_sizes else "N/A",
+        "PW Latent Dist": f"{np.mean(pw_lat):.3f}" if pw_lat else "N/A",
+        "Frac Unique": f"{np.mean(frac_uniq):.3f}" if frac_uniq else "N/A",
+        "PW Hamming": f"{np.mean(pw_ham):.4f}" if pw_ham else "N/A",
     })
 
 summary_df = pd.DataFrame(summary_rows)
