@@ -38,7 +38,7 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from hydra import compose, initialize
-from main import make_eval_model, make_task_sampler
+from run_namm_training import make_eval_model, make_task_sampler
 from es_finetuning import ESConfig, ESTrainer
 
 
@@ -78,6 +78,10 @@ def parse_args():
                         default="namm_bam_i1_llama32_1b",
                         help="Hydra run config name from cfgs/run/")
 
+    # Evaluator batching
+    parser.add_argument("--eval_batch_size", type=int, default=None,
+                        help="Inference batch size for the evaluator (default: use config value)")
+
     # Data splits
     parser.add_argument("--train_samples", type=int, default=150,
                         help="Number of Qasper samples for training (from start)")
@@ -87,8 +91,9 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_hydra_config(run_config):
+def load_hydra_config(run_config, extra_overrides=None):
     """Load the full evo-memory config using Hydra compose API."""
+    extra_overrides = extra_overrides or []
     config_path = os.path.join(SCRIPT_DIR, "cfgs")
     with initialize(version_base=None, config_path="cfgs",
                     job_name="es_finetuning"):
@@ -98,12 +103,27 @@ def load_hydra_config(run_config):
                 f"run@_global_={run_config}",
                 "wandb_log=false",
                 "wandb_project=es_finetuning",
-            ],
+            ] + extra_overrides,
         )
     return cfg
 
 
-def make_evaluate_fn(task_sampler, evaluator, mini_batch_size, train=True):
+def make_resample_fn(task_sampler, mini_batch_size, train=True):
+    """Create a resample_fn that draws a shared batch once per ES iteration.
+
+    Called via ESTrainer.pre_step_fn before evaluating population members,
+    so all members are compared on the same data — reducing gradient noise.
+    """
+    def resample_fn():
+        task_sampler.resample_requests(
+            train=train,
+            sampled_requests_per_task=mini_batch_size,
+        )
+    return resample_fn
+
+
+def make_evaluate_fn(task_sampler, evaluator, mini_batch_size, train=True,
+                     resample=False):
     """Create the evaluate_fn closure for ESTrainer.
 
     Args:
@@ -111,26 +131,25 @@ def make_evaluate_fn(task_sampler, evaluator, mini_batch_size, train=True):
         evaluator: evo-memory MemoryHFEvaluator instance.
         mini_batch_size: Number of Qasper samples per evaluation.
         train: If True, sample from training split; if False, from val split.
+        resample: If True, resample a new batch each call. Use for validation
+            (called once, not in a per-member loop). Training evaluate_fn
+            should leave this False — resampling is done by pre_step_fn.
 
     Returns:
         Callable(model) -> float that returns a scalar reward.
     """
     def evaluate_fn(model):
-        # Resample a mini-batch of Qasper questions
-        task_sampler.resample_requests(
-            train=train,
-            sampled_requests_per_task=mini_batch_size,
-        )
-        # Evaluate: pop_reps=1 since we're evaluating a single set of
+        # Evaluate on the current batch (resampled by pre_step_fn for training,
+        # or resampled here for validation).
+        # pop_reps=1 since we're evaluating a single set of
         # (perturbed) base weights, not a NAMM population.
-        # evolved_model=False is accepted but unused in TaskSampler.evaluate().
         # NAMM eviction still runs because the model is a WrappedLlamaForCausalLM.
         score_dicts = task_sampler.evaluate(
             lm=evaluator,
             train=train,
             evolved_model=False,
             pop_reps=1,
-            resample_requests=False,  # Already resampled above
+            resample_requests=resample,
             sampled_requests_per_task=mini_batch_size,
         )
         # score_dicts[0] is e.g. {"lb/qasper": 45.2} (0-100 scale)
@@ -178,7 +197,13 @@ def main():
 
     # 1. Load config and instantiate model via Hydra
     print("Loading config and model via Hydra...")
-    cfg = load_hydra_config(args.run_config)
+    hydra_overrides = []
+    if args.eval_batch_size is not None:
+        hydra_overrides += [
+            f"batch_size={args.eval_batch_size}",
+            f"eval_max_batch_size={args.eval_batch_size}",
+        ]
+    cfg = load_hydra_config(args.run_config, extra_overrides=hydra_overrides)
 
     with torch.no_grad():
         (memory_policy, memory_model, memory_evaluator,
@@ -227,11 +252,17 @@ def main():
     print(f"Base LLM parameters to optimize: {len(param_names)}")
 
     # 5. Build evaluate_fn closures
+    #    resample_fn is called once per ES iteration (pre_step_fn) so all
+    #    population members are evaluated on the same batch — this matches
+    #    how NAMM's CMA-ES trainer works and reduces gradient noise.
     print("Building evaluation functions...")
+    resample_fn = make_resample_fn(
+        task_sampler, args.mini_batch_size, train=True)
     evaluate_fn = make_evaluate_fn(
         task_sampler, memory_evaluator, args.mini_batch_size, train=True)
     validate_fn = make_evaluate_fn(
-        task_sampler, memory_evaluator, args.val_samples, train=False)
+        task_sampler, memory_evaluator, args.val_samples, train=False,
+        resample=True)  # Validation runs once, not in a per-member loop
 
     # 6. Configure and run ES
     es_config = ESConfig(
@@ -253,6 +284,14 @@ def main():
         evaluate_fn=evaluate_fn,
         config=es_config,
         validate_fn=validate_fn,
+        pre_step_fn=resample_fn,
+        metadata={
+            "namm_checkpoint": args.namm_checkpoint,
+            "run_config": args.run_config,
+            "train_samples": args.train_samples,
+            "val_samples": args.val_samples,
+            "num_base_params": len(param_names),
+        },
     )
 
     print()

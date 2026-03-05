@@ -10,7 +10,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 
 - [ ] **0.1** Train NAMM scoring network for real (200 iterations, ~44h)
   ```bash
-  torchrun --standalone --nproc_per_node=1 main.py \
+  torchrun --standalone --nproc_per_node=1 run_namm_training.py \
       run@_global_=namm_bam_i1_llama32_1b.yaml
   ```
   Record: total wall time, final fitness, checkpoint path.
@@ -18,7 +18,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 - [ ] **0.2** Evaluate trained NAMM checkpoint across cache sizes
   ```bash
   for CACHE in 128 256 512 1024; do
-      python main.py \
+      python run_namm_training.py \
           'run@_global_=namm_bam_eval_llama32_1b.yaml' \
           init_from=/path/to/ckpt.pt \
           cache_size=$CACHE
@@ -28,12 +28,12 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 
 - [ ] **0.3** Run full-cache baseline evaluation
   ```bash
-  python main.py 'run@_global_=full_cache_baseline_llama32_1b.yaml'
+  python run_namm_training.py 'run@_global_=full_cache_baseline_llama32_1b.yaml'
   ```
 
 - [ ] **0.4** Run recency baseline evaluation
   ```bash
-  python main.py 'run@_global_=recency_baseline_llama32_1b.yaml'
+  python run_namm_training.py 'run@_global_=recency_baseline_llama32_1b.yaml'
   ```
 
 - [ ] **0.5** Record base model row of the results grid
@@ -64,9 +64,9 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
   ```bash
   CKPT=experiments/es_runs/no_namm_full/checkpoints/es_checkpoint_final.pt
 
-  python main.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
-  python main.py 'run@_global_=namm_bam_eval_llama32_1b.yaml' init_from=$CKPT cache_size=1024
-  python main.py 'run@_global_=recency_baseline_llama32_1b.yaml' init_from=$CKPT cache_size=1024
+  python run_namm_training.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
+  python run_namm_training.py 'run@_global_=namm_bam_eval_llama32_1b.yaml' init_from=$CKPT cache_size=1024
+  python run_namm_training.py 'run@_global_=recency_baseline_llama32_1b.yaml' init_from=$CKPT cache_size=1024
   ```
 
 - [ ] **1.3** Record ES-FT (no NAMM) row of the results grid
@@ -98,9 +98,9 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
   ```bash
   CKPT=experiments/es_runs/with_namm_full/checkpoints/es_checkpoint_final.pt
 
-  python main.py 'run@_global_=namm_bam_eval_llama32_1b.yaml' init_from=$CKPT cache_size=1024
-  python main.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
-  python main.py 'run@_global_=recency_baseline_llama32_1b.yaml' init_from=$CKPT cache_size=1024
+  python run_namm_training.py 'run@_global_=namm_bam_eval_llama32_1b.yaml' init_from=$CKPT cache_size=1024
+  python run_namm_training.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
+  python run_namm_training.py 'run@_global_=recency_baseline_llama32_1b.yaml' init_from=$CKPT cache_size=1024
   ```
 
 - [ ] **2.3** Record ES-FT (with NAMM) row of the results grid
@@ -130,7 +130,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
   ```bash
   for ITER in 25 50 75 100 125 150; do
       CKPT=experiments/es_runs/with_namm_full/checkpoints/es_checkpoint_iter${ITER}.pt
-      python main.py \
+      python run_namm_training.py \
           'run@_global_=namm_bam_eval_llama32_1b.yaml' \
           init_from=$CKPT \
           cache_size=1024
@@ -180,7 +180,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 ## Phase 5: Alternating Optimisation (If Staleness Is a Problem)
 
 - [ ] **5.1** Design alternating schedule (e.g. 50 ES iters → 50 CMA-ES iters → repeat)
-- [ ] **5.2** Implement outer script that alternates between `run_es_finetuning.py` and NAMM re-training via `main.py`
+- [ ] **5.2** Implement outer script that alternates between `run_es_finetuning.py` and NAMM re-training via `run_namm_training.py`
 - [ ] **5.3** Run alternating optimisation and compare with frozen-policy results
 - [ ] **5.4** Ablate alternation frequency (every 25/50/100 ES iterations)
 

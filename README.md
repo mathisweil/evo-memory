@@ -23,7 +23,7 @@ numpy<2               (numpy 2.x breaks many downstream packages)
 
 **Install:**
 ```bash
-source activate.sh
+source scripts/activate.sh
 ```
 
 **HuggingFace access** (LLaMA is a gated model):
@@ -49,7 +49,7 @@ wandb login   # paste your API key from wandb.ai/authorize
 Trains the NAMM scoring network on QASPER with CMA-ES. LLaMA weights stay frozen.
 
 ```bash
-torchrun --standalone --nproc_per_node=1 main.py \
+torchrun --standalone --nproc_per_node=1 run_namm_training.py \
     run@_global_=namm_bam_i1_llama32_1b.yaml
 ```
 
@@ -77,7 +77,7 @@ Results are logged to wandb under `project=memory_evolution_hf`, `group=Llama-3.
 Or run a single NAMM eval manually:
 
 ```bash
-python main.py \
+python run_namm_training.py \
     'run@_global_=namm_bam_eval_llama32_1b.yaml' \
     init_from=/path/to/ckpt.pt \
     cache_size=512
