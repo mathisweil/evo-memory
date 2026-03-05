@@ -168,6 +168,10 @@ class LoRAGradTrainer:
         self._last_retention_dict = {}
 
         # --- Build dataset and DataLoader ---
+        # LLaMA tokenizer has no pad token — use EOS so collate_fn gets a valid int
+        if tokenizer.pad_token_id is None:
+            tokenizer.pad_token_id = tokenizer.eos_token_id
+
         dataset = LongBenchNTPDataset(
             task_names=cfg.task_names,
             tokenizer=tokenizer,
