@@ -8,6 +8,7 @@ defaults:
   - override /trainer@_global_: lora_grad
   - override /model/wrapped_llm@_global_: llama32-1b
   - override /policy/deep_embedding@_global_: attn_spec_norm
+  - override /evolution@_global_: dummy
   - _self_
 
 trainer_type: lora_grad
