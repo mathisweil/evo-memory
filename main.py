@@ -179,6 +179,7 @@ def main(cfg: DictConfig):
             always_save_checkpoint=cfg.get('always_save_checkpoint', True),
             init_from=cfg.get('init_from', None),
             dtype=cfg.get('dtype', 'bfloat16'),
+            sft_mode=cfg.get('lora_sft_mode', False),
         )
 
         # Cast backbone to bfloat16 and move to device before LoRA injection.

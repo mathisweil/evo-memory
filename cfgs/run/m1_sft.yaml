@@ -1,0 +1,38 @@
+# @package _global_
+#
+# m1-SFT condition: SFT LoRA finetuning on QASPER (answer-only loss), no NAMM, full KV cache.
+# Replaces NTP objective with supervised QA finetuning: context+question -> answer.
+# Loss is computed on answer tokens only (context+question masked with -100 in collate).
+
+defaults:
+  - override /trainer@_global_: lora_grad
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - override /policy@_global_: none
+  - override /evolution@_global_: dummy
+  - _self_
+
+trainer_type: lora_grad
+lora_method: m1_sft
+lora_namm_active: false
+lora_sft_mode: true
+
+# No NAMM checkpoint — m1-SFT starts from the base LLM directly
+init_from: ~
+
+# Full context — gradient checkpointing makes 3500 tokens fit in 16GB
+lora_max_seq_len: 3500
+
+# SFT token budget: 5 epochs for ~30-min training (calibrated from NTP m1: 3 epochs ~ 15 min)
+lora_num_epochs: 5
+lora_task_names:
+  - qasper
+lora_gradient_accumulation_steps: 16
+
+# Slightly longer warmup for short SFT schedule
+lora_warmup_ratio: 0.05
+
+# wandb
+wandb_run_name: m1-sft-llama32-1b-seed${seed}
+wandb_group_name: Llama-3.2-1B/grad-lora-study
+wandb_project: memory_evolution_hf
+wandb_log: true

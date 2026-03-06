@@ -97,6 +97,8 @@ class LoRATrainerConfig:
     always_save_checkpoint: bool
     init_from: Optional[str]        # path to ckpt (NAMM ckpt for m4, LoRA ckpt for resume)
     dtype: str                      # 'bfloat16'
+    sft_mode: bool = False          # True -> LongBenchSFTDataset; False -> LongBenchNTPDataset
+    # sft_mode=True uses answer-only loss masking via LongBenchSFTDataset (Phase 9+)
 
 
 # ---------------------------------------------------------------------------
@@ -173,18 +175,34 @@ class LoRAGradTrainer:
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token_id = tokenizer.eos_token_id
 
-        dataset = LongBenchNTPDataset(
-            task_names=cfg.task_names,
-            tokenizer=tokenizer,
-            max_seq_len=cfg.max_seq_len,
-            cache_dir=cfg.cache_dir,
-            seed=cfg.seed,
-        )
-        collate_fn = partial(
-            ntp_pad_collate_fn,
-            pad_token_id=tokenizer.pad_token_id,
-            max_seq_len=cfg.max_seq_len,
-        )
+        if cfg.sft_mode:
+            from lora_sft_dataset import LongBenchSFTDataset, sft_pad_collate_fn
+            dataset = LongBenchSFTDataset(
+                task_names=cfg.task_names,
+                tokenizer=tokenizer,
+                max_seq_len=cfg.max_seq_len,
+                cache_dir=cfg.cache_dir,
+                seed=cfg.seed,
+            )
+            collate_fn = partial(
+                sft_pad_collate_fn,
+                pad_token_id=tokenizer.pad_token_id,
+                max_seq_len=cfg.max_seq_len,
+            )
+            print("LoRAGradTrainer: SFT mode — using LongBenchSFTDataset with answer-only loss masking.")
+        else:
+            dataset = LongBenchNTPDataset(
+                task_names=cfg.task_names,
+                tokenizer=tokenizer,
+                max_seq_len=cfg.max_seq_len,
+                cache_dir=cfg.cache_dir,
+                seed=cfg.seed,
+            )
+            collate_fn = partial(
+                ntp_pad_collate_fn,
+                pad_token_id=tokenizer.pad_token_id,
+                max_seq_len=cfg.max_seq_len,
+            )
         self.dataloader = DataLoader(
             dataset,
             batch_size=cfg.batch_size,

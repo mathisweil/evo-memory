@@ -41,6 +41,24 @@ Plans:
 
 </details>
 
+### Phase 9: SFT LoRA Training and m1 Revalidation
+
+**Goal:** Replace the NTP training objective with supervised QA finetuning (SFT — context+question→answer, answer-only loss); train m1-SFT on QASPER; validate outputs are non-degenerate and exceed base LLaMA performance; gate all subsequent phases (4-8) on SFT viability before cascading the new objective.
+**Requirements**: TRAIN-01, EXP-01
+**Depends on:** Phase 3 (uses LoRAGradTrainer infrastructure)
+**Runs before:** Phase 4 (validates SFT objective before m4-frozen and other conditions adopt it)
+**Plans:** 1/3 plans executed
+**Success Criteria** (what must be TRUE):
+  1. `LongBenchSFTDataset` loads QASPER, formats context+question→answer, stores per-example `label_start` offset; `sft_pad_collate_fn` sets `labels[:, :label_start] = -100`; `LoRAGradTrainer` dispatches to SFT dataset when `lora_sft_mode: true`
+  2. Base LLaMA 3.2-1B (no LoRA, no finetuning) eval on QASPER produces a non-None F1 score saved to `results/base/1337/eval_outputs/qasper_score.txt` — provides the reference floor
+  3. m1-SFT training completes on GPU with non-flat loss curve; checkpoint passes inspector (`max(lora_B.norm()) > 0`); QASPER F1 score logged to wandb and saved in artifact dir; score >= base LLaMA score (or within 1.0 F1 with non-degenerate outputs)
+  4. Human inspection of 10-20 scored predictions from `results/m1_sft/1337/eval_outputs/lb_qasper.jsonl` confirms non-degenerate outputs (no repetition, on-topic answers)
+
+Plans:
+- [ ] 09-01-PLAN.md — Write `lora_sft_dataset.py` (LongBenchSFTDataset + sft_pad_collate_fn); add `sft_mode` to LoRATrainerConfig; dataset dispatch in LoRAGradTrainer.__init__; write `cfgs/run/m1_sft.yaml` (TRAIN-01)
+- [ ] 09-02-PLAN.md — Fix `store_gen_outputs` stub in `task_sampler.py` (3-line JSONL write); extend `run_eval.py` with `--method base` (skip LoRA), `--method m1_sft` (alias for m1), `store_gen_outputs` prediction saving (TRAIN-01)
+- [ ] 09-03-PLAN.md — GPU: run base LLaMA eval; run m1-SFT training; checkpoint inspector; eval on QASPER; human inspection of 10-20 predictions; hyperparameter retry if degenerate (EXP-01)
+
 ---
 
 ### v2.0 NAMM + Gradient LoRA Study (In Progress)
@@ -156,7 +174,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 3 → 4 → 5 → 6 → 7 → 8
+Phase 9 runs before Phase 4 (validates SFT objective). Phases 4-8 execute in numeric order after Phase 9.
 Note: Phase 5 (m4-iterative) depends on Phase 4 (m4-frozen validated) — must not start before m4-frozen is confirmed working. Phase 6 (m3 + analysis) depends on Phase 4 (m1 checkpoint) and Phase 5 (m4-iterative results available for comparison table).
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -164,7 +182,8 @@ Note: Phase 5 (m4-iterative) depends on Phase 4 (m4-frozen validated) — must n
 | 1. Branch Setup | v1.0 | 1/1 | Complete | 2026-03-02 |
 | 2. LoRA Seam + Correctness Gate | v1.0 | 3/3 | Complete (GPU test pending) | 2026-03-02 |
 | 3. Gradient Training Loop | 4/4 | Complete   | 2026-03-04 | 2026-03-04 |
-| 4. m1 + m4-frozen Runs | 2/4 | In Progress (awaiting GPU run) |  | - |
+| 9. SFT LoRA Training + m1 Revalidation | 1/3 | In Progress|  | - |
+| 4. m1 + m4-frozen Runs | 2/4 | Blocked (awaiting Phase 9 SFT validation) |  | - |
 | 5. m4-iterative Run | v2.0 | 0/3 | Not started | - |
 | 6. Analysis Metrics + m3 Run | v2.0 | 0/4 | Not started | - |
 | 7. Secondary Experiments | v2.0 | 0/4 | Not started | - |
