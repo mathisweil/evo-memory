@@ -28,12 +28,13 @@ EVAL_METRICS = ['qa_f1', 'qa_f1', 'retrieval_f1']   # one per task
 HF_CACHE = '/cs/student/project_msc/2025/csml/gmaralla/.hf_cache'
 # ─────────────────────────────────────────────────────────────────────────────
 
-VALID_METHODS = ['m1', 'm2', 'm3', 'm4_frozen', 'm4_iterative']
+VALID_METHODS = ['base', 'm1', 'm1_sft', 'm2', 'm3', 'm4_frozen', 'm4_iterative']
 
 
 def parse_args():
     p = argparse.ArgumentParser(description='Shared eval for all conditions (FAIR-02)')
-    p.add_argument('--ckpt', required=True, help='Path to checkpoint file (ckpt.pt)')
+    p.add_argument('--ckpt', required=False, default=None,
+                   help='Path to checkpoint file (ckpt.pt). Not required for --method base.')
     p.add_argument('--method', required=True, choices=VALID_METHODS,
                    help='Condition name: m1 | m2 | m3 | m4_frozen | m4_iterative')
     p.add_argument('--seed', type=int, default=1337, help='Random seed used for training run')
@@ -96,7 +97,7 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
     if method in ('m4_frozen', 'm2', 'm3'):
         run_cfg_name = 'namm_bam_eval_llama32_1b'
     else:
-        # m1, m4_iterative (no NAMM during eval), and any future methods
+        # m1, m1_sft, base, m4_iterative all use full-cache baseline (no NAMM)
         run_cfg_name = 'full_cache_baseline_llama32_1b'
 
     # 4. Build Hydra overrides
@@ -114,20 +115,30 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
 
     # 6. Build model, evaluator, task_sampler via the standard make_eval_model path
     (memory_policy, model, evaluator, evo_alg, aux_loss) = make_eval_model(cfg)
-    task_sampler = make_task_sampler(cfg)
+    task_sampler = make_task_sampler(
+        cfg,
+        store_gen_outputs=True,
+        store_gen_outputs_path=os.path.join(artifact_dir, 'eval_outputs'),
+    )
 
     # Retrieve tokenizer from evaluator (MemoryHFEvaluator stores it)
     tokenizer = evaluator.tokenizer if hasattr(evaluator, 'tokenizer') else None
 
     # 7. Apply LoRA adapters and load LoRA weights for lora_grad conditions
-    lora_conditions = ('m1', 'm2', 'm3', 'm4_frozen', 'm4_iterative')
-    if method in lora_conditions:
+    lora_conditions = ('m1', 'm1_sft', 'm2', 'm3', 'm4_frozen', 'm4_iterative')
+    # 'base' is intentionally NOT in lora_conditions — base LLaMA eval skips LoRA entirely
+    if method == 'base':
+        print("Base LLaMA eval: skipping LoRA adapter injection (no checkpoint needed).")
+        # No LoRA, no checkpoint loading — pure base model evaluation
+    elif method in lora_conditions:
         # apply_lora_adapters injects PEFT LoRA A/B matrices into the base model
         model.apply_lora_adapters(
             rank=lora_rank,
             target_modules=lora_target_modules,
         )
         # Load LoRA weights from the checkpoint
+        if ckpt_path is None:
+            raise ValueError(f"--ckpt is required for method '{method}' (LoRA checkpoint needed)")
         lora_ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
         if 'lora_state_dict' in lora_ckpt:
             loaded = 0
