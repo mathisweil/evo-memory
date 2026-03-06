@@ -439,7 +439,14 @@ class TaskSampler():
                 for k, v in memory_policy_stats.items():
                     self.cached_per_task_stats[
                         f'{task_n[task_n.index("/") + 1:]}/' + k] = v
-            if self.store_gen_outputs:
-                pass
+            if self.store_gen_outputs and dicts_to_store:
+                os.makedirs(self.store_gen_outputs_path, exist_ok=True)
+                safe_task_name = task_n.replace('/', '_')
+                out_path = os.path.join(
+                    self.store_gen_outputs_path,
+                    f'{safe_task_name}.jsonl')
+                with open(out_path, 'a') as fp:
+                    for d in dicts_to_store:
+                        fp.write(json.dumps(d) + '\n')
 
         return pop_task_scores, stats
