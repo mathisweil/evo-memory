@@ -265,11 +265,14 @@ class LoRAGradTrainer:
 
         # Forward pass — apply_memory_policy=namm_active passes NAMM eviction
         # during forward when namm_active=True (m4-frozen mode).
-        # CRITICAL: never pass limit_new_tokens from the training loop.
+        # limit_new_tokens must equal seq_len: the model defaults to
+        # self.max_new_tokens=128, which triggers split_processing and returns
+        # only the last chunk's logits, causing a shape mismatch with labels.
         outputs = self.model(
             input_ids=input_ids,
             use_cache=True,
             apply_memory_policy=cfg.namm_active,
+            limit_new_tokens=input_ids.shape[1],
         )
 
         # Compute NTP loss manually — do NOT pass labels to the model because
