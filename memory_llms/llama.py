@@ -517,10 +517,13 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                     )
 
         else:
-            self.memory_policy.update_rotary_offset(
-                num_new_tokens=num_new_tokens,
-                num_all_tokens=outputs.past_key_values[0][0].shape[-2]
-                )
+            # Guard: gradient checkpointing forces use_cache=False internally,
+            # so past_key_values may be None during LoRA training.
+            if outputs.past_key_values is not None:
+                self.memory_policy.update_rotary_offset(
+                    num_new_tokens=num_new_tokens,
+                    num_all_tokens=outputs.past_key_values[0][0].shape[-2]
+                    )
 
         if not return_dict:
             output = (logits,) + outputs[1:]

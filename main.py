@@ -185,6 +185,16 @@ def main(cfg: DictConfig):
         # apply_lora_adapters() will cast LoRA A/B matrices back to float32 afterward.
         memory_model.to(dtype=torch.bfloat16, device=cfg.device)
 
+        # Gradient checkpointing: recompute each decoder layer during backward
+        # instead of storing all 16 layers' float32 attention maps (~25 GB).
+        # Only safe when NAMM is inactive (GC forces use_cache=False internally,
+        # which breaks memory_policy.update_cache()).
+        if not lora_cfg.namm_active:
+            memory_model.model.gradient_checkpointing_enable(
+                gradient_checkpointing_kwargs={"use_reentrant": False}
+            )
+            print("Gradient checkpointing enabled (namm_active=False).")
+
         # Apply LoRA adapters BEFORE trainer construction (assert in __init__ checks this)
         lora_rank = cfg.get('lora_rank', 8)
         lora_targets = list(cfg.get('lora_target_modules', ['q_proj', 'v_proj']))
