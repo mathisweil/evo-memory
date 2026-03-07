@@ -131,7 +131,8 @@ try:
             continue
         history = run.history(
             keys=["num_updates", "solve_rate/mean", "return/mean",
-                  "level_sampler/mean_score", "level_sampler/score_std"],
+                  "level_sampler/mean_score", "level_sampler/score_std",
+                  "level_sampler/size", "level_sampler/max_score"],
             pandas=True,
         )
         history = history.dropna(subset=["num_updates"])
@@ -164,6 +165,15 @@ try:
                              "Eval Return (mean +/- std over 3 seeds)", ax=axes[1])
     plt.tight_layout()
     savefig(fig, "01_sample_efficiency.png")
+
+    # Regret curves from wandb
+    fig, axes = plt.subplots(1, 2, figsize=(18, 6))
+    plot_metric_with_shading(wandb_df, "level_sampler/mean_score", "Mean Buffer Score (PVL)",
+                             "Buffer Mean Regret Over Training", ax=axes[0])
+    plot_metric_with_shading(wandb_df, "level_sampler/max_score", "Max Buffer Score (PVL)",
+                             "Buffer Max Regret Over Training", ax=axes[1])
+    plt.tight_layout()
+    savefig(fig, "01b_regret_curves.png")
 
 except Exception as e:
     print(f"  [WARN] wandb failed: {e}")
@@ -693,9 +703,248 @@ plt.tight_layout()
 savefig(fig, "08_diversity_evolution.png")
 
 
-# ── 8. Summary Table ─────────────────────────────────────────────────────
+# ── 8. VAE Search Quality Diagnostics ─────────────────────────────────────
 print("\n" + "=" * 60)
-print("8. Summary Table")
+print("8. VAE Search Quality Diagnostics")
+print("=" * 60)
+print("Is the VAE latent space actually a better search space than random mutations?")
+
+# --- 8a. VAE reconstruction quality per condition ---
+print("\n--- 8a. Reconstruction quality (encode → decode → token accuracy) ---")
+
+def reconstruct_tokens(vae, vae_params, tokens, batch_size=512):
+    """Encode tokens, decode from mean, return reconstructed tokens and per-level accuracy."""
+    all_recon = []
+    all_acc = []
+    for i in range(0, len(tokens), batch_size):
+        batch = jnp.array(tokens[i:i + batch_size])
+        mean, _ = vae.apply({"params": vae_params}, batch, train=False, method=vae.encode)
+        logits = vae.apply({"params": vae_params}, mean, method=vae.decode)  # (B, 52, vocab)
+        recon = jnp.argmax(logits, axis=-1)  # (B, 52)
+        acc = (recon == batch).mean(axis=1)  # per-level accuracy
+        all_recon.append(np.asarray(recon))
+        all_acc.append(np.asarray(acc))
+    return np.concatenate(all_recon), np.concatenate(all_acc)
+
+recon_data = {}
+for run_name in CONDITIONS:
+    recon_data[run_name] = {}
+    for seed in SEEDS:
+        dumps = all_data[run_name][seed]["dumps"]
+        d = dumps.get("final", dumps[sorted(dumps.keys())[-1]] if dumps else None)
+        if d is None:
+            continue
+        size = int(d.get("size", len(d["tokens"])))
+        tokens = d["tokens"][:size]
+        scores = d["scores"][:size]
+        recon_tokens, recon_acc = reconstruct_tokens(vae, vae_params, tokens)
+        recon_data[run_name][seed] = {
+            "tokens": tokens, "scores": scores,
+            "recon_tokens": recon_tokens, "accuracy": recon_acc,
+        }
+    seed_accs = [recon_data[run_name][s]["accuracy"].mean()
+                 for s in SEEDS if s in recon_data[run_name]]
+    print(f"  {CONDITIONS[run_name]['label']}: "
+          f"mean token accuracy = {np.mean(seed_accs):.1%} +/- {np.std(seed_accs):.1%}")
+
+# Plot: reconstruction accuracy distribution per condition
+fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+
+for run_name, cfg in CONDITIONS.items():
+    all_acc = []
+    for seed in SEEDS:
+        if seed in recon_data[run_name]:
+            all_acc.extend(recon_data[run_name][seed]["accuracy"])
+    if all_acc:
+        axes[0].hist(all_acc, bins=50, alpha=0.4, color=cfg["color"],
+                     label=cfg["label"], density=True)
+
+axes[0].set_xlabel("Token Reconstruction Accuracy")
+axes[0].set_ylabel("Density")
+axes[0].set_title("VAE Reconstruction Accuracy Distribution", fontweight="bold")
+axes[0].legend(fontsize=8)
+
+# Plot: reconstruction accuracy vs score (is the VAE worse at representing hard levels?)
+for run_name, cfg in CONDITIONS.items():
+    all_acc, all_sc = [], []
+    for seed in SEEDS:
+        if seed in recon_data[run_name]:
+            all_acc.extend(recon_data[run_name][seed]["accuracy"])
+            all_sc.extend(recon_data[run_name][seed]["scores"])
+    if all_acc:
+        axes[1].scatter(all_sc, all_acc, alpha=0.1, s=4, color=cfg["color"], label=cfg["label"])
+
+axes[1].set_xlabel("Score (regret)")
+axes[1].set_ylabel("Token Reconstruction Accuracy")
+axes[1].set_title("Reconstruction Accuracy vs Score", fontweight="bold")
+axes[1].legend(markerscale=3, fontsize=8)
+
+plt.tight_layout()
+savefig(fig, "09a_reconstruction_quality.png")
+
+# --- 8b. Reconstruction accuracy vs wall count ---
+print("\n--- 8b. Reconstruction accuracy vs wall count ---")
+
+fig, ax = plt.subplots(figsize=(10, 6))
+for run_name, cfg in CONDITIONS.items():
+    all_wc, all_acc = [], []
+    for seed in SEEDS:
+        if seed in recon_data[run_name]:
+            tokens = recon_data[run_name][seed]["tokens"]
+            wc = (tokens[:, :50] > 0).sum(axis=1)
+            all_wc.extend(wc)
+            all_acc.extend(recon_data[run_name][seed]["accuracy"])
+    if all_wc:
+        # Bin by wall count and plot mean accuracy per bin
+        wc_arr, acc_arr = np.array(all_wc), np.array(all_acc)
+        bins = np.arange(0, 51, 2)
+        bin_idx = np.digitize(wc_arr, bins)
+        bin_means = [acc_arr[bin_idx == i].mean() for i in range(1, len(bins))
+                     if (bin_idx == i).sum() > 5]
+        bin_centers = [bins[i-1] + 1 for i in range(1, len(bins))
+                       if (bin_idx == i).sum() > 5]
+        ax.plot(bin_centers, bin_means, color=cfg["color"], marker=cfg["marker"],
+                label=cfg["label"], linewidth=1.5)
+
+ax.set_xlabel("Wall Count")
+ax.set_ylabel("Mean Token Reconstruction Accuracy")
+ax.set_title("VAE Reconstruction Quality vs Maze Complexity", fontweight="bold")
+ax.legend(fontsize=9)
+plt.tight_layout()
+savefig(fig, "09b_recon_vs_wall_count.png")
+
+# --- 8c. Where do ACCEL high-regret levels sit in the VAE latent space? ---
+print("\n--- 8c. ACCEL levels projected into VAE latent space ---")
+
+fig, axes = plt.subplots(1, 2, figsize=(16, 7))
+
+accel_latents_all, accel_scores_all = [], []
+cmaes_latents_all, cmaes_scores_all = [], []
+
+for seed in SEEDS:
+    if seed in latent_data.get("plain_accel", {}):
+        accel_latents_all.append(latent_data["plain_accel"][seed]["latents"])
+        accel_scores_all.append(latent_data["plain_accel"][seed]["scores"])
+    for cname in ["cmaes_vae_beta1.0", "cmaes_vae_beta1.5", "cmaes_vae_beta2.0"]:
+        if seed in latent_data.get(cname, {}):
+            cmaes_latents_all.append(latent_data[cname][seed]["latents"])
+            cmaes_scores_all.append(latent_data[cname][seed]["scores"])
+
+if accel_latents_all and cmaes_latents_all:
+    accel_lat = np.concatenate(accel_latents_all)
+    accel_sc = np.concatenate(accel_scores_all)
+    cmaes_lat = np.concatenate(cmaes_latents_all)
+    cmaes_sc = np.concatenate(cmaes_scores_all)
+
+    accel_proj = pca.transform(accel_lat)
+    cmaes_proj = pca.transform(cmaes_lat)
+
+    # Top 10% regret levels from ACCEL
+    accel_thresh = np.percentile(accel_sc, 90)
+    accel_high = accel_sc >= accel_thresh
+
+    axes[0].scatter(cmaes_proj[:, 0], cmaes_proj[:, 1], c="lightgray", alpha=0.2, s=4, label="CMA-ES (all)")
+    axes[0].scatter(accel_proj[~accel_high, 0], accel_proj[~accel_high, 1],
+                    c=CONDITIONS["plain_accel"]["color"], alpha=0.2, s=4, label="ACCEL (low regret)")
+    axes[0].scatter(accel_proj[accel_high, 0], accel_proj[accel_high, 1],
+                    c="red", alpha=0.6, s=12, label=f"ACCEL top 10% regret (>{accel_thresh:.2f})")
+    axes[0].set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.1%})")
+    axes[0].set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%})")
+    axes[0].set_title("ACCEL High-Regret Levels vs CMA-ES Coverage", fontweight="bold")
+    axes[0].legend(markerscale=3, fontsize=8)
+
+    # Right: distance from ACCEL levels to nearest CMA-ES level in latent space
+    from scipy.spatial import cKDTree
+    tree = cKDTree(cmaes_lat)
+    dists_high, _ = tree.query(accel_lat[accel_high])
+    dists_low, _ = tree.query(accel_lat[~accel_high])
+
+    axes[1].hist(dists_high, bins=50, alpha=0.6, color="red", density=True,
+                 label=f"ACCEL top 10% regret (n={accel_high.sum()})")
+    axes[1].hist(dists_low, bins=50, alpha=0.4, color=CONDITIONS["plain_accel"]["color"],
+                 density=True, label=f"ACCEL rest (n={(~accel_high).sum()})")
+    axes[1].set_xlabel("L2 Distance to Nearest CMA-ES Level (latent space)")
+    axes[1].set_ylabel("Density")
+    axes[1].set_title("Are ACCEL's Best Levels Reachable by CMA-ES?", fontweight="bold")
+    axes[1].legend(fontsize=8)
+    print(f"  ACCEL top 10% regret: mean dist to nearest CMA-ES = {dists_high.mean():.3f}")
+    print(f"  ACCEL rest:           mean dist to nearest CMA-ES = {dists_low.mean():.3f}")
+
+plt.tight_layout()
+savefig(fig, "09c_accel_vs_cmaes_latent_coverage.png")
+
+# --- 8d. Buffer turnover rate between dumps ---
+print("\n--- 8d. Buffer turnover rate (fraction of levels replaced between dumps) ---")
+
+def compute_turnover(tokens_prev, tokens_curr, size_prev, size_curr):
+    """Fraction of levels in curr buffer that were NOT in prev buffer.
+    Compares actual token sequences (full 52-token vectors)."""
+    prev_set = set(map(tuple, tokens_prev[:size_prev]))
+    curr_set = set(map(tuple, tokens_curr[:size_curr]))
+    if len(curr_set) == 0:
+        return 0.0
+    new_levels = curr_set - prev_set
+    return len(new_levels) / len(curr_set)
+
+fig, ax = plt.subplots(figsize=(12, 6))
+for run_name, cfg in CONDITIONS.items():
+    ts_list = DUMP_TIMESTEPS + ["final"]
+    xs, ys_mean, ys_std = [], [], []
+    for i in range(1, len(ts_list)):
+        prev_ts, curr_ts = ts_list[i - 1], ts_list[i]
+        seed_turnovers = []
+        for seed in SEEDS:
+            dumps = all_data[run_name][seed]["dumps"]
+            if prev_ts not in dumps or curr_ts not in dumps:
+                continue
+            prev_size = int(dumps[prev_ts].get("size", len(dumps[prev_ts]["tokens"])))
+            curr_size = int(dumps[curr_ts].get("size", len(dumps[curr_ts]["tokens"])))
+            turnover = compute_turnover(
+                dumps[prev_ts]["tokens"], dumps[curr_ts]["tokens"],
+                prev_size, curr_size,
+            )
+            seed_turnovers.append(turnover)
+        if seed_turnovers:
+            x_val = int(curr_ts.replace("k", "")) if curr_ts != "final" else 55
+            xs.append(x_val)
+            ys_mean.append(np.mean(seed_turnovers))
+            ys_std.append(np.std(seed_turnovers))
+
+    if xs:
+        xs, ys_mean, ys_std = np.array(xs), np.array(ys_mean), np.array(ys_std)
+        ax.plot(xs, ys_mean, color=cfg["color"], marker=cfg["marker"],
+                label=cfg["label"], linewidth=1.5)
+        ax.fill_between(xs, ys_mean - ys_std, ys_mean + ys_std,
+                        color=cfg["color"], alpha=0.15)
+
+ax.set_xlabel("Training Update (k)")
+ax.set_ylabel("Turnover Rate (fraction of buffer replaced)")
+ax.set_title("Buffer Turnover Between Dumps (10k update intervals)", fontweight="bold")
+ax.legend(fontsize=9)
+ax.set_ylim(0, 1.05)
+plt.tight_layout()
+savefig(fig, "09d_buffer_turnover.png")
+
+# Print turnover summary
+print("\n  Cumulative turnover (final vs 10k):")
+for run_name, cfg in CONDITIONS.items():
+    seed_turnovers = []
+    for seed in SEEDS:
+        dumps = all_data[run_name][seed]["dumps"]
+        first_ts = "10k" if "10k" in dumps else sorted(dumps.keys())[0]
+        last_ts = "final" if "final" in dumps else sorted(dumps.keys())[-1]
+        if first_ts in dumps and last_ts in dumps:
+            s1 = int(dumps[first_ts].get("size", len(dumps[first_ts]["tokens"])))
+            s2 = int(dumps[last_ts].get("size", len(dumps[last_ts]["tokens"])))
+            seed_turnovers.append(compute_turnover(
+                dumps[first_ts]["tokens"], dumps[last_ts]["tokens"], s1, s2))
+    if seed_turnovers:
+        print(f"    {cfg['label']}: {np.mean(seed_turnovers):.1%} +/- {np.std(seed_turnovers):.1%}")
+
+
+# ── 9. Summary Table ─────────────────────────────────────────────────────
+print("\n" + "=" * 60)
+print("9. Summary Table")
 print("=" * 60)
 
 summary_rows = []
