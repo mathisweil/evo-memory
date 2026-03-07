@@ -41,9 +41,9 @@ for seed in "${SEEDS[@]}"; do
         echo "  [skip] $CMAES_RUN/seed$seed already downloaded"
     else
         echo "  Downloading $CMAES_RUN/seed$seed..."
-        mkdir -p "$dest"
+        mkdir -p "$dest/models"
         gcloud storage cp "gs://$BUCKET/$PREFIX/checkpoints/$CMAES_RUN/$seed/config.json" "$dest/config.json"
-        gcloud storage cp -r "gs://$BUCKET/$PREFIX/checkpoints/$CMAES_RUN/$seed/models/" "$dest/models/"
+        gcloud storage cp -r "gs://$BUCKET/$PREFIX/checkpoints/$CMAES_RUN/$seed/models/*" "$dest/models/"
     fi
 done
 
