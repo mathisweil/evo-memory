@@ -194,12 +194,20 @@ def run_single_cross_eval(agent_checkpoint_dir, agent_step, buffer_npz_path,
     update_num = int(buffer_data.get("update_num", 0))
 
     # Extract buffer identity from path
-    # Expected: .../buffer_dumps/run_name/seed/buffer_dump_{N}k.npz
+    # Expected: .../run_name/seed/buffer_dump_{N}k.npz
     buffer_path_parts = buffer_npz_path.replace("\\", "/").split("/")
-    buffer_tag = os.path.basename(buffer_npz_path).replace("buffer_dump", "").replace(".npz", "")
+    buffer_timestep = os.path.basename(buffer_npz_path).replace("buffer_dump", "").replace(".npz", "")
+    # Try to extract run_name and seed from path: .../run_name/seed/buffer_dump_...
+    try:
+        buf_seed = buffer_path_parts[-2]
+        buffer_run_name = buffer_path_parts[-3]
+    except IndexError:
+        buf_seed = "?"
+        buffer_run_name = "unknown"
+    buffer_tag = f"{buffer_run_name}_s{buf_seed}{buffer_timestep}"
 
     print(f"[Cross-eval] Agent: {agent_name}/seed{agent_seed} (step {agent_step})")
-    print(f"[Cross-eval] Buffer: {buffer_npz_path} ({size} levels, {buffer_tag})")
+    print(f"[Cross-eval] Buffer: {buffer_run_name}/seed{buf_seed} @ {buffer_timestep} ({size} levels)")
 
     # Convert tokens to levels
     levels = tokens_to_levels_batch(tokens)
@@ -214,6 +222,9 @@ def run_single_cross_eval(agent_checkpoint_dir, agent_step, buffer_npz_path,
         "agent_seed": agent_seed,
         "agent_step": agent_step,
         "buffer_npz": buffer_npz_path,
+        "buffer_run_name": buffer_run_name,
+        "buffer_seed": buf_seed,
+        "buffer_timestep": buffer_timestep,
         "buffer_tag": buffer_tag,
         "buffer_update_num": update_num,
         "num_levels": size,
