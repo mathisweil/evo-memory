@@ -38,19 +38,18 @@ from datasets import load_dataset
 
 
 # ---------------------------------------------------------------------------
-# Prompt template
+# Prompt template (instruct chat format)
 # ---------------------------------------------------------------------------
 
-QASPER_SFT_TEMPLATE = (
+# User turn content only — no "Answer:" suffix.
+# apply_chat_template adds <|start_header_id|>assistant<|end_header_id|>\n\n
+# as the generation prompt, so the answer starts immediately after.
+QASPER_USER_TEMPLATE = (
     "You are given a scientific article and a question. Answer the question as concisely "
     "as you can, using a single phrase or sentence if possible. If the question cannot be "
     "answered based on the information in the article, write \"unanswerable\". If the "
     "question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not "
-    "provide any explanation.\n\nArticle: {context}\n\n Answer the question based on the "
-    "above article as concisely as you can, using a single phrase or sentence if possible. "
-    "If the question cannot be answered based on the information in the article, write "
-    "\"unanswerable\". If the question is a yes/no question, answer \"yes\", \"no\", or "
-    "\"unanswerable\". Do not provide any explanation.\n\nQuestion: {input}\n\nAnswer:"
+    "provide any explanation.\n\nArticle: {context}\n\nQuestion: {input}"
 )
 
 
@@ -116,19 +115,28 @@ class LongBenchSFTDataset(Dataset):
                 # Use first gold answer; fall back to 'unanswerable' if empty.
                 answer = item['answers'][0] if item['answers'] else 'unanswerable'
 
-                # Build the prompt string (context + question formatted for QASPER QA).
-                prompt = QASPER_SFT_TEMPLATE.format(
+                # Build messages for instruct chat template.
+                user_content = QASPER_USER_TEMPLATE.format(
                     context=item['context'],
                     input=item['input'],
                 )
+                messages_prompt = [{"role": "user", "content": user_content}]
+                messages_full = messages_prompt + [{"role": "assistant", "content": answer}]
 
-                # Full supervised string: prompt followed by a space and the answer.
-                full_text = prompt + ' ' + answer
-
-                # Tokenise both prompt and full text with identical settings so
-                # label_start = len(prompt_ids) accurately marks the answer boundary.
-                prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
-                full_ids = tokenizer.encode(full_text, add_special_tokens=True)
+                # Tokenise via apply_chat_template so BOS/EOS/header tokens are set
+                # correctly for the instruct model's built-in chat format.
+                # prompt_ids ends with the assistant generation header (\n\n), so
+                # label_start = len(prompt_ids) correctly marks the first answer token.
+                prompt_ids = tokenizer.apply_chat_template(
+                    messages_prompt,
+                    add_generation_prompt=True,
+                    tokenize=True,
+                )
+                full_ids = tokenizer.apply_chat_template(
+                    messages_full,
+                    add_generation_prompt=False,
+                    tokenize=True,
+                )
 
                 # Answer boundary: first index in full_ids that belongs to the answer.
                 label_start = len(prompt_ids)

@@ -43,15 +43,18 @@ Plans:
 
 ### Phase 9: SFT LoRA Training and m1 Revalidation
 
-**Goal:** Replace the NTP training objective with supervised QA finetuning (SFT — context+question→answer, answer-only loss); train m1-SFT on QASPER; validate outputs are non-degenerate and exceed base LLaMA performance; gate all subsequent phases (4-8) on SFT viability before cascading the new objective.
+**Goal:** Replace the NTP training objective with supervised QA finetuning (SFT — context+question→answer, answer-only loss) using **LLaMA 3.2-1B-Instruct** (supervisor recommendation); train m1-SFT on QASPER; validate outputs are non-degenerate and exceed base Instruct performance; gate all subsequent phases on SFT viability before cascading the new objective.
 **Requirements**: TRAIN-01, EXP-01
 **Depends on:** Phase 3 (uses LoRAGradTrainer infrastructure)
 **Runs before:** Phase 4 (validates SFT objective before m4-frozen and other conditions adopt it)
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
+
+**Model switch (2026-03-07):** All LoRA phases (m1, m3, m4) now use `Llama-3.2-1B-Instruct`. SFT uses `apply_chat_template()` for correct instruct formatting and EOS/pad tokens. NAMM (m2) and NAMM-seeded phases (m3, m4) require NAMM to be re-run on Instruct before those phases — see dependency note in Phase 4.
+
 **Success Criteria** (what must be TRUE):
-  1. `LongBenchSFTDataset` loads QASPER, formats context+question→answer, stores per-example `label_start` offset; `sft_pad_collate_fn` sets `labels[:, :label_start] = -100`; `LoRAGradTrainer` dispatches to SFT dataset when `lora_sft_mode: true`
-  2. Base LLaMA 3.2-1B (no LoRA, no finetuning) eval on QASPER produces a non-None F1 score saved to `results/base/1337/eval_outputs/qasper_score.txt` — provides the reference floor
-  3. m1-SFT training completes on GPU with non-flat loss curve; checkpoint passes inspector (`max(lora_B.norm()) > 0`); QASPER F1 score logged to wandb and saved in artifact dir; score >= base LLaMA score (or within 1.0 F1 with non-degenerate outputs)
+  1. `LongBenchSFTDataset` loads QASPER, formats via `apply_chat_template()` (instruct chat format), stores per-example `label_start` offset; `sft_pad_collate_fn` sets `labels[:, :label_start] = -100`; `LoRAGradTrainer` dispatches to SFT dataset when `lora_sft_mode: true`
+  2. Base LLaMA 3.2-1B-Instruct (no LoRA) eval on QASPER produces a non-None F1 score saved to `results/base/1337/eval_outputs/qasper_score.txt` — provides the reference floor
+  3. m1-SFT training completes on GPU with non-flat loss curve; checkpoint passes inspector (`max(lora_B.norm()) > 0`); QASPER F1 score logged to wandb and saved in artifact dir; score >= base Instruct score (or within 1.0 F1 with non-degenerate outputs)
   4. Human inspection of 10-20 scored predictions from `results/m1_sft/1337/eval_outputs/lb_qasper.jsonl` confirms non-degenerate outputs (no repetition, on-topic answers)
 
 Plans:
@@ -182,7 +185,7 @@ Note: Phase 5 (m4-iterative) depends on Phase 4 (m4-frozen validated) — must n
 | 1. Branch Setup | v1.0 | 1/1 | Complete | 2026-03-02 |
 | 2. LoRA Seam + Correctness Gate | v1.0 | 3/3 | Complete (GPU test pending) | 2026-03-02 |
 | 3. Gradient Training Loop | 4/4 | Complete   | 2026-03-04 | 2026-03-04 |
-| 9. SFT LoRA Training + m1 Revalidation | 1/3 | In Progress|  | - |
+| 9. SFT LoRA Training + m1 Revalidation | 2/3 | In Progress|  | - |
 | 4. m1 + m4-frozen Runs | 2/4 | Blocked (awaiting Phase 9 SFT validation) |  | - |
 | 5. m4-iterative Run | v2.0 | 0/3 | Not started | - |
 | 6. Analysis Metrics + m3 Run | v2.0 | 0/4 | Not started | - |

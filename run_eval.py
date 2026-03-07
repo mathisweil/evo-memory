@@ -94,10 +94,15 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
         )
 
     # 3. Select Hydra run config based on method
+    # Instruct methods use the instruct model config; NAMM methods (m2/m3/m4) still
+    # use base-model configs until NAMM is retrained on instruct.
+    _INSTRUCT_METHODS = {'base', 'm1', 'm1_sft'}
     if method in ('m4_frozen', 'm2', 'm3'):
         run_cfg_name = 'namm_bam_eval_llama32_1b'
+    elif method in _INSTRUCT_METHODS:
+        run_cfg_name = 'full_cache_baseline_llama32_1b_instruct'
     else:
-        # m1, m1_sft, base, m4_iterative all use full-cache baseline (no NAMM)
+        # m4_iterative and any future base-model methods
         run_cfg_name = 'full_cache_baseline_llama32_1b'
 
     # 4. Build Hydra overrides
