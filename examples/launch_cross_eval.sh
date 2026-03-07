@@ -121,8 +121,11 @@ done
 
 RUN_NUM=0
 for ts in "${TIMESTEPS[@]}"; do
+    # Convert timestep string "30k" -> update count 30000
+    UPDATES=$(echo "$ts" | sed 's/k//' | awk '{print $1 * 1000}')
+
     echo ""
-    echo "--- Timestep: ${ts} ---"
+    echo "--- Timestep: ${ts} (agent @ ~${UPDATES} updates) ---"
 
     for agent_seed in "${SEEDS[@]}"; do
         agent_dir="$CKPT_BASE/$CMAES_RUN/$agent_seed"
@@ -138,6 +141,7 @@ for ts in "${TIMESTEPS[@]}"; do
             echo "  [$RUN_NUM/$TOTAL] ${CMAES_RUN}/s${agent_seed} -> ${CMAES_RUN}/s${buf_seed} @ ${ts}"
             PYTHONUNBUFFERED=1 python3 examples/cross_evaluate.py \
                 --agent_checkpoint_dir "$agent_dir" \
+                --agent_updates $UPDATES \
                 --buffer_npz "$buf_npz" \
                 --num_attempts $NUM_ATTEMPTS \
                 --output_dir "$OUTPUT_DIR/${ts}"
@@ -154,6 +158,7 @@ for ts in "${TIMESTEPS[@]}"; do
             echo "  [$RUN_NUM/$TOTAL] ${CMAES_RUN}/s${agent_seed} -> ${ACCEL_RUN}/s${buf_seed} @ ${ts}"
             PYTHONUNBUFFERED=1 python3 examples/cross_evaluate.py \
                 --agent_checkpoint_dir "$agent_dir" \
+                --agent_updates $UPDATES \
                 --buffer_npz "$buf_npz" \
                 --num_attempts $NUM_ATTEMPTS \
                 --output_dir "$OUTPUT_DIR/${ts}"

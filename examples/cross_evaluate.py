@@ -111,8 +111,23 @@ def load_agent(checkpoint_dir, checkpoint_step=-1):
 
     models_dir = os.path.join(checkpoint_dir, "models")
     checkpoint_manager = ocp.CheckpointManager(models_dir)
-    step = checkpoint_manager.latest_step() if checkpoint_step == -1 else checkpoint_step
-    print(f"[Agent] Loading step {step} from {models_dir}")
+    available = sorted(checkpoint_manager.all_steps())
+
+    if checkpoint_step == -1:
+        step = checkpoint_manager.latest_step()
+    elif checkpoint_step not in available:
+        # Find closest available step
+        below = [s for s in available if s <= checkpoint_step]
+        above = [s for s in available if s >= checkpoint_step]
+        step = max(below) if below else min(above)
+        print(f"[Agent] Step {checkpoint_step} not available, using closest: {step}")
+    else:
+        step = checkpoint_step
+
+    eval_freq = config.get("eval_freq", 250)
+    updates_at_step = (step + 1) * eval_freq
+    print(f"[Agent] Loading step {step} (~{updates_at_step} updates) from {models_dir}")
+    print(f"[Agent] Available steps: {available[0]}..{available[-1]} ({len(available)} total)")
     restored = checkpoint_manager.restore(step)
 
     train_state = template_state.replace(params=restored["params"])
@@ -309,7 +324,9 @@ def main():
     parser.add_argument("--agent_checkpoint_dir", type=str, default=None,
                         help="Path to agent checkpoint dir (has config.json + models/)")
     parser.add_argument("--agent_step", type=int, default=-1,
-                        help="Checkpoint step to load (-1 for latest)")
+                        help="Orbax checkpoint step to load (-1 for latest)")
+    parser.add_argument("--agent_updates", type=int, default=None,
+                        help="Target update count (auto-converts to checkpoint step via eval_freq)")
     parser.add_argument("--buffer_npz", type=str, default=None,
                         help="Path to buffer_dump_{N}k.npz from another run")
 
@@ -327,18 +344,31 @@ def main():
 
     args = parser.parse_args()
 
+    # Convert --agent_updates to --agent_step if provided
+    agent_step = args.agent_step
+    if args.agent_updates is not None:
+        # Load eval_freq from the first checkpoint dir's config
+        ckpt_dir = args.agent_checkpoint_dir or (args.agent_dirs[0] if args.agent_dirs else None)
+        if ckpt_dir:
+            with open(os.path.join(ckpt_dir, "config.json")) as f:
+                cfg = json.load(f)
+            eval_freq = cfg.get("eval_freq", 250)
+            # eval_step N means (N+1)*eval_freq updates completed
+            agent_step = (args.agent_updates // eval_freq) - 1
+            print(f"[Config] --agent_updates={args.agent_updates} -> target eval_step={agent_step} (eval_freq={eval_freq})")
+
     if args.batch:
         if not args.agent_dirs or not args.buffer_npzs:
             parser.error("--batch requires --agent_dirs and --buffer_npzs")
         run_batch_cross_eval(
             args.agent_dirs, args.buffer_npzs,
-            args.num_attempts, args.output_dir, args.agent_step,
+            args.num_attempts, args.output_dir, agent_step,
         )
     else:
         if not args.agent_checkpoint_dir or not args.buffer_npz:
             parser.error("Single mode requires --agent_checkpoint_dir and --buffer_npz")
         run_single_cross_eval(
-            args.agent_checkpoint_dir, args.agent_step,
+            args.agent_checkpoint_dir, agent_step,
             args.buffer_npz, args.num_attempts, args.output_dir,
         )
 
