@@ -56,13 +56,13 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
       --mini_batch_size 4 \
       --sigma 0.001 \
       --alpha 0.0005 \
-      --log_dir experiments/es_runs/no_namm_full
+      --log_dir experiments/es_only_runs/no_namm_full
   ```
   Estimated: ~7.5h. Monitor reward curve in TensorBoard.
 
 - [ ] **1.2** Evaluate ES-fine-tuned (no NAMM) model under all three eviction policies
   ```bash
-  CKPT=experiments/es_runs/no_namm_full/checkpoints/es_checkpoint_final.pt
+  CKPT=experiments/es_only_runs/no_namm_full/checkpoints/es_checkpoint_final.pt
 
   python run_namm_training.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
   python run_namm_training.py 'run@_global_=namm_bam_eval_llama32_1b.yaml' init_from=$CKPT cache_size=1024
@@ -90,13 +90,13 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
       --mini_batch_size 4 \
       --sigma 0.001 \
       --alpha 0.0005 \
-      --log_dir experiments/es_runs/with_namm_full
+      --log_dir experiments/es_namm_runs/with_namm_full
   ```
   Estimated: ~8–10h. Monitor reward curve.
 
 - [ ] **2.2** Evaluate ES-fine-tuned (with NAMM) model under all three eviction policies
   ```bash
-  CKPT=experiments/es_runs/with_namm_full/checkpoints/es_checkpoint_final.pt
+  CKPT=experiments/es_namm_runs/with_namm_full/checkpoints/es_checkpoint_final.pt
 
   python run_namm_training.py 'run@_global_=namm_bam_eval_llama32_1b.yaml' init_from=$CKPT cache_size=1024
   python run_namm_training.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
@@ -122,14 +122,14 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 
 - [ ] **3.2** Compare reward curves: ES with NAMM vs ES without NAMM
   ```bash
-  tensorboard --logdir experiments/es_runs/
+  tensorboard --logdir experiments/
   ```
   Key: convergence speed, final reward, variance.
 
 - [ ] **3.3** Policy staleness check — evaluate NAMM on intermediate ES checkpoints
   ```bash
   for ITER in 25 50 75 100 125 150; do
-      CKPT=experiments/es_runs/with_namm_full/checkpoints/es_checkpoint_iter${ITER}.pt
+      CKPT=experiments/es_namm_runs/with_namm_full/checkpoints/es_checkpoint_iter${ITER}.pt
       python run_namm_training.py \
           'run@_global_=namm_bam_eval_llama32_1b.yaml' \
           init_from=$CKPT \
@@ -149,7 +149,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
           --namm_checkpoint /path/to/ckpt.pt \
           --num_iterations 50 \
           --sigma $SIGMA \
-          --log_dir experiments/es_runs/sigma_sweep_${SIGMA}
+          --log_dir experiments/es_namm_runs/sigma_sweep_${SIGMA}
   done
   ```
 
@@ -160,7 +160,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
           --namm_checkpoint /path/to/ckpt.pt \
           --num_iterations 50 \
           --population_size $POP \
-          --log_dir experiments/es_runs/pop_sweep_${POP}
+          --log_dir experiments/es_namm_runs/pop_sweep_${POP}
   done
   ```
 
@@ -171,7 +171,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
           --namm_checkpoint /path/to/ckpt.pt \
           --num_iterations 50 \
           --noise_mode $MODE \
-          --log_dir experiments/es_runs/noise_${MODE}
+          --log_dir experiments/es_namm_runs/noise_${MODE}
   done
   ```
 

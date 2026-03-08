@@ -16,7 +16,7 @@ Usage:
         --sigma 0.001 \
         --alpha 0.0005 \
         --noise_mode correlated \
-        --log_dir es_runs
+        --log_dir experiments/es_namm_runs
 
     # Quick smoke test (2 iterations, pop=2):
     python run_es_finetuning.py \
@@ -68,8 +68,9 @@ def parse_args():
                         help="Save checkpoint every N iterations")
     parser.add_argument("--eval_every", type=int, default=25,
                         help="Run validation every N iterations")
-    parser.add_argument("--log_dir", type=str, default="experiments/es_runs",
-                        help="Directory for TensorBoard logs and checkpoints")
+    parser.add_argument("--log_dir", type=str, default=None,
+                        help="Directory for TensorBoard logs and checkpoints "
+                             "(default: experiments/es_namm_runs or es_only_runs)")
 
     # NAMM config
     parser.add_argument("--namm_checkpoint", type=str, default=None,
@@ -203,6 +204,12 @@ def get_base_llm_param_names(model):
 
 def main():
     args = parse_args()
+
+    if args.log_dir is None:
+        if args.namm_checkpoint:
+            args.log_dir = "experiments/es_namm_runs"
+        else:
+            args.log_dir = "experiments/es_only_runs"
 
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
