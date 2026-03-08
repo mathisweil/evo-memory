@@ -83,6 +83,10 @@ def parse_args():
     parser.add_argument("--eval_batch_size", type=int, default=None,
                         help="Inference batch size for the evaluator (default: use config value)")
 
+    # Data filtering
+    parser.add_argument("--filter_by_length", type=int, default=None,
+                        help="Drop samples longer than this (tokens). None = mid-crop instead")
+
     # Data splits
     parser.add_argument("--train_samples", type=int, default=150,
                         help="Number of Qasper samples for training (from start)")
@@ -231,6 +235,8 @@ def main():
             f"batch_size={args.eval_batch_size}",
             f"eval_max_batch_size={args.eval_batch_size}",
         ]
+    if args.filter_by_length is not None:
+        hydra_overrides.append(f"filter_by_length={args.filter_by_length}")
     cfg = load_hydra_config(args.run_config, extra_overrides=hydra_overrides)
 
     with torch.no_grad():
