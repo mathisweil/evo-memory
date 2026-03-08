@@ -18,9 +18,8 @@ fi
 
 source "${VENV_DIR}/bin/activate"
 
-# Install/update deps from both repos
+# Install/update deps
 pip install -q -r "${REPO_DIR}/requirements.txt"
-pip install -q -e "${WORK_DIR}/es-fine-tuning-paper/"
 
 export HF_HOME="${WORK_DIR}/.hf_cache"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"

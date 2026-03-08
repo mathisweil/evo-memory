@@ -370,7 +370,7 @@ python run_namm_training.py \
 **Key files:**
 - `run_es_finetuning.py` — combined pipeline entry point
 - `namm/trainer.py` — NAMM CMA-ES training (Stage 1)
-- `es-fine-tuning-paper/es_finetuning/trainer.py` — ESTrainer (Stage 2)
+- `es_finetuning/trainer.py` — ESTrainer (Stage 2)
 - `cfgs/run/namm_bam_i1_llama32_1b.yaml` — Hydra config for model/task/eviction
 
 ---

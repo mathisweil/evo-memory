@@ -1,8 +1,9 @@
 """ES fine-tuning of Llama 3.2 1B base weights with NAMM on Qasper.
 
 Uses evo-memory's existing evaluation infrastructure (TaskSampler,
-MemoryHFEvaluator) as the reward signal, and es_finetuning library
-for the ES optimizer loop.
+MemoryHFEvaluator) as the reward signal, and the es_finetuning package
+(vendored from github.com/shr1ram/es-fine-tuning-paper) for the ES
+optimizer loop.
 
 Usage:
     # From evo-memory repo root:

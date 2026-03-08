@@ -349,9 +349,9 @@ tensorboard --logdir experiments/es_only_runs
 
 **Key files:**
 - `run_es_finetuning.py` — entry point and argument parser
-- `es-fine-tuning-paper/es_finetuning/trainer.py` — ESTrainer loop
-- `es-fine-tuning-paper/es_finetuning/noise.py` — perturb/restore/update functions
-- `es-fine-tuning-paper/es_finetuning/config.py` — ESConfig dataclass
+- `es_finetuning/trainer.py` — ESTrainer loop
+- `es_finetuning/noise.py` — perturb/restore/update functions
+- `es_finetuning/config.py` — ESConfig dataclass
 
 ---
 
