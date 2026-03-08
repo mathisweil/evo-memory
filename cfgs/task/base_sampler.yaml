@@ -4,6 +4,8 @@ task_sampler:
   metrics: ${metrics}
   training_tasks_subset: ${training_tasks_subset}
   test_tasks_subset: ${test_tasks_subset}
+  max_conditioning_length: ${filter_by_length}
+  max_answer_tokens: ${max_new_tokens}
 
 
 tasks: ['sciq']
@@ -11,4 +13,5 @@ metrics: ['acc']
 training_tasks_subset:
 test_tasks_subset:
 
+filter_by_length: 6500
 tasks_log_name:

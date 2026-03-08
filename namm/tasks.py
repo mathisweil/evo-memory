@@ -16,6 +16,16 @@ import numpy as np
 from utils.longbench import get_score
 
 
+def _shortest_answer_words(json_obj):
+    """Return word count of the shortest answer in a LongBench sample."""
+    answers = json_obj.get("answers", [])
+    if not answers:
+        return 0
+    if isinstance(answers, str):
+        return len(answers.split())
+    return min(len(a.split()) for a in answers)
+
+
 def merge_list_of_dicts(dicts, other_dicts):
     assert len(dicts) == len(other_dicts)
     new_dicts = [{**d1, **d2} for d1, d2 in zip(dicts, other_dicts)]
@@ -31,6 +41,8 @@ class TaskSampler():
         test_tasks_subset: Optional[list] = None,
         store_gen_outputs: bool = False,
         store_gen_outputs_path: Optional[str] = None,
+        max_conditioning_length: Optional[int] = None,
+        max_answer_tokens: Optional[int] = None,
     ):
 
         self.store_gen_outputs = store_gen_outputs
@@ -73,6 +85,8 @@ class TaskSampler():
         self.prefetched_task_tensors = {t: None for t in tasks}
         self.loaded_cached_model_data = False
         self.cached_per_task_stats = {}
+        self.max_conditioning_length = max_conditioning_length
+        self.max_answer_tokens = max_answer_tokens
         self.init_tasks()
 
     def get_cached_per_task_stats(self, reset=True) -> dict:
@@ -118,6 +132,32 @@ class TaskSampler():
         # unpacked utils
         self.lb_jsons_per_task = {t: [p for p in d] for t, d in zip(
             self.lb_tasks, self.lb_datasets)}
+
+        # Filter examples exceeding max_conditioning_length
+        if self.max_conditioning_length is not None:
+            max_words = self.max_conditioning_length / 1.3
+            for t in self.lb_jsons_per_task:
+                before = len(self.lb_jsons_per_task[t])
+                self.lb_jsons_per_task[t] = [
+                    j for j in self.lb_jsons_per_task[t]
+                    if j.get('length', 0) < max_words
+                ]
+                after = len(self.lb_jsons_per_task[t])
+                print(f"Length filter {t}: {before} -> {after} examples")
+
+        # Filter examples whose shortest answer exceeds max_answer_tokens
+        if self.max_answer_tokens is not None:
+            max_answer_words = self.max_answer_tokens / 1.3
+            for t in self.lb_jsons_per_task:
+                before = len(self.lb_jsons_per_task[t])
+                self.lb_jsons_per_task[t] = [
+                    j for j in self.lb_jsons_per_task[t]
+                    if _shortest_answer_words(j) <= max_answer_words
+                ]
+                after = len(self.lb_jsons_per_task[t])
+                if before != after:
+                    print(f"Answer length filter {t}: {before} -> {after} examples "
+                          f"(max_answer_tokens={self.max_answer_tokens})")
 
         self.lb_prompts_per_task = {}
         for task, jsons in self.lb_jsons_per_task.items():
