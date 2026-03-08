@@ -2,8 +2,8 @@
 # =============================================================================
 # GPU VM Setup: ES Fine-Tuning with NAMM
 #
-# Clones both repos (correct branches), creates a Python venv, installs all
-# deps, installs Claude Code, and configures wandb + HuggingFace.
+# Clones the repo, creates a Python venv, installs all deps, installs
+# Claude Code, and configures wandb + HuggingFace.
 #
 # Usage:
 #   bash setup.sh                        # UCL VM, uses $(whoami)
@@ -76,8 +76,6 @@ else
 fi
 EVO_MEMORY_REPO="https://github.com/mathisweil/evo-memory.git"
 EVO_MEMORY_BRANCH="es-fine-tuning"
-ES_PAPER_REPO="https://github.com/shr1ram/es-fine-tuning-paper.git"
-ES_PAPER_BRANCH="claude-inshallah"
 VENV_DIR="${WORK_DIR}/venv"
 HF_CACHE_DIR="${WORK_DIR}/.hf_cache"
 REPO_DIR="${WORK_DIR}/evo-memory"
@@ -130,17 +128,6 @@ if [ -d "evo-memory" ]; then
     cd "${WORK_DIR}"
 else
     git clone -b "${EVO_MEMORY_BRANCH}" "${EVO_MEMORY_REPO}"
-fi
-
-if [ -d "es-fine-tuning-paper" ]; then
-    echo '  es-fine-tuning-paper already exists, pulling latest...'
-    cd es-fine-tuning-paper
-    git fetch origin
-    git checkout "${ES_PAPER_BRANCH}"
-    git pull origin "${ES_PAPER_BRANCH}"
-    cd "${WORK_DIR}"
-else
-    git clone -b "${ES_PAPER_BRANCH}" "${ES_PAPER_REPO}"
 fi
 
 echo '  Done.'
@@ -239,7 +226,6 @@ echo '============================================================'
 echo ''
 echo "Workspace:        ${WORK_DIR}"
 echo "evo-memory:       ${WORK_DIR}/evo-memory (branch: ${EVO_MEMORY_BRANCH})"
-echo "es-fine-tuning:   ${WORK_DIR}/es-fine-tuning-paper (branch: ${ES_PAPER_BRANCH})"
 echo "venv:             ${VENV_DIR}"
 echo "HF cache:         ${HF_CACHE_DIR}"
 if [ -n "${GPU_ID}" ]; then

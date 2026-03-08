@@ -1,6 +1,6 @@
-# ES Fine-Tuning with NAMM — LLaMA 3.2-1B
+# ES Fine-Tuning with NAMM — LLaMA 3.2-1B-Instruct
 
-Fine-tuning LLaMA 3.2-1B base weights via evolutionary strategies (ES) while [NAMM](https://arxiv.org/abs/2410.13166)'s trained eviction policy manages the KV cache. Based on the [ES fine-tuning paper](https://arxiv.org/abs/2509.24372) and the [NAMM paper](https://arxiv.org/abs/2410.13166).
+Fine-tuning LLaMA 3.2-1B-Instruct weights via evolutionary strategies (ES) while [NAMM](https://arxiv.org/abs/2410.13166)'s trained eviction policy manages the KV cache. Based on the [ES fine-tuning paper](https://arxiv.org/abs/2509.24372) and the [NAMM paper](https://arxiv.org/abs/2410.13166).
 
 The core question: can the base model learn to cooperate with its eviction policy?
 
@@ -20,7 +20,7 @@ git clone -b es-fine-tuning https://github.com/mathisweil/evo-memory.git
 bash evo-memory/scripts/setup.sh --dir ~/ft-namm
 ```
 
-This clones both repos, creates a venv, installs all dependencies, and prompts for HuggingFace + wandb login.
+This clones the repo, creates a venv, installs all dependencies, and prompts for HuggingFace + wandb login.
 
 See `scripts/setup.sh --help` for options (`--user`, `--gpu`, `--noclaude`, `--dir`).
 
