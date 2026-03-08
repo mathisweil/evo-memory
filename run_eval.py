@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import datetime
 import os
 import sys
 
@@ -26,6 +27,38 @@ from hydra import compose, initialize
 from run_namm_training import make_eval_model, make_task_sampler
 
 
+class Tee:
+    """Write to both stdout and a file."""
+    def __init__(self, filepath):
+        self.file = open(filepath, "w")
+        self.stdout = sys.stdout
+
+    def write(self, data):
+        self.stdout.write(data)
+        self.file.write(data)
+
+    def flush(self):
+        self.stdout.flush()
+        self.file.flush()
+
+    def close(self):
+        sys.stdout = self.stdout
+        self.file.close()
+
+
+def get_output_dir(args):
+    """Derive output directory from args."""
+    if args.output_dir:
+        return args.output_dir
+    if args.es_checkpoint:
+        # .../checkpoints/es_checkpoint_final.pt -> .../ (experiment dir)
+        ckpt_dir = os.path.dirname(os.path.abspath(args.es_checkpoint))
+        if os.path.basename(ckpt_dir) == "checkpoints":
+            return os.path.dirname(ckpt_dir)
+        return ckpt_dir
+    return None
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate ES fine-tuned model")
     parser.add_argument("--es_checkpoint", type=str, default=None,
@@ -35,6 +68,10 @@ def parse_args():
     parser.add_argument("--run_config", type=str,
                         default="namm_bam_i1_llama32_1b")
     parser.add_argument("--eval_batch_size", type=int, default=4)
+    parser.add_argument("--filter_by_length", type=int, default=None,
+                        help="Drop samples longer than this (tokens). None = mid-crop instead")
+    parser.add_argument("--output_dir", type=str, default=None,
+                        help="Directory to save eval log. Auto-derived from --es_checkpoint if not set")
     return parser.parse_args()
 
 
@@ -44,6 +81,18 @@ def main():
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
 
+    # Set up logging to experiment directory
+    output_dir = get_output_dir(args)
+    tee = None
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        label = "baseline" if not args.es_checkpoint else "es"
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_path = os.path.join(output_dir, f"eval_{label}_{timestamp}.log")
+        tee = Tee(log_path)
+        sys.stdout = tee
+        print(f"Logging to: {log_path}")
+
     # Load config
     overrides = [
         f"run@_global_={args.run_config}",
@@ -52,6 +101,8 @@ def main():
         f"batch_size={args.eval_batch_size}",
         f"eval_max_batch_size={args.eval_batch_size}",
     ]
+    if args.filter_by_length is not None:
+        overrides.append(f"filter_by_length={args.filter_by_length}")
     with initialize(version_base=None, config_path="cfgs",
                     job_name="es_eval"):
         cfg = compose(config_name="config", overrides=overrides)
@@ -126,6 +177,9 @@ def main():
         print(f"  {k}: {v:.4f}")
     qasper = score_dicts[0].get("lb/qasper", 0.0)
     print(f"\n  Qasper F1: {qasper:.2f} (0-100 scale) = {qasper/100:.4f}")
+
+    if tee:
+        tee.close()
 
 
 if __name__ == "__main__":
