@@ -1,6 +1,6 @@
 # ES Fine-Tuning of Base LLM Weights
 
-Gradient-free weight optimisation of LLaMA 3.2-1B using evolutionary strategies, with optional NAMM eviction active during evaluation.
+Gradient-free weight optimisation of LLaMA 3.2-1B-Instruct using evolutionary strategies, with optional NAMM eviction active during evaluation.
 
 ---
 
@@ -21,6 +21,8 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 
 ## Parameters
 
+### ES hyperparameters (argparse)
+
 | Parameter | Default | Meaning |
 |---|---|---|
 | `--sigma` | `0.001` | Noise scale for weight perturbations |
@@ -32,11 +34,22 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 | `--mini_batch_size` | `4` | Qasper samples per population member evaluation |
 | `--checkpoint_every` | `25` | Save checkpoint every N iterations |
 | `--eval_every` | `25` | Run validation every N iterations |
-| `--log_dir` | `experiments/es_runs` | TensorBoard log + checkpoint directory |
+| `--log_dir` | auto (`es_only_runs` / `es_namm_runs`) | TensorBoard log + checkpoint directory |
 | `--namm_checkpoint` | `None` | Path to pre-trained NAMM `ckpt.pt` (optional) |
 | `--run_config` | `namm_bam_i1_llama32_1b` | Hydra config name for model/task setup |
+| `--eval_batch_size` | config value | GPU inference batch size for the evaluator |
+| `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
 | `--train_samples` | `150` | Qasper samples in training pool |
 | `--val_samples` | `50` | Qasper samples for validation |
+
+### Model/task config (from Hydra)
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `cache_size` | 1024 | KV-cache budget (tokens kept after eviction) |
+| `memory_policy_fixed_delay` | 256 | Tokens between NAMM eviction calls |
+| `max_new_tokens` | 64 | Max generated tokens per sample. Also filters out samples whose shortest answer exceeds this |
+| `max_position_id` | 6500 (= `filter_by_length`) | Max conditioning window; samples longer than this are dropped |
 
 ---
 
@@ -163,7 +176,7 @@ Total (training + validation):
 
 ## Which Tensors Are Optimised
 
-ES perturbs **all base LLM parameters** — everything except `memory_policy.*`. For LLaMA 3.2-1B, this includes:
+ES perturbs **all base LLM parameters** — everything except `memory_policy.*`. For LLaMA 3.2-1B-Instruct, this includes:
 
 | Tensor group | Count | Shape | Total params |
 |---|---|---|---|
@@ -219,7 +232,7 @@ Why does it work at all? Likely because:
 But is pop=8 enough? Would pop=16 or pop=32 converge faster per iteration (despite taking longer per iteration)?
 
 ### Compute cost vs gradient-based fine-tuning
-For reference, LoRA fine-tuning of LLaMA 3.2-1B with rank 16 would update ~10M parameters using standard backprop. ES updates 1.24B parameters using 32 forward passes per iteration. The per-iteration cost is similar (32 forward passes vs 1 forward + 1 backward ≈ 3 forward passes, but on different parameter counts). The convergence rate is likely much slower for ES.
+For reference, LoRA fine-tuning of LLaMA 3.2-1B-Instruct with rank 16 would update ~10M parameters using standard backprop. ES updates 1.24B parameters using 32 forward passes per iteration. The per-iteration cost is similar (32 forward passes vs 1 forward + 1 backward ≈ 3 forward passes, but on different parameter counts). The convergence rate is likely much slower for ES.
 
 Is the gradient-free property worth the cost? For this project, yes — because we need to optimise through the non-differentiable NAMM eviction pipeline. But exploring LoRA + straight-through estimators could be a faster alternative.
 
@@ -331,7 +344,7 @@ python run_es_finetuning.py \
 
 **Monitor:**
 ```bash
-tensorboard --logdir experiments/es_runs
+tensorboard --logdir experiments/es_only_runs
 ```
 
 **Key files:**
