@@ -1,6 +1,6 @@
 # Combined ES Fine-Tuning + NAMM
 
-Fine-tuning LLaMA 3.2-1B weights via evolutionary strategies while NAMM's trained eviction policy manages the KV cache. This is the core experiment: can the base model learn to cooperate with its eviction policy?
+Fine-tuning LLaMA 3.2-1B-Instruct weights via evolutionary strategies while NAMM's trained eviction policy manages the KV cache. This is the core experiment: can the base model learn to cooperate with its eviction policy?
 
 ---
 
@@ -41,7 +41,7 @@ Conversely, if the frozen NAMM policy becomes stale as weights drift, we'd expec
 
 ## Parameters (Combined System)
 
-### Inherited from ES fine-tuning
+### ES hyperparameters (argparse)
 
 | Parameter | Default | Meaning |
 |---|---|---|
@@ -50,7 +50,15 @@ Conversely, if the frozen NAMM policy becomes stale as weights drift, we'd expec
 | `--population_size` | `8` | Perturbed models per ES iteration |
 | `--num_iterations` | `150` | Total ES iterations |
 | `--noise_mode` | `correlated` | Noise correlation mode |
+| `--initial_seed` | `33` | NumPy random seed for reproducibility |
 | `--mini_batch_size` | `4` | Qasper samples per evaluation |
+| `--checkpoint_every` | `25` | Save checkpoint every N iterations |
+| `--eval_every` | `25` | Run validation every N iterations |
+| `--log_dir` | auto (`es_namm_runs` / `es_only_runs`) | TensorBoard log + checkpoint directory |
+| `--eval_batch_size` | config value | GPU inference batch size for the evaluator |
+| `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
+| `--train_samples` | `150` | Qasper samples in training pool |
+| `--val_samples` | `50` | Qasper samples for validation |
 
 ### NAMM-specific
 
@@ -60,6 +68,13 @@ Conversely, if the frozen NAMM policy becomes stale as weights drift, we'd expec
 | `--run_config` | `namm_bam_i1_llama32_1b` | Hydra config (defines cache_size, eviction delay, etc.) |
 | `cache_size` | 1024 | KV-cache budget (from Hydra config) |
 | `memory_policy_fixed_delay` | 256 | Tokens between eviction calls (from Hydra config) |
+
+### Model/task config (from Hydra)
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `max_new_tokens` | 64 | Max generated tokens per sample. Also filters out samples whose shortest answer exceeds this |
+| `max_position_id` | 6500 (= `filter_by_length`) | Max conditioning window; samples longer than this are dropped |
 
 ### What the NAMM checkpoint contains
 
@@ -79,7 +94,7 @@ When loaded, the scoring network parameters are set via `memory_policy.set_param
 # φ* = CMA-ES result from training on base LLaMA
 
 # Stage 2: ES fine-tuning with frozen NAMM
-load_model()                                     # LLaMA 3.2-1B + NAMM hooks in every attention layer
+load_model()                                     # LLaMA 3.2-1B-Instruct + NAMM hooks in every attention layer
 load_namm_checkpoint(namm_checkpoint)             # load φ* into scoring network, freeze it
 base_params = get_base_llm_param_names(model)     # 147 tensors, excludes memory_policy.*
 
@@ -341,7 +356,7 @@ python run_es_finetuning.py \
 
 **Monitor:**
 ```bash
-tensorboard --logdir experiments/es_runs
+tensorboard --logdir experiments/es_namm_runs
 ```
 
 **Evaluate:**

@@ -1,6 +1,6 @@
 # NAMM Memory Policy Training via CMA-ES
 
-Training a neural KV-cache eviction policy for LLaMA 3.2-1B using Covariance Matrix Adaptation Evolution Strategy.
+Training a neural KV-cache eviction policy for LLaMA 3.2-1B-Instruct using Covariance Matrix Adaptation Evolution Strategy.
 
 ---
 
@@ -24,7 +24,7 @@ The scoring network is tiny (hundreds of parameters). The LLaMA model weights ar
 
 ### CMA-ES and training parameters
 
-| Parameter | Paper (Mistral-7B) | Our setup (LLaMA 3.2-1B) | Meaning |
+| Parameter | Paper (Mistral-7B) | Our setup (LLaMA 3.2-1B-Instruct) | Meaning |
 |---|---|---|---|
 | `max_iters` | 200 | 200 | CMA-ES generations |
 | `pop_size` | 32 | 8 | Population size (candidates per generation) |
@@ -38,8 +38,12 @@ The scoring network is tiny (hundreds of parameters). The LLaMA model weights ar
 | `c_m` | 1.0 | 1.0 | Mean update learning rate |
 | `prefer_mean_to_best` | true | true | Checkpoint the CMA mean, not the best member |
 | `scoring_initializer` | 0 | 0 | Scoring network initialised to all zeros |
+| `filter_by_length` | — | 6500 | Drop samples longer than this (tokens). Also sets `max_position_id` and `max_position_embeddings` |
+| `max_position_id` | — | 6500 (= `filter_by_length`) | Max conditioning window; tied to `filter_by_length` |
 | `per_head` | false | false | Shared scoring params across attention heads |
 | `per_layer` | false | false | Shared scoring params across transformer layers |
+
+**Note:** `max_new_tokens` also controls answer-length filtering — samples whose shortest answer exceeds `max_new_tokens` (by word-count estimate) are automatically dropped.
 
 ### BAM scoring network architecture
 
