@@ -3,7 +3,7 @@
 Usage:
     # Evaluate ES fine-tuned model:
     python run_eval.py \
-        --es_checkpoint experiments/es_runs/.../checkpoints/es_checkpoint_final.pt \
+        --es_checkpoint experiments/es_namm_runs/.../checkpoints/es_checkpoint_final.pt \
         --namm_checkpoint exp_local/pretrained/namm_pretrained_romain.pt
 
     # Baseline (no ES fine-tuning, just NAMM + base LLM):
