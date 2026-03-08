@@ -76,9 +76,9 @@ else
 fi
 EVO_MEMORY_REPO="https://github.com/mathisweil/evo-memory.git"
 EVO_MEMORY_BRANCH="es-fine-tuning"
-VENV_DIR="${WORK_DIR}/venv"
-HF_CACHE_DIR="${WORK_DIR}/.hf_cache"
 REPO_DIR="${WORK_DIR}/evo-memory"
+VENV_DIR="${REPO_DIR}/venv"
+HF_CACHE_DIR="${REPO_DIR}/.hf_cache"
 SCRIPT_DIR="${REPO_DIR}/scripts"
 
 echo '============================================================'

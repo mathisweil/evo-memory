@@ -7,8 +7,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "${SCRIPT_DIR}")"
-WORK_DIR="$(dirname "${REPO_DIR}")"
-VENV_DIR="${WORK_DIR}/venv"
+VENV_DIR="${REPO_DIR}/venv"
 
 # Create venv if it doesn't exist
 if [ ! -d "${VENV_DIR}" ]; then
@@ -21,7 +20,7 @@ source "${VENV_DIR}/bin/activate"
 # Install/update deps
 pip install -q -r "${REPO_DIR}/requirements.txt"
 
-export HF_HOME="${WORK_DIR}/.hf_cache"
+export HF_HOME="${REPO_DIR}/.hf_cache"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
 cd "${REPO_DIR}"
 

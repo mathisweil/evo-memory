@@ -31,8 +31,15 @@ build/
 # Hydra outputs
 multirun/
 
-# HF model cache (symlinked)
+# Virtual environment
+venv/
+
+# HF model cache
 .hf_cache/
+
+# Personal working notes
+notes.md
+report.md
 
 # ES smoke test outputs (legacy, now under experiments/)
 es_smoke_test*/
