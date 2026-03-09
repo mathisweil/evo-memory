@@ -636,6 +636,9 @@ def run_diagnostic(args):
         solved = np.array(solved)
         ep_lengths = np.array(ep_lengths)
 
+        # Solve agreement: do perturbations match the original's solved status?
+        solve_agreement = (solved[1:] == solved[0]).astype(float)
+
         result = {
             "base_idx": int(indices[i]),
             "base_buffer_score": float(base_scores[i]),
@@ -649,6 +652,7 @@ def run_diagnostic(args):
             "pert_wall_jaccard": token_sims,
             "reward_std": float(cum_rewards[1:].std()),
             "solve_rate": float(solved[1:].mean()),
+            "solve_agreement": float(solve_agreement.mean()),
             "reward_correlation_with_dist": float(
                 np.corrcoef(l2_dists, cum_rewards[1:])[0, 1]
             ) if n_pert > 2 else 0.0,
@@ -657,12 +661,11 @@ def run_diagnostic(args):
 
         print(f"\n--- Base level {i+1}/{n_base} (buffer idx {indices[i]}) ---")
         print(f"  Buffer score: {base_scores[i]:.3f}")
-        print(f"  Original:  reward={cum_rewards[0]:.2f}  solved={solved[0]}")
+        print(f"  Original:  solved={solved[0]}  reward={cum_rewards[0]:.2f}")
+        print(f"  Perturbed: solve rate={solved[1:].mean():.0%}  solve agreement={solve_agreement.mean():.0%}")
         print(f"  Perturbed: reward={cum_rewards[1:].mean():.2f} +/- {cum_rewards[1:].std():.2f}")
-        print(f"  Perturbed: solve rate={solved[1:].mean():.0%}")
         print(f"  Wall Jaccard (orig vs pert): {np.mean(token_sims):.3f} +/- {np.std(token_sims):.3f}")
         print(f"  L2 distances: {l2_dists.mean():.3f} +/- {l2_dists.std():.3f}")
-        print(f"  Reward-distance correlation: {result['reward_correlation_with_dist']:.3f}")
 
     # --- Summary ---
     print("\n" + "=" * 70)
@@ -670,37 +673,47 @@ def run_diagnostic(args):
     print("=" * 70)
 
     all_base_rewards = [r["base_reward"] for r in all_results]
+    all_base_solved = [r["base_solved"] for r in all_results]
     all_pert_rewards = [np.mean(r["pert_rewards"]) for r in all_results]
     all_pert_stds = [r["reward_std"] for r in all_results]
     all_solve_rates = [r["solve_rate"] for r in all_results]
+    all_solve_agreements = [r["solve_agreement"] for r in all_results]
     all_jaccards = [np.mean(r["pert_wall_jaccard"]) for r in all_results]
     all_correlations = [r["reward_correlation_with_dist"] for r in all_results]
 
     print(f"\n  Across {n_base} base levels with {n_pert} perturbations each (eps={eps}):")
-    print(f"  Mean base reward:          {np.mean(all_base_rewards):.3f}")
-    print(f"  Mean perturbed reward:     {np.mean(all_pert_rewards):.3f}")
-    print(f"  Mean perturbation std:     {np.mean(all_pert_stds):.3f}")
-    print(f"  Mean perturbation solve%:  {np.mean(all_solve_rates):.1%}")
+    print(f"  Base levels solved:        {np.sum(all_base_solved)}/{n_base}")
+    print(f"  Mean pert solve rate:      {np.mean(all_solve_rates):.1%}")
+    print(f"  Mean solve agreement:      {np.mean(all_solve_agreements):.1%}")
     print(f"  Mean wall Jaccard:         {np.mean(all_jaccards):.3f}")
+    print(f"  Mean base reward:          {np.mean(all_base_rewards):.3f}")
+    print(f"  Mean pert reward:          {np.mean(all_pert_rewards):.3f}")
+    print(f"  Mean pert reward std:      {np.mean(all_pert_stds):.3f}")
     print(f"  Mean reward-dist corr:     {np.mean(all_correlations):.3f}")
     print()
 
-    # Interpretation
-    if np.mean(all_pert_stds) < 0.5 * np.std(all_base_rewards + all_pert_rewards):
-        print("  -> LOW variance within perturbation neighborhoods")
-        print("     Nearby latent points produce similar difficulty.")
-        print("     ES gradient estimation should be meaningful.")
+    # Interpretation — solvability-focused
+    if np.mean(all_solve_agreements) > 0.7:
+        print("  -> HIGH solve agreement ({:.0%})".format(np.mean(all_solve_agreements)))
+        print("     Perturbations preserve solvability status.")
+        print("     Latent neighbors have consistent difficulty for the agent.")
+        print("     ES gradient estimation on solve rate should be meaningful.")
+    elif np.mean(all_solve_agreements) > 0.4:
+        print("  -> MODERATE solve agreement ({:.0%})".format(np.mean(all_solve_agreements)))
+        print("     Perturbations partially preserve solvability.")
+        print("     ES gradients may be noisy but contain some signal.")
     else:
-        print("  -> HIGH variance within perturbation neighborhoods")
-        print("     Nearby latent points produce varying difficulty.")
-        print("     ES gradient steps may be unreliable.")
+        print("  -> LOW solve agreement ({:.0%})".format(np.mean(all_solve_agreements)))
+        print("     Perturbations flip solvability frequently.")
+        print("     Latent neighbors have unpredictable difficulty.")
+        print("     ES gradient steps on solve rate are unreliable.")
 
     if np.mean(all_jaccards) > 0.5:
-        print("  -> HIGH wall overlap between original and perturbations")
-        print("     VAE latent perturbations produce structurally similar mazes.")
+        print("  -> HIGH wall overlap ({:.3f})".format(np.mean(all_jaccards)))
+        print("     VAE preserves maze structure under perturbation.")
     else:
-        print("  -> LOW wall overlap between original and perturbations")
-        print("     VAE latent perturbations produce structurally different mazes.")
+        print("  -> LOW wall overlap ({:.3f})".format(np.mean(all_jaccards)))
+        print("     VAE produces structurally different mazes under perturbation.")
 
     # --- Plots ---
     plot_dir = os.path.dirname(args.output_path) or "."
@@ -723,11 +736,13 @@ def run_diagnostic(args):
                 "agent_checkpoint": args.agent_checkpoint_dir or args.agent_params_pkl,
             },
             "summary": {
+                "base_solved_count": int(np.sum(all_base_solved)),
+                "mean_pert_solve_rate": float(np.mean(all_solve_rates)),
+                "mean_solve_agreement": float(np.mean(all_solve_agreements)),
+                "mean_wall_jaccard": float(np.mean(all_jaccards)),
                 "mean_base_reward": float(np.mean(all_base_rewards)),
                 "mean_pert_reward": float(np.mean(all_pert_rewards)),
                 "mean_pert_std": float(np.mean(all_pert_stds)),
-                "mean_solve_rate": float(np.mean(all_solve_rates)),
-                "mean_wall_jaccard": float(np.mean(all_jaccards)),
                 "mean_reward_dist_corr": float(np.mean(all_correlations)),
             },
             "per_level": all_results,
