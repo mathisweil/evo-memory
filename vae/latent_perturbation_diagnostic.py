@@ -24,6 +24,7 @@ import sys
 import pickle
 import argparse
 import json
+from typing import Sequence
 
 import numpy as np
 import jax
@@ -44,6 +45,7 @@ from flax import core, struct
 from jaxued.environments.maze import Maze, Level
 from jaxued.environments.maze.env import EnvParams
 from jaxued.environments.maze.util import make_level_generator
+from jaxued.linen import ResetRNN
 
 # --- Import VAE ---
 try:
@@ -128,34 +130,11 @@ def repair_tokens(tokens):
 # Agent model (must match maze_plr.py architecture)
 # ═══════════════════════════════════════════════════════════════════════════
 
-DIR_TO_VEC = jnp.array([[1, 0], [0, 1], [-1, 0], [0, -1], [0, 0]], dtype=jnp.int32)
-
-
-class ResetRNN(nn.Module):
-    cell: nn.Module
-
-    @nn.compact
-    def __call__(self, inputs, initial_carry):
-        seq, resets = inputs
-        def step_fn(carry, x):
-            inp, reset = x
-            carry = jax.tree_util.tree_map(
-                lambda c, i: jnp.where(reset[..., None], i, c),
-                carry, initial_carry,
-            )
-            carry, y = self.cell(carry, inp)
-            return carry, y
-
-        return nn.scan(
-            step_fn,
-            variable_broadcast="params",
-            split_rngs={"params": False},
-            in_axes=0, out_axes=0,
-        )(initial_carry, (seq, resets))
+from flax.linen.initializers import constant, orthogonal
 
 
 class ActorCritic(nn.Module):
-    action_dim: int
+    action_dim: Sequence[int]
 
     @nn.compact
     def __call__(self, inputs, hidden):
@@ -165,37 +144,26 @@ class ActorCritic(nn.Module):
         img_embed = nn.relu(img_embed)
 
         dir_embed = jax.nn.one_hot(obs.agent_dir, 4)
-        dir_embed = nn.Dense(
-            5, kernel_init=nn.initializers.orthogonal(np.sqrt(2)),
-            bias_init=nn.initializers.constant(0.0), name="scalar_embed"
-        )(dir_embed)
+        dir_embed = nn.Dense(5, kernel_init=orthogonal(np.sqrt(2)),
+                             bias_init=constant(0.0), name="scalar_embed")(dir_embed)
 
         embedding = jnp.append(img_embed, dir_embed, axis=-1)
 
         hidden, embedding = ResetRNN(nn.OptimizedLSTMCell(features=256))(
-            (embedding, dones), initial_carry=hidden,
-        )
+            (embedding, dones), initial_carry=hidden)
 
-        actor_mean = nn.Dense(
-            32, kernel_init=nn.initializers.orthogonal(2),
-            bias_init=nn.initializers.constant(0.0), name="actor0"
-        )(embedding)
+        actor_mean = nn.Dense(32, kernel_init=orthogonal(2),
+                              bias_init=constant(0.0), name="actor0")(embedding)
         actor_mean = nn.relu(actor_mean)
-        actor_mean = nn.Dense(
-            self.action_dim, kernel_init=nn.initializers.orthogonal(0.01),
-            bias_init=nn.initializers.constant(0.0), name="actor1"
-        )(actor_mean)
+        actor_mean = nn.Dense(self.action_dim, kernel_init=orthogonal(0.01),
+                              bias_init=constant(0.0), name="actor1")(actor_mean)
         pi = distrax.Categorical(logits=actor_mean)
 
-        critic = nn.Dense(
-            32, kernel_init=nn.initializers.orthogonal(2),
-            bias_init=nn.initializers.constant(0.0), name="critic0"
-        )(embedding)
+        critic = nn.Dense(32, kernel_init=orthogonal(2),
+                          bias_init=constant(0.0), name="critic0")(embedding)
         critic = nn.relu(critic)
-        critic = nn.Dense(
-            1, kernel_init=nn.initializers.orthogonal(1.0),
-            bias_init=nn.initializers.constant(0.0), name="critic1"
-        )(critic)
+        critic = nn.Dense(1, kernel_init=orthogonal(1.0),
+                          bias_init=constant(0.0), name="critic1")(critic)
 
         return hidden, pi, jnp.squeeze(critic, axis=-1)
 
