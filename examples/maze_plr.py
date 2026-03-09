@@ -582,6 +582,24 @@ def main(config=None, project="JAXUED_TEST"):
         duplicate_check=config['buffer_duplicate_check'],
     )
     
+    # --- CMA-ES population archive callback (runs on host via jax.debug.callback) ---
+    def _save_cmaes_population(z_population, scores, es_mean, num_dr_updates, should_reset):
+        """Save CMA-ES population archive before reset. Called from inside JIT via jax.debug.callback."""
+        if not bool(should_reset):
+            return
+        dr_num = int(num_dr_updates)
+        save_dir = os.path.join("/tmp", "cmaes_populations", f"{config['run_name']}", str(config["seed"]))
+        os.makedirs(save_dir, exist_ok=True)
+        path = os.path.join(save_dir, f"pre_reset_{dr_num}.npz")
+        np.savez_compressed(path,
+                            z_population=np.asarray(z_population),
+                            scores=np.asarray(scores),
+                            es_mean=np.asarray(es_mean))
+        print(f"[CMA-ES] Population archive saved: {path} ({len(scores)} candidates)")
+        if config.get("gcs_bucket"):
+            gcs_base = f"{config['gcs_prefix']}/cmaes_populations/{config['run_name']}/{config['seed']}"
+            _upload_to_gcs(path, config["gcs_bucket"], f"{gcs_base}/pre_reset_{dr_num}.npz")
+
     # Initialize CMA-ES state OUTSIDE jit to avoid tracing issues with evosax
     if cmaes_mgr is not None:
         es_state_init = cmaes_mgr.initialize(jax.random.PRNGKey(42))
@@ -691,6 +709,15 @@ def main(config=None, project="JAXUED_TEST"):
 
                 # Periodic reset to prevent stagnation
                 should_reset = (train_state.num_dr_updates % config["cmaes_reset_interval"]) == 0
+
+                # Archive population before reset for latent visualization
+                if config.get("save_cmaes_populations", True):
+                    jax.debug.callback(
+                        _save_cmaes_population,
+                        z_population, scores, es_state.mean,
+                        train_state.num_dr_updates, should_reset,
+                    )
+
                 rng, rng_reset_es = jax.random.split(rng)
                 fresh_es_state = cmaes_mgr.initialize(rng_reset_es)
                 es_state = jax.tree_util.tree_map(
@@ -1330,8 +1357,12 @@ if __name__=="__main__":
     group.add_argument("--vae_config_path", type=str, default=None,
                        help="Path to VAE config.yaml (run directory)")
     group.add_argument("--cmaes_sigma_init", type=float, default=1.0)
+    group.add_argument("--cmaes_popsize", type=int, default=None,
+                       help="CMA-ES population size. Overrides num_train_envs when set (they must be equal).")
     group.add_argument("--cmaes_reset_interval", type=int, default=500,
                        help="Reset CMA-ES every N DR updates to prevent stagnation")
+    group.add_argument("--save_cmaes_populations", action=argparse.BooleanOptionalAction, default=True,
+                       help="Save CMA-ES population archive before each reset for latent visualization")
     # === GCS CONFIG ===
     group.add_argument("--gcs_bucket", type=str, default=None,
                        help="GCS bucket name for saving checkpoints/artifacts (e.g. 'ucl-ued-project-bucket')")
@@ -1343,6 +1374,12 @@ if __name__=="__main__":
                        help="Skip post-training buffer evaluation, rendering, and PCA (run evaluate_buffer.py separately)")
 
     config = vars(parser.parse_args())
+
+    # CMA-ES popsize overrides num_train_envs (they must match for parallel rollouts)
+    if config["use_cmaes"] and config["cmaes_popsize"] is not None:
+        print(f"[CMA-ES] Setting num_train_envs={config['cmaes_popsize']} (from --cmaes_popsize)")
+        config["num_train_envs"] = config["cmaes_popsize"]
+
     if config["num_env_steps"] is not None:
         config["num_updates"] = config["num_env_steps"] // (config["num_train_envs"] * config["num_steps"])
     config["group_name"] = ''.join([str(config[key]) for key in sorted([a.dest for a in parser._action_groups[2]._group_actions])])
