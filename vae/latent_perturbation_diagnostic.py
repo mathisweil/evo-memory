@@ -41,7 +41,8 @@ import flax.linen as nn
 from flax.training.train_state import TrainState as BaseTrainState
 from flax import core, struct
 
-from jaxued.environments.maze import Maze, Level, EnvParams
+from jaxued.environments.maze import Maze, Level
+from jaxued.environments.maze.env import EnvParams
 from jaxued.environments.maze.util import make_level_generator
 
 # --- Import VAE ---
