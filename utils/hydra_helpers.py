@@ -7,7 +7,12 @@ import numpy as np
 
 
 from hydra import compose, initialize
-from run_namm_training import make_eval_model, make_task_sampler, wandb_init
+import os, sys
+_repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_scripts_dir = os.path.join(_repo_root, "scripts")
+if _scripts_dir not in sys.path:
+    sys.path.insert(0, _scripts_dir)
+from run_namm import make_eval_model, make_task_sampler, wandb_init
 import omegaconf
 import hydra
 import time

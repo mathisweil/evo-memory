@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Source this to activate the environment and install deps:
-#   source scripts/activate.sh
+#   source setup/activate.sh
 #
 # First time: creates venv and installs everything (~2 min).
 # Subsequent: activates venv and verifies deps are current (~5s).

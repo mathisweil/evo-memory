@@ -64,4 +64,4 @@ while [[ $# -gt 0 ]]; do
         *) SETUP_ARGS+=("$1"); shift ;;
     esac
 done
-exec bash "${REPO_DIR}/scripts/setup.sh" "${SETUP_ARGS[@]}"
+exec bash "${REPO_DIR}/setup/setup.sh" "${SETUP_ARGS[@]}"

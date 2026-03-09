@@ -237,7 +237,7 @@ echo "  source ${SCRIPT_DIR}/activate.sh"
 echo ''
 echo 'To run ES fine-tuning:'
 echo "  source ${SCRIPT_DIR}/activate.sh"
-echo '  python run_es_finetuning.py --num_iterations 2 --population_size 2 --mini_batch_size 2'
+echo '  python scripts/run_es.py --run_name test --num_iterations 2 --population_size 2 --mini_batch_size 2'
 echo ''
 echo 'To start Claude Code:'
 echo "  source ${SCRIPT_DIR}/activate.sh"
