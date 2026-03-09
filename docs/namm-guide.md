@@ -29,7 +29,7 @@ The scoring network is tiny (hundreds of parameters). The LLaMA model weights ar
 | `max_iters` | 200 | 200 | CMA-ES generations |
 | `pop_size` | 32 | 8 | Population size (candidates per generation) |
 | `samples_batch_size` | 16 | 16 | Qasper samples evaluated per CMA-ES step |
-| `batch_size` | — | 1 | GPU inference batch size (1 for 16 GB, 4–8 for 24 GB) |
+| `batch_size` | -- | 1 | GPU inference batch size (1 for 16 GB, 4-8 for 24 GB) |
 | `cache_size` | 1024 | 1024 | KV-cache budget (tokens kept after eviction) |
 | `memory_policy_fixed_delay` | 256 | 256 | Tokens between eviction calls |
 | `max_new_tokens` | 64 | 64 | Max generated tokens per evaluation sample |
@@ -38,8 +38,8 @@ The scoring network is tiny (hundreds of parameters). The LLaMA model weights ar
 | `c_m` | 1.0 | 1.0 | Mean update learning rate |
 | `prefer_mean_to_best` | true | true | Checkpoint the CMA mean, not the best member |
 | `scoring_initializer` | 0 | 0 | Scoring network initialised to all zeros |
-| `filter_by_length` | — | 6500 | Drop samples longer than this (tokens). Also sets `max_position_id` and `max_position_embeddings` |
-| `max_position_id` | — | 6500 (= `filter_by_length`) | Max conditioning window; tied to `filter_by_length` |
+| `filter_by_length` | -- | 6500 | Drop samples longer than this (tokens). Also sets `max_position_id` and `max_position_embeddings` |
+| `max_position_id` | -- | 6500 (= `filter_by_length`) | Max conditioning window; tied to `filter_by_length` |
 | `per_head` | false | false | Shared scoring params across attention heads |
 | `per_layer` | false | false | Shared scoring params across transformer layers |
 
@@ -128,7 +128,7 @@ Total forward passes for full training:
   = 25,600 forward passes
 ```
 
-Each forward pass processes a long Qasper document (typically 2000–4000 tokens input, 64 tokens generated), with the NAMM scoring network running at every `memory_policy_fixed_delay=256` token boundary.
+Each forward pass processes a long Qasper document (typically 2000-4000 tokens input, 64 tokens generated), with the NAMM scoring network running at every `memory_policy_fixed_delay=256` token boundary.
 
 ---
 
@@ -182,7 +182,7 @@ These experiments fill in the `[TODO]` timing blanks and answer open questions a
 ```bash
 # Measure time per CMA-ES iteration at different batch_size values
 for BS in 1 2 4 8; do
-    torchrun --standalone --nproc_per_node=1 run_namm_training.py \
+    torchrun --standalone --nproc_per_node=1 scripts/run_namm.py \
         run@_global_=namm_bam_i1_llama32_1b.yaml \
         max_iters=3 \
         batch_size=$BS \
@@ -195,7 +195,7 @@ Record: wall time per iteration, GPU memory at each batch_size.
 ```bash
 # Compare pop=4 vs pop=8 vs pop=16 on short runs (50 iters)
 for POP in 4 8 16; do
-    torchrun --standalone --nproc_per_node=1 run_namm_training.py \
+    torchrun --standalone --nproc_per_node=1 scripts/run_namm.py \
         run@_global_=namm_bam_i1_llama32_1b.yaml \
         max_iters=50 \
         pop_size=$POP \
@@ -208,7 +208,7 @@ Compare: best fitness at iteration 50, time per iteration.
 ```bash
 # Compare samples=8 vs samples=16 vs samples=32
 for SAMPLES in 8 16 32; do
-    torchrun --standalone --nproc_per_node=1 run_namm_training.py \
+    torchrun --standalone --nproc_per_node=1 scripts/run_namm.py \
         run@_global_=namm_bam_i1_llama32_1b.yaml \
         max_iters=50 \
         samples_batch_size=$SAMPLES \
@@ -219,7 +219,7 @@ Compare: fitness variance per iteration, convergence speed.
 
 ### 4. Full 200-iteration training run
 ```bash
-torchrun --standalone --nproc_per_node=1 run_namm_training.py \
+torchrun --standalone --nproc_per_node=1 scripts/run_namm.py \
     run@_global_=namm_bam_i1_llama32_1b.yaml
 ```
 Record: total wall time, final fitness, checkpoint path. This is the checkpoint needed for ES fine-tuning (Stage 2).
@@ -227,7 +227,7 @@ Record: total wall time, final fitness, checkpoint path. This is the checkpoint 
 ### 5. Evaluate trained NAMM at different cache sizes
 ```bash
 for CACHE in 128 256 512 1024; do
-    python run_namm_training.py \
+    python scripts/run_namm.py \
         'run@_global_=namm_bam_eval_llama32_1b.yaml' \
         init_from=/path/to/ckpt.pt \
         cache_size=$CACHE
@@ -241,13 +241,13 @@ Record: qasper F1, passage_retrieval accuracy, narrativeqa F1 at each cache size
 
 **Train:**
 ```bash
-torchrun --standalone --nproc_per_node=1 run_namm_training.py \
+torchrun --standalone --nproc_per_node=1 scripts/run_namm.py \
     run@_global_=namm_bam_i1_llama32_1b.yaml
 ```
 
 **Evaluate:**
 ```bash
-python run_namm_training.py \
+python scripts/run_namm.py \
     'run@_global_=namm_bam_eval_llama32_1b.yaml' \
     init_from=/path/to/ckpt.pt \
     cache_size=1024

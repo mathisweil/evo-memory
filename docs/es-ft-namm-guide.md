@@ -26,7 +26,7 @@ Inner loop (fixed): for each forward pass, NAMM scoring network φ* (frozen)
                     φ* was pre-trained on the base model's attention patterns
 ```
 
-The reward signal for ES passes through the entire pipeline: perturbed LLM weights → attention patterns → NAMM scoring → eviction decisions → generation quality → F1 score. ES treats this whole chain as a black box.
+The reward signal for ES passes through the entire pipeline: perturbed LLM weights -> attention patterns -> NAMM scoring -> eviction decisions -> generation quality -> F1 score. ES treats this whole chain as a black box.
 
 ### The cooperation hypothesis
 
@@ -45,20 +45,21 @@ Conversely, if the frozen NAMM policy becomes stale as weights drift, we'd expec
 
 | Parameter | Default | Meaning |
 |---|---|---|
+| `--run_name` | (required) | Name for this run (e.g. `cache1024_i50`) |
+| `--experiment` | auto | Existing experiment ID to add to, or creates new |
+| `--method` | auto | `es_namm` or `es_only` (auto-detected from `--namm_checkpoint`) |
 | `--sigma` | `0.001` | Noise scale for LLM weight perturbations |
 | `--alpha` | `0.0005` | ES learning rate |
 | `--population_size` | `8` | Perturbed models per ES iteration |
 | `--num_iterations` | `150` | Total ES iterations |
 | `--noise_mode` | `correlated` | Noise correlation mode |
 | `--initial_seed` | `33` | NumPy random seed for reproducibility |
-| `--mini_batch_size` | `4` | Qasper samples per evaluation |
-| `--checkpoint_every` | `25` | Save checkpoint every N iterations |
-| `--eval_every` | `25` | Run validation every N iterations |
-| `--log_dir` | auto (`es_namm_runs` / `es_only_runs`) | TensorBoard log + checkpoint directory |
-| `--eval_batch_size` | config value | GPU inference batch size for the evaluator |
+| `--mini_batch_size` | `16` | Qasper samples per evaluation |
+| `--batch_size` | config value | GPU inference batch size for the evaluator |
 | `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
 | `--train_samples` | `150` | Qasper samples in training pool |
 | `--val_samples` | `50` | Qasper samples for validation |
+| `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
 
 ### NAMM-specific
 
@@ -66,6 +67,7 @@ Conversely, if the frozen NAMM policy becomes stale as weights drift, we'd expec
 |---|---|---|
 | `--namm_checkpoint` | (required) | Path to pre-trained NAMM `ckpt.pt` |
 | `--run_config` | `namm_bam_i1_llama32_1b` | Hydra config (defines cache_size, eviction delay, etc.) |
+| `--cache_size` | `None` | Override cache size for NAMM eviction |
 | `cache_size` | 1024 | KV-cache budget (from Hydra config) |
 | `memory_policy_fixed_delay` | 256 | Tokens between eviction calls (from Hydra config) |
 
@@ -84,6 +86,21 @@ The checkpoint (`ckpt.pt`) stores:
 - CMA-ES state (mean, sigma, covariance) — not used during ES fine-tuning
 
 When loaded, the scoring network parameters are set via `memory_policy.set_params_batch_idxs(np.zeros([1]))` — fixing the policy to use a single parameter set (not a population) for all evaluations.
+
+---
+
+## Experiment Hierarchy
+
+Results are organised under:
+```
+experiments/experiment_N/{es_namm,es_only}/run_name/
+    config.json      # full configuration snapshot
+    results.json     # final eval scores
+    examples.json    # captured Q/A examples from final eval
+    checkpoints/     # final checkpoint only
+```
+
+A `manifest.json` in `experiments/` tracks all experiments and their runs.
 
 ---
 
@@ -122,15 +139,18 @@ for iteration in range(num_iterations):           # 150 iterations
     apply_es_update(model, seeds, normalized,     # update ONLY base LLM params
                     sigma, alpha, base_params,
                     population_size, noise_mode)
+
+# After training: baseline eval + final full eval + Q/A example capture
+# Only the final checkpoint is saved (no intermediate checkpoints)
 ```
 
 ### What happens during each forward pass
 
 ```
-Input tokens: [t1, t2, ..., tN]     (N ≈ 2000-4000 for Qasper)
+Input tokens: [t1, t2, ..., tN]     (N ~ 2000-4000 for Qasper)
 
 For each chunk of 256 tokens:
-  1. LLaMA processes chunk → attention KV pairs added to cache
+  1. LLaMA processes chunk -> attention KV pairs added to cache
   2. If |cache| > cache_size:
      a. NAMM embedding: STFT spectrogram of KV vectors + recency encoding
      b. NAMM scoring: BAM network scores each token (using frozen φ*)
@@ -150,37 +170,31 @@ The combined system has the same forward pass count as standalone ES fine-tuning
 ```
 Forward passes per ES iteration:
   = population_size x mini_batch_size
-  = 8 x 4
-  = 32 forward passes (each with NAMM eviction)
+  = 8 x 16
+  = 128 forward passes (each with NAMM eviction)
 
 Total forward passes:
   = num_iterations x population_size x mini_batch_size
-  = 150 x 8 x 4
-  = 4,800 forward passes
-
-Validation:
-  = (150 / 25) x 50
-  = 300 forward passes
-
-Total: 5,100 forward passes with NAMM eviction active
+  = 150 x 8 x 16
+  = 19,200 forward passes
 ```
 
 ### Cost comparison
 
 | Pipeline | Fwd passes (150 iter) | Cost per fwd pass | Relative cost |
 |---|---|---|---|
-| ES only (full cache) | 5,100 | Full LLaMA inference, no eviction | 1.0x |
-| ES + NAMM | 5,100 | Full LLaMA inference + NAMM scoring/eviction | ~1.05–1.1x [TODO: measure] |
-| NAMM only (200 iter, pop=8) | 25,600 | Full LLaMA inference + NAMM scoring/eviction | — |
+| ES only (full cache) | 19,200 | Full LLaMA inference, no eviction | 1.0x |
+| ES + NAMM | 19,200 | Full LLaMA inference + NAMM scoring/eviction | ~1.05-1.1x [TODO: measure] |
+| NAMM only (200 iter, pop=8) | 25,600 | Full LLaMA inference + NAMM scoring/eviction | -- |
 
-The NAMM scoring overhead is small (tiny MLP+attention on a few hundred tokens), so combined cost ≈ ES-only cost. The dominant cost is always the LLaMA forward pass.
+The NAMM scoring overhead is small (tiny MLP+attention on a few hundred tokens), so combined cost ~ ES-only cost. The dominant cost is always the LLaMA forward pass.
 
 ### Total wall time estimate
 
 | Config | Est. time/iter | Total estimate |
 |---|---|---|
-| pop=8, mini_batch=4, bs=8, NAMM active | ~3–4 min | ~7.5–10h (150 iter) |
-| pop=4, mini_batch=4, bs=8, NAMM active | ~1.5–2 min | ~3.8–5h (150 iter) |
+| pop=8, mini_batch=16, bs=8, NAMM active | ~12-15 min | ~30-38h (150 iter) |
+| pop=8, mini_batch=4, bs=8, NAMM active | ~3-4 min | ~7.5-10h (150 iter) |
 | [TODO: measure actual overhead of NAMM vs no-NAMM] | | |
 
 ---
@@ -192,8 +206,8 @@ The NAMM scoring overhead is small (tiny MLP+attention on a few hundred tokens),
 | What's optimised | Scoring network φ | LLM weights θ | LLM weights θ (φ frozen) |
 | Optimiser | CMA-ES | NES | NES |
 | Parameter count | ~hundreds | ~1.24B | ~1.24B (+ frozen φ) |
-| Forward passes/iter | pop × samples = 128 | pop × mini_batch = 32 | pop × mini_batch = 32 |
-| Typical runtime | ~44h (200 iter) | ~7.5h (150 iter) | ~8–10h (150 iter) |
+| Forward passes/iter | pop x samples = 128 | pop x mini_batch = 128 | pop x mini_batch = 128 |
+| Typical runtime | ~44h (200 iter) | ~30h (150 iter) | ~30-38h (150 iter) |
 | Eviction during eval | Yes (optimised) | Optional (if checkpoint loaded) | Yes (frozen) |
 | Reward signal | F1 reflects eviction quality | F1 reflects LLM quality | F1 reflects LLM+eviction interaction |
 
@@ -207,10 +221,10 @@ The NAMM scoring network was trained on the base model's attention patterns. As 
 - NAMM starts evicting "wrong" tokens (important tokens scored low)
 - Validation reward declines after initial improvement
 
-If staleness is a problem → Phase 4 (alternating optimisation) is needed.
+If staleness is a problem -> Phase 4 (alternating optimisation) is needed.
 
 ### Is the reward signal rich enough?
-The F1 score on 4 Qasper samples captures the combined effect of LLM quality AND eviction quality. ES can't distinguish between "better LLM weights" and "weights that happen to work better with this particular frozen NAMM policy". Is this conflation a problem, or does it naturally steer the model toward cooperation?
+The F1 score on 16 Qasper samples (default mini_batch_size) captures the combined effect of LLM quality AND eviction quality. ES can't distinguish between "better LLM weights" and "weights that happen to work better with this particular frozen NAMM policy". Is this conflation a problem, or does it naturally steer the model toward cooperation?
 
 ### Sigma in the combined setting
 With NAMM eviction active, the loss landscape may be different than without eviction. Eviction introduces a discrete, non-smooth operation (top-k selection). Small weight perturbations might cause different tokens to be evicted, creating discontinuities in the reward. Does this affect the optimal `sigma`?
@@ -237,58 +251,58 @@ Rather than freezing NAMM and only optimising LLM weights, could we optimise bot
 ### 1. Measure NAMM overhead in ES fine-tuning
 ```bash
 # Compare ES fine-tuning with and without NAMM
-python run_es_finetuning.py \
+python scripts/run_es.py \
+    --run_name timing_no_namm \
     --num_iterations 10 \
     --population_size 8 \
-    --mini_batch_size 4 \
-    --log_dir es_timing_no_namm
+    --mini_batch_size 16
 
-python run_es_finetuning.py \
+python scripts/run_es.py \
+    --run_name timing_with_namm \
     --namm_checkpoint /path/to/ckpt.pt \
     --num_iterations 10 \
     --population_size 8 \
-    --mini_batch_size 4 \
-    --log_dir es_timing_with_namm
+    --mini_batch_size 16
 ```
-Compare: `time/iteration_sec` from TensorBoard for both runs.
 
 ### 2. Full combined run
 ```bash
-python run_es_finetuning.py \
+python scripts/run_es.py \
+    --run_name full_es_namm \
     --namm_checkpoint /path/to/ckpt.pt \
     --num_iterations 150 \
     --population_size 8 \
-    --mini_batch_size 4 \
+    --mini_batch_size 16 \
     --sigma 0.001 \
-    --alpha 0.0005 \
-    --log_dir es_ft_namm_full
+    --alpha 0.0005
 ```
 Record: reward curve, total wall time, final checkpoint.
 
-### 3. Compare ES-only vs ES+NAMM reward curves
+### 3. Compare ES-only vs ES+NAMM results
 ```bash
-# Plot both runs on the same TensorBoard
-tensorboard --logdir experiments/ --reload_multifile true
+# Compare results.json from both runs
+cat experiments/experiment_N/es_only/run_name/results.json
+cat experiments/experiment_N/es_namm/run_name/results.json
 ```
 Key question: does the NAMM run converge to a similar reward as the no-NAMM run? Higher? Lower? Slower?
 
 ### 4. Evaluate the combined model under all eviction policies
 ```bash
-CKPT=experiments/es_ft_namm_full/checkpoints/es_checkpoint_final.pt
+CKPT=experiments/experiment_N/es_namm/run_name/checkpoints/es_checkpoint_final.pt
 
 # Under NAMM (same policy used during training)
-python run_namm_training.py \
+python scripts/run_namm.py \
     'run@_global_=namm_bam_eval_llama32_1b.yaml' \
     init_from=$CKPT \
     cache_size=1024
 
 # Under full cache (upper bound — does fine-tuning under NAMM hurt full-cache perf?)
-python run_namm_training.py \
+python scripts/run_namm.py \
     'run@_global_=full_cache_baseline_llama32_1b.yaml' \
     init_from=$CKPT
 
 # Under recency (does it generalise to a different eviction policy?)
-python run_namm_training.py \
+python scripts/run_namm.py \
     'run@_global_=recency_baseline_llama32_1b.yaml' \
     init_from=$CKPT \
     cache_size=1024
@@ -309,28 +323,14 @@ Run tests 4 above for both ES-only and ES+NAMM checkpoints. Fill in:
 | ES-FT (with NAMM) | full | 4096 | [TODO] | [TODO] | [TODO] |
 | ES-FT (with NAMM) | recency | 1024 | [TODO] | [TODO] | [TODO] |
 
-### 6. Policy staleness check (intermediate checkpoints)
-```bash
-# ES fine-tuning saves checkpoints every 25 iterations
-# Evaluate NAMM on each intermediate checkpoint
-for ITER in 25 50 75 100 125 150; do
-    CKPT=experiments/es_ft_namm_full/checkpoints/es_checkpoint_iter${ITER}.pt
-    python run_namm_training.py \
-        'run@_global_=namm_bam_eval_llama32_1b.yaml' \
-        init_from=$CKPT \
-        cache_size=1024
-done
-```
-Plot: ES iteration vs NAMM eval F1. If F1 degrades after initial improvement → policy staleness is real.
-
-### 7. Sigma sweep with NAMM active
+### 6. Sigma sweep with NAMM active
 ```bash
 for SIGMA in 0.0005 0.001 0.005; do
-    python run_es_finetuning.py \
+    python scripts/run_es.py \
+        --run_name sigma_namm_${SIGMA} \
         --namm_checkpoint /path/to/ckpt.pt \
         --num_iterations 50 \
-        --sigma $SIGMA \
-        --log_dir es_namm_sigma_${SIGMA}
+        --sigma $SIGMA
 done
 ```
 Does the optimal sigma differ with/without NAMM eviction active?
@@ -341,34 +341,30 @@ Does the optimal sigma differ with/without NAMM eviction active?
 
 **Train NAMM first (Stage 1):**
 ```bash
-torchrun --standalone --nproc_per_node=1 run_namm_training.py \
+torchrun --standalone --nproc_per_node=1 scripts/run_namm.py \
     run@_global_=namm_bam_i1_llama32_1b.yaml
 ```
 
 **Then ES fine-tune with NAMM (Stage 2):**
 ```bash
-python run_es_finetuning.py \
+python scripts/run_es.py \
+    --run_name my_run \
     --namm_checkpoint experiments/.../ckpt.pt \
     --num_iterations 150 \
     --population_size 8 \
-    --mini_batch_size 4
-```
-
-**Monitor:**
-```bash
-tensorboard --logdir experiments/es_namm_runs
+    --mini_batch_size 16
 ```
 
 **Evaluate:**
 ```bash
-python run_namm_training.py \
+python scripts/run_namm.py \
     'run@_global_=namm_bam_eval_llama32_1b.yaml' \
     init_from=/path/to/es_checkpoint_final.pt \
     cache_size=1024
 ```
 
 **Key files:**
-- `run_es_finetuning.py` — combined pipeline entry point
+- `scripts/run_es.py` — combined pipeline entry point
 - `namm/trainer.py` — NAMM CMA-ES training (Stage 1)
 - `es_finetuning/trainer.py` — ESTrainer (Stage 2)
 - `cfgs/run/namm_bam_i1_llama32_1b.yaml` — Hydra config for model/task/eviction
