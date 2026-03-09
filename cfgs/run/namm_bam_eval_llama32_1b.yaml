@@ -3,7 +3,7 @@
 # Run AFTER stage 1 training; point init_from at the output ckpt.pt.
 #
 # Override cache_size from the CLI to evaluate at multiple budgets, e.g.:
-#   torchrun ... run_namm_training.py run@_global_=namm_bam_eval_llama32_1b.yaml \
+#   torchrun ... scripts/run_namm.py run@_global_=namm_bam_eval_llama32_1b.yaml \
 #       init_from=<path/to/ckpt.pt> cache_size=512
 # wandb_run_name automatically encodes the cache size so each run is distinct.
 defaults:

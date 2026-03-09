@@ -31,10 +31,10 @@ scoring_max_non_reduced_history_len:
 
 # --
 # increasing the hidden dim, increases time cost marginally
-scoring_attn_hidden_dim: 16
+scoring_attn_hidden_dim: 32
 scoring_attn_output_dim:
 scoring_attn_num_heads: 1
-scoring_attn_bias: false
+scoring_attn_bias: true
 scoring_attn_use_rope: false
 scoring_attn_rope_theta: 50000
 scoring_attn_masking_strategy: backward
