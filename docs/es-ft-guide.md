@@ -25,22 +25,25 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 
 | Parameter | Default | Meaning |
 |---|---|---|
+| `--run_name` | (required) | Name for this run (e.g. `cache1024_i50`) |
+| `--experiment` | auto | Existing experiment ID to add to, or creates new |
+| `--method` | auto | `es_namm` or `es_only` (auto-detected from `--namm_checkpoint`) |
 | `--sigma` | `0.001` | Noise scale for weight perturbations |
 | `--alpha` | `0.0005` | ES learning rate (step size for weight update) |
 | `--population_size` | `8` | Number of perturbed models evaluated per iteration |
 | `--num_iterations` | `150` | Total ES iterations |
 | `--noise_mode` | `correlated` | Noise correlation: `correlated` or `iid` |
 | `--initial_seed` | `33` | NumPy random seed for reproducibility |
-| `--mini_batch_size` | `4` | Qasper samples per population member evaluation |
-| `--checkpoint_every` | `25` | Save checkpoint every N iterations |
-| `--eval_every` | `25` | Run validation every N iterations |
-| `--log_dir` | auto (`es_only_runs` / `es_namm_runs`) | TensorBoard log + checkpoint directory |
+| `--mini_batch_size` | `16` | Qasper samples per population member evaluation |
 | `--namm_checkpoint` | `None` | Path to pre-trained NAMM `ckpt.pt` (optional) |
 | `--run_config` | `namm_bam_i1_llama32_1b` | Hydra config name for model/task setup |
-| `--eval_batch_size` | config value | GPU inference batch size for the evaluator |
+| `--batch_size` | config value | GPU inference batch size for the evaluator |
 | `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
+| `--cache_size` | `None` | Override cache size for NAMM eviction |
 | `--train_samples` | `150` | Qasper samples in training pool |
 | `--val_samples` | `50` | Qasper samples for validation |
+| `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
+| `--resume_checkpoint` | `None` | Path to checkpoint to resume from |
 
 ### Model/task config (from Hydra)
 
@@ -50,6 +53,21 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 | `memory_policy_fixed_delay` | 256 | Tokens between NAMM eviction calls |
 | `max_new_tokens` | 64 | Max generated tokens per sample. Also filters out samples whose shortest answer exceeds this |
 | `max_position_id` | 6500 (= `filter_by_length`) | Max conditioning window; samples longer than this are dropped |
+
+---
+
+## Experiment Hierarchy
+
+Results are organised under:
+```
+experiments/experiment_N/{es_namm,es_only}/run_name/
+    config.json      # full configuration snapshot
+    results.json     # final eval scores
+    examples.json    # captured Q/A examples from final eval
+    checkpoints/     # final checkpoint only
+```
+
+A `manifest.json` in `experiments/` tracks all experiments and their runs.
 
 ---
 
@@ -77,13 +95,13 @@ for iteration in range(num_iterations):          # 150 iterations
         update = sum(normalized[k] * noise_k for k in population) / population_size
         p += alpha * update
 
-    if iteration % checkpoint_every == 0:
-        save_checkpoint(model)
-    if iteration % eval_every == 0:
-        val_reward = validate(model, val_samples)
+# After training: baseline eval + final full eval + Q/A example capture
+# Only the final checkpoint is saved (no intermediate checkpoints)
 ```
 
 **Important:** All population members in a given iteration are evaluated on the same batch of samples (resampled once via `pre_step_fn`). This matches how NAMM's CMA-ES trainer works and ensures reward differences between members reflect weight quality, not sample variance.
+
+**Note:** Validation during training has been removed. Only a baseline evaluation (before training) and a final full evaluation (after training) are performed. Q/A examples are captured during the final evaluation.
 
 ### Step-by-step breakdown
 
@@ -149,28 +167,16 @@ Each ES iteration evaluates `population_size` perturbed models, each on `mini_ba
 ```
 Forward passes per ES iteration:
   = population_size x mini_batch_size
-  = 8 x 4
-  = 32 forward passes
+  = 8 x 16
+  = 128 forward passes
 
 Total forward passes for full training:
   = num_iterations x population_size x mini_batch_size
-  = 150 x 8 x 4
-  = 4,800 forward passes
+  = 150 x 8 x 16
+  = 19,200 forward passes
 ```
 
 Each forward pass runs the full LLaMA inference pipeline (with NAMM eviction if a checkpoint is loaded). The cost per forward pass is the same as NAMM evaluation — dominated by the LLaMA attention layers, not the tiny NAMM scoring network.
-
-**Additionally**, every `eval_every` iterations, a validation pass runs on `val_samples`:
-```
-Validation forward passes:
-  = (num_iterations / eval_every) x val_samples
-  = (150 / 25) x 50
-  = 300 forward passes
-
-Total (training + validation):
-  = 4,800 + 300
-  = 5,100 forward passes
-```
 
 ---
 
@@ -204,18 +210,17 @@ Every one of these tensors gets perturbed by `sigma * noise` and then restored a
 
 | Config | Est. time/iter | Total estimate |
 |---|---|---|
+| pop=8, mini_batch=16, bs=8 | ~12 min | ~30h (150 iter) |
 | pop=8, mini_batch=4, bs=8 | ~3 min | ~7.5h (150 iter) |
 | pop=4, mini_batch=4, bs=8 | ~1.5 min | ~3.8h (150 iter) |
 | pop=8, mini_batch=8, bs=8 | [TODO: measure] | [TODO] |
-| pop=8, mini_batch=4, bs=4 | [TODO: measure] | [TODO] |
 
-**Logging:** TensorBoard scalars are written to `{log_dir}/`:
-- `reward/mean`, `reward/min`, `reward/max` — training reward per iteration
-- `reward/val` — validation reward (every `eval_every` iterations)
-- `time/iteration_sec` — wall time per iteration
-- `gpu/memory_mb` — GPU memory usage
+**Logging:** Results are written to `experiments/experiment_N/{es_namm,es_only}/run_name/`:
+- `config.json` — full run configuration
+- `results.json` — final evaluation scores
+- `examples.json` — captured Q/A examples
 
-**Checkpoint format:** `{log_dir}/checkpoints/es_checkpoint_iter{N}.pt` — dict of `{param_name: tensor}` for optimised base LLM parameters only.
+**Checkpoint format:** `experiments/experiment_N/.../run_name/checkpoints/es_checkpoint_final.pt` — dict of `{param_name: tensor}` for optimised base LLM parameters only. Only the final checkpoint is saved.
 
 ---
 
@@ -232,18 +237,18 @@ Why does it work at all? Likely because:
 But is pop=8 enough? Would pop=16 or pop=32 converge faster per iteration (despite taking longer per iteration)?
 
 ### Compute cost vs gradient-based fine-tuning
-For reference, LoRA fine-tuning of LLaMA 3.2-1B-Instruct with rank 16 would update ~10M parameters using standard backprop. ES updates 1.24B parameters using 32 forward passes per iteration. The per-iteration cost is similar (32 forward passes vs 1 forward + 1 backward ≈ 3 forward passes, but on different parameter counts). The convergence rate is likely much slower for ES.
+For reference, LoRA fine-tuning of LLaMA 3.2-1B-Instruct with rank 16 would update ~10M parameters using standard backprop. ES updates 1.24B parameters using 128 forward passes per iteration (with mini_batch_size=16). The convergence rate is likely much slower for ES.
 
 Is the gradient-free property worth the cost? For this project, yes — because we need to optimise through the non-differentiable NAMM eviction pipeline. But exploring LoRA + straight-through estimators could be a faster alternative.
 
 ### Sigma sensitivity
-`sigma=0.001` is a tiny perturbation relative to the weight magnitudes (typically O(0.01–1.0) in bfloat16). Too small → negligible reward differences → noisy gradient. Too large → perturbations break the model → all candidates score ~0. The sweet spot depends on the loss landscape curvature. Has sigma=0.001 been validated, or should we sweep?
+`sigma=0.001` is a tiny perturbation relative to the weight magnitudes (typically O(0.01-1.0) in bfloat16). Too small -> negligible reward differences -> noisy gradient. Too large -> perturbations break the model -> all candidates score ~0. The sweet spot depends on the loss landscape curvature. Has sigma=0.001 been validated, or should we sweep?
 
 ### Convergence
-150 iterations x 8 population = 1,200 total perturbation-evaluation pairs. For a 1.24B parameter model, this is minuscule. Are we seeing meaningful convergence, or just noise? The validation curve (`reward/val` in TensorBoard) should show a clear upward trend if learning is happening.
+150 iterations x 8 population = 1,200 total perturbation-evaluation pairs. For a 1.24B parameter model, this is minuscule. Are we seeing meaningful convergence, or just noise? The final eval results should show a clear improvement over baseline if learning is happening.
 
 ### Mini-batch size
-Each perturbed model is evaluated on only 4 Qasper samples. The F1 reward on 4 samples is very noisy. If two perturbations get different random samples, the reward difference may reflect sample variance rather than weight quality. Is `mini_batch_size=4` large enough for a reliable signal?
+Each perturbed model is evaluated on 16 Qasper samples (default). The F1 reward on 16 samples is moderately noisy. If two perturbations get different random samples, the reward difference may reflect sample variance rather than weight quality.
 
 ---
 
@@ -253,61 +258,60 @@ Each perturbed model is evaluated on only 4 Qasper samples. The F1 reward on 4 s
 ```bash
 # Sweep population_size and mini_batch_size, 5 iterations each
 for POP in 4 8 16; do
-    for MB in 2 4 8; do
-        python run_es_finetuning.py \
+    for MB in 2 4 8 16; do
+        python scripts/run_es.py \
+            --run_name timing_pop${POP}_mb${MB} \
             --num_iterations 5 \
             --population_size $POP \
-            --mini_batch_size $MB \
-            --log_dir es_timing_pop${POP}_mb${MB}
+            --mini_batch_size $MB
     done
 done
 ```
-Record: `time/iteration_sec` from TensorBoard, GPU memory.
 
 ### 2. Sigma sweep
 ```bash
 for SIGMA in 0.0001 0.0005 0.001 0.005 0.01; do
-    python run_es_finetuning.py \
+    python scripts/run_es.py \
+        --run_name sigma_${SIGMA} \
         --num_iterations 50 \
-        --sigma $SIGMA \
-        --log_dir es_sigma_${SIGMA}
+        --sigma $SIGMA
 done
 ```
-Compare: `reward/mean` convergence curves across sigma values.
+Compare: reward convergence curves across sigma values.
 
 ### 3. Noise mode comparison
 ```bash
 for MODE in correlated iid; do
-    python run_es_finetuning.py \
+    python scripts/run_es.py \
+        --run_name noise_${MODE} \
         --num_iterations 50 \
-        --noise_mode $MODE \
-        --log_dir es_noise_${MODE}
+        --noise_mode $MODE
 done
 ```
 Compare: convergence speed and final reward.
 
 ### 4. Full ES fine-tuning run (no NAMM)
 ```bash
-python run_es_finetuning.py \
+python scripts/run_es.py \
+    --run_name full_no_namm \
     --num_iterations 150 \
     --population_size 8 \
-    --mini_batch_size 4 \
+    --mini_batch_size 16 \
     --sigma 0.001 \
-    --alpha 0.0005 \
-    --log_dir es_full_no_namm
+    --alpha 0.0005
 ```
 Record: total wall time, final training and validation reward, checkpoint path.
 
 ### 5. Full ES fine-tuning run (with NAMM)
 ```bash
-python run_es_finetuning.py \
+python scripts/run_es.py \
+    --run_name full_with_namm \
     --namm_checkpoint /path/to/ckpt.pt \
     --num_iterations 150 \
     --population_size 8 \
-    --mini_batch_size 4 \
+    --mini_batch_size 16 \
     --sigma 0.001 \
-    --alpha 0.0005 \
-    --log_dir es_full_with_namm
+    --alpha 0.0005
 ```
 Record: total wall time, reward curve, does it converge differently with NAMM active?
 
@@ -315,7 +319,7 @@ Record: total wall time, reward curve, does it converge differently with NAMM ac
 ```bash
 # After training, evaluate under all three eviction policies
 for CONFIG in full_cache_baseline_llama32_1b namm_bam_eval_llama32_1b recency_baseline_llama32_1b; do
-    python run_namm_training.py \
+    python scripts/run_namm.py \
         "run@_global_=${CONFIG}.yaml" \
         init_from=/path/to/es_checkpoint_final.pt
 done
@@ -327,28 +331,30 @@ done
 
 **Train (no NAMM):**
 ```bash
-python run_es_finetuning.py \
+python scripts/run_es.py \
+    --run_name my_run \
     --num_iterations 150 \
     --population_size 8 \
-    --mini_batch_size 4
+    --mini_batch_size 16
 ```
 
 **Train (with NAMM):**
 ```bash
-python run_es_finetuning.py \
+python scripts/run_es.py \
+    --run_name my_run \
     --namm_checkpoint /path/to/ckpt.pt \
     --num_iterations 150 \
     --population_size 8 \
-    --mini_batch_size 4
+    --mini_batch_size 16
 ```
 
 **Monitor:**
 ```bash
-tensorboard --logdir experiments/es_only_runs
+# Results in experiments/experiment_N/{es_namm,es_only}/run_name/results.json
 ```
 
 **Key files:**
-- `run_es_finetuning.py` — entry point and argument parser
+- `scripts/run_es.py` — entry point and argument parser
 - `es_finetuning/trainer.py` — ESTrainer loop
 - `es_finetuning/noise.py` — perturb/restore/update functions
 - `es_finetuning/config.py` — ESConfig dataclass
