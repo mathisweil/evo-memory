@@ -117,7 +117,7 @@ def stochasticity_setup(cfg, seed_offset=0, log_prefix=''):
         torch.use_deterministic_algorithms(True)
 
 
-@hydra.main(version_base=None, config_path='cfgs', config_name='config')
+@hydra.main(version_base=None, config_path='../cfgs', config_name='config')
 def main(cfg: DictConfig):
     _, global_rank, n_ddp = get_dist_info()
     is_ddp = global_rank > -1

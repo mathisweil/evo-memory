@@ -20,11 +20,13 @@ import numpy as np
 import torch
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-if SCRIPT_DIR not in sys.path:
-    sys.path.insert(0, SCRIPT_DIR)
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+for _p in (REPO_ROOT, SCRIPT_DIR):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from hydra import compose, initialize
-from run_namm_training import make_eval_model, make_task_sampler
+from run_namm import make_eval_model, make_task_sampler
 
 
 class Tee:
@@ -67,7 +69,8 @@ def parse_args():
                         help="Path to pre-trained NAMM scoring network checkpoint")
     parser.add_argument("--run_config", type=str,
                         default="namm_bam_i1_llama32_1b")
-    parser.add_argument("--eval_batch_size", type=int, default=4)
+    parser.add_argument("--batch_size", type=int, default=None,
+                        help="Inference batch size (default: use config value)")
     parser.add_argument("--filter_by_length", type=int, default=None,
                         help="Drop samples longer than this (tokens). None = mid-crop instead")
     parser.add_argument("--output_dir", type=str, default=None,
@@ -98,12 +101,12 @@ def main():
         f"run@_global_={args.run_config}",
         "wandb_log=false",
         "wandb_project=es_eval",
-        f"batch_size={args.eval_batch_size}",
-        f"eval_max_batch_size={args.eval_batch_size}",
     ]
+    if args.batch_size is not None:
+        overrides.append(f"batch_size={args.batch_size}")
     if args.filter_by_length is not None:
         overrides.append(f"filter_by_length={args.filter_by_length}")
-    with initialize(version_base=None, config_path="cfgs",
+    with initialize(version_base=None, config_path="../cfgs",
                     job_name="es_eval"):
         cfg = compose(config_name="config", overrides=overrides)
 
