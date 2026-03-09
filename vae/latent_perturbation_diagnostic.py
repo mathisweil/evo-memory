@@ -24,6 +24,7 @@ import sys
 import pickle
 import argparse
 import json
+import subprocess
 from typing import Sequence
 
 import numpy as np
@@ -339,6 +340,190 @@ def load_buffer_dump(dump_path):
         return tokens[:size], scores[:size]
 
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+
+def render_maze_from_tokens(ax, tokens, reward=None, solved=None, title=None):
+    """Render a maze from a 52-token sequence onto a matplotlib axis."""
+    tokens = np.array(tokens).flatten().astype(int)
+    agent_idx = int(tokens[-1])
+    goal_idx = int(tokens[-2])
+    walls = tokens[:-2]
+
+    grid = np.ones((GRID_SIZE, GRID_SIZE, 3))  # white background
+    for w in walls:
+        if w > 0:
+            r, c = divmod(w - 1, GRID_SIZE)
+            grid[r, c] = [0, 0, 0]  # black wall
+
+    ax.imshow(grid, interpolation='nearest')
+
+    # Agent (red) and goal (green)
+    if agent_idx > 0:
+        ar, ac = divmod(agent_idx - 1, GRID_SIZE)
+        ax.scatter(ac, ar, color='red', s=40, zorder=3, edgecolors='darkred', linewidths=0.5)
+    if goal_idx > 0:
+        gr, gc = divmod(goal_idx - 1, GRID_SIZE)
+        ax.scatter(gc, gr, color='lime', s=40, marker='*', zorder=3, edgecolors='darkgreen', linewidths=0.5)
+
+    if title:
+        ax.set_title(title, fontsize=7)
+    elif reward is not None:
+        color = 'green' if solved else 'red'
+        ax.set_title(f"r={reward:.2f} {'S' if solved else 'F'}", fontsize=7, color=color)
+    ax.axis('off')
+
+
+def plot_maze_panels(all_results, all_repaired_tokens, plot_dir, n_base, n_pert, eps):
+    """Plot 1: For each base level, show original + perturbations side by side."""
+    cols = 1 + n_pert  # original + perturbations
+    fig, axes = plt.subplots(n_base, cols, figsize=(cols * 1.5, n_base * 1.5))
+    if n_base == 1:
+        axes = axes[np.newaxis, :]
+
+    for i, (result, tokens_batch) in enumerate(zip(all_results, all_repaired_tokens)):
+        # Original
+        render_maze_from_tokens(
+            axes[i, 0], tokens_batch[0],
+            reward=result["base_reward"], solved=result["base_solved"],
+            title=f"Original\nr={result['base_reward']:.2f}"
+        )
+        axes[i, 0].patch.set_edgecolor('blue')
+        axes[i, 0].patch.set_linewidth(2)
+
+        # Perturbations
+        for j in range(n_pert):
+            render_maze_from_tokens(
+                axes[i, j + 1], tokens_batch[j + 1],
+                reward=result["pert_rewards"][j],
+                solved=result["pert_solved"][j],
+            )
+
+    fig.suptitle(
+        f"Latent Perturbation Mazes (eps={eps}, {n_pert} directions)\n"
+        f"Blue border = original, S = solved, F = failed",
+        fontsize=10, fontweight='bold'
+    )
+    plt.tight_layout()
+    path = os.path.join(plot_dir, "perturbation_mazes.png")
+    plt.savefig(path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"[Plot] Maze panels -> {path}")
+
+
+def plot_reward_scatter(all_results, plot_dir, n_base, eps):
+    """Plot 2: Original reward vs perturbation rewards for each base level."""
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+
+    colors = plt.cm.tab10(np.linspace(0, 1, n_base))
+
+    for i, result in enumerate(all_results):
+        base_r = result["base_reward"]
+        pert_r = result["pert_rewards"]
+        ax.scatter(
+            [base_r] * len(pert_r), pert_r,
+            color=colors[i], alpha=0.7, s=30,
+            label=f"Level {i+1} (buf={result['base_idx']})"
+        )
+
+    # Diagonal line (perfect consistency)
+    lims = [0, 1]
+    ax.plot(lims, lims, 'k--', alpha=0.3, label='Perfect consistency')
+
+    ax.set_xlabel("Original Reward", fontsize=11)
+    ax.set_ylabel("Perturbed Reward", fontsize=11)
+    ax.set_title(f"Original vs Perturbed Rewards (eps={eps})", fontsize=12, fontweight='bold')
+    ax.legend(fontsize=7, loc='lower right')
+    ax.grid(alpha=0.3)
+    ax.set_xlim(-0.05, 1.05)
+    ax.set_ylim(-0.05, 1.05)
+
+    plt.tight_layout()
+    path = os.path.join(plot_dir, "reward_scatter.png")
+    plt.savefig(path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"[Plot] Reward scatter -> {path}")
+
+
+def plot_jaccard_vs_reward(all_results, plot_dir, eps):
+    """Plot 3: Wall Jaccard similarity vs absolute reward change."""
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    all_jaccards = []
+    all_reward_diffs = []
+    all_solved_match = []
+
+    for result in all_results:
+        base_r = result["base_reward"]
+        base_solved = result["base_solved"]
+        for j, (jr, pr, ps) in enumerate(zip(
+            result["pert_wall_jaccard"], result["pert_rewards"], result["pert_solved"]
+        )):
+            all_jaccards.append(jr)
+            all_reward_diffs.append(abs(pr - base_r))
+            all_solved_match.append(int(ps == base_solved))
+
+    all_jaccards = np.array(all_jaccards)
+    all_reward_diffs = np.array(all_reward_diffs)
+    all_solved_match = np.array(all_solved_match)
+
+    # Left: Jaccard vs |reward change|
+    ax = axes[0]
+    ax.scatter(all_jaccards, all_reward_diffs, alpha=0.5, s=20, c='steelblue')
+    if len(all_jaccards) > 2:
+        corr = np.corrcoef(all_jaccards, all_reward_diffs)[0, 1]
+        z = np.polyfit(all_jaccards, all_reward_diffs, 1)
+        p = np.poly1d(z)
+        xs = np.linspace(all_jaccards.min(), all_jaccards.max(), 50)
+        ax.plot(xs, p(xs), 'r--', alpha=0.5, label=f'r={corr:.3f}')
+        ax.legend(fontsize=9)
+    ax.set_xlabel("Wall Jaccard Similarity", fontsize=11)
+    ax.set_ylabel("|Reward Change|", fontsize=11)
+    ax.set_title("Structural Similarity vs Reward Change", fontsize=11, fontweight='bold')
+    ax.grid(alpha=0.3)
+
+    # Right: Jaccard vs solve agreement
+    ax = axes[1]
+    bins = np.linspace(0, 1, 11)
+    bin_indices = np.digitize(all_jaccards, bins) - 1
+    bin_centers = []
+    bin_agreement = []
+    for b in range(len(bins) - 1):
+        mask = bin_indices == b
+        if mask.sum() > 0:
+            bin_centers.append((bins[b] + bins[b + 1]) / 2)
+            bin_agreement.append(all_solved_match[mask].mean())
+    ax.bar(bin_centers, bin_agreement, width=0.08, color='steelblue', alpha=0.7, edgecolor='white')
+    ax.set_xlabel("Wall Jaccard Similarity", fontsize=11)
+    ax.set_ylabel("Solve Agreement Rate", fontsize=11)
+    ax.set_title("Does Higher Similarity = Same Solvability?", fontsize=11, fontweight='bold')
+    ax.set_ylim(0, 1.05)
+    ax.grid(alpha=0.3, axis='y')
+
+    fig.suptitle(f"Jaccard vs Agent Performance (eps={eps})", fontsize=12, fontweight='bold')
+    plt.tight_layout()
+    path = os.path.join(plot_dir, "jaccard_vs_reward.png")
+    plt.savefig(path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"[Plot] Jaccard vs reward -> {path}")
+
+
+def upload_to_gcs(local_path, gcs_dir):
+    """Upload a local file to GCS using gcloud storage cp."""
+    fname = os.path.basename(local_path)
+    gcs_path = f"{gcs_dir.rstrip('/')}/{fname}"
+    cmd = ["gcloud", "storage", "cp", local_path, gcs_path]
+    print(f"[GCS] Uploading {local_path} -> {gcs_path}")
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"[GCS] WARNING: Upload failed: {result.stderr.strip()}")
+    else:
+        print(f"[GCS] OK")
+
+
 def run_diagnostic(args):
     print("=" * 70)
     print("  LATENT PERTURBATION DIAGNOSTIC")
@@ -404,6 +589,7 @@ def run_diagnostic(args):
     # --- Generate perturbations ---
     rng, rng_pert = jax.random.split(rng)
     all_results = []
+    all_repaired_tokens = []  # store for plotting
 
     for i in range(n_base):
         z_base = base_z[i]  # (latent_dim,)
@@ -424,6 +610,7 @@ def run_diagnostic(args):
 
         # Repair tokens and convert to levels
         repaired = jax.vmap(repair_tokens)(jnp.array(decoded_tokens))
+        all_repaired_tokens.append(np.array(repaired))  # (1+n_pert, 52)
         levels = jax.vmap(tokens_to_level)(repaired)
 
         # Compute L2 distances from original
@@ -515,30 +702,47 @@ def run_diagnostic(args):
         print("  -> LOW wall overlap between original and perturbations")
         print("     VAE latent perturbations produce structurally different mazes.")
 
+    # --- Plots ---
+    plot_dir = os.path.dirname(args.output_path) or "."
+    os.makedirs(plot_dir, exist_ok=True)
+    plot_maze_panels(all_results, all_repaired_tokens, plot_dir, n_base, n_pert, eps)
+    plot_reward_scatter(all_results, plot_dir, n_base, eps)
+    plot_jaccard_vs_reward(all_results, plot_dir, eps)
+
     # Save results
-    if args.output_path:
-        os.makedirs(os.path.dirname(args.output_path) or ".", exist_ok=True)
-        with open(args.output_path, "w") as f:
-            json.dump({
-                "config": {
-                    "num_base_levels": n_base,
-                    "num_perturbations": n_pert,
-                    "perturbation_scale": eps,
-                    "seed": args.seed,
-                    "vae_checkpoint": args.vae_checkpoint_path,
-                    "agent_checkpoint": args.agent_checkpoint_dir or args.agent_params_pkl,
-                },
-                "summary": {
-                    "mean_base_reward": float(np.mean(all_base_rewards)),
-                    "mean_pert_reward": float(np.mean(all_pert_rewards)),
-                    "mean_pert_std": float(np.mean(all_pert_stds)),
-                    "mean_solve_rate": float(np.mean(all_solve_rates)),
-                    "mean_wall_jaccard": float(np.mean(all_jaccards)),
-                    "mean_reward_dist_corr": float(np.mean(all_correlations)),
-                },
-                "per_level": all_results,
-            }, f, indent=2)
-        print(f"\n[Save] Results -> {args.output_path}")
+    output_path = args.output_path
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    with open(output_path, "w") as f:
+        json.dump({
+            "config": {
+                "num_base_levels": n_base,
+                "num_perturbations": n_pert,
+                "perturbation_scale": eps,
+                "seed": args.seed,
+                "vae_checkpoint": args.vae_checkpoint_path,
+                "agent_checkpoint": args.agent_checkpoint_dir or args.agent_params_pkl,
+            },
+            "summary": {
+                "mean_base_reward": float(np.mean(all_base_rewards)),
+                "mean_pert_reward": float(np.mean(all_pert_rewards)),
+                "mean_pert_std": float(np.mean(all_pert_stds)),
+                "mean_solve_rate": float(np.mean(all_solve_rates)),
+                "mean_wall_jaccard": float(np.mean(all_jaccards)),
+                "mean_reward_dist_corr": float(np.mean(all_correlations)),
+            },
+            "per_level": all_results,
+        }, f, indent=2)
+    print(f"\n[Save] Results -> {output_path}")
+
+    # --- Upload to GCS ---
+    if args.gcs_output_dir:
+        gcs_dir = args.gcs_output_dir
+        upload_to_gcs(output_path, gcs_dir)
+        for fname in ["perturbation_mazes.png", "reward_scatter.png", "jaccard_vs_reward.png"]:
+            local = os.path.join(plot_dir, fname)
+            if os.path.exists(local):
+                upload_to_gcs(local, gcs_dir)
+        print(f"\n[GCS] All files uploaded to {gcs_dir}")
 
     return all_results
 
@@ -566,6 +770,8 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--output_path", type=str, default="perturbation_diagnostic.json",
                    help="Path to save JSON results")
+    p.add_argument("--gcs_output_dir", type=str, default=None,
+                   help="GCS path to upload results and plots (e.g. gs://ucl-ued-project-bucket/accel/diagnostics/run_name)")
     return p.parse_args()
 
 
