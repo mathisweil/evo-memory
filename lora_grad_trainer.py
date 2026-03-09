@@ -99,6 +99,7 @@ class LoRATrainerConfig:
     dtype: str                      # 'bfloat16'
     sft_mode: bool = False          # True -> LongBenchSFTDataset; False -> LongBenchNTPDataset
     # sft_mode=True uses answer-only loss masking via LongBenchSFTDataset (Phase 9+)
+    train_frac: float = 0.8         # fraction of each task's examples used for training (80/20 split)
 
 
 # ---------------------------------------------------------------------------
@@ -171,9 +172,21 @@ class LoRAGradTrainer:
         self._last_retention_dict = {}
 
         # --- Build dataset and DataLoader ---
-        # LLaMA tokenizer has no pad token — use EOS so collate_fn gets a valid int
+        # Llama 3 instruct has a dedicated finetune pad token (<|finetune_right_pad_id|> = 128004).
+        # Use it if available, otherwise fall back to EOS. Never use EOS as pad for SFT because
+        # pad positions share the same token id as the sequence terminator, which can mislead
+        # the model even though pads are masked with -100 in labels.
+        tokenizer.padding_side = 'right'  # right-pad for SFT batch collation
         if tokenizer.pad_token_id is None:
-            tokenizer.pad_token_id = tokenizer.eos_token_id
+            finetune_pad_id = tokenizer.convert_tokens_to_ids('<|finetune_right_pad_id|>')
+            if finetune_pad_id != tokenizer.unk_token_id and finetune_pad_id is not None:
+                tokenizer.pad_token_id = finetune_pad_id
+                tokenizer.pad_token = '<|finetune_right_pad_id|>'
+                print("LoRAGradTrainer: pad_token_id set to <|finetune_right_pad_id|> (128004)")
+            else:
+                tokenizer.pad_token_id = tokenizer.eos_token_id
+                tokenizer.pad_token = tokenizer.eos_token
+                print("LoRAGradTrainer: pad_token_id set to EOS (finetune_right_pad_id not found)")
 
         if cfg.sft_mode:
             from lora_sft_dataset import LongBenchSFTDataset, sft_pad_collate_fn
@@ -183,6 +196,7 @@ class LoRAGradTrainer:
                 max_seq_len=cfg.max_seq_len,
                 cache_dir=cfg.cache_dir,
                 seed=cfg.seed,
+                train_frac=cfg.train_frac,
             )
             collate_fn = partial(
                 sft_pad_collate_fn,

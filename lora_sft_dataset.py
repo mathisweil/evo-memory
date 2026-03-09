@@ -1,8 +1,9 @@
 """
-lora_sft_dataset.py — SFT training dataset for LoRA finetuning on QASPER.
+lora_sft_dataset.py — SFT training dataset for LoRA finetuning on LongBench.
 
-SFT training dataset for LoRA finetuning — formats QASPER items as
-context+question->answer with answer-only loss masking.
+Multi-benchmark SFT dataset — loads per-task prompt templates from
+LongBench/config/dataset2prompt.json and formats them via apply_chat_template
+for instruct models.  Supports any LongBench task that has context/input/answers.
 
 Provides:
   - LongBenchSFTDataset: yields dicts with 'input_ids' (full prompt+answer tensor) and
@@ -10,46 +11,19 @@ Provides:
     sft_pad_collate_fn at batch construction time.
   - sft_pad_collate_fn: right-pads a batch, masks context+question positions with -100 in
     labels, asserts at least one non-masked label token exists.
-
-Usage example:
-    from functools import partial
-    dataset = LongBenchSFTDataset(
-        task_names=['qasper'],
-        tokenizer=tokenizer,
-        max_seq_len=3500,
-        cache_dir='/cs/student/project_msc/2025/csml/gmaralla/.hf_cache',
-    )
-    collate_fn = partial(sft_pad_collate_fn, pad_token_id=tokenizer.pad_token_id, max_seq_len=3500)
-    loader = torch.utils.data.DataLoader(
-        dataset, batch_size=1, shuffle=True,
-        collate_fn=collate_fn, num_workers=0, drop_last=True,
-    )
-    for batch in loader:
-        input_ids   = batch['input_ids']    # shape [batch, seq_len]
-        labels      = batch['labels']       # shape [batch, seq_len], -100 for context+pad
-        label_starts = batch['label_starts'] # shape [batch], first answer token index per sample
 """
 
+import json
+import os
 import random
 import torch
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 from datasets import load_dataset
 
-
-# ---------------------------------------------------------------------------
-# Prompt template (instruct chat format)
-# ---------------------------------------------------------------------------
-
-# User turn content only — no "Answer:" suffix.
-# apply_chat_template adds <|start_header_id|>assistant<|end_header_id|>\n\n
-# as the generation prompt, so the answer starts immediately after.
-QASPER_USER_TEMPLATE = (
-    "You are given a scientific article and a question. Answer the question as concisely "
-    "as you can, using a single phrase or sentence if possible. If the question cannot be "
-    "answered based on the information in the article, write \"unanswerable\". If the "
-    "question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not "
-    "provide any explanation.\n\nArticle: {context}\n\nQuestion: {input}"
+# Path to LongBench prompt templates (same file task_sampler.py uses)
+_LONGBENCH_PROMPT_PATH = os.path.join(
+    os.path.dirname(__file__), 'LongBench', 'config', 'dataset2prompt.json'
 )
 
 
@@ -58,12 +32,16 @@ QASPER_USER_TEMPLATE = (
 # ---------------------------------------------------------------------------
 
 class LongBenchSFTDataset(Dataset):
-    """Supervised fine-tuning dataset built from the QASPER split of LongBench.
+    """Supervised fine-tuning dataset built from LongBench task splits.
 
-    Each item formats the article context and question into the QASPER prompt
-    template and appends the first gold answer.  The 'label_start' index marks
-    the boundary between the masked prompt and the supervised answer tokens;
-    answer-only loss masking is applied by sft_pad_collate_fn.
+    Loads per-task prompt templates from LongBench/config/dataset2prompt.json
+    (same templates task_sampler.py uses for evaluation).  Each item's prompt
+    is wrapped in apply_chat_template for the instruct model, and the first
+    gold answer becomes the assistant response.
+
+    The 'label_start' index marks the boundary between the masked prompt and
+    the supervised answer tokens; answer-only loss masking is applied by
+    sft_pad_collate_fn.
 
     Left-truncation strategy: when prompt+answer exceeds max_seq_len, the
     combined token sequence is left-truncated (oldest context tokens dropped)
@@ -71,13 +49,16 @@ class LongBenchSFTDataset(Dataset):
     the answer tokens are entirely lost after truncation are skipped.
 
     Args:
-        task_names  : List of LongBench task names. Only ['qasper'] is supported
-                      (Phase 9 QASPER-only scope). Raises ValueError for other tasks.
-        tokenizer   : HuggingFace tokenizer with .encode() and .pad_token_id.
+        task_names  : List of LongBench task names (e.g. ['qasper', 'narrativeqa',
+                      'passage_retrieval_en']).  Must exist in dataset2prompt.json.
+        tokenizer   : HuggingFace tokenizer with apply_chat_template support.
         max_seq_len : Maximum token sequence length after left-truncation.
                       Default 3500 leaves headroom within the 4096-token RoPE window.
         cache_dir   : HF datasets cache directory (optional, defaults to HF default).
         seed        : Random seed for one-time shuffle of self.samples.
+        train_frac  : Fraction of each task's examples to use for training (default 0.8).
+                      The first train_frac * N examples are used; the last (1-train_frac) * N
+                      are held out for evaluation.  Set to 1.0 to use all examples.
     """
 
     def __init__(
@@ -87,23 +68,28 @@ class LongBenchSFTDataset(Dataset):
         max_seq_len: int = 3500,
         cache_dir: str = None,
         seed: int = 1337,
+        train_frac: float = 0.8,
     ):
         super().__init__()
         self.max_seq_len = max_seq_len
+        self.train_frac = train_frac
 
-        # Phase 9 scope guard: only QASPER is supported for SFT.
+        # Load per-task prompt templates (same file task_sampler.py uses).
+        with open(_LONGBENCH_PROMPT_PATH) as f:
+            all_templates = json.load(f)
+
         for task in task_names:
-            if task != 'qasper':
+            if task not in all_templates:
                 raise ValueError(
-                    f"LongBenchSFTDataset only supports task_names=['qasper'] "
-                    f"(Phase 9 QASPER-only scope). Got unsupported task: '{task}'. "
-                    f"For other tasks use LongBenchNTPDataset."
+                    f"Task '{task}' not found in {_LONGBENCH_PROMPT_PATH}. "
+                    f"Available: {list(all_templates.keys())}"
                 )
 
         samples = []
         n_skipped = 0
 
         for task_name in task_names:
+            task_template = all_templates[task_name]
             dataset = load_dataset(
                 'THUDM/LongBench',
                 task_name,
@@ -111,22 +97,22 @@ class LongBenchSFTDataset(Dataset):
                 trust_remote_code=True,
                 cache_dir=cache_dir,
             )
-            for item in dataset:
+            items = list(dataset)
+            if train_frac < 1.0:
+                n_train = int(len(items) * train_frac)
+                items = items[:n_train]
+                print(f"  {task_name}: using first {n_train}/{len(dataset)} examples (train_frac={train_frac})")
+            for item in items:
                 # Use first gold answer; fall back to 'unanswerable' if empty.
                 answer = item['answers'][0] if item['answers'] else 'unanswerable'
 
-                # Build messages for instruct chat template.
-                user_content = QASPER_USER_TEMPLATE.format(
-                    context=item['context'],
-                    input=item['input'],
-                )
+                # Format prompt using LongBench template, then wrap in chat format.
+                user_content = task_template.format(**item)
                 messages_prompt = [{"role": "user", "content": user_content}]
                 messages_full = messages_prompt + [{"role": "assistant", "content": answer}]
 
                 # Tokenise via apply_chat_template so BOS/EOS/header tokens are set
                 # correctly for the instruct model's built-in chat format.
-                # prompt_ids ends with the assistant generation header (\n\n), so
-                # label_start = len(prompt_ids) correctly marks the first answer token.
                 prompt_ids = tokenizer.apply_chat_template(
                     messages_prompt,
                     add_generation_prompt=True,

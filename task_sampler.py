@@ -405,6 +405,7 @@ class TaskSampler():
 
                     if self.store_gen_outputs:
                         prompt_dict = dict(
+                            input=json_obj.get('input', ''),
                             pred=pred,
                             answers=answers,
                             all_classes=all_classes,

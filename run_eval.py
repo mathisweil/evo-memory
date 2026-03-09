@@ -42,10 +42,19 @@ def parse_args():
     p.add_argument('--no-wandb', action='store_true', help='Disable wandb logging')
     p.add_argument('--artifact-dir', default=None,
                    help='Results artifact dir (default: results/{method}/{seed}/)')
+    p.add_argument('--run-config', default=None,
+                   help='Override Hydra run config name (e.g. recency_baseline_llama32_1b_instruct)')
+    p.add_argument('--cache-size', type=int, default=None,
+                   help='Override cache_size (e.g. 1024, 2048, 4096)')
+    p.add_argument('--held-out-eval', action='store_true',
+                   help='Evaluate only on held-out last 20%% of each task (matches train_frac=0.8 SFT split)')
+    p.add_argument('--train-frac', type=float, default=0.8,
+                   help='Train fraction used during SFT — held-out starts at this index (default 0.8)')
     return p.parse_args()
 
 
-def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir: str):
+def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir: str,
+                         run_config_override: str = None, cache_size_override: int = None):
     """
     Load model from checkpoint. Handles both lora_grad and namm_es checkpoint types.
 
@@ -93,16 +102,14 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
             f"LoRATrainerConfig.init_from correctly."
         )
 
-    # 3. Select Hydra run config based on method
-    # Instruct methods use the instruct model config; NAMM methods (m2/m3/m4) still
-    # use base-model configs until NAMM is retrained on instruct.
-    _INSTRUCT_METHODS = {'base', 'm1', 'm1_sft'}
-    if method in ('m4_frozen', 'm2', 'm3'):
+    # 3. Select Hydra run config based on method (or use --run-config override)
+    if run_config_override:
+        run_cfg_name = run_config_override
+    elif method in ('m4_frozen', 'm2', 'm3'):
         run_cfg_name = 'namm_bam_eval_llama32_1b'
-    elif method in _INSTRUCT_METHODS:
+    elif method in ('base', 'm1', 'm1_sft'):
         run_cfg_name = 'full_cache_baseline_llama32_1b_instruct'
     else:
-        # m4_iterative and any future base-model methods
         run_cfg_name = 'full_cache_baseline_llama32_1b'
 
     # 4. Build Hydra overrides
@@ -113,6 +120,8 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
     ]
     if method in ('m4_frozen', 'm2', 'm3') and namm_ckpt_path is not None:
         hydra_overrides.append(f'init_from={namm_ckpt_path}')
+    if cache_size_override is not None:
+        hydra_overrides.append(f'cache_size={cache_size_override}')
 
     # 5. Initialize Hydra config (handle singleton — can only call initialize once/process)
     GlobalHydra.instance().clear()
@@ -162,27 +171,50 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
     return model, tokenizer, evaluator, task_sampler
 
 
-def run_eval(model, tokenizer, evaluator, task_sampler, artifact_dir: str):
+def run_eval(model, tokenizer, evaluator, task_sampler, artifact_dir: str,
+             held_out_eval: bool = False, train_frac: float = 0.8):
     """
     Run LongBench evaluation on all EVAL_TASKS using shared MemoryHFEvaluator.
 
     No per-condition branching here — same evaluator, same tasks, same metrics.
     task_sampler already knows which tasks to evaluate (lb_3subset_eval config).
 
+    Args:
+        held_out_eval : If True, evaluate only on the last (1-train_frac) fraction of each
+                        task's examples — i.e. the examples NOT seen during SFT training.
+        train_frac    : Must match the train_frac used in LongBenchSFTDataset (default 0.8).
+
     Returns:
         results: dict mapping task name (no 'lb/' prefix) -> float score
     """
+    import numpy as np
+
     # Set model to eval mode before running inference
     model.eval()
 
-    # Run full evaluation over all tasks in the task_sampler's test split.
-    # task_sampler.evaluate() calls evaluate_lb_tasks_for_pop internally,
-    # which calls evaluator.evaluate_lb() for each task.
-    score_dicts = task_sampler.evaluate(
-        lm=evaluator,
-        train=False,
-        evolved_model=False,
-    )
+    if held_out_eval:
+        # Pre-populate task_sampler with held-out indices (last 1-train_frac of each task)
+        # then call evaluate with resample_requests=False so our indices are used as-is.
+        held_out_idxs = {}
+        for task_n, n_total in task_sampler.num_prompts_per_lb_task.items():
+            start = int(n_total * train_frac)
+            held_out_idxs[task_n] = np.arange(start, n_total)
+            print(f"  held-out eval: {task_n} indices {start}–{n_total-1} ({n_total - start} examples)")
+        task_sampler.latest_sampled_idxs_per_lb_task = held_out_idxs
+        task_sampler.latest_lb_tasks_names = list(held_out_idxs.keys())
+        score_dicts = task_sampler.evaluate(
+            lm=evaluator,
+            train=False,
+            evolved_model=False,
+            resample_requests=False,
+        )
+    else:
+        # Run full evaluation over all tasks in the task_sampler's test split.
+        score_dicts = task_sampler.evaluate(
+            lm=evaluator,
+            train=False,
+            evolved_model=False,
+        )
 
     # score_dicts is a list of dicts (one per pop_rep); we use index 0 (pop_size=1 for eval).
     # Keys are 'lb/{task}' e.g. 'lb/qasper'.
@@ -231,11 +263,23 @@ def main():
     print(f"Wandb group: {EVAL_WANDB_GROUP}")
 
     if not args.no_wandb:
+        # Build descriptive run name including config, cache size, and eval split
+        run_name_parts = [f'eval-{args.method}']
+        if args.run_config:
+            run_name_parts.append(args.run_config.replace('_llama32_1b_instruct', '').replace('_llama32_1b', ''))
+        if args.cache_size:
+            run_name_parts.append(f'cs{args.cache_size}')
+        if args.held_out_eval:
+            run_name_parts.append('heldout')
+        run_name_parts.append(f'seed{args.seed}')
+        eval_run_name = '-'.join(run_name_parts)
+
         wandb.init(
             project=EVAL_WANDB_PROJECT,
             group=EVAL_WANDB_GROUP,
-            name=f'eval-{args.method}-seed{args.seed}',
-            config={'method': args.method, 'seed': args.seed, 'ckpt': args.ckpt},
+            name=eval_run_name,
+            config={'method': args.method, 'seed': args.seed, 'ckpt': args.ckpt,
+                    'run_config': args.run_config, 'cache_size': args.cache_size},
         )
 
     # Load model, tokenizer, evaluator, and task_sampler from checkpoint
@@ -244,10 +288,13 @@ def main():
         device=args.device,
         method=args.method,
         artifact_dir=artifact_dir,
+        run_config_override=args.run_config,
+        cache_size_override=args.cache_size,
     )
 
     # Run evaluation on all EVAL_TASKS
-    results = run_eval(model, tokenizer, evaluator, task_sampler, artifact_dir)
+    results = run_eval(model, tokenizer, evaluator, task_sampler, artifact_dir,
+                       held_out_eval=args.held_out_eval, train_frac=args.train_frac)
 
     # Log to wandb and write score files
     log_results(results, args.method, args.seed, artifact_dir)

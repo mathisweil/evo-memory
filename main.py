@@ -180,6 +180,7 @@ def main(cfg: DictConfig):
             init_from=cfg.get('init_from', None),
             dtype=cfg.get('dtype', 'bfloat16'),
             sft_mode=cfg.get('lora_sft_mode', False),
+            train_frac=cfg.get('lora_train_frac', 0.8),
         )
 
         # Cast backbone to bfloat16 and move to device before LoRA injection.

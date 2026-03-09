@@ -39,6 +39,10 @@ lora_task_names:
 wandb_group_name: Llama-3.2-1B/grad-lora-study
 wandb_project: memory_evolution_hf
 
-# Logging intervals
+# Train/held-out split — first train_frac of each task used for training,
+# last (1-train_frac) held out for evaluation (avoids leakage on LongBench)
+lora_train_frac: 0.8
+
+# Logging intervals — eval_interval=40 saves after ~1 epoch (37 steps/epoch for 3-task SFT)
 log_interval: 10
-eval_interval: 100
+eval_interval: 40

@@ -1,7 +1,7 @@
 # @package _global_
 #
-# m1-SFT condition: SFT LoRA finetuning on QASPER (answer-only loss), no NAMM, full KV cache.
-# Replaces NTP objective with supervised QA finetuning: context+question -> answer.
+# m1-SFT condition: SFT LoRA finetuning on all 3 LongBench benchmarks (answer-only loss),
+# no NAMM, full KV cache. Uses instruct model with apply_chat_template.
 # Loss is computed on answer tokens only (context+question masked with -100 in collate).
 
 defaults:
@@ -22,10 +22,13 @@ init_from: ~
 # Full context — gradient checkpointing makes 3500 tokens fit in 16GB
 lora_max_seq_len: 3500
 
-# SFT token budget: 5 epochs for ~30-min training (calibrated from NTP m1: 3 epochs ~ 15 min)
+# SFT on all 3 benchmarks — more data, rank 1 keeps adapter small
+lora_rank: 1
 lora_num_epochs: 5
 lora_task_names:
   - qasper
+  - narrativeqa
+  - passage_retrieval_en
 lora_gradient_accumulation_steps: 16
 
 # Slightly longer warmup for short SFT schedule
