@@ -37,7 +37,7 @@ class MemoryHFEvaluator():
         tokenizer,
         evaluation_ctx_steps=1,
         add_bos_token=False,  # add beginning of sentence token
-        eval_max_batch_size=128,  # 8192, # 32 x 256
+        eval_max_batch_size=64,
 
         memory_batch_size=False,  # number of memories to evaluate
         batch_size=None,
@@ -119,9 +119,7 @@ class MemoryHFEvaluator():
                                  "the input model, please pass in manually")
 
         self.batch_schedule = 1
-        self.ctx_schedule = 1
         self.batch_sizes = {}
-        self.ctx_sizes = {}
         self.max_gen_toks = max_gen_tokens
         self.full_context_gen = full_context_gen
 
@@ -130,10 +128,8 @@ class MemoryHFEvaluator():
             self.batch_size_per_gpu = batch_size[0]
             self.batch_schedule = float(batch_size[1]) if len(
                 batch_size) > 1 else 1
-            self.ctx_schedule = 1
         else:
             self.batch_size_per_gpu = int(batch_size)
-            self.ctx_schedule = 1
 
         self.per_timestep_loglikelihood = per_timestep_loglikelihood
         self.force_clear_cache = force_clear_cache
@@ -173,66 +169,6 @@ class MemoryHFEvaluator():
             else:
                 self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
-    def _detect_ctx_size(self, batch_size, requests=None, pos: int = 0):
-        max_memory_length = self.max_memory_length
-        if requests:
-            _, context_enc, continuation_enc = requests[pos]
-            max_requests_len = len(
-                (context_enc + continuation_enc)[-(
-                    self.max_conditioning_length + 1):][:-1]
-            )
-            max_memory_length = min(max_memory_length, max_requests_len)
-        empty_gpu_cache()
-
-        @find_executable_batch_size(starting_batch_size=max_memory_length)
-        def forward_ctx(ctx_size):
-            call_kwargs = {}
-            test_batch = torch.ones(
-                (batch_size, ctx_size), device=self.device
-            ).long()
-            past_key_values = None
-            if self.is_memory_model:
-                param_idxs = np.zeros([batch_size], dtype=int)
-                self.memory_policy.set_params_batch_idxs(param_idxs=param_idxs)
-            num_iters = max_memory_length // ctx_size
-            for i in range(num_iters):
-                logits, past_key_values = self._model_call(
-                    test_batch, past_key_values=past_key_values, use_cache=True,
-                    **call_kwargs)
-                out = F.log_softmax(logits, dim=-1)
-            return ctx_size
-
-        try:
-            ctx_size = forward_ctx()
-        except RuntimeError as e:
-            if "No executable ctx size found" in str(e):
-                ctx_size = 1
-            else:
-                raise
-
-        empty_gpu_cache()
-
-        if self.world_size > 1:
-            # if multi-GPU, always take minimum over all selected batch sizes
-            max_rnk_bs = torch.tensor([batch_size], device=self.device)
-            gathered = (
-                self.accelerator.gather(
-                    max_rnk_bs).cpu().detach().numpy().tolist()
-            )
-            batch_size = min(gathered)
-            # same for ctx size
-            max_rnk_ctx = torch.tensor([ctx_size], device=self.device)
-            gathered = (
-                self.accelerator.gather(
-                    max_rnk_ctx).cpu().detach().numpy().tolist()
-            )
-            ctx_size = min(gathered)
-            clear_torch_cache()
-            return batch_size, ctx_size
-
-        clear_torch_cache()
-        return ctx_size
-
     def _detect_batch_size(self, requests=None, pos: int = 0):
         max_memory_length = self.max_memory_length
         if requests:
@@ -245,22 +181,48 @@ class MemoryHFEvaluator():
 
         empty_gpu_cache()
 
-        # if OOM, then halves batch_size and tries again
+        # if OOM, then halves batch_size and tries again.
+        # Simulate realistic NAMM inference: process small chunks (matching
+        # max_new_tokens) with KV cache buildup, bypassing NAMM's eviction
+        # logic. Uses the inner transformer + lm_head directly to avoid both
+        # the NAMM wrapper and fragile unbound parent-class method calls.
+        # The KV cache grows to max_memory_length (= cache_size), which is
+        # the real memory bottleneck.
+        inner_model = self.model.model if self.is_memory_model else self.model
+        lm_head = self.model.lm_head
+        chunk_size = self.max_gen_toks or 64
+        if chunk_size > max_memory_length:
+            import warnings
+            warnings.warn(
+                f"max_gen_toks ({chunk_size}) > max_memory_length "
+                f"({max_memory_length}); detection may overestimate memory"
+            )
+        num_chunks = max(max_memory_length // chunk_size, 1)
+
         @find_executable_batch_size(starting_batch_size=self.max_batch_size)
         def forward_batch(batch_size):
-            call_kwargs = {}
             test_batch = torch.ones(
-                (batch_size, max_memory_length//5), device=self.device
+                (batch_size, chunk_size), device=self.device
             ).long()
             past_key_values = None
-            if self.is_memory_model:
-                param_idxs = np.zeros([batch_size], dtype=int)
-                self.memory_policy.set_params_batch_idxs(param_idxs=param_idxs)
-            for i in range(5):  # two loops should be enough
-                logits, past_key_values = self._model_call(
-                    test_batch, past_key_values=past_key_values, use_cache=True,
-                    **call_kwargs)
-                out = F.log_softmax(logits, dim=-1)
+            with torch.no_grad():
+                for _ in range(num_chunks):
+                    out = inner_model(
+                        test_batch, use_cache=True,
+                        past_key_values=past_key_values)
+                    past_key_values = out.past_key_values
+                    # Cap KV cache to max_memory_length to simulate eviction.
+                    # Without this, the cache grows unboundedly (since we
+                    # bypass NAMM), making detection overly conservative.
+                    cache_len = past_key_values[0][0].shape[-2]
+                    if cache_len > max_memory_length:
+                        past_key_values = tuple(
+                            (k[:, :, -max_memory_length:, :],
+                             v[:, :, -max_memory_length:, :])
+                            for k, v in past_key_values
+                        )
+                logits = lm_head(out.last_hidden_state)
+            F.log_softmax(logits, dim=-1)
             return batch_size
 
         try:
@@ -271,55 +233,9 @@ class MemoryHFEvaluator():
             else:
                 raise
 
-        # Find max first ctx length
-        @find_executable_batch_size(starting_batch_size=max_memory_length)
-        def forward_ctx(ctx_size):
-            call_kwargs = {}
-            test_batch = torch.ones(
-                (batch_size, ctx_size), device=self.device
-            ).long()
-            past_key_values = None
-            if self.is_memory_model:
-                param_idxs = np.zeros([batch_size], dtype=int)
-                self.memory_policy.set_params_batch_idxs(param_idxs=param_idxs)
-            num_iters = max_memory_length // ctx_size
-            for i in range(num_iters):
-                logits, past_key_values = self._model_call(
-                    test_batch, past_key_values=past_key_values, use_cache=True,
-                    **call_kwargs)
-                out = F.log_softmax(logits, dim=-1)  # noqa: F841
-            return ctx_size
-
-        try:
-            ctx_size = forward_ctx()
-        except RuntimeError as e:
-            if "No executable ctx size found" in str(e):
-                ctx_size = 1
-            else:
-                raise
-
         empty_gpu_cache()
-
-        if self.world_size > 1:
-            # if multi-GPU, always take minimum over all selected batch sizes
-            max_rnk_bs = torch.tensor([batch_size], device=self.device)
-            gathered = (
-                self.accelerator.gather(max_rnk_bs).cpu().detach().numpy(
-                ).tolist()
-            )
-            batch_size = min(gathered)
-            # same for ctx size
-            max_rnk_ctx = torch.tensor([ctx_size], device=self.device)
-            gathered = (
-                self.accelerator.gather(max_rnk_ctx).cpu().detach().numpy(
-                ).tolist()
-            )
-            ctx_size = min(gathered)
-            clear_torch_cache()
-            return batch_size, ctx_size
-
         clear_torch_cache()
-        return batch_size, ctx_size
+        return batch_size
 
     def tok_encode(
         self, string: str, left_truncate_len=None, add_special_tokens=None
@@ -581,21 +497,21 @@ class MemoryHFEvaluator():
     def _batch_scheduler(self, pos, n_reordered_requests):
         sched = pos // int(len(n_reordered_requests) / self.batch_schedule)
         if sched in self.batch_sizes:
-            return self.batch_sizes[sched], self.ctx_sizes[sched]
+            return self.batch_sizes[sched], None
         if (len(self.batch_sizes) > 1) and (
             self.batch_sizes[sched - 1] == self.max_batch_size
         ):
             # if previous batch size is already maximal, skip recomputation
             self.batch_sizes[sched] = self.max_batch_size
-            return self.batch_sizes[sched], self.ctx_sizes[sched]
+            return self.batch_sizes[sched], None
         print(
             f"Passed argument batch_size = auto:{self.batch_schedule}. " +
             "Detecting largest batch size"
         )
-        self.batch_sizes[sched], self.ctx_sizes[sched] = (
-            self._detect_batch_size(n_reordered_requests, pos))
+        self.batch_sizes[sched] = self._detect_batch_size(
+            n_reordered_requests, pos)
         print(f"Determined largest batch size: {self.batch_sizes[sched]}")
-        return self.batch_sizes[sched], self.ctx_sizes[sched]
+        return self.batch_sizes[sched], None
 
     def evaluate_lb(
         self,
@@ -656,11 +572,10 @@ class MemoryHFEvaluator():
         adaptive_batch_size = None
 
         if self.batch_size == "auto":
-            # using rolling window with maximum context
-            print('Passed argument batch_size = auto. Detecting largest batch' +
+            print('Passed argument batch_size = auto. Detecting largest batch '
                   'size')
-            batch_size, ctx_size = self._detect_batch_size()
-            print(f"Determined Largest batch size: {batch_size}")
+            batch_size = self._detect_batch_size()
+            print(f"Determined largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
 
         # for each different set of kwargs, we execute all requests, by batch.
