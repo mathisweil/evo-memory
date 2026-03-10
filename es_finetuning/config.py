@@ -13,3 +13,4 @@ class ESConfig:
     initial_seed: int = 33  # Initial random seed for numpy
     mini_batch_size: int = 16  # Samples per population eval (passed to evaluate_fn)
     log_dir: str = "es_runs"  # Directory for results, checkpoints, examples
+    checkpoint_every: int = 0  # Periodic checkpoint interval (0 = final only)
