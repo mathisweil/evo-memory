@@ -6,6 +6,22 @@ Port ES fine-tuning (+ NAMM) from 4x RTX 6000 (UCL cluster) to Google Cloud TPU 
 
 ---
 
+## Context
+
+Before starting, read these for background:
+- `docs/es-ft-guide.md` — how ES fine-tuning works, parameters, workflow
+- `docs/es-ft-namm-guide.md` — how ES + NAMM interact
+- `MEMORY.md` (in `.claude/` project memory) — project overview, repo structure, key decisions
+
+**Key facts for the port:**
+- **Model**: `meta-llama/Llama-3.2-1B-Instruct` (HuggingFace ID)
+- **Hydra config**: `namm_bam_i1_llama32_1b` (in `cfgs/`), sets cache_size, batch_size, etc.
+- **NAMM checkpoint**: `exp_local/pretrained/namm_pretrained_romain_v2.pt` (~17MB, must be copied to TPU VM)
+- **Dataset**: Qasper, auto-downloaded via HuggingFace `datasets` on first run
+- **Entry point flow** (`scripts/run_es.py`): load model → load NAMM checkpoint (optional) → get base LLM param names (147 tensors) → create ESTrainer → `trainer.train()` loops over: generate seeds → resample batch → for each population member: perturb weights → evaluate (forward pass + F1 scoring) → restore weights → normalize rewards → apply ES update
+
+---
+
 ## Phase 0: TPU VM Setup & Environment
 
 **Create `setup/setup_tpu.sh`** — a new setup script specifically for the TPU VM environment.
@@ -35,6 +51,22 @@ gcloud compute tpus tpu-vm create es-finetune \
     --zone=us-central2-b \
     --accelerator-type=v4-32 \
     --version=tpu-vm-v4-pt-2.3  # or latest pytorch image
+```
+
+**Transfer data to TPU VM:**
+```bash
+# Clone repo
+gcloud compute tpus tpu-vm ssh es-finetune --zone=us-central2-b \
+    --command="git clone <repo-url> evo-memory"
+
+# Copy NAMM checkpoint (small, ~17MB)
+gcloud compute tpus tpu-vm scp \
+    exp_local/pretrained/namm_pretrained_romain_v2.pt \
+    es-finetune:~/evo-memory/exp_local/pretrained/ \
+    --zone=us-central2-b
+
+# Model weights (~2.5GB) will auto-download from HuggingFace on first run
+# Dataset (Qasper) also auto-downloads via datasets library
 ```
 
 ---
@@ -199,6 +231,17 @@ Run the same config (same seed) on GPU and TPU. Compare:
 - Seeds generated per iteration (should be identical — NumPy, not device-dependent)
 - Rewards per population member (may differ slightly due to bf16 vs fp16 numerics)
 - Final checkpoint weights (should be close but not bit-identical)
+
+**GPU reference results (experiment_2, 50 iterations):**
+
+| Run | Baseline F1 | Final F1 |
+|---|---|---|
+| es_only | 14.08 | 30.78 |
+| es_namm c1024 | 11.65 | 22.53 |
+| es_namm c3072 | 13.12 | 27.46 |
+| es_namm c5120 | 14.43 | 31.85 |
+
+TPU results should be in a similar range (not identical due to numerical differences).
 
 ### 4c. NAMM on TPU
 
