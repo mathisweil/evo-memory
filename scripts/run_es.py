@@ -252,7 +252,7 @@ def parse_args():
     parser.add_argument("--sigma", type=float, default=0.001)
     parser.add_argument("--alpha", type=float, default=0.0005)
     parser.add_argument("--population_size", type=int, default=8)
-    parser.add_argument("--num_iterations", type=int, default=150)
+    parser.add_argument("--num_iterations", type=int, default=50)
     parser.add_argument("--noise_mode", type=str, default="correlated",
                         choices=["correlated", "iid"])
     parser.add_argument("--initial_seed", type=int, default=33)
