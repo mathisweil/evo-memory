@@ -26,8 +26,8 @@ wandb_project: memory_evolution_hf
 wandb_run_name: default_configs_test
 wandb_group_name: tests
 
-# system
-device: 'cuda'
+# system — 'auto' uses TPU if available, else CUDA, else CPU
+device: 'auto'
 seed: 1337
 deterministic_behavior: false
 

@@ -43,6 +43,7 @@ for _p in (REPO_ROOT, SCRIPT_DIR):
 from hydra import compose, initialize
 from run_namm import make_eval_model, make_task_sampler
 from es_finetuning import ESConfig, ESTrainer
+from es_finetuning.device import get_device
 from utils.longbench import get_all_scores
 
 EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
@@ -306,8 +307,11 @@ def main():
 
     os.makedirs(run_dir, exist_ok=True)
 
-    torch.backends.cuda.matmul.allow_tf32 = True
-    torch.backends.cudnn.allow_tf32 = True
+    if torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+
+    device = get_device()
 
     print("=" * 60)
     print("ES Fine-Tuning: Llama 3.2 1B + NAMM on Qasper")
@@ -339,7 +343,7 @@ def main():
         (memory_policy, memory_model, memory_evaluator,
          evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
 
-    memory_model.cuda()
+    memory_model.to(device)
 
     # 2. Load NAMM checkpoint
     if args.namm_checkpoint:
@@ -349,12 +353,12 @@ def main():
         evo_state = ckpt['evolution_state']
 
         best_member = evo_state['best_member']
-        params = best_member.unsqueeze(0).to('cuda')
+        params = best_member.unsqueeze(0).to(device)
         memory_model.set_memory_params(params)
 
         buffers_prefix = 'stored_buffers_to_save.'
         buffers_dict = {
-            k[len(buffers_prefix):]: v.to('cuda')
+            k[len(buffers_prefix):]: v.to(device)
             for k, v in evo_state.items()
             if k.startswith(buffers_prefix)
         }

@@ -8,11 +8,25 @@ Ported from:
 
 import torch
 
+from .device import sync_device, empty_cache
+
 
 def _get_param_dict(model, param_names):
     """Build a dict of {name: param} for the specified param names."""
     all_params = dict(model.named_parameters())
     return {name: all_params[name] for name in param_names}
+
+
+def _make_noise(shape, dtype, device, seed):
+    """Generate deterministic noise on CPU, then move to device.
+
+    torch.Generator does not support XLA devices, so we always generate
+    on CPU and transfer.  The overhead is negligible vs. inference.
+    """
+    gen = torch.Generator(device="cpu")
+    gen.manual_seed(seed)
+    noise = torch.randn(shape, dtype=dtype, device="cpu", generator=gen)
+    return noise.to(device)
 
 
 def perturb_weights(model, seed, sigma, param_names, mode="correlated"):
@@ -28,16 +42,14 @@ def perturb_weights(model, seed, sigma, param_names, mode="correlated"):
     """
     params = _get_param_dict(model, param_names)
     for i, (name, p) in enumerate(params.items()):
-        gen = torch.Generator(device=p.device)
         effective_seed = int(seed) if mode == "correlated" else int(seed + i)
-        gen.manual_seed(effective_seed)
-        noise = torch.randn(p.shape, dtype=p.dtype, device=p.device, generator=gen)
+        noise = _make_noise(p.shape, p.dtype, p.device, effective_seed)
         p.data.add_(sigma * noise)
         del noise
 
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
-        torch.cuda.empty_cache()
+    device = next(iter(params.values())).device
+    sync_device(device)
+    empty_cache(device)
 
 
 def restore_weights(model, seed, sigma, param_names, mode="correlated"):
@@ -55,16 +67,14 @@ def restore_weights(model, seed, sigma, param_names, mode="correlated"):
     """
     params = _get_param_dict(model, param_names)
     for i, (name, p) in enumerate(params.items()):
-        gen = torch.Generator(device=p.device)
         effective_seed = int(seed) if mode == "correlated" else int(seed + i)
-        gen.manual_seed(effective_seed)
-        noise = torch.randn(p.shape, dtype=p.dtype, device=p.device, generator=gen)
+        noise = _make_noise(p.shape, p.dtype, p.device, effective_seed)
         p.data.add_(-sigma * noise)
         del noise
 
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
-        torch.cuda.empty_cache()
+    device = next(iter(params.values())).device
+    sync_device(device)
+    empty_cache(device)
 
 
 def apply_es_update(model, seeds, normalized_rewards, sigma, alpha,
@@ -87,16 +97,14 @@ def apply_es_update(model, seeds, normalized_rewards, sigma, alpha,
     """
     params = _get_param_dict(model, param_names)
     for i, (name, p) in enumerate(params.items()):
-        gen = torch.Generator(device=p.device)
         update = torch.zeros_like(p)
 
         for seed_idx in range(population_size):
             r_norm = normalized_rewards[seed_idx]
             seed = seeds[seed_idx]
             effective_seed = int(seed) if mode == "correlated" else int(seed + i)
-            gen.manual_seed(effective_seed)
 
-            noise = torch.randn(p.shape, dtype=p.dtype, device=p.device, generator=gen)
+            noise = _make_noise(p.shape, p.dtype, p.device, effective_seed)
             noise.mul_(float(r_norm))
             update.add_(noise)
             del noise
@@ -105,6 +113,6 @@ def apply_es_update(model, seeds, normalized_rewards, sigma, alpha,
         p.data.add_(alpha * update)
         del update
 
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
-        torch.cuda.empty_cache()
+    device = next(iter(params.values())).device
+    sync_device(device)
+    empty_cache(device)

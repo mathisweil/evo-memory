@@ -69,7 +69,10 @@ class MemoryHFEvaluator():
         else:
             print('WARNING: tokenizer is none, evalluator will not be usable')
 
-        self.device = device or self.model.device
+        if device is None or device == 'auto':
+            self.device = self.model.device
+        else:
+            self.device = device
         self.config = self.model.config
         self.evaluation_ctx_steps = evaluation_ctx_steps
         self.add_bos_token = add_bos_token
@@ -148,7 +151,7 @@ class MemoryHFEvaluator():
         if self.model.memory_policy.cache_size is not None:
             self.max_memory_length = min(
                 self.max_memory_length, self.model.memory_policy.cache_size)
-        self.memory_policy.cuda()
+        self.memory_policy.to(self.device)
 
     def setup_tokenizer_padding(self,):
         # taken from huggingface lm_eval code for consistency

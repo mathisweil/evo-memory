@@ -97,7 +97,8 @@ def safe_tensor_print(tensor, limit=3):
 
 def empty_gpu_cache():
     gc.collect()
-    torch.cuda.empty_cache()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 
 def get_first_subseq_split(seq, subseq):
@@ -128,6 +129,8 @@ def is_oom_exception(exception: Exception) -> bool:
         "CUDA out of memory.",  # CUDA OOM
         "cuDNN error: CUDNN_STATUS_NOT_SUPPORTED.",  # CUDNN SNAFU
         "DefaultCPUAllocator: can't allocate memory",  # CPU OOM
+        "HBM OOM",  # TPU OOM
+        "Resource exhausted",  # XLA OOM
     ]
     if isinstance(exception, RuntimeError) and len(exception.args) == 1:
         return any(err in exception.args[0] for err in _statements)
@@ -265,7 +268,8 @@ def faster_attn_reversecumsum(tensor, dim=-1, **kwargs):
 
 def pad_and_stack_attn_mxs(
         unpacked_attn_mx: List[torch.Tensor], move_to_gpu=True,
-        lens=None, max_len=None, padding_side='left', return_lens=False):
+        lens=None, max_len=None, padding_side='left', return_lens=False,
+        device=None):
     if lens is None:
         lens = [t.size(-1) for t in unpacked_attn_mx]
     if max_len is None:
@@ -281,7 +285,10 @@ def pad_and_stack_attn_mxs(
         packed_attn_mx.append(padded_t)
     packed_attn_mx = torch.stack(packed_attn_mx, dim=0)
     if move_to_gpu:
-        packed_attn_mx = packed_attn_mx.cuda()
+        if device is not None:
+            packed_attn_mx = packed_attn_mx.to(device)
+        elif torch.cuda.is_available():
+            packed_attn_mx = packed_attn_mx.cuda()
     if return_lens:
         return packed_attn_mx, lens, max_len
     return packed_attn_mx
@@ -306,9 +313,11 @@ def pad_and_concat_buffered_attn_mxs(
         # padded_attn_mx = F.pad(attn_mx, pad=pad_tuple)
         # update deleting old data to free memory
         buffered_attn_mxs[i] = F.pad(attn_mx, pad=pad_tuple, value=0)
-    if move_to_gpu:
-        return torch.concat(buffered_attn_mxs, dim=-2).cuda()
-    return torch.concat(buffered_attn_mxs, dim=-2)
+    result = torch.concat(buffered_attn_mxs, dim=-2)
+    if move_to_gpu and result.device.type == "cpu":
+        if torch.cuda.is_available():
+            result = result.cuda()
+    return result
 
 
 def pack_attn_mxs(
@@ -439,7 +448,8 @@ def concat_and_pad(input_list, lens=None, max_len=None, return_mask=True,
     return padded_inputs, rec_attn_masks, lens, max_len
 
 
-def pack_kv_cache(unpacked_cache, move_to_gpu=True, padding_side='left'):
+def pack_kv_cache(unpacked_cache, move_to_gpu=True, padding_side='left',
+                  device=None):
     num_samples = len(unpacked_cache)
     num_tensor_lists = len(unpacked_cache[0])
     num_tensors = len(unpacked_cache[0][0])
@@ -463,7 +473,10 @@ def pack_kv_cache(unpacked_cache, move_to_gpu=True, padding_side='left'):
             if compute_attn_mask:
                 attn_mask = outputs[1]
             if move_to_gpu:
-                packed_tensor = packed_tensor.cuda()
+                if device is not None:
+                    packed_tensor = packed_tensor.to(device)
+                elif torch.cuda.is_available():
+                    packed_tensor = packed_tensor.cuda()
             tensor_list.append(packed_tensor)
         packed_kv_cache.append(tensor_list)
 

@@ -11,7 +11,7 @@ import torch
 from torch import nn
 import torch.utils.checkpoint
 import torch.nn.functional as F
-from torch.cuda.amp import autocast
+from torch.amp import autocast
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 from transformers import LlamaPreTrainedModel
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
@@ -119,7 +119,7 @@ class MemoryPolicy(
     def get_rotary_offset(self, layer_id=0):
         return self.rotary_offset[layer_id].to(dtype=torch.long)
 
-    @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+    @torch.amp.custom_fwd(device_type="cuda", cast_inputs=torch.float32)
     def update_cache(self,
                      past_key_values,
                      num_new_tokens,
@@ -266,7 +266,7 @@ class MemoryPolicy(
         self.empty_buffers = False
         self.buffered_tokens += num_new_tokens
 
-    @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+    @torch.amp.custom_fwd(device_type="cuda", cast_inputs=torch.float32)
     def buffer_cache(self,
                      past_key_values,
                      num_new_tokens,
