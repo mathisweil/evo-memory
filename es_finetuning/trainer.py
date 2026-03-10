@@ -215,7 +215,7 @@ class ESTrainer:
 
             if torch.cuda.is_available():
                 mem_mb = torch.cuda.memory_allocated() / 1024**2
-                writer.add_scalar("gpu/memory_mb", mem_mb, iteration)
+                writer.add_scalar("device/memory_mb", mem_mb, iteration)
 
             print(f"[{iteration + 1}/{cfg.num_iterations}] "
                   f"mean={mean_r:.4f} min={min_r:.4f} max={max_r:.4f} "

@@ -7,7 +7,7 @@ import torch
 
 
 def force_memory_cleanup():
-    """Force aggressive GPU memory cleanup."""
+    """Force aggressive memory cleanup (works on GPU, TPU, and CPU)."""
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
