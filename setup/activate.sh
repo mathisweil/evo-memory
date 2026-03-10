@@ -22,6 +22,8 @@ pip install -q -r "${REPO_DIR}/requirements.txt"
 
 export HF_HOME="${REPO_DIR}/.hf_cache"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
+export GCS_BUCKET="statistical-nlp"
+export GCS_PROJECT="statistical-nlp"
 cd "${REPO_DIR}"
 
-echo "Activated: venv=${VENV_DIR}, GPU=${CUDA_VISIBLE_DEVICES}, cwd=$(pwd)"
+echo "Activated: venv=${VENV_DIR}, GPU=${CUDA_VISIBLE_DEVICES}, GCS=${GCS_BUCKET}, cwd=$(pwd)"
