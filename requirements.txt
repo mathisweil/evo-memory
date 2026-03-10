@@ -24,3 +24,4 @@ fuzzywuzzy
 einops
 scipy==1.13.0
 sentencepiece
+google-cloud-storage

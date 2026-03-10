@@ -7,15 +7,19 @@ as new results become available.
 
 Usage:
     python scripts/generate_report.py experiment_1
-    python scripts/generate_report.py 1          # shorthand
-    python scripts/generate_report.py --all       # all active experiments
+    python scripts/generate_report.py 1              # shorthand
+    python scripts/generate_report.py --all           # all active experiments
+    python scripts/generate_report.py 1 --archived    # from archived experiment (GCS)
+    python scripts/generate_report.py --all --archived # all archived experiments
 """
 
 import argparse
 import datetime
 import json
 import os
+import shutil
 import sys
+import tempfile
 
 import numpy as np
 
@@ -23,6 +27,9 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
 MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
+
+GCS_BUCKET = os.environ.get("GCS_BUCKET", "statistical-nlp")
+GCS_PREFIX = "experiments"
 
 
 def load_manifest():
@@ -249,17 +256,56 @@ def generate_plots(experiment_dir, runs):
         print(f"  Saved: {plots_dir}/training_curves.png")
 
 
-def generate_report(experiment_name):
-    experiment_dir = os.path.join(EXPERIMENTS_DIR, experiment_name)
-    if not os.path.isdir(experiment_dir):
-        print(f"ERROR: {experiment_dir} does not exist")
+def download_experiment_from_gcs(experiment_name, dest_dir):
+    """Download an archived experiment from GCS to a local directory."""
+    from google.cloud import storage
+
+    client = storage.Client(project=os.environ.get("GCS_PROJECT", "statistical-nlp"))
+    bucket = client.bucket(GCS_BUCKET)
+    prefix = f"{GCS_PREFIX}/{experiment_name}/"
+
+    blobs = list(bucket.list_blobs(prefix=prefix))
+    if not blobs:
+        print(f"ERROR: No files found at gs://{GCS_BUCKET}/{prefix}")
         return False
+
+    print(f"  Downloading {len(blobs)} files from gs://{GCS_BUCKET}/{prefix}...")
+    for blob in blobs:
+        rel_path = blob.name[len(prefix):]
+        if not rel_path:
+            continue
+        local_path = os.path.join(dest_dir, rel_path)
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        blob.download_to_filename(local_path)
+
+    return True
+
+
+def generate_report(experiment_name, from_archive=False):
+    experiment_dir = os.path.join(EXPERIMENTS_DIR, experiment_name)
+    tmp_dir = None
+
+    if from_archive:
+        # Download from GCS to a temp directory for data collection
+        tmp_dir = tempfile.mkdtemp(prefix=f"report_{experiment_name}_")
+        print(f"Fetching archived experiment {experiment_name} from GCS...")
+        if not download_experiment_from_gcs(experiment_name, tmp_dir):
+            shutil.rmtree(tmp_dir)
+            return False
+        data_dir = tmp_dir
+    else:
+        if not os.path.isdir(experiment_dir):
+            print(f"ERROR: {experiment_dir} does not exist")
+            return False
+        data_dir = experiment_dir
 
     print(f"Generating report for {experiment_name}...")
 
-    runs = collect_runs(experiment_dir)
+    runs = collect_runs(data_dir)
     if not runs:
-        print(f"  No completed runs found in {experiment_dir}")
+        print(f"  No completed runs found")
+        if tmp_dir:
+            shutil.rmtree(tmp_dir)
         return False
 
     print(f"  Found {len(runs)} runs")
@@ -278,10 +324,10 @@ def generate_report(experiment_name):
         rtype = row.get("type", "training")
         print(f"{row['method']:<12} {row['run_name']:<35} {rtype:<8} {baseline:>10} {final:>10} {delta:>8} {time_h:>8}")
 
-    # Generate plots
+    # Save report and plots to the local experiment dir (create if needed)
+    os.makedirs(experiment_dir, exist_ok=True)
     generate_plots(experiment_dir, runs)
 
-    # Save report.json
     report = {
         "experiment": experiment_name,
         "num_runs": len(runs),
@@ -293,6 +339,10 @@ def generate_report(experiment_name):
         json.dump(report, f, indent=2)
     print(f"\n  Report saved: {report_path}")
 
+    # Clean up temp dir
+    if tmp_dir:
+        shutil.rmtree(tmp_dir)
+
     return True
 
 
@@ -302,17 +352,22 @@ def main():
                         help="Experiment name or ID (e.g. experiment_1 or 1)")
     parser.add_argument("--all", action="store_true",
                         help="Generate reports for all active experiments")
+    parser.add_argument("--archived", action="store_true",
+                        help="Generate report from an archived experiment (downloads from GCS)")
     args = parser.parse_args()
 
     if args.all:
         manifest = load_manifest()
         for name, info in manifest["experiments"].items():
-            if info["status"] == "active":
+            if args.archived and info["status"] == "archived":
+                generate_report(name, from_archive=True)
+                print()
+            elif not args.archived and info["status"] == "active":
                 generate_report(name)
                 print()
     elif args.experiment:
         name = normalize_name(args.experiment)
-        generate_report(name)
+        generate_report(name, from_archive=args.archived)
     else:
         parser.print_help()
 
