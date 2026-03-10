@@ -569,7 +569,7 @@ class MemoryHFEvaluator():
         if self.log_misc:
             pbar = tqdm(
                 total=len(dataset_samples),
-                disable=(disable_tqdm or (int(os.getenv("RANK")) != 0)),
+                disable=(disable_tqdm or (int(os.getenv("RANK", "0")) != 0)),
                 desc="Running longbench requests",
             )
         adaptive_batch_size = None
