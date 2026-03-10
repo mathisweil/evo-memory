@@ -2,6 +2,10 @@
 
 Fine-tuning LLaMA 3.2-1B-Instruct weights via evolutionary strategies while NAMM's trained eviction policy manages the KV cache. This is the core experiment: can the base model learn to cooperate with its eviction policy?
 
+This combines two existing works:
+- **ES fine-tuning**: [VsonicV/es-fine-tuning-paper](https://github.com/VsonicV/es-fine-tuning-paper) (Qiu et al.)
+- **NAMM**: Neural Attention Memory Model for KV cache eviction (Weil et al.)
+
 ---
 
 ## How Both Systems Interact
@@ -51,15 +55,15 @@ Conversely, if the frozen NAMM policy becomes stale as weights drift, we'd expec
 | `--sigma` | `0.001` | Noise scale for LLM weight perturbations |
 | `--alpha` | `0.0005` | ES learning rate |
 | `--population_size` | `8` | Perturbed models per ES iteration |
-| `--num_iterations` | `150` | Total ES iterations |
+| `--num_iterations` | `50` | Total ES iterations |
 | `--noise_mode` | `correlated` | Noise correlation mode |
 | `--initial_seed` | `33` | NumPy random seed for reproducibility |
 | `--mini_batch_size` | `16` | Qasper samples per evaluation |
 | `--batch_size` | config value | GPU inference batch size for the evaluator |
 | `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
 | `--train_samples` | `150` | Qasper samples in training pool |
-| `--val_samples` | `50` | Qasper samples for validation |
 | `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
+| `--resume_checkpoint` | `None` | Path to checkpoint to resume from |
 
 ### NAMM-specific
 
@@ -115,7 +119,7 @@ load_model()                                     # LLaMA 3.2-1B-Instruct + NAMM 
 load_namm_checkpoint(namm_checkpoint)             # load φ* into scoring network, freeze it
 base_params = get_base_llm_param_names(model)     # 147 tensors, excludes memory_policy.*
 
-for iteration in range(num_iterations):           # 150 iterations
+for iteration in range(num_iterations):           # 50 iterations
     seeds = random_integers(population_size)
     rewards = []
 
@@ -175,16 +179,16 @@ Forward passes per ES iteration:
 
 Total forward passes:
   = num_iterations x population_size x mini_batch_size
-  = 150 x 8 x 16
-  = 19,200 forward passes
+  = 50 x 8 x 16
+  = 6,400 forward passes
 ```
 
 ### Cost comparison
 
-| Pipeline | Fwd passes (150 iter) | Cost per fwd pass | Relative cost |
+| Pipeline | Fwd passes (50 iter) | Cost per fwd pass | Relative cost |
 |---|---|---|---|
-| ES only (full cache) | 19,200 | Full LLaMA inference, no eviction | 1.0x |
-| ES + NAMM | 19,200 | Full LLaMA inference + NAMM scoring/eviction | ~1.05-1.1x [TODO: measure] |
+| ES only (full cache) | 6,400 | Full LLaMA inference, no eviction | 1.0x |
+| ES + NAMM | 6,400 | Full LLaMA inference + NAMM scoring/eviction | ~1.05-1.1x [TODO: measure] |
 | NAMM only (200 iter, pop=8) | 25,600 | Full LLaMA inference + NAMM scoring/eviction | -- |
 
 The NAMM scoring overhead is small (tiny MLP+attention on a few hundred tokens), so combined cost ~ ES-only cost. The dominant cost is always the LLaMA forward pass.
@@ -193,8 +197,8 @@ The NAMM scoring overhead is small (tiny MLP+attention on a few hundred tokens),
 
 | Config | Est. time/iter | Total estimate |
 |---|---|---|
-| pop=8, mini_batch=16, bs=8, NAMM active | ~12-15 min | ~30-38h (150 iter) |
-| pop=8, mini_batch=4, bs=8, NAMM active | ~3-4 min | ~7.5-10h (150 iter) |
+| pop=8, mini_batch=16, bs=8, NAMM active | ~12-15 min | ~10-13h (50 iter) |
+| pop=8, mini_batch=4, bs=8, NAMM active | ~3-4 min | ~2.5-3.3h (50 iter) |
 | [TODO: measure actual overhead of NAMM vs no-NAMM] | | |
 
 ---
@@ -207,7 +211,7 @@ The NAMM scoring overhead is small (tiny MLP+attention on a few hundred tokens),
 | Optimiser | CMA-ES | NES | NES |
 | Parameter count | ~hundreds | ~1.24B | ~1.24B (+ frozen φ) |
 | Forward passes/iter | pop x samples = 128 | pop x mini_batch = 128 | pop x mini_batch = 128 |
-| Typical runtime | ~44h (200 iter) | ~30h (150 iter) | ~30-38h (150 iter) |
+| Typical runtime | ~44h (200 iter) | ~10h (50 iter) | ~10-13h (50 iter) |
 | Eviction during eval | Yes (optimised) | Optional (if checkpoint loaded) | Yes (frozen) |
 | Reward signal | F1 reflects eviction quality | F1 reflects LLM quality | F1 reflects LLM+eviction interaction |
 
@@ -270,7 +274,7 @@ python scripts/run_es.py \
 python scripts/run_es.py \
     --run_name full_es_namm \
     --namm_checkpoint /path/to/ckpt.pt \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
     --sigma 0.001 \
@@ -350,7 +354,7 @@ torchrun --standalone --nproc_per_node=1 scripts/run_namm.py \
 python scripts/run_es.py \
     --run_name my_run \
     --namm_checkpoint experiments/.../ckpt.pt \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16
 ```

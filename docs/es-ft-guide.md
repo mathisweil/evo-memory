@@ -2,6 +2,34 @@
 
 Gradient-free weight optimisation of LLaMA 3.2-1B-Instruct using evolutionary strategies, with optional NAMM eviction active during evaluation.
 
+Based on: **"Evolution Strategies at Scale: LLM Fine-Tuning Beyond Reinforcement Learning"**
+(Xin Qiu, Yulu Gan, Conor F. Hayes, Qiyao Liang, Yinggan Xu, Roberto Dailey, Elliot Meyerson, Babak Hodjat, Risto Miikkulainen)
+Original code: https://github.com/VsonicV/es-fine-tuning-paper
+
+Our adaptation uses Llama 3.2 1B on Qasper (long-document QA) with smaller population size (8 vs 30) and optionally runs NAMM KV-cache eviction during evaluation.
+
+### Original paper parameters vs ours
+
+| Parameter | ES paper (Qiu et al.) | Our setup |
+|---|---|---|
+| **Model** | Qwen 2.5 7B/3B Instruct | Llama 3.2 1B Instruct |
+| **Tasks** | Conciseness, Countdown, MATH | Qasper (long-doc QA) |
+| **population_size** | 30 | 8 |
+| **sigma** | 0.001 | 0.001 |
+| **alpha** | 0.0005 | 0.0005 |
+| **num_iterations** | 500-1000 | 50 |
+| **initial_seed** | 33 | 33 |
+| **noise_mode** | Partially correlated (default) | Correlated |
+| **data_samples** | 200 (Countdown), varies | 150 (train pool) |
+| **mini_batch_size** | All samples evaluated per step | 16 |
+| **max_new_tokens** | 100 (Conciseness), 1024 (Countdown) | 64 |
+| **precision** | bf16 | bf16 |
+| **Reward normalization** | z-score within iteration | z-score within iteration |
+| **Gradient computation** | Layer-by-layer in-place | Same |
+| **Compute** | 4x H100 (accelerated version) | 4x RTX 6000 24GB |
+
+Key differences: the original paper evaluates ALL data samples per population member per step (200 for Countdown). We subsample 16 per step from a pool of 150 due to compute constraints. The paper also uses much larger models (3-7B vs our 1B).
+
 ---
 
 ## What is ES Fine-Tuning?
@@ -31,7 +59,7 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 | `--sigma` | `0.001` | Noise scale for weight perturbations |
 | `--alpha` | `0.0005` | ES learning rate (step size for weight update) |
 | `--population_size` | `8` | Number of perturbed models evaluated per iteration |
-| `--num_iterations` | `150` | Total ES iterations |
+| `--num_iterations` | `50` | Total ES iterations |
 | `--noise_mode` | `correlated` | Noise correlation: `correlated` or `iid` |
 | `--initial_seed` | `33` | NumPy random seed for reproducibility |
 | `--mini_batch_size` | `16` | Qasper samples per population member evaluation |
@@ -41,7 +69,6 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 | `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
 | `--cache_size` | `None` | Override cache size for NAMM eviction |
 | `--train_samples` | `150` | Qasper samples in training pool |
-| `--val_samples` | `50` | Qasper samples for validation |
 | `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
 | `--resume_checkpoint` | `None` | Path to checkpoint to resume from |
 
@@ -74,7 +101,7 @@ A `manifest.json` in `experiments/` tracks all experiments and their runs.
 ## ES Training Workflow
 
 ```
-for iteration in range(num_iterations):          # 150 iterations
+for iteration in range(num_iterations):          # 50 iterations
     seeds = random_integers(population_size)      # one seed per population member
 
     resample_batch(mini_batch_size)               # draw a SHARED batch for this iteration
@@ -172,8 +199,8 @@ Forward passes per ES iteration:
 
 Total forward passes for full training:
   = num_iterations x population_size x mini_batch_size
-  = 150 x 8 x 16
-  = 19,200 forward passes
+  = 50 x 8 x 16
+  = 6,400 forward passes
 ```
 
 Each forward pass runs the full LLaMA inference pipeline (with NAMM eviction if a checkpoint is loaded). The cost per forward pass is the same as NAMM evaluation — dominated by the LLaMA attention layers, not the tiny NAMM scoring network.
@@ -210,9 +237,9 @@ Every one of these tensors gets perturbed by `sigma * noise` and then restored a
 
 | Config | Est. time/iter | Total estimate |
 |---|---|---|
-| pop=8, mini_batch=16, bs=8 | ~12 min | ~30h (150 iter) |
-| pop=8, mini_batch=4, bs=8 | ~3 min | ~7.5h (150 iter) |
-| pop=4, mini_batch=4, bs=8 | ~1.5 min | ~3.8h (150 iter) |
+| pop=8, mini_batch=16, bs=8 | ~12 min | ~10h (50 iter) |
+| pop=8, mini_batch=4, bs=8 | ~3 min | ~2.5h (50 iter) |
+| pop=4, mini_batch=4, bs=8 | ~1.5 min | ~1.3h (50 iter) |
 | pop=8, mini_batch=8, bs=8 | [TODO: measure] | [TODO] |
 
 **Logging:** Results are written to `experiments/experiment_N/{es_namm,es_only}/run_name/`:
@@ -245,7 +272,7 @@ Is the gradient-free property worth the cost? For this project, yes — because 
 `sigma=0.001` is a tiny perturbation relative to the weight magnitudes (typically O(0.01-1.0) in bfloat16). Too small -> negligible reward differences -> noisy gradient. Too large -> perturbations break the model -> all candidates score ~0. The sweet spot depends on the loss landscape curvature. Has sigma=0.001 been validated, or should we sweep?
 
 ### Convergence
-150 iterations x 8 population = 1,200 total perturbation-evaluation pairs. For a 1.24B parameter model, this is minuscule. Are we seeing meaningful convergence, or just noise? The final eval results should show a clear improvement over baseline if learning is happening.
+50 iterations x 8 population = 400 total perturbation-evaluation pairs. For a 1.24B parameter model, this is minuscule. Are we seeing meaningful convergence, or just noise? The final eval results should show a clear improvement over baseline if learning is happening.
 
 ### Mini-batch size
 Each perturbed model is evaluated on 16 Qasper samples (default). The F1 reward on 16 samples is moderately noisy. If two perturbations get different random samples, the reward difference may reflect sample variance rather than weight quality.
@@ -294,7 +321,7 @@ Compare: convergence speed and final reward.
 ```bash
 python scripts/run_es.py \
     --run_name full_no_namm \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
     --sigma 0.001 \
@@ -307,7 +334,7 @@ Record: total wall time, final training and validation reward, checkpoint path.
 python scripts/run_es.py \
     --run_name full_with_namm \
     --namm_checkpoint /path/to/ckpt.pt \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
     --sigma 0.001 \
@@ -333,7 +360,7 @@ done
 ```bash
 python scripts/run_es.py \
     --run_name my_run \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16
 ```
@@ -343,7 +370,7 @@ python scripts/run_es.py \
 python scripts/run_es.py \
     --run_name my_run \
     --namm_checkpoint /path/to/ckpt.pt \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16
 ```

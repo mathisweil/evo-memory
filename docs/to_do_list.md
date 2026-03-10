@@ -52,7 +52,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
   ```bash
   python scripts/run_es.py \
       --run_name no_namm_full \
-      --num_iterations 150 \
+      --num_iterations 50 \
       --population_size 8 \
       --mini_batch_size 16 \
       --sigma 0.001 \
@@ -86,7 +86,7 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
   python scripts/run_es.py \
       --run_name with_namm_full \
       --namm_checkpoint /path/to/ckpt.pt \
-      --num_iterations 150 \
+      --num_iterations 50 \
       --population_size 8 \
       --mini_batch_size 16 \
       --sigma 0.001 \
