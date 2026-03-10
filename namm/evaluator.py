@@ -1,3 +1,4 @@
+import bisect
 import copy
 import os
 import traceback
@@ -6,6 +7,11 @@ import numpy as np
 
 import torch
 import torch.nn.functional as F
+
+# Fixed sequence-length buckets for XLA/TPU compilation caching.
+# Each unique length triggers a separate XLA graph compilation (~2-5 min).
+# Padding to bucket boundaries limits total compilations to len(SEQ_LEN_BUCKETS).
+SEQ_LEN_BUCKETS = [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
 from accelerate import (
     find_executable_batch_size,
 )
@@ -333,8 +339,35 @@ class MemoryHFEvaluator():
             encoding["attention_mask"] = encoding["attention_mask"][
                 :, -left_truncate_len:
             ]
+
+        # Pad to the nearest bucket boundary so XLA/TPU compiles fewer graphs.
+        seq_len = encoding["input_ids"].shape[1]
+        bucket_len = self._bucket_seq_len(seq_len)
+        if bucket_len > seq_len:
+            pad_size = bucket_len - seq_len
+            pad_id = self.tokenizer.pad_token_id or 0
+            if padding_side == "left":
+                encoding["input_ids"] = F.pad(
+                    encoding["input_ids"], (pad_size, 0), value=pad_id)
+                encoding["attention_mask"] = F.pad(
+                    encoding["attention_mask"], (pad_size, 0), value=0)
+            else:
+                encoding["input_ids"] = F.pad(
+                    encoding["input_ids"], (0, pad_size), value=pad_id)
+                encoding["attention_mask"] = F.pad(
+                    encoding["attention_mask"], (0, pad_size), value=0)
+
         self.tokenizer.padding_side = old_padding_side
         return encoding["input_ids"], encoding["attention_mask"]
+
+    @staticmethod
+    def _bucket_seq_len(seq_len: int) -> int:
+        """Round *seq_len* up to the nearest entry in SEQ_LEN_BUCKETS."""
+        idx = bisect.bisect_left(SEQ_LEN_BUCKETS, seq_len)
+        if idx < len(SEQ_LEN_BUCKETS):
+            return SEQ_LEN_BUCKETS[idx]
+        # Longer than largest bucket — round up to nearest 1024.
+        return ((seq_len + 1023) // 1024) * 1024
 
     def tok_decode(self, tokens, skip_special_tokens=True):
         return self.tokenizer.decode(
