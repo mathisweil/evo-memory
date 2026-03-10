@@ -13,6 +13,7 @@ Usage:
 
 import argparse
 import datetime
+import json
 import os
 import sys
 
@@ -73,6 +74,8 @@ def parse_args():
                         help="Inference batch size (default: use config value)")
     parser.add_argument("--filter_by_length", type=int, default=None,
                         help="Drop samples longer than this (tokens). None = mid-crop instead")
+    parser.add_argument("--cache_size", type=int, default=None,
+                        help="Override cache size for NAMM eviction")
     parser.add_argument("--output_dir", type=str, default=None,
                         help="Directory to save eval log. Auto-derived from --es_checkpoint if not set")
     return parser.parse_args()
@@ -106,6 +109,9 @@ def main():
         overrides.append(f"batch_size={args.batch_size}")
     if args.filter_by_length is not None:
         overrides.append(f"filter_by_length={args.filter_by_length}")
+    if args.cache_size is not None:
+        overrides.append(f"cache_size={args.cache_size}")
+        overrides.append(f"max_memory_length={args.cache_size}")
     with initialize(version_base=None, config_path="../cfgs",
                     job_name="es_eval"):
         cfg = compose(config_name="config", overrides=overrides)
@@ -144,13 +150,19 @@ def main():
         print(f"Loading ES checkpoint: {args.es_checkpoint}")
         es_state = torch.load(args.es_checkpoint, map_location="cpu",
                               weights_only=False)
+        is_delta = es_state.pop("__format__", None) == "delta"
         model_params = dict(memory_model.named_parameters())
         loaded = 0
         for name, val in es_state.items():
             if name in model_params:
-                model_params[name].data.copy_(val.to(model_params[name].device))
+                device = model_params[name].device
+                if is_delta:
+                    model_params[name].data.add_(val.to(device))
+                else:
+                    model_params[name].data.copy_(val.to(device))
                 loaded += 1
-        print(f"  Loaded {loaded}/{len(es_state)} ES-tuned parameters")
+        print(f"  Loaded {loaded}/{len(es_state)} ES-tuned parameters"
+              f" ({'delta' if is_delta else 'absolute'} format)")
     else:
         print("No ES checkpoint -- evaluating base LLM weights (baseline)")
 
@@ -180,6 +192,24 @@ def main():
         print(f"  {k}: {v:.4f}")
     qasper = score_dicts[0].get("lb/qasper", 0.0)
     print(f"\n  Qasper F1: {qasper:.2f} (0-100 scale) = {qasper/100:.4f}")
+
+    # Save results.json for generate_report.py
+    if output_dir:
+        eval_results = {
+            "type": "eval",
+            "config": {
+                "es_checkpoint": args.es_checkpoint,
+                "namm_checkpoint": args.namm_checkpoint,
+                "cache_size": args.cache_size,
+                "run_config": args.run_config,
+                "filter_by_length": args.filter_by_length,
+            },
+            "scores": {k: v for k, v in score_dicts[0].items()},
+        }
+        results_path = os.path.join(output_dir, "results.json")
+        with open(results_path, "w") as f:
+            json.dump(eval_results, f, indent=2)
+        print(f"  Results saved: {results_path}")
 
     if tee:
         tee.close()
