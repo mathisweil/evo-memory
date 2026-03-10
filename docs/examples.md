@@ -83,12 +83,12 @@ python scripts/run_es.py \
     --mini_batch_size 2
 ```
 
-### 2b. Full run (150 iterations)
+### 2b. Full run (50 iterations)
 
 ```bash
 python scripts/run_es.py \
     --run_name full_no_namm \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
     --sigma 0.001 \
@@ -103,7 +103,7 @@ Results saved to `experiments/experiment_N/es_only/full_no_namm/`.
 ```bash
 python scripts/run_es.py \
     --run_name no_namm_filtered \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
     --filter_by_length 6500
@@ -142,13 +142,13 @@ python scripts/run_es.py \
     --mini_batch_size 2
 ```
 
-### 3b. Full run (150 iterations)
+### 3b. Full run (50 iterations)
 
 ```bash
 python scripts/run_es.py \
     --run_name full_with_namm \
     --namm_checkpoint exp_local/pretrained/namm_pretrained_romain.pt \
-    --num_iterations 150 \
+    --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
     --sigma 0.001 \

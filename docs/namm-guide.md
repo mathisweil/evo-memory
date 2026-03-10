@@ -24,24 +24,30 @@ The scoring network is tiny (hundreds of parameters). The LLaMA model weights ar
 
 ### CMA-ES and training parameters
 
-| Parameter | Paper (Mistral-7B) | Our setup (LLaMA 3.2-1B-Instruct) | Meaning |
+| Parameter | NAMM paper (Llama 3 8B) | Our setup (LLaMA 3.2-1B-Instruct) | Meaning |
 |---|---|---|---|
-| `max_iters` | 200 | 200 | CMA-ES generations |
+| **Model** | Llama 3 8B (context extended to 32K via NTK-aware RoPE) | LLaMA 3.2-1B-Instruct | Base LLM (frozen during NAMM training) |
+| **Scoring network params** | ~4,000 | ~4,000 | Total learnable parameters |
+| `max_iters` | 300 + 250 + 120 (3 stages) | 200 | CMA-ES generations |
 | `pop_size` | 32 | 8 | Population size (candidates per generation) |
-| `samples_batch_size` | 16 | 16 | Qasper samples evaluated per CMA-ES step |
-| `batch_size` | -- | 1 | GPU inference batch size (1 for 16 GB, 4-8 for 24 GB) |
+| `samples_batch_size` | 64 | 16 | Samples evaluated per CMA-ES step |
+| `batch_size` | -- | auto | GPU inference batch size |
 | `cache_size` | 1024 | 1024 | KV-cache budget (tokens kept after eviction) |
-| `memory_policy_fixed_delay` | 256 | 256 | Tokens between eviction calls |
-| `max_new_tokens` | 64 | 64 | Max generated tokens per evaluation sample |
+| `memory_policy_fixed_delay` | 512 | 256 | Tokens between eviction calls |
+| `max_new_tokens` | -- | 64 | Max generated tokens per evaluation sample |
 | `elite_ratio` | 0.5 | 0.5 | Top fraction used in CMA mean update |
-| `init_sigma` | 0.065 | 0.065 | Initial CMA-ES step size |
+| `init_sigma` | 0.65 | 0.065 | Initial CMA-ES step size |
 | `c_m` | 1.0 | 1.0 | Mean update learning rate |
-| `prefer_mean_to_best` | true | true | Checkpoint the CMA mean, not the best member |
+| `prefer_mean_to_best` | -- | true | Checkpoint the CMA mean, not the best member |
 | `scoring_initializer` | 0 | 0 | Scoring network initialised to all zeros |
 | `filter_by_length` | -- | 6500 | Drop samples longer than this (tokens). Also sets `max_position_id` and `max_position_embeddings` |
 | `max_position_id` | -- | 6500 (= `filter_by_length`) | Max conditioning window; tied to `filter_by_length` |
 | `per_head` | false | false | Shared scoring params across attention heads |
 | `per_layer` | false | false | Shared scoring params across transformer layers |
+| **Benchmarks** | LongBench (36 tasks), InfiniteBench, ChouBun | Qasper (F1) | Evaluation tasks |
+| **Compute** | Not disclosed | 4x RTX 6000 24GB | Hardware |
+
+Key differences from the paper: we use a smaller model (1B vs 8B), smaller population (8 vs 32), fewer samples per step (16 vs 64), and single-stage training (200 iters vs 300+250+120 across 3 incremental stages). The paper also used a much larger update interval (512 vs our 256).
 
 **Note:** `max_new_tokens` also controls answer-length filtering — samples whose shortest answer exceeds `max_new_tokens` (by word-count estimate) are automatically dropped.
 
