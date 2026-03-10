@@ -23,8 +23,18 @@ export GCS_BUCKET="statistical-nlp"
 export GCS_PROJECT="statistical-nlp"
 export VM_ID="${VM_ID:-$(hostname)}"
 
-# Persist XLA compiled graphs so recompilation is skipped across VM teardowns.
-export XLA_PERSISTENT_CACHE_PATH="gs://statistical-nlp/xla_cache"
+# Persist XLA compiled graphs so recompilation is skipped across reboots.
+# Local path (XLA doesn't support gs:// natively). Sync to/from GCS with:
+#   gsutil -m rsync -r .xla_cache gs://statistical-nlp/xla_cache   (upload)
+#   gsutil -m rsync -r gs://statistical-nlp/xla_cache .xla_cache    (download)
+export XLA_PERSISTENT_CACHE_PATH="${REPO_DIR}/.xla_cache"
+mkdir -p "${XLA_PERSISTENT_CACHE_PATH}" 2>/dev/null
+
+# Pull cached XLA graphs from GCS if local cache is empty.
+if [ -z "$(ls -A "${XLA_PERSISTENT_CACHE_PATH}" 2>/dev/null)" ]; then
+    echo "Downloading XLA cache from GCS..."
+    gsutil -m rsync -r "gs://${GCS_BUCKET}/xla_cache" "${XLA_PERSISTENT_CACHE_PATH}" 2>/dev/null || true
+fi
 
 cd "${REPO_DIR}"
 

@@ -26,6 +26,7 @@ Usage:
 """
 
 import argparse
+import atexit
 import json
 import logging
 import os
@@ -52,6 +53,23 @@ from utils.longbench import get_all_scores
 
 EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
 MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
+
+
+def _sync_xla_cache_to_gcs():
+    """Upload local XLA compilation cache to GCS for persistence across VMs."""
+    cache_dir = os.environ.get("XLA_PERSISTENT_CACHE_PATH", "")
+    bucket = os.environ.get("GCS_BUCKET", "")
+    if not cache_dir or not bucket or not os.path.isdir(cache_dir):
+        return
+    import subprocess
+    print(f"Syncing XLA cache to gs://{bucket}/xla_cache ...")
+    subprocess.run(
+        ["gsutil", "-m", "rsync", "-r", cache_dir, f"gs://{bucket}/xla_cache"],
+        check=False,
+    )
+
+
+atexit.register(_sync_xla_cache_to_gcs)
 
 
 # ── Local experiment manifest management ──────────────────────────────
@@ -361,7 +379,7 @@ def parse_args():
                         help="Number of Q/A examples to capture")
 
     # GCS and checkpointing
-    parser.add_argument("--gcs", action="store_true", default=False,
+    parser.add_argument("--gcs", action="store_true", default=True,
                         help="Enable GCS experiment management and checkpointing")
     parser.add_argument("--checkpoint_every", type=int, default=10,
                         help="Save checkpoint every N iterations (0 = final only)")
