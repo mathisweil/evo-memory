@@ -66,8 +66,7 @@ def build_chat(lm, prompt):
     elif "internlm" in model_name:
         prompt = f"<|User|>:{prompt}<eoh>\n<|Bot|>:"
     else:
-        print
-        raise NotImplementedError
+        raise NotImplementedError(f"Unsupported model: {model_name}")
 
     if not ("chatglm3" in model_name):
         tokenized_prompt = tokenizer(prompt, truncation=False,
