@@ -613,6 +613,12 @@ class DeepMP(DynamicParamMemoryPolicy):
         key_cache = torch.gather(key_cache, dim=-2, index=exp_retained_idxs)
         value_cache = torch.gather(value_cache, dim=-2, index=exp_retained_idxs)
 
+        # DEBUG: log cache sizes before/after eviction (layer 0 only)
+        if layer_id == 0:
+            print(f"[NAMM] layer 0: {num_all_tokens} -> {key_cache.shape[-2]} tokens "
+                  f"(evicted {num_all_tokens - key_cache.shape[-2]}, "
+                  f"cache_size={self.selection_criteria.cache_size})")
+
         if self.requires_position_ids:
             if new_sequences:
                 self.record_recency_stats(

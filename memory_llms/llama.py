@@ -440,28 +440,48 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
 
 
         hidden_states = outputs[0]
-        if self.config.pretraining_tp > 1:
-            lm_head_slices = self.lm_head.weight.split(
-                self.vocab_size // self.config.pretraining_tp, dim=0)
-            logits = [F.linear(hidden_states, lm_head_slices[i]) 
-                      for i in range(self.config.pretraining_tp)]
-            logits = torch.cat(logits, dim=-1)
-        else:
-            logits = self.lm_head(hidden_states)
-        logits = logits.float()
 
-        loss = None
+        # When labels are provided, only compute logits for positions that
+        # contribute to the loss (labels != -100).  This avoids allocating a
+        # [batch, full_seq, vocab] tensor when most positions are masked,
+        # saving several GB of VRAM on long sequences.
         if labels is not None:
-            # Shift so that tokens < n predict n
-            shift_logits = logits[..., :-1, :].contiguous()
+            # Shift: token at position i predicts label at position i+1
             shift_labels = labels[..., 1:].contiguous()
-            # Flatten the tokens
-            loss_fct = CrossEntropyLoss()
-            shift_logits = shift_logits.view(-1, self.config.vocab_size)
-            shift_labels = shift_labels.view(-1)
-            # Enable model parallelism
-            shift_labels = shift_labels.to(shift_logits.device)
-            loss = loss_fct(shift_logits, shift_labels)
+            # Mask of positions that actually contribute to CE loss
+            loss_mask = (shift_labels != -100)
+            if loss_mask.any():
+                # Gather only the hidden states we need logits for
+                hs_for_loss = hidden_states[..., :-1, :][loss_mask]  # [N_active, hidden]
+                active_labels = shift_labels[loss_mask]               # [N_active]
+
+                if self.config.pretraining_tp > 1:
+                    lm_head_slices = self.lm_head.weight.split(
+                        self.vocab_size // self.config.pretraining_tp, dim=0)
+                    active_logits = torch.cat(
+                        [F.linear(hs_for_loss, s) for s in lm_head_slices], dim=-1)
+                else:
+                    active_logits = self.lm_head(hs_for_loss)
+                active_logits = active_logits.float()
+
+                loss = CrossEntropyLoss()(active_logits, active_labels)
+            else:
+                loss = torch.tensor(0.0, device=hidden_states.device,
+                                    requires_grad=True)
+            # Still need full logits for generation / other uses downstream:
+            # only compute them when NOT training (no labels would be passed).
+            logits = None
+        else:
+            if self.config.pretraining_tp > 1:
+                lm_head_slices = self.lm_head.weight.split(
+                    self.vocab_size // self.config.pretraining_tp, dim=0)
+                logits = [F.linear(hidden_states, lm_head_slices[i])
+                          for i in range(self.config.pretraining_tp)]
+                logits = torch.cat(logits, dim=-1)
+            else:
+                logits = self.lm_head(hidden_states)
+            logits = logits.float()
+            loss = None
         
 
         # APPLYING THE BAM MLP
@@ -707,6 +727,37 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
         key_states = repeat_kv(key_states, self.num_key_value_groups)
         value_states = repeat_kv(value_states, self.num_key_value_groups)
 
+        # Fast path: use SDPA (flash / memory-efficient attention) when we
+        # don't need attention weights or queries.  This avoids materialising
+        # the full [seq×seq] attention matrix and dramatically cuts memory.
+        if not output_attentions and not output_queries:
+            # is_causal=True only works when Q_len == K_len (prefill).
+            # During autoregressive generation Q_len=1, K_len=full_seq,
+            # so we must NOT use is_causal (single query attends to all keys).
+            is_causal = (query_states.shape[-2] == key_states.shape[-2])
+            attn_output = F.scaled_dot_product_attention(
+                query_states, key_states, value_states,
+                attn_mask=None,
+                dropout_p=self.attention_dropout if self.training else 0.0,
+                is_causal=is_causal,
+            )
+            attn_output = attn_output.transpose(1, 2).contiguous()
+            attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
+
+            if self.config.pretraining_tp > 1:
+                attn_output = attn_output.split(
+                    self.hidden_size // self.config.pretraining_tp, dim=2)
+                o_proj_slices = self.o_proj.weight.split(
+                    self.hidden_size // self.config.pretraining_tp, dim=1)
+                attn_output = sum(
+                    [F.linear(attn_output[i], o_proj_slices[i])
+                     for i in range(self.config.pretraining_tp)])
+            else:
+                attn_output = self.o_proj(attn_output)
+
+            return attn_output, None, past_key_value
+
+        # Slow path: eager attention (needed when NAMM requires attn weights)
         attn_weights = torch.matmul(
             query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
 
@@ -714,7 +765,7 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
             n_q, n_k = attn_weights.shape[-2:]
             dtype, device = hidden_states.dtype, hidden_states.device
             min_dtype = torch.finfo(dtype).min
-            causal_mask = torch.full((n_q, n_q), fill_value=min_dtype, 
+            causal_mask = torch.full((n_q, n_q), fill_value=min_dtype,
                                      dtype=dtype, device=device)
             causal_mask = torch.triu(causal_mask, diagonal=1)
             causal_mask = F.pad(causal_mask, (n_k-n_q, 0))
@@ -737,7 +788,7 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
             else:
                 causal_mask = attention_mask[:, :, :, -n_k:]
             attn_weights = attn_weights + causal_mask
-            
+
         # upcast attention to fp32
         attn_weights_to_return = nn.functional.softmax(
             attn_weights, dim=-1, dtype=torch.float32)
@@ -770,7 +821,7 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
         if not output_attentions:
             attn_weights = None
             attn_weights_to_return = None
-        
+
         if not output_queries:
             return attn_output, attn_weights_to_return, past_key_value
         else:
@@ -1037,7 +1088,7 @@ class LlamaMemoryModel(LlamaModel):
                 all_hidden_states += (hidden_states,)
 
             if self.gradient_checkpointing and self.training:
-                layer_outputs = self._gradient_checkpointing_func(
+                layer_outputs = torch.utils.checkpoint.checkpoint(
                     decoder_layer.__call__,
                     hidden_states,
                     causal_mask,
@@ -1047,8 +1098,8 @@ class LlamaMemoryModel(LlamaModel):
                     use_cache,
                     cache_position,
                     output_queries,
-                    output_attentions_full_precision=(
-                        output_attentions_full_precision),
+                    output_attentions_full_precision,
+                    use_reentrant=False,
                 )
             else:
                 layer_outputs = decoder_layer(

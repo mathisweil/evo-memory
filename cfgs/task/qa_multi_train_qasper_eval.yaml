@@ -1,0 +1,22 @@
+defaults:
+  - base_sampler
+  - _self_
+
+tasks:
+  - "lb/qasper"
+  - "lb/multifieldqa_en"
+  - "lb/hotpotqa"
+  - "lb/2wikimqa"
+  # Excluded: narrativeqa (0 samples after 6500-word filter), musique (only 3)
+
+training_tasks_subset:
+  - "lb/qasper"
+  - "lb/multifieldqa_en"
+  - "lb/hotpotqa"
+  - "lb/2wikimqa"
+
+test_tasks_subset:
+  - "lb/qasper"
+
+metrics: 'perf'
+tasks_log_name: qa_multi_qasper_eval

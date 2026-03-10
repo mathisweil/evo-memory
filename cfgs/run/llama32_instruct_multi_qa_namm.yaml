@@ -1,0 +1,51 @@
+# @package _global_
+# Llama 3.2 1B Instruct with NAMM — trained on multi-task QA.
+# Uses instruct model weights and multiple QA tasks for evolution.
+defaults:
+  - base_memory_policy/deep/bam/base_bam
+  - override /model/wrapped_llm@_global_: llama_3_2_1b
+  - override /task@_global_: qasper
+  - _self_
+
+pretrained_llm_name: ./llama-1b-instruct-hf
+
+eval_only: false
+max_iters: 200
+max_new_tokens: 64
+max_conditioning_length: 6500
+score_normalization_reference: null
+
+cache_size: 1024
+memory_policy_fixed_delay: 256
+
+# architecture
+scoring_attn_hidden_dim: 32
+scoring_attn_bias: true
+
+pop_size: 8
+samples_batch_size: 2
+
+# Train/test split: 75% train, 25% test for overlapping tasks (qasper)
+# Same split as LoRA finetuning for fair comparison
+train_split_ratio: 0.75
+
+tasks:
+  - "lb/qasper"
+  - "lb/multifieldqa_en"
+  - "lb/hotpotqa"
+  - "lb/2wikimqa"
+  # Excluded: narrativeqa (0 samples after 6500-word filter), musique (3 samples)
+
+training_tasks_subset:
+  - "lb/qasper"
+  - "lb/multifieldqa_en"
+  - "lb/hotpotqa"
+  - "lb/2wikimqa"
+
+test_tasks_subset:
+  - "lb/qasper"
+
+wandb_log: true
+wandb_run_name: llama32_instruct_namm_multi_qa
+wandb_group_name: Llama-3.2-1B
+wandb_project: memory_evolution_hf

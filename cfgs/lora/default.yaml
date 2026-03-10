@@ -12,8 +12,16 @@ lora:
   num_epochs: 3
   batch_size: 1
   grad_accum_steps: 4
-  max_seq_len: 2048
-  grad_chunks: 1
+  max_seq_len: 8192
+  # Matching ES setup
+  mini_batch_size: 4      # Qasper samples per eval (same as ES)
+  val_samples: 50          # Validation pool size (same as ES)
+  eval_every: 25           # Eval every N optimizer steps (same as ES)
+  checkpoint_every: 25     # Save checkpoint every N steps (same as ES)
+  lora_ckpt: null
   namm_ckpt: null
   namm_active: false
+  use_chat_template: false
+  skip_baseline_eval: false
+  train_split_ratio: null
   save_dir: "exp_local/lora_checkpoints"

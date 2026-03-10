@@ -1,6 +1,7 @@
 # @package _global_
-# m4: Llama 3.2 1B — LoRA finetuning with NAMM active (frozen eviction policy).
-# Requires a trained NAMM checkpoint (run m2 first).
+# m4: Llama 3.2 1B — LoRA SFT with NAMM active (frozen eviction policy).
+# Matches ES fine-tuning setup: same task, same evaluation pipeline.
+# Requires a trained NAMM checkpoint (run NAMM training first).
 defaults:
   - base_memory_policy/deep/bam/base_bam
   - override /model/wrapped_llm@_global_: llama_3_2_1b
@@ -13,15 +14,18 @@ max_conditioning_length: 6500
 score_normalization_reference: null
 seed: 1337
 
+# KV cache — must match ES / NAMM training
 cache_size: 1024
 memory_policy_fixed_delay: 256
 
-# architecture — must match NAMM training
+# NAMM architecture — must match NAMM training
 scoring_attn_hidden_dim: 32
 scoring_attn_bias: true
 
 pop_size: 8
 samples_batch_size: 4
+eval_max_batch_size: 1
+batch_size: 1
 
 lora:
   enabled: true
@@ -37,8 +41,12 @@ lora:
   num_epochs: 3
   batch_size: 1
   grad_accum_steps: 4
-  max_seq_len: 2048
-  grad_chunks: 1
+  max_seq_len: 6600
+  # Matching ES setup
+  mini_batch_size: 4
+  val_samples: 50
+  eval_every: 25
+  checkpoint_every: 25
   namm_active: true
   namm_ckpt: exp_local/memory_evolution_hf/Llama-3.2-1B/llama32_namm_1024cs_qasper/1337/ckpt.pt
   save_dir: exp_local/lora/llama32_qasper_m4

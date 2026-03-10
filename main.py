@@ -150,6 +150,13 @@ def main(cfg: DictConfig):
 
         task_sampler = make_task_sampler(cfg=cfg, log_prefix=log_prefix)
 
+        # Apply train/test split for overlapping tasks (e.g. qasper)
+        train_split = cfg.get('train_split_ratio', None)
+        if train_split is not None and train_split < 1.0:
+            from lora_finetune import split_task_samples
+            split_task_samples(task_sampler, train_ratio=train_split,
+                               seed=cfg.seed)
+
         trainer = hydra.utils.instantiate(
             cfg.trainer,
             evaluation_model=memory_evaluator,

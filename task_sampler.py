@@ -195,6 +195,22 @@ class TaskSampler():
         out_dict.update(self.latest_sampled_idxs_per_lb_task)
         return out_dict
 
+    def _get_num_prompts(self, task_n, train):
+        """Get prompt count for a task, respecting train/test split if active."""
+        if train and hasattr(self, 'num_train_prompts_per_lb_task'):
+            return self.num_train_prompts_per_lb_task.get(
+                task_n, self.num_prompts_per_lb_task[task_n])
+        return self.num_prompts_per_lb_task[task_n]
+
+    def _get_prompts_and_jsons(self, task_n, train):
+        """Get prompts/jsons for a task, respecting train/test split if active."""
+        if train and hasattr(self, 'lb_train_prompts_per_task'):
+            if task_n in self.lb_train_prompts_per_task:
+                return (self.lb_train_prompts_per_task[task_n],
+                        self.lb_train_jsons_per_task[task_n])
+        return (self.lb_prompts_per_task[task_n],
+                self.lb_jsons_per_task[task_n])
+
     def resample_requests_lb(self, train: bool,
                              sampled_requests_per_task: Optional[int] = None,
                              task_batch_size: Optional[int] = None,
@@ -221,7 +237,7 @@ class TaskSampler():
 
         sampled_idxs_per_lb_task = {}
         for task_n in tasks_names:
-            num_task_prompts = self.num_prompts_per_lb_task[task_n]
+            num_task_prompts = self._get_num_prompts(task_n, train)
             if sampled_requests_per_task is not None:
                 sampled_idxs = np.random.choice(
                     num_task_prompts, replace=False,
@@ -264,7 +280,8 @@ class TaskSampler():
                 limit=limit, build_chat_interface=build_chat_interface,
                 performance_per_request=performance_per_request,
                 cache_param_stats_per_task=cache_param_stats_per_task,
-                model_kwargs=model_kwargs)
+                model_kwargs=model_kwargs,
+                train=train)
 
             out_dicts = merge_list_of_dicts(out_dicts, lb_dicts)
             out_dicts = merge_list_of_dicts(out_dicts, lb_stats)
@@ -285,7 +302,7 @@ class TaskSampler():
                 sampled_idxs = self.latest_sampled_idxs_per_lb_task[task_n]
                 if sampled_idxs is None:
                     all_idxs[task_n] = np.arange(
-                        self.num_prompts_per_lb_task[task_n])
+                        self._get_num_prompts(task_n, train))
                 else:
                     all_idxs[task_n] = sampled_idxs
 
@@ -307,6 +324,7 @@ class TaskSampler():
         performance_per_request: bool = False,
         cache_param_stats_per_task: bool = False,
         model_kwargs: dict = {},
+        train: bool = True,
     ):
 
         stats = [{} for _ in range(pop_reps)]
@@ -334,8 +352,8 @@ class TaskSampler():
         sampled_task_prompts = {}
         sampled_task_jsons = {}
         for task_n in tasks_names:
-            task_prompts = self.lb_prompts_per_task[task_n]
-            task_jsons = self.lb_jsons_per_task[task_n]
+            task_prompts, task_jsons = self._get_prompts_and_jsons(
+                task_n, train)
             if not resample_requests:
                 sampled_idxs = self.latest_sampled_idxs_per_lb_task[task_n]
                 prompts = [task_prompts[i] for i in sampled_idxs]
@@ -368,6 +386,8 @@ class TaskSampler():
             for pop_i in range(pop_reps):
                 stats[pop_i]['performance_per_request'] = {}
         for task_n, prompts in sampled_task_prompts.items():
+            if len(prompts) == 0:
+                continue
             if (self.prefetched_task_tensors[task_n] is not None
                     and use_cached_kv_if_available):
                 raise NotImplementedError
