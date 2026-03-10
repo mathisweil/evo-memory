@@ -18,9 +18,15 @@ import time
 
 
 class LlamaCompatModel:
-    """Loads LLaMA 3.2+ models with transformers 4.41.x by patching the
-    rope_scaling config, which changed format in 4.45 (llama3 rope_type).
-    Also supports overriding max_position_embeddings to reduce RoPE cache size.
+    """Loads LLaMA 3.2+ models, handling the llama3 rope_type that older
+    transformers (<4.45) could not parse.
+
+    When max_position_embeddings <= original_max_position_embeddings (8192):
+      rope_scaling is stripped — identical behaviour to before, no RoPE cache
+      overhead, safe for short contexts.
+    When max_position_embeddings > 8192 (or not overridden):
+      rope_scaling is preserved so the model uses its native llama3 RoPE and
+      can handle contexts up to 131072 tokens correctly.
     """
 
     @staticmethod
@@ -34,13 +40,18 @@ class LlamaCompatModel:
         with open(config_file) as f:
             cfg = json.load(f)
 
-        # Replace new-style llama3 rope_scaling with None so the NAMM
-        # _init_rope falls back to standard LlamaRotaryEmbedding.
-        # Safe for sequences up to original_max_position_embeddings (8192).
-        cfg['rope_scaling'] = None
+        orig_max = (cfg.get('rope_scaling') or {}).get(
+            'original_max_position_embeddings', 8192)
 
         if max_position_embeddings is not None:
             cfg['max_position_embeddings'] = max_position_embeddings
+
+        # Strip rope_scaling only when we stay within the original training
+        # range — saves ~400 MB RoPE cache and keeps behaviour identical.
+        # For longer contexts, preserve it so _init_rope uses llama3 RoPE.
+        effective_max = cfg['max_position_embeddings']
+        if effective_max <= orig_max:
+            cfg['rope_scaling'] = None
 
         config = LlamaConfig(**cfg)
         kwargs.pop('rope_scaling', None)  # prevent conflicting kwarg

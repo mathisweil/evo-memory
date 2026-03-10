@@ -13,7 +13,7 @@ pretrained_llm_name: /cs/student/project_msc/2025/csml/gmaralla/.hf_cache/models
 pretrained_llm:
   _target_: utils_hydra.LlamaCompatModel.from_pretrained
   pretrained_model_name_or_path: ${pretrained_llm_name}
-  max_position_embeddings: 4096
+  max_position_embeddings: ${max_position_id}
 
 memory_model:
   _target_: memory_llms.llama.WrappedLlamaForCausalLM

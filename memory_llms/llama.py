@@ -715,33 +715,51 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
         key_states = repeat_kv(key_states, self.num_key_value_groups)
         value_states = repeat_kv(value_states, self.num_key_value_groups)
 
-        attn_weights = torch.matmul(
-            query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
-
-        if attention_mask is None:
-            n_q, n_k = attn_weights.shape[-2:]
-            dtype, device = hidden_states.dtype, hidden_states.device
-            min_dtype = torch.finfo(dtype).min
-            causal_mask = torch.full((n_q, n_q), fill_value=min_dtype, 
-                                     dtype=dtype, device=device)
-            causal_mask = torch.triu(causal_mask, diagonal=1)
-            causal_mask = F.pad(causal_mask, (n_k-n_q, 0))
-            attn_weights = attn_weights + causal_mask
+        if not output_attentions and not output_queries:
+            # SDPA path: never materialises the [batch, heads, seq, seq] matrix.
+            # Used for all eval/inference paths (full-cache, recency, LoRA eval).
+            # NAMM always sets output_attentions=True so it keeps the manual path.
+            if attention_mask is None:
+                sdpa_mask, is_causal = None, True
+            else:
+                sdpa_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
+                is_causal = False
+            attn_output = F.scaled_dot_product_attention(
+                query_states, key_states, value_states,
+                attn_mask=sdpa_mask,
+                dropout_p=self.attention_dropout if self.training else 0.0,
+                is_causal=is_causal,
+            )
+            attn_weights_to_return = None
         else:
-            causal_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
-            attn_weights = attn_weights + causal_mask
+            # Manual path: required when attention weights are needed (NAMM scoring).
+            attn_weights = torch.matmul(
+                query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
 
-        # upcast attention to fp32
-        attn_weights_to_return = nn.functional.softmax(
-            attn_weights, dim=-1, dtype=torch.float32)
-        attn_weights = attn_weights_to_return.to(query_states.dtype)
+            if attention_mask is None:
+                n_q, n_k = attn_weights.shape[-2:]
+                dtype, device = hidden_states.dtype, hidden_states.device
+                min_dtype = torch.finfo(dtype).min
+                causal_mask = torch.full((n_q, n_q), fill_value=min_dtype,
+                                         dtype=dtype, device=device)
+                causal_mask = torch.triu(causal_mask, diagonal=1)
+                causal_mask = F.pad(causal_mask, (n_k-n_q, 0))
+                attn_weights = attn_weights + causal_mask
+            else:
+                causal_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
+                attn_weights = attn_weights + causal_mask
 
-        if not output_attentions_full_precision:
-            attn_weights_to_return = attn_weights
+            # upcast attention to fp32
+            attn_weights_to_return = nn.functional.softmax(
+                attn_weights, dim=-1, dtype=torch.float32)
+            attn_weights = attn_weights_to_return.to(query_states.dtype)
 
-        attn_weights = nn.functional.dropout(
-            attn_weights, p=self.attention_dropout, training=self.training)
-        attn_output = torch.matmul(attn_weights, value_states)
+            if not output_attentions_full_precision:
+                attn_weights_to_return = attn_weights
+
+            attn_weights = nn.functional.dropout(
+                attn_weights, p=self.attention_dropout, training=self.training)
+            attn_output = torch.matmul(attn_weights, value_states)
 
         if attn_output.size() != (bsz, self.num_heads, q_len, self.head_dim):
             raise ValueError()
@@ -784,11 +802,19 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
                 base=self.rope_theta,
             )
         else:
-            scaling_type = self.config.rope_scaling["type"]
-            scaling_factor = self.config.rope_scaling["factor"]
+            # Support both 'type' (older HF format) and 'rope_type' (llama3 format)
+            scaling_type = (self.config.rope_scaling.get("type")
+                            or self.config.rope_scaling.get("rope_type", ""))
+            scaling_factor = self.config.rope_scaling.get("factor", 1.0)
             if 'override' in self.config.rope_scaling:
                 scaling_type = self.config.rope_scaling["override"]
-            if scaling_type == "linear":
+            if scaling_type == "llama3":
+                # Use transformers 4.45+ LlamaRotaryEmbedding which handles
+                # llama3 rope natively (frequency-based partial scaling).
+                from transformers.models.llama.modeling_llama import (
+                    LlamaRotaryEmbedding as HFLlamaRotaryEmbedding)
+                self.rotary_emb = HFLlamaRotaryEmbedding(config=self.config)
+            elif scaling_type == "linear":
                 self.rotary_emb = LlamaLinearScalingRotaryEmbedding(
                     self.head_dim,
                     max_position_embeddings=self.max_position_embeddings,

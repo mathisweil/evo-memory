@@ -52,11 +52,14 @@ def parse_args():
                    help='Train fraction used during SFT — held-out starts at this index (default 0.8)')
     p.add_argument('--wandb-group', default=None,
                    help='Override wandb group name (default: EVAL_WANDB_GROUP constant)')
+    p.add_argument('--max-position-id', type=int, default=None,
+                   help='Override max_position_id (e.g. 32768 for full-context eval)')
     return p.parse_args()
 
 
 def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir: str,
-                         run_config_override: str = None, cache_size_override: int = None):
+                         run_config_override: str = None, cache_size_override: int = None,
+                         max_position_id_override: int = None):
     """
     Load model from checkpoint. Handles both lora_grad and namm_es checkpoint types.
 
@@ -124,6 +127,8 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
         hydra_overrides.append(f'init_from={namm_ckpt_path}')
     if cache_size_override is not None:
         hydra_overrides.append(f'cache_size={cache_size_override}')
+    if max_position_id_override is not None:
+        hydra_overrides.append(f'max_position_id={max_position_id_override}')
 
     # 5. Initialize Hydra config (handle singleton — can only call initialize once/process)
     GlobalHydra.instance().clear()
@@ -325,6 +330,7 @@ def main():
         artifact_dir=artifact_dir,
         run_config_override=args.run_config,
         cache_size_override=args.cache_size,
+        max_position_id_override=args.max_position_id,
     )
 
     # Run evaluation on all EVAL_TASKS
