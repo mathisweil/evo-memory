@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Generate a report for a completed experiment.
+"""Generate a report for an experiment.
 
 Aggregates results across all methods/runs, generates comparison plots
-and a summary report.json. Sets experiment status to "finished".
+and a summary report.json. Can be re-run at any time to update the report
+as new results become available.
 
 Usage:
     python scripts/generate_report.py experiment_1
@@ -11,6 +12,7 @@ Usage:
 """
 
 import argparse
+import datetime
 import json
 import os
 import sys
@@ -42,7 +44,11 @@ def normalize_name(name):
 
 
 def collect_runs(experiment_dir):
-    """Walk experiment_dir/method/run_name/ and collect results."""
+    """Walk experiment_dir/method/run_name/ and collect results.
+
+    Also discovers eval-only subdirectories (e.g. eval_namm_c1024/)
+    within training run directories.
+    """
     runs = []
     for method in sorted(os.listdir(experiment_dir)):
         method_dir = os.path.join(experiment_dir, method)
@@ -70,6 +76,24 @@ def collect_runs(experiment_dir):
                 "examples": examples,
                 "run_dir": run_dir,
             })
+
+            # Scan for eval-only subdirectories (eval_*)
+            for sub in sorted(os.listdir(run_dir)):
+                sub_dir = os.path.join(run_dir, sub)
+                if not os.path.isdir(sub_dir) or not sub.startswith("eval_"):
+                    continue
+                sub_results_path = os.path.join(sub_dir, "results.json")
+                if not os.path.isfile(sub_results_path):
+                    continue
+                with open(sub_results_path) as f:
+                    sub_results = json.load(f)
+                runs.append({
+                    "method": method,
+                    "run_name": f"{run_name}/{sub}",
+                    "results": sub_results,
+                    "examples": None,
+                    "run_dir": sub_dir,
+                })
     return runs
 
 
@@ -78,14 +102,21 @@ def build_summary(runs):
     rows = []
     for run in runs:
         r = run["results"]
+        is_eval_only = r.get("type") == "eval"
         config = r.get("config", {})
-        training = r.get("training", {})
-        full_eval = r.get("full_eval", {})
-        baseline = r.get("baseline_eval", {})
 
-        # Extract F1 scores
-        final_scores = full_eval.get("scores", {})
-        baseline_scores = baseline.get("scores", {})
+        if is_eval_only:
+            # Eval-only run: scores at top level, no training/baseline data
+            final_scores = r.get("scores", {})
+            baseline_scores = {}
+            training = {}
+        else:
+            # Full training run
+            training = r.get("training", {})
+            full_eval = r.get("full_eval", {})
+            baseline = r.get("baseline_eval", {})
+            final_scores = full_eval.get("scores", {})
+            baseline_scores = baseline.get("scores", {})
 
         # Get qasper F1 (main metric)
         final_f1 = None
@@ -100,6 +131,7 @@ def build_summary(runs):
         rows.append({
             "method": run["method"],
             "run_name": run["run_name"],
+            "type": "eval" if is_eval_only else "training",
             "final_f1": final_f1,
             "baseline_f1": baseline_f1,
             "improvement": round(final_f1 - baseline_f1, 2)
@@ -138,23 +170,31 @@ def generate_plots(experiment_dir, runs):
     all_labels = []
     all_baseline = []
     all_final = []
-    colors_baseline = []
+    all_types = []
     colors_final = []
     method_colors = {"es_namm": "steelblue", "es_only": "seagreen",
                      "namm_only": "coral"}
 
     for method, method_runs in sorted(methods.items()):
         for run in method_runs:
-            full_eval = run["results"].get("full_eval", {})
-            baseline = run["results"].get("baseline_eval", {})
-            for k in full_eval.get("scores", {}):
+            r = run["results"]
+            is_eval_only = r.get("type") == "eval"
+
+            if is_eval_only:
+                scores = r.get("scores", {})
+                baseline_scores = {}
+            else:
+                scores = r.get("full_eval", {}).get("scores", {})
+                baseline_scores = r.get("baseline_eval", {}).get("scores", {})
+
+            for k in scores:
                 if "qasper" in k:
                     label = f"{method}/{run['run_name']}"
                     all_labels.append(label)
-                    all_final.append(full_eval["scores"][k])
-                    all_baseline.append(baseline.get("scores", {}).get(k, 0))
+                    all_final.append(scores[k])
+                    all_baseline.append(baseline_scores.get(k, 0))
+                    all_types.append("eval" if is_eval_only else "training")
                     colors_final.append(method_colors.get(method, "gray"))
-                    colors_baseline.append("lightgray")
 
     if all_labels:
         y = np.arange(len(all_labels))
@@ -162,12 +202,14 @@ def generate_plots(experiment_dir, runs):
         ax.barh(y + bar_h / 2, all_baseline, bar_h, color="lightgray",
                 label="Baseline")
         ax.barh(y - bar_h / 2, all_final, bar_h, color=colors_final,
-                label="Fine-tuned")
-        for i, (bv, fv) in enumerate(zip(all_baseline, all_final)):
-            ax.text(max(bv, fv) + 0.3, i, f"{fv:.1f}", va="center",
+                label="Fine-tuned / Eval")
+        for i, (bv, fv, t) in enumerate(
+                zip(all_baseline, all_final, all_types)):
+            suffix = " (eval)" if t == "eval" else ""
+            ax.text(max(bv, fv) + 0.3, i, f"{fv:.1f}{suffix}", va="center",
                     fontsize=8, fontweight="bold")
         ax.set_yticks(y)
-        ax.set_yticklabels(all_labels, fontsize=8)
+        ax.set_yticklabels(all_labels, fontsize=7)
         ax.set_xlabel("F1 Score (0-100)")
         ax.set_title("Qasper F1: Baseline vs Fine-tuned")
         ax.legend()
@@ -236,14 +278,15 @@ def generate_report(experiment_name):
     summary = build_summary(runs)
 
     # Print summary
-    print(f"\n{'Method':<12} {'Run':<25} {'Baseline':>10} {'Final':>10} {'Delta':>8} {'Time':>8}")
-    print("-" * 78)
+    print(f"\n{'Method':<12} {'Run':<35} {'Type':<8} {'Baseline':>10} {'Final':>10} {'Delta':>8} {'Time':>8}")
+    print("-" * 98)
     for row in summary:
-        baseline = f"{row['baseline_f1']:.2f}" if row['baseline_f1'] is not None else "N/A"
+        baseline = f"{row['baseline_f1']:.2f}" if row['baseline_f1'] is not None else "---"
         final = f"{row['final_f1']:.2f}" if row['final_f1'] is not None else "N/A"
-        delta = f"{row['improvement']:+.2f}" if row['improvement'] is not None else "N/A"
-        time_h = f"{row['training_time_h']:.1f}h" if row['training_time_h'] else "N/A"
-        print(f"{row['method']:<12} {row['run_name']:<25} {baseline:>10} {final:>10} {delta:>8} {time_h:>8}")
+        delta = f"{row['improvement']:+.2f}" if row['improvement'] is not None else "---"
+        time_h = f"{row['training_time_h']:.1f}h" if row['training_time_h'] else "---"
+        rtype = row.get("type", "training")
+        print(f"{row['method']:<12} {row['run_name']:<35} {rtype:<8} {baseline:>10} {final:>10} {delta:>8} {time_h:>8}")
 
     # Generate plots
     generate_plots(experiment_dir, runs)
@@ -252,19 +295,13 @@ def generate_report(experiment_name):
     report = {
         "experiment": experiment_name,
         "num_runs": len(runs),
+        "generated_at": datetime.datetime.now().isoformat(),
         "summary": summary,
     }
     report_path = os.path.join(experiment_dir, "report.json")
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
     print(f"\n  Report saved: {report_path}")
-
-    # Update manifest status
-    manifest = load_manifest()
-    if experiment_name in manifest["experiments"]:
-        manifest["experiments"][experiment_name]["status"] = "finished"
-        save_manifest(manifest)
-        print(f"  Status updated: {experiment_name} -> finished")
 
     return True
 

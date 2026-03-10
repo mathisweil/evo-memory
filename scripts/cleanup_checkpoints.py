@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Remove checkpoint files from a finished experiment to save disk space.
+"""Remove checkpoint files from an active experiment to save disk space.
 
-Only runs on experiments with status "finished" (report already generated).
-Sets experiment status to "archived" after cleanup.
+Sets experiment status to "finished" after cleanup, indicating no further
+training is expected.
 
 Usage:
     python scripts/cleanup_checkpoints.py experiment_1
     python scripts/cleanup_checkpoints.py 1          # shorthand
-    python scripts/cleanup_checkpoints.py --all       # all finished experiments
+    python scripts/cleanup_checkpoints.py --all       # all active experiments
 """
 
 import argparse
@@ -48,17 +48,14 @@ def cleanup_experiment(experiment_name):
         return False
 
     status = manifest["experiments"][experiment_name]["status"]
-    if status != "finished":
-        print(f"ERROR: {experiment_name} status is '{status}', not 'finished'")
-        print("  Run generate_report.py first to set status to 'finished'")
+    if status == "finished":
+        print(f"SKIP: {experiment_name} already finished (checkpoints already cleaned)")
+        return False
+    if status != "active":
+        print(f"ERROR: {experiment_name} status is '{status}', expected 'active'")
         return False
 
     experiment_dir = os.path.join(EXPERIMENTS_DIR, experiment_name)
-    report_path = os.path.join(experiment_dir, "report.json")
-    if not os.path.isfile(report_path):
-        print(f"ERROR: report.json not found at {report_path}")
-        print("  Run generate_report.py first")
-        return False
 
     # Find and remove checkpoint directories
     total_freed = 0
@@ -79,9 +76,9 @@ def cleanup_experiment(experiment_name):
     print(f"\nFreed {freed_gb:.2f} GB ({removed_count} checkpoint files)")
 
     # Update manifest
-    manifest["experiments"][experiment_name]["status"] = "archived"
+    manifest["experiments"][experiment_name]["status"] = "finished"
     save_manifest(manifest)
-    print(f"Status updated: {experiment_name} -> archived")
+    print(f"Status updated: {experiment_name} -> finished")
 
     return True
 
@@ -98,7 +95,7 @@ def main():
     if args.all:
         manifest = load_manifest()
         for name, info in manifest["experiments"].items():
-            if info["status"] == "finished":
+            if info["status"] == "active":
                 cleanup_experiment(name)
                 print()
     elif args.experiment:
