@@ -22,6 +22,10 @@ export PJRT_DEVICE=TPU
 export GCS_BUCKET="statistical-nlp"
 export GCS_PROJECT="statistical-nlp"
 export VM_ID="${VM_ID:-$(hostname)}"
+
+# Persist XLA compiled graphs so recompilation is skipped across VM teardowns.
+export XLA_PERSISTENT_CACHE_PATH="gs://statistical-nlp/xla_cache"
+
 cd "${REPO_DIR}"
 
 echo "Activated: venv=${VENV_DIR}, PJRT_DEVICE=TPU, GCS=${GCS_BUCKET}, VM=${VM_ID}, cwd=$(pwd)"
