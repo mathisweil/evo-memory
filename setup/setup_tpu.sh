@@ -17,7 +17,7 @@
 #   - python3 (3.10+) and pip
 #   - Internet access (GitHub, PyPI, HuggingFace, npm)
 #
-# See TPU_PORT.md for the full migration plan.
+# See docs/ for guides on ES fine-tuning and NAMM.
 # =============================================================================
 
 set -euo pipefail
@@ -100,7 +100,7 @@ pip install torch torch_xla[tpu] \
 echo '  Installing project dependencies...'
 pip install -q \
     "numpy<2" \
-    "transformers==4.41.2" \
+    "transformers==4.45.2" \
     accelerate \
     "datasets==2.20.0" \
     tiktoken \
@@ -119,7 +119,10 @@ pip install -q \
     "scipy==1.13.0" \
     sentencepiece \
     tensorboard \
-    matplotlib
+    matplotlib \
+    google-cloud-storage \
+    "fsspec<=2024.5.0" \
+    "protobuf<5,>=3.19.0"
 
 # Deliberately NOT installing: bitsandbytes (GPU-only), torchvision, torchaudio
 

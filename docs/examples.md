@@ -3,7 +3,8 @@
 All commands assume you've activated the environment and are in the repo root:
 
 ```bash
-source setup/activate.sh   # also done automatically by setup/setup.sh
+source setup/activate_tpu.sh   # TPU VM
+# or: source setup/activate.sh  # GPU
 ```
 
 ---
@@ -96,7 +97,7 @@ python scripts/run_es.py \
     --noise_mode correlated
 ```
 
-Results saved to `experiments/experiment_N/es_only/full_no_namm/`.
+Results saved to `experiments/experiment_N/es_only/full_no_namm/` and `gs://statistical-nlp/experiments/` (GCS enabled by default).
 
 ### 2b-alt. With dataset length filtering
 
@@ -245,7 +246,10 @@ cat experiments/experiment_N/es_namm/run_name/examples.json
 ## Tips
 
 - Use `tmux` for long runs: `tmux new -s train`, then detach with `Ctrl+b d`.
-- Only the final checkpoint is saved (no intermediate checkpoints).
+- GCS checkpointing is on by default (`--gcs`). Checkpoints sync to `gs://statistical-nlp/experiments/` every `--checkpoint_every` iterations (default 10). Disable with `--no-gcs`.
+- Auto-resume: if training is interrupted, re-run with the same `--run_name` and it will resume from the latest GCS checkpoint automatically.
+- Preemption-safe: SIGTERM handler triggers an immediate checkpoint upload before exit.
+- XLA compilation cache is synced to `gs://statistical-nlp/xla_cache` on exit and downloaded on `source activate_tpu.sh` if the local cache is empty.
 - Baseline and final full evaluations are run automatically; no periodic validation during training.
 - Q/A examples are captured during the final evaluation (controlled by `--n_examples`).
 - All NAMM configs live in `cfgs/run/*_llama32_1b.yaml`.

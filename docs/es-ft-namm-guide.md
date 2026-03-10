@@ -64,6 +64,8 @@ Conversely, if the frozen NAMM policy becomes stale as weights drift, we'd expec
 | `--train_samples` | `150` | Qasper samples in training pool |
 | `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
 | `--resume_checkpoint` | `None` | Path to checkpoint to resume from |
+| `--gcs` | `True` | Enable GCS experiment management and checkpointing |
+| `--checkpoint_every` | `10` | Save checkpoint to GCS every N iterations |
 
 ### NAMM-specific
 

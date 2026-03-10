@@ -71,6 +71,8 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 | `--train_samples` | `150` | Qasper samples in training pool |
 | `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
 | `--resume_checkpoint` | `None` | Path to checkpoint to resume from |
+| `--gcs` | `True` | Enable GCS experiment management and checkpointing |
+| `--checkpoint_every` | `10` | Save checkpoint to GCS every N iterations (0 = final only) |
 
 ### Model/task config (from Hydra)
 
