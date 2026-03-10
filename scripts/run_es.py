@@ -245,7 +245,7 @@ def parse_args():
     parser.add_argument("--experiment", type=int, default=None,
                         help="Experiment ID (default: most recent active, or create new)")
     parser.add_argument("--method", type=str, default=None,
-                        choices=["es_namm", "es_only"],
+                        choices=["es_namm", "es_only", "es_recency"],
                         help="Method type (default: auto-detect from --namm_checkpoint)")
 
     # ES hyperparameters
