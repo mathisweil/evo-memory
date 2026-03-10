@@ -1,0 +1,33 @@
+# @package _global_
+# ES fine-tuning with recency eviction: keep only the last `cache_size` tokens.
+# No learned scoring network — pure sliding window baseline for comparison
+# with NAMM-based ES fine-tuning.
+#
+# Override cache_size from CLI: --cache_size 1024 / 3072 / 5120
+defaults:
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - override /task@_global_: qasper
+  - override /evolution@_global_: dummy
+  - override /policy@_global_: none
+  - override /typing@_global_: half_attn
+  - override /auxiliary_loss@_global_: none
+  - _self_
+
+cache_size: 1024
+max_new_tokens: 64
+
+batch_size: "auto"
+eval_max_batch_size: 16
+
+# Memory policy: fixed delay matching NAMM config for fair comparison
+memory_policy_fixed_delay: 256
+max_memory_length: ${cache_size}
+
+eval_only: true
+pop_size: 1
+
+add_bos_token: true
+score_normalization_reference:
+ddp_timeout_limit: '0:3:0'
+
+wandb_log: false

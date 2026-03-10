@@ -8,28 +8,11 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 
 ## Phase 0: Validate Baselines
 
-- [ ] **0.1** Train NAMM scoring network for real (200 iterations, ~44h)
-  ```bash
-  torchrun --standalone --nproc_per_node=1 scripts/run_namm.py \
-      run@_global_=namm_bam_i1_llama32_1b.yaml
-  ```
-  Record: total wall time, final fitness, checkpoint path.
+- [x] **0.1** ~~Train NAMM scoring network~~ — using pretrained checkpoint (`namm_pretrained_romain_v2.pt`)
 
-- [ ] **0.2** Evaluate trained NAMM checkpoint across cache sizes
-  ```bash
-  for CACHE in 128 256 512 1024; do
-      python scripts/run_namm.py \
-          'run@_global_=namm_bam_eval_llama32_1b.yaml' \
-          init_from=/path/to/ckpt.pt \
-          cache_size=$CACHE
-  done
-  ```
-  Confirm results match or improve on the README table.
+- [x] **0.2** Evaluate trained NAMM checkpoint across cache sizes — done at c1024/c3072/c5120 via experiment_2 baselines
 
-- [ ] **0.3** Run full-cache baseline evaluation
-  ```bash
-  python scripts/run_namm.py 'run@_global_=full_cache_baseline_llama32_1b.yaml'
-  ```
+- [x] **0.3** Run full-cache baseline evaluation — es_only baseline F1=14.08
 
 - [ ] **0.4** Run recency baseline evaluation
   ```bash
@@ -38,87 +21,79 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 
 - [ ] **0.5** Record base model row of the results grid
 
-  | Model | Eviction | cache | qasper | passage_ret | narrativeqa |
-  |---|---|---|---|---|---|
-  | base | full | 4096 | | | |
-  | base | NAMM | 1024 | | | |
-  | base | recency | 1024 | | | |
+  | Model | Eviction | cache | qasper |
+  |---|---|---|---|
+  | base | full | full | 14.08 |
+  | base | NAMM | 1024 | 11.65 |
+  | base | NAMM | 3072 | 13.12 |
+  | base | NAMM | 5120 | 14.43 |
+  | base | recency | 1024 | **TODO** |
 
 ---
 
 ## Phase 1: ES Fine-Tune Without NAMM (Control)
 
-- [ ] **1.1** Run ES fine-tuning with full cache (no NAMM checkpoint)
-  ```bash
-  python scripts/run_es.py \
-      --run_name no_namm_full \
-      --num_iterations 50 \
-      --population_size 8 \
-      --mini_batch_size 16 \
-      --sigma 0.001 \
-      --alpha 0.0005
-  ```
-  Monitor reward curve. Results saved to `experiments/experiment_N/es_only/no_namm_full/`.
+- [x] **1.1** Run ES fine-tuning with full cache (no NAMM checkpoint) — es_only_mb16, 50 iter, F1: 14.08→30.78
 
 - [ ] **1.2** Evaluate ES-fine-tuned (no NAMM) model under all three eviction policies
-  ```bash
-  CKPT=experiments/experiment_N/es_only/no_namm_full/checkpoints/es_checkpoint_final.pt
 
-  python scripts/run_namm.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
-  python scripts/run_namm.py 'run@_global_=namm_bam_eval_llama32_1b.yaml' init_from=$CKPT cache_size=1024
+  | Policy | Done? | F1 |
+  |---|---|---|
+  | Full cache | **DONE** | 30.78 (= es_only final eval) |
+  | NAMM c1024 | **DONE** | 21.06 (post-hoc) |
+  | NAMM c3072 | **DONE** | 28.82 (post-hoc) |
+  | NAMM c5120 | **DONE** | 29.33 (post-hoc) |
+  | Recency c1024 | **TODO** | — |
+
+  Recency eval still needed:
+  ```bash
+  CKPT=experiments/experiment_2/es_only/es_only_mb16/checkpoints/es_checkpoint_final.pt
   python scripts/run_namm.py 'run@_global_=recency_baseline_llama32_1b.yaml' init_from=$CKPT cache_size=1024
   ```
 
-- [ ] **1.3** Record ES-FT (no NAMM) row of the results grid
-
-  | Model | Eviction | cache | qasper | passage_ret | narrativeqa |
-  |---|---|---|---|---|---|
-  | ES-FT (no NAMM) | full | 4096 | | | |
-  | ES-FT (no NAMM) | NAMM | 1024 | | | |
-  | ES-FT (no NAMM) | recency | 1024 | | | |
+- [ ] **1.3** Record ES-FT (no NAMM) row of the results grid — blocked on recency eval
 
 ---
 
 ## Phase 2: ES Fine-Tune With NAMM (Core Experiment)
 
-- [ ] **2.1** Run ES fine-tuning with frozen NAMM eviction active
-  ```bash
-  python scripts/run_es.py \
-      --run_name with_namm_full \
-      --namm_checkpoint /path/to/ckpt.pt \
-      --num_iterations 50 \
-      --population_size 8 \
-      --mini_batch_size 16 \
-      --sigma 0.001 \
-      --alpha 0.0005
-  ```
-  Monitor reward curve. Results saved to `experiments/experiment_N/es_namm/with_namm_full/`.
+- [x] **2.1** Run ES fine-tuning with frozen NAMM eviction active — 3 runs completed:
 
-- [ ] **2.2** Evaluate ES-fine-tuned (with NAMM) model under all three eviction policies
-  ```bash
-  CKPT=experiments/experiment_N/es_namm/with_namm_full/checkpoints/es_checkpoint_final.pt
+  | Run | Baseline F1 | Final F1 |
+  |---|---|---|
+  | es_namm c1024 | 11.65 | 22.53 |
+  | es_namm c3072 | 13.12 | 27.46 |
+  | es_namm c5120 | 14.43 | 31.85 |
 
-  python scripts/run_namm.py 'run@_global_=namm_bam_eval_llama32_1b.yaml' init_from=$CKPT cache_size=1024
-  python scripts/run_namm.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
-  python scripts/run_namm.py 'run@_global_=recency_baseline_llama32_1b.yaml' init_from=$CKPT cache_size=1024
-  ```
+- [ ] **2.2** Evaluate ES-fine-tuned (with NAMM) model under all three eviction policies — **NOT DONE**
+  Need: full-cache eval and recency eval for each of the 3 ES+NAMM checkpoints.
 
-- [ ] **2.3** Record ES-FT (with NAMM) row of the results grid
+- [ ] **2.3** Record ES-FT (with NAMM) row of the results grid — blocked on 2.2
 
-  | Model | Eviction | cache | qasper | passage_ret | narrativeqa |
-  |---|---|---|---|---|---|
-  | ES-FT (with NAMM) | NAMM | 1024 | | | |
-  | ES-FT (with NAMM) | full | 4096 | | | |
-  | ES-FT (with NAMM) | recency | 1024 | | | |
+---
+
+## NOTE: Recency Baseline Gap
+
+Experiment 2 evaluated NAMM eviction and full-cache, but **no recency (sliding window) baseline** was run. This is needed to show that NAMM's learned eviction actually outperforms the simplest eviction strategy. Without it, a reviewer could argue that any fixed-window policy achieves similar results.
+
+**Still needed:**
+- Recency baseline on base model (step 0.4)
+- Recency eval on ES-FT (no NAMM) weights (step 1.2)
+- Recency eval on ES-FT (with NAMM) weights (step 2.2)
+- Full-cache eval on ES-FT (with NAMM) weights (step 2.2)
+- Optionally: ES fine-tune with recency eviction active (analogous to ES+NAMM but with a non-learned policy) — this would show whether the LLM can cooperate with *any* eviction policy or specifically benefits from NAMM's learned one
+
+Use `run@_global_=recency_baseline_llama32_1b.yaml` config.
 
 ---
 
 ## Phase 3: Compare and Analyse
 
-- [ ] **3.1** Assemble the full 3x3 results grid and compare
+- [ ] **3.1** Assemble the full results grid and compare
   - Does ES-FT (with NAMM) beat base model under NAMM? -> cooperation hypothesis
   - Does ES-FT (with NAMM) also improve under full cache? -> generalisation
   - Does ES-FT (with NAMM) beat ES-FT (no NAMM) under NAMM? -> specialisation
+  - Does NAMM beat recency baseline? -> learned eviction value
 
 - [ ] **3.2** Compare results from ES with NAMM vs ES without NAMM
   ```bash
