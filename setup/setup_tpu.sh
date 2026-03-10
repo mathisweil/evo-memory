@@ -72,7 +72,7 @@ echo ''
 # ---------------------------------------------------------------------------
 echo '[1/5] Installing system dependencies...'
 sudo apt-get update -qq || echo '  (apt-get update had warnings — continuing)'
-sudo apt-get install -y -qq libopenblas-dev > /dev/null 2>&1
+sudo apt-get install -y -qq libopenblas-dev python3.10-venv > /dev/null 2>&1
 echo '  Done.'
 echo ''
 
