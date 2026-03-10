@@ -2,21 +2,10 @@
 # =============================================================================
 # TPU VM Bootstrap: clone repo + run setup_tpu.sh
 #
-# Run this on a freshly provisioned TPU VM to get everything set up.
+# Run this on your TPU VM (SSH or VSCode Remote) to get everything set up.
+# Clones the repo, then hands off to setup_tpu.sh for venv + deps.
 #
-# Step 1: Create your TPU VM (from your local machine):
-#
-#   # On-demand v4-32 (recommended for development — no preemption)
-#   gcloud compute tpus tpu-vm create es-finetune \
-#       --zone=us-central2-b \
-#       --accelerator-type=v4-32 \
-#       --version=tpu-ubuntu2204-base
-#
-#   # SSH into it
-#   gcloud compute tpus tpu-vm ssh es-finetune --zone=us-central2-b
-#
-# Step 2: On the TPU VM, download and run this script:
-#
+# Usage:
 #   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup/setup_tpu_cmd.sh -o /tmp/setup_tpu_cmd.sh
 #   bash /tmp/setup_tpu_cmd.sh
 #   bash /tmp/setup_tpu_cmd.sh --noclaude             # skip Claude Code
