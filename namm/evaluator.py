@@ -69,10 +69,10 @@ class MemoryHFEvaluator():
         else:
             print('WARNING: tokenizer is none, evalluator will not be usable')
 
-        if device is None or device == 'auto':
-            self.device = self.model.device
+        if device is not None and device != 'auto':
+            self._explicit_device = device
         else:
-            self.device = device
+            self._explicit_device = None
         self.config = self.model.config
         self.evaluation_ctx_steps = evaluation_ctx_steps
         self.add_bos_token = add_bos_token
@@ -137,6 +137,16 @@ class MemoryHFEvaluator():
         self.per_timestep_loglikelihood = per_timestep_loglikelihood
         self.force_clear_cache = force_clear_cache
         self.max_retry_iter = max_retry_iter
+
+    @property
+    def device(self):
+        if self._explicit_device is not None:
+            return self._explicit_device
+        return self.model.device
+
+    @device.setter
+    def device(self, value):
+        self._explicit_device = value
 
     @property
     def model_name(self,):

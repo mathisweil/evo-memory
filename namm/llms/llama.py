@@ -728,7 +728,7 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
                     query_states)
     
     def set_max_seq_lens(self, max_seq_lens: Optional[int]):
-        if self.require_manual_max_seq_lens:
+        if getattr(self, "require_manual_max_seq_lens", False):
             self.rotary_emb.set_max_seq_lens(max_seq_lens)
 
     def _init_rope(self):
