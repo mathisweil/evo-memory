@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Archive an experiment to Google Cloud Storage.
+"""Archive an experiment.
 
-Uploads the full experiment folder to gs://{bucket}/experiments/{name}/,
-then removes everything locally except report.json and plots/.
-Sets experiment status to "archived" in manifest.
+For GCS-native experiments (--gcs): updates manifest status to "archived"
+and optionally prunes intermediate checkpoints (keeps only final).
+
+For local experiments: uploads full experiment folder to GCS, then removes
+everything locally except report.json and plots/.
 
 Usage:
     python scripts/archive_experiment.py experiment_1
     python scripts/archive_experiment.py 1          # shorthand
-    python scripts/archive_experiment.py --all       # all finished experiments
+    python scripts/archive_experiment.py --all       # all active experiments
+    python scripts/archive_experiment.py --gcs 1     # GCS-native experiment
 """
 
 import argparse
@@ -17,15 +20,12 @@ import os
 import shutil
 import sys
 
-from google.cloud import storage
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+sys.path.insert(0, REPO_ROOT)
+
 EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
 MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
-
-GCS_BUCKET = os.environ.get("GCS_BUCKET", "statistical-nlp")
-GCS_PREFIX = "experiments"
 
 # Files/dirs to keep locally after archival
 KEEP_LOCAL = {"report.json", "plots"}
@@ -85,9 +85,11 @@ def remove_except_keep(experiment_dir):
     return removed_bytes
 
 
-def archive_experiment(experiment_name):
-    manifest = load_manifest()
+def archive_experiment_local(experiment_name):
+    """Archive a local experiment by uploading to GCS."""
+    from google.cloud import storage
 
+    manifest = load_manifest()
     if experiment_name not in manifest["experiments"]:
         print(f"ERROR: {experiment_name} not found in manifest")
         return False
@@ -105,27 +107,62 @@ def archive_experiment(experiment_name):
         print(f"ERROR: {experiment_dir} does not exist")
         return False
 
-    print(f"Archiving {experiment_name} to gs://{GCS_BUCKET}/{GCS_PREFIX}/{experiment_name}/...")
+    gcs_bucket = os.environ.get("GCS_BUCKET", "statistical-nlp")
+    gcs_project = os.environ.get("GCS_PROJECT", "statistical-nlp")
 
-    # Upload to GCS
-    client = storage.Client(project=os.environ.get("GCS_PROJECT", "statistical-nlp"))
-    bucket = client.bucket(GCS_BUCKET)
-    gcs_path = f"{GCS_PREFIX}/{experiment_name}"
+    print(f"Archiving {experiment_name} to gs://{gcs_bucket}/experiments/{experiment_name}/...")
+
+    client = storage.Client(project=gcs_project)
+    bucket = client.bucket(gcs_bucket)
+    gcs_path = f"experiments/{experiment_name}"
     uploaded, total_bytes = upload_directory(bucket, experiment_dir, gcs_path)
 
     print(f"\nUploaded {uploaded} files ({total_bytes / 1024**3:.2f} GB) "
-          f"to gs://{GCS_BUCKET}/{gcs_path}/")
+          f"to gs://{gcs_bucket}/{gcs_path}/")
 
-    # Remove local files except report and plots
     freed = remove_except_keep(experiment_dir)
     print(f"Freed {freed / 1024**3:.2f} GB locally (kept report.json + plots/)")
 
-    # Update manifest
     manifest["experiments"][experiment_name]["status"] = "archived"
-    manifest["experiments"][experiment_name]["gcs_path"] = f"gs://{GCS_BUCKET}/{gcs_path}"
+    manifest["experiments"][experiment_name]["gcs_path"] = f"gs://{gcs_bucket}/{gcs_path}"
     save_manifest(manifest)
     print(f"Status updated: {experiment_name} -> archived")
+    return True
 
+
+def archive_experiment_gcs(experiment_name, gcs, prune_checkpoints=True):
+    """Archive a GCS-native experiment (data already in GCS)."""
+
+    def updater(manifest):
+        if experiment_name not in manifest["experiments"]:
+            print(f"ERROR: {experiment_name} not found in manifest")
+            return manifest
+        exp = manifest["experiments"][experiment_name]
+        if exp["status"] == "archived":
+            print(f"SKIP: {experiment_name} already archived")
+            return manifest
+        exp["status"] = "archived"
+        return manifest
+
+    gcs.update_manifest(updater)
+
+    # Prune intermediate checkpoints, keep only final
+    if prune_checkpoints:
+        prefix = f"experiments/{experiment_name}/"
+        blobs = gcs.list_blobs(prefix)
+        pruned = 0
+        for blob in blobs:
+            name = blob.name
+            # Delete periodic checkpoints (es_checkpoint_iter*.pt) and
+            # training state files, keep es_checkpoint_final.pt
+            if ("/checkpoints/es_checkpoint_iter" in name
+                    or "/state/training_state_iter" in name):
+                blob.delete()
+                pruned += 1
+        if pruned:
+            print(f"  Pruned {pruned} intermediate checkpoint/state files")
+
+    print(f"Status updated: {experiment_name} -> archived")
     return True
 
 
@@ -135,18 +172,34 @@ def main():
     parser.add_argument("experiment", nargs="?",
                         help="Experiment name or ID (e.g. experiment_1 or 1)")
     parser.add_argument("--all", action="store_true",
-                        help="Archive all finished experiments")
+                        help="Archive all active experiments")
+    parser.add_argument("--gcs", action="store_true",
+                        help="Archive GCS-native experiment (no upload needed)")
     args = parser.parse_args()
 
+    gcs = None
+    if args.gcs:
+        from es_finetuning.gcs import GCSClient
+        gcs = GCSClient()
+
     if args.all:
-        manifest = load_manifest()
+        if gcs:
+            manifest, _ = gcs.load_manifest()
+        else:
+            manifest = load_manifest()
         for name, info in manifest["experiments"].items():
             if info["status"] == "active":
-                archive_experiment(name)
+                if gcs:
+                    archive_experiment_gcs(name, gcs)
+                else:
+                    archive_experiment_local(name)
                 print()
     elif args.experiment:
         name = normalize_name(args.experiment)
-        archive_experiment(name)
+        if gcs:
+            archive_experiment_gcs(name, gcs)
+        else:
+            archive_experiment_local(name)
     else:
         parser.print_help()
 

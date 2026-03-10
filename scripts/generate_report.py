@@ -8,18 +8,16 @@ as new results become available.
 Usage:
     python scripts/generate_report.py experiment_1
     python scripts/generate_report.py 1              # shorthand
-    python scripts/generate_report.py --all           # all active experiments
-    python scripts/generate_report.py 1 --archived    # from archived experiment (GCS)
-    python scripts/generate_report.py --all --archived # all archived experiments
+    python scripts/generate_report.py --all           # all active experiments (local)
+    python scripts/generate_report.py --gcs 1         # from GCS
+    python scripts/generate_report.py --gcs --all     # all experiments from GCS
 """
 
 import argparse
 import datetime
 import json
 import os
-import shutil
 import sys
-import tempfile
 
 import numpy as np
 
@@ -28,20 +26,12 @@ REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
 MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
 
-GCS_BUCKET = os.environ.get("GCS_BUCKET", "statistical-nlp")
-GCS_PREFIX = "experiments"
-
 
 def load_manifest():
     if os.path.exists(MANIFEST_PATH):
         with open(MANIFEST_PATH) as f:
             return json.load(f)
     return {"experiments": {}}
-
-
-def save_manifest(manifest):
-    with open(MANIFEST_PATH, "w") as f:
-        json.dump(manifest, f, indent=2)
 
 
 def normalize_name(name):
@@ -119,8 +109,9 @@ def _get_qasper_f1(scores):
     return scores.get("lb/qasper")
 
 
-def build_summary(runs):
+def build_summary(runs, run_statuses=None):
     """Build a comparison table from all runs."""
+    run_statuses = run_statuses or {}
     rows = []
     for run in runs:
         r = run["results"]
@@ -130,6 +121,9 @@ def build_summary(runs):
 
         final_f1 = _get_qasper_f1(final_scores)
         baseline_f1 = _get_qasper_f1(baseline_scores)
+
+        run_key = f"{run['method']}/{run['run_name']}"
+        status_info = run_statuses.get(run_key, {})
 
         rows.append({
             "method": run["method"],
@@ -146,6 +140,8 @@ def build_summary(runs):
             "sigma": config.get("sigma"),
             "alpha": config.get("alpha"),
             "population_size": config.get("population_size"),
+            "status": status_info.get("status"),
+            "vm_id": status_info.get("vm_id"),
         })
     return rows
 
@@ -168,6 +164,9 @@ def generate_plots(experiment_dir, runs):
     for run in runs:
         methods.setdefault(run["method"], []).append(run)
 
+    method_colors = {"es_namm": "steelblue", "es_only": "seagreen",
+                     "es_recency": "coral", "namm_only": "coral"}
+
     # Plot 1: F1 comparison bar chart
     fig, ax = plt.subplots(figsize=(10, 6))
     all_labels = []
@@ -175,8 +174,6 @@ def generate_plots(experiment_dir, runs):
     all_final = []
     all_types = []
     colors_final = []
-    method_colors = {"es_namm": "steelblue", "es_only": "seagreen",
-                     "namm_only": "coral"}
 
     for method, method_runs in sorted(methods.items()):
         for run in method_runs:
@@ -256,75 +253,86 @@ def generate_plots(experiment_dir, runs):
         print(f"  Saved: {plots_dir}/training_curves.png")
 
 
-def download_experiment_from_gcs(experiment_name, dest_dir):
-    """Download an archived experiment from GCS to a local directory."""
-    from google.cloud import storage
-
-    client = storage.Client(project=os.environ.get("GCS_PROJECT", "statistical-nlp"))
-    bucket = client.bucket(GCS_BUCKET)
-    prefix = f"{GCS_PREFIX}/{experiment_name}/"
-
-    blobs = list(bucket.list_blobs(prefix=prefix))
-    if not blobs:
-        print(f"ERROR: No files found at gs://{GCS_BUCKET}/{prefix}")
-        return False
-
-    print(f"  Downloading {len(blobs)} files from gs://{GCS_BUCKET}/{prefix}...")
-    for blob in blobs:
-        rel_path = blob.name[len(prefix):]
-        if not rel_path:
-            continue
-        local_path = os.path.join(dest_dir, rel_path)
-        os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        blob.download_to_filename(local_path)
-
-    return True
-
-
-def generate_report(experiment_name, from_archive=False):
-    experiment_dir = os.path.join(EXPERIMENTS_DIR, experiment_name)
-    tmp_dir = None
-
-    if from_archive:
-        # Download from GCS to a temp directory for data collection
-        tmp_dir = tempfile.mkdtemp(prefix=f"report_{experiment_name}_")
-        print(f"Fetching archived experiment {experiment_name} from GCS...")
-        if not download_experiment_from_gcs(experiment_name, tmp_dir):
-            shutil.rmtree(tmp_dir)
-            return False
-        data_dir = tmp_dir
+def print_summary(summary):
+    """Print the summary table to stdout."""
+    has_status = any(row.get("status") for row in summary)
+    if has_status:
+        print(f"\n{'Method':<12} {'Run':<30} {'Status':<11} {'Baseline':>10} "
+              f"{'Final':>10} {'Delta':>8} {'Time':>8} {'VM':>15}")
+        print("-" * 112)
     else:
-        if not os.path.isdir(experiment_dir):
-            print(f"ERROR: {experiment_dir} does not exist")
-            return False
-        data_dir = experiment_dir
+        print(f"\n{'Method':<12} {'Run':<35} {'Type':<8} {'Baseline':>10} "
+              f"{'Final':>10} {'Delta':>8} {'Time':>8}")
+        print("-" * 98)
 
-    print(f"Generating report for {experiment_name}...")
-
-    runs = collect_runs(data_dir)
-    if not runs:
-        print(f"  No completed runs found")
-        if tmp_dir:
-            shutil.rmtree(tmp_dir)
-        return False
-
-    print(f"  Found {len(runs)} runs")
-
-    # Build summary table
-    summary = build_summary(runs)
-
-    # Print summary
-    print(f"\n{'Method':<12} {'Run':<35} {'Type':<8} {'Baseline':>10} {'Final':>10} {'Delta':>8} {'Time':>8}")
-    print("-" * 98)
     for row in summary:
         baseline = f"{row['baseline_f1']:.2f}" if row['baseline_f1'] is not None else "---"
         final = f"{row['final_f1']:.2f}" if row['final_f1'] is not None else "N/A"
         delta = f"{row['improvement']:+.2f}" if row['improvement'] is not None else "---"
         time_h = f"{row['training_time_h']:.1f}h" if row['training_time_h'] else "---"
-        rtype = row.get("type", "training")
-        print(f"{row['method']:<12} {row['run_name']:<35} {rtype:<8} {baseline:>10} {final:>10} {delta:>8} {time_h:>8}")
+        if has_status:
+            status = row.get("status", "---") or "---"
+            vm = row.get("vm_id", "") or ""
+            print(f"{row['method']:<12} {row['run_name']:<30} {status:<11} "
+                  f"{baseline:>10} {final:>10} {delta:>8} {time_h:>8} "
+                  f"{vm:>15}")
+        else:
+            rtype = row.get("type", "training")
+            print(f"{row['method']:<12} {row['run_name']:<35} {rtype:<8} "
+                  f"{baseline:>10} {final:>10} {delta:>8} {time_h:>8}")
 
-    # Save report and plots to the local experiment dir (create if needed)
+
+def generate_report_local(experiment_name):
+    """Generate report from local filesystem."""
+    experiment_dir = os.path.join(EXPERIMENTS_DIR, experiment_name)
+    if not os.path.isdir(experiment_dir):
+        print(f"ERROR: {experiment_dir} does not exist")
+        return False
+
+    print(f"Generating report for {experiment_name}...")
+    runs = collect_runs(experiment_dir)
+    if not runs:
+        print(f"  No completed runs found")
+        return False
+
+    print(f"  Found {len(runs)} runs")
+    summary = build_summary(runs)
+    print_summary(summary)
+    generate_plots(experiment_dir, runs)
+
+    report = {
+        "experiment": experiment_name,
+        "num_runs": len(runs),
+        "generated_at": datetime.datetime.now().isoformat(),
+        "summary": summary,
+    }
+    report_path = os.path.join(experiment_dir, "report.json")
+    with open(report_path, "w") as f:
+        json.dump(report, f, indent=2)
+    print(f"\n  Report saved: {report_path}")
+    return True
+
+
+def generate_report_gcs(experiment_name, gcs):
+    """Generate report from GCS data."""
+    print(f"Generating report for {experiment_name} (from GCS)...")
+    runs = gcs.collect_runs_gcs(experiment_name)
+    if not runs:
+        print(f"  No completed runs found in GCS")
+        return False
+
+    print(f"  Found {len(runs)} runs")
+
+    # Get run statuses from manifest
+    manifest, _ = gcs.load_manifest()
+    exp_info = manifest.get("experiments", {}).get(experiment_name, {})
+    run_statuses = exp_info.get("runs", {})
+
+    summary = build_summary(runs, run_statuses)
+    print_summary(summary)
+
+    # Save report and plots locally
+    experiment_dir = os.path.join(EXPERIMENTS_DIR, experiment_name)
     os.makedirs(experiment_dir, exist_ok=True)
     generate_plots(experiment_dir, runs)
 
@@ -339,9 +347,17 @@ def generate_report(experiment_name, from_archive=False):
         json.dump(report, f, indent=2)
     print(f"\n  Report saved: {report_path}")
 
-    # Clean up temp dir
-    if tmp_dir:
-        shutil.rmtree(tmp_dir)
+    # Upload report back to GCS
+    gcs.upload_file(
+        report_path,
+        f"experiments/{experiment_name}/report.json")
+    plots_dir = os.path.join(experiment_dir, "plots")
+    if os.path.isdir(plots_dir):
+        for f in os.listdir(plots_dir):
+            gcs.upload_file(
+                os.path.join(plots_dir, f),
+                f"experiments/{experiment_name}/plots/{f}")
+    print("  Report uploaded to GCS.")
 
     return True
 
@@ -351,23 +367,35 @@ def main():
     parser.add_argument("experiment", nargs="?",
                         help="Experiment name or ID (e.g. experiment_1 or 1)")
     parser.add_argument("--all", action="store_true",
-                        help="Generate reports for all active experiments")
-    parser.add_argument("--archived", action="store_true",
-                        help="Generate report from an archived experiment (downloads from GCS)")
+                        help="Generate reports for all experiments")
+    parser.add_argument("--gcs", action="store_true",
+                        help="Read experiment data from GCS")
     args = parser.parse_args()
 
+    gcs = None
+    if args.gcs:
+        sys.path.insert(0, os.path.dirname(SCRIPT_DIR))
+        from es_finetuning.gcs import GCSClient
+        gcs = GCSClient()
+
     if args.all:
-        manifest = load_manifest()
+        if gcs:
+            manifest, _ = gcs.load_manifest()
+        else:
+            manifest = load_manifest()
         for name, info in manifest["experiments"].items():
-            if args.archived and info["status"] == "archived":
-                generate_report(name, from_archive=True)
-                print()
-            elif not args.archived and info["status"] == "active":
-                generate_report(name)
+            if info["status"] in ("active", "archived"):
+                if gcs:
+                    generate_report_gcs(name, gcs)
+                else:
+                    generate_report_local(name)
                 print()
     elif args.experiment:
         name = normalize_name(args.experiment)
-        generate_report(name, from_archive=args.archived)
+        if gcs:
+            generate_report_gcs(name, gcs)
+        else:
+            generate_report_local(name)
     else:
         parser.print_help()
 
