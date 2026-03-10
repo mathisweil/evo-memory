@@ -37,6 +37,9 @@ venv/
 # HF model cache
 .hf_cache/
 
+# XLA compilation cache (TPU)
+.xla_cache/
+
 # Personal working notes
 notes.md
 report.md

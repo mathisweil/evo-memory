@@ -70,9 +70,9 @@ A `manifest.json` in `experiments/` tracks all experiments.
 Pin these versions exactly — newer versions break at runtime.
 
 ```
-torch==2.3.1          (cu121 build)
-transformers==4.41.2  (4.45+ breaks DynamicCache API)
-peft==0.11.1          (newer versions depend on transformers 4.45+)
+torch==2.3.1          (cu121 build for GPU; TPU uses torch_xla matching version)
+transformers==4.45.2  (supports Llama 3.2 rope_type)
+peft==0.11.1
 numpy<2               (numpy 2.x breaks many downstream packages)
 ```
 
