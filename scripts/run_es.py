@@ -17,6 +17,9 @@ Usage:
     # Add a run to an existing active experiment:
     python scripts/run_es.py --experiment 3 --run_name cache2048_i50 ...
 
+    # With GCS checkpointing and spot preemption handling:
+    python scripts/run_es.py --gcs --checkpoint_every 10 --run_name cache1024 ...
+
     # Quick smoke test:
     python scripts/run_es.py --run_name test \
         --num_iterations 2 --population_size 2 --mini_batch_size 2
@@ -26,6 +29,7 @@ import argparse
 import json
 import logging
 import os
+import socket
 import sys
 from datetime import datetime
 
@@ -50,7 +54,7 @@ EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
 MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
 
 
-# ── Experiment manifest management ──────────────────────────────────────
+# ── Local experiment manifest management ──────────────────────────────
 
 def _load_manifest():
     if os.path.exists(MANIFEST_PATH):
@@ -112,6 +116,79 @@ def get_or_create_experiment(experiment_id=None):
     _save_manifest(manifest)
     print(f"Created new experiment: {name}")
     return name, manifest
+
+
+# ── GCS experiment manifest management ────────────────────────────────
+
+def get_or_create_experiment_gcs(gcs, experiment_id=None):
+    """GCS-backed version of get_or_create_experiment."""
+
+    if experiment_id is not None:
+        name = f"experiment_{experiment_id}"
+
+        def ensure_exists(manifest):
+            if name not in manifest["experiments"]:
+                raise ValueError(
+                    f"{name} does not exist. Available: "
+                    f"{list(manifest['experiments'].keys())}")
+            status = manifest["experiments"][name]["status"]
+            if status != "active":
+                raise ValueError(
+                    f"{name} is '{status}', not 'active'.")
+            return manifest
+
+        manifest = gcs.update_manifest(ensure_exists)
+        return name, manifest
+
+    # Try to find active experiment or create one
+    manifest, generation = gcs.load_manifest()
+    active = [(n, i) for n, i in manifest["experiments"].items()
+              if i["status"] == "active"]
+    if active:
+        active.sort(key=lambda x: int(x[0].split("_")[1]), reverse=True)
+        name = active[0][0]
+        print(f"Using active experiment: {name}")
+        return name, manifest
+
+    # Create new one
+    existing = [int(k.split("_")[1]) for k in manifest["experiments"]
+                if k.startswith("experiment_")]
+    new_id = max(existing, default=0) + 1
+    name = f"experiment_{new_id}"
+
+    def create(m):
+        m["experiments"][name] = {
+            "status": "active",
+            "created": datetime.now().isoformat(),
+        }
+        return m
+
+    manifest = gcs.update_manifest(create)
+    print(f"Created new experiment: {name}")
+    return name, manifest
+
+
+def claim_run_gcs(gcs, experiment_name, method, run_name):
+    """Atomically register a run as 'running' in the GCS manifest."""
+    vm_id = os.environ.get("VM_ID", socket.gethostname())
+    run_key = f"{method}/{run_name}"
+
+    def updater(manifest):
+        exp = manifest["experiments"].setdefault(experiment_name, {})
+        runs = exp.setdefault("runs", {})
+        if run_key in runs and runs[run_key].get("status") == "running":
+            raise RuntimeError(
+                f"Run {run_key} already claimed by "
+                f"{runs[run_key].get('vm_id', 'unknown')}")
+        runs[run_key] = {
+            "status": "running",
+            "vm_id": vm_id,
+            "started": datetime.now().isoformat(),
+        }
+        return manifest
+
+    gcs.update_manifest(updater)
+    print(f"Claimed run {run_key} on {vm_id}")
 
 
 # ── Hydra config loading ────────────────────────────────────────────────
@@ -283,6 +360,12 @@ def parse_args():
     parser.add_argument("--n_examples", type=int, default=10,
                         help="Number of Q/A examples to capture")
 
+    # GCS and checkpointing
+    parser.add_argument("--gcs", action="store_true", default=False,
+                        help="Enable GCS experiment management and checkpointing")
+    parser.add_argument("--checkpoint_every", type=int, default=10,
+                        help="Save checkpoint every N iterations (0 = final only)")
+
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
@@ -296,16 +379,49 @@ def main():
     if args.method is None:
         args.method = "es_namm" if args.namm_checkpoint else "es_only"
 
+    # Setup GCS client if requested
+    gcs = None
+    preemption_handler = None
+    if args.gcs:
+        from es_finetuning.gcs import GCSClient
+        from es_finetuning.preemption import PreemptionHandler
+        gcs = GCSClient()
+        preemption_handler = PreemptionHandler()
+
     # Setup experiment hierarchy
-    experiment_name, manifest = get_or_create_experiment(args.experiment)
+    if gcs:
+        experiment_name, manifest = get_or_create_experiment_gcs(
+            gcs, args.experiment)
+    else:
+        experiment_name, manifest = get_or_create_experiment(args.experiment)
+
     run_dir = os.path.join(EXPERIMENTS_DIR, experiment_name,
                            args.method, args.run_name)
 
-    if os.path.exists(run_dir) and os.path.exists(os.path.join(run_dir, "results.json")):
+    # Auto-resume from GCS if checkpoint exists
+    resumed_history = None
+    resumed_training_state = None
+    if gcs and args.resume_checkpoint is None:
+        ckpt_path, training_state = gcs.download_latest_checkpoint(
+            experiment_name, args.method, args.run_name, run_dir)
+        if ckpt_path:
+            args.resume_checkpoint = ckpt_path
+            resumed_training_state = training_state
+            if training_state:
+                resumed_history = training_state.get("history")
+            print(f"Auto-resuming from GCS checkpoint: {ckpt_path}")
+
+    if (os.path.exists(run_dir)
+            and os.path.exists(os.path.join(run_dir, "results.json"))
+            and args.resume_checkpoint is None):
         print(f"ERROR: Run already exists with results: {run_dir}")
         sys.exit(1)
 
     os.makedirs(run_dir, exist_ok=True)
+
+    # Claim run in GCS manifest
+    if gcs:
+        claim_run_gcs(gcs, experiment_name, args.method, args.run_name)
 
     if torch.cuda.is_available():
         torch.backends.cuda.matmul.allow_tf32 = True
@@ -324,6 +440,9 @@ def main():
           f"pop={args.population_size}, iter={args.num_iterations}")
     print(f"Noise mode: {args.noise_mode}")
     print(f"Mini-batch size: {args.mini_batch_size}")
+    if gcs:
+        print(f"GCS: gs://{gcs.bucket_name}/ (checkpoint every "
+              f"{args.checkpoint_every} iter)")
     print()
 
     # 1. Load config and model
@@ -411,6 +530,7 @@ def main():
         initial_seed=args.initial_seed,
         mini_batch_size=args.mini_batch_size,
         log_dir=run_dir,
+        checkpoint_every=args.checkpoint_every if args.gcs else 0,
     )
 
     trainer = ESTrainer(
@@ -431,12 +551,19 @@ def main():
             "run_name": args.run_name,
         },
         resume_from=args.resume_checkpoint,
+        gcs_client=gcs,
+        preemption_handler=preemption_handler,
+        experiment_name=experiment_name,
+        method=args.method,
+        run_name=args.run_name,
     )
 
     # 8. Load ES checkpoint AFTER trainer init (so initial_params snapshot
     #    captures the true base weights, not the resumed weights)
+    numpy_state_restored = False
     if args.resume_checkpoint:
         print(f"Loading ES checkpoint weights: {args.resume_checkpoint}")
+
         es_state = torch.load(args.resume_checkpoint, map_location="cpu",
                               weights_only=True)
         model_params = dict(memory_model.named_parameters())
@@ -452,10 +579,21 @@ def main():
         fmt = "delta" if is_delta else "full (legacy)"
         print(f"  Loaded {loaded} parameter tensors ({fmt} format)")
 
+        # Restore numpy RNG state from training state (if available).
+        # Must happen AFTER weight loading but BEFORE train() which
+        # would otherwise call np.random.seed() and destroy this state.
+        if (resumed_training_state
+                and "numpy_random_state" in resumed_training_state):
+            from es_finetuning.trainer import restore_numpy_state
+            restore_numpy_state(resumed_training_state["numpy_random_state"])
+            numpy_state_restored = True
+            print("  Restored numpy random state from training state")
+
     print()
     print("Starting ES training...")
     with torch.no_grad():
-        trainer.train()
+        trainer.train(resumed_history=resumed_history,
+                      numpy_state_restored=numpy_state_restored)
 
     print("Done.")
 
