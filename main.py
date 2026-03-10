@@ -229,7 +229,10 @@ def main(cfg: DictConfig):
             (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
                 auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
 
-            task_sampler = make_task_sampler(cfg=cfg, log_prefix=log_prefix)
+            # Pass tokenizer so prompts are chat-templated for instruct models
+            _tokenizer = getattr(memory_evaluator, 'tokenizer', None)
+            task_sampler = make_task_sampler(
+                cfg=cfg, log_prefix=log_prefix, tokenizer=_tokenizer)
 
             trainer = hydra.utils.instantiate(
                 cfg.trainer,

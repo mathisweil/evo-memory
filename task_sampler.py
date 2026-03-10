@@ -31,8 +31,10 @@ class TaskSampler():
         test_tasks_subset: Optional[list] = None,
         store_gen_outputs: bool = False,
         store_gen_outputs_path: Optional[str] = None,
+        tokenizer=None,
     ):
 
+        self.tokenizer = tokenizer
         self.store_gen_outputs = store_gen_outputs
 
         if store_gen_outputs_path is not None:
@@ -139,7 +141,23 @@ class TaskSampler():
             self.lb_prompts_per_task[task] = []
             for json_file in jsons:
                 prompt = prompt_format.format(**json_file)
+                if self.tokenizer is not None:
+                    prompt = self.tokenizer.apply_chat_template(
+                        [{"role": "user", "content": prompt}],
+                        tokenize=False,
+                        add_generation_prompt=True,
+                    )
+                    # Strip leading BOS token text to avoid double-BOS: the
+                    # chat template adds <|begin_of_text|> and the evaluator's
+                    # tok_encode also prepends BOS via add_special_tokens=True.
+                    bos = getattr(self.tokenizer, 'bos_token', None)
+                    if bos and prompt.startswith(bos):
+                        prompt = prompt[len(bos):]
                 self.lb_prompts_per_task[task].append(prompt)
+
+        if self.tokenizer is not None:
+            print(f"TaskSampler: prompts wrapped with apply_chat_template "
+                  f"({sum(len(v) for v in self.lb_prompts_per_task.values())} prompts)")
 
         self.num_prompts_per_lb_task = {k: len(
             ps) for k, ps in self.lb_prompts_per_task.items()}

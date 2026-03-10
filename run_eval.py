@@ -50,6 +50,8 @@ def parse_args():
                    help='Evaluate only on held-out last 20%% of each task (matches train_frac=0.8 SFT split)')
     p.add_argument('--train-frac', type=float, default=0.8,
                    help='Train fraction used during SFT — held-out starts at this index (default 0.8)')
+    p.add_argument('--wandb-group', default=None,
+                   help='Override wandb group name (default: EVAL_WANDB_GROUP constant)')
     return p.parse_args()
 
 
@@ -129,14 +131,18 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
 
     # 6. Build model, evaluator, task_sampler via the standard make_eval_model path
     (memory_policy, model, evaluator, evo_alg, aux_loss) = make_eval_model(cfg)
+
+    # Retrieve tokenizer from evaluator (MemoryHFEvaluator stores it)
+    tokenizer = evaluator.tokenizer if hasattr(evaluator, 'tokenizer') else None
+
+    # Pass tokenizer to TaskSampler so prompts are wrapped with apply_chat_template
+    # for instruct models (matches the format used during SFT training).
     task_sampler = make_task_sampler(
         cfg,
         store_gen_outputs=True,
         store_gen_outputs_path=os.path.join(artifact_dir, 'eval_outputs'),
+        tokenizer=tokenizer,
     )
-
-    # Retrieve tokenizer from evaluator (MemoryHFEvaluator stores it)
-    tokenizer = evaluator.tokenizer if hasattr(evaluator, 'tokenizer') else None
 
     # 7. Apply LoRA adapters and load LoRA weights for lora_grad conditions
     lora_conditions = ('m1', 'm1_sft', 'm2', 'm3', 'm4_frozen', 'm4_iterative')
@@ -145,15 +151,24 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
         print("Base LLaMA eval: skipping LoRA adapter injection (no checkpoint needed).")
         # No LoRA, no checkpoint loading — pure base model evaluation
     elif method in lora_conditions:
+        # Load LoRA weights from the checkpoint
+        if ckpt_path is None:
+            raise ValueError(f"--ckpt is required for method '{method}' (LoRA checkpoint needed)")
+        lora_ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
+
+        # Read rank and target_modules from checkpoint lora_config if present —
+        # this is more reliable than config.yaml which may not save lora_rank.
+        # Falls back to config.yaml values, then to defaults.
+        if 'lora_config' in lora_ckpt:
+            lora_rank = lora_ckpt['lora_config'].get('rank', lora_rank)
+            lora_target_modules = lora_ckpt['lora_config'].get('target_modules', lora_target_modules)
+            print(f"LoRA config from checkpoint: rank={lora_rank}, targets={lora_target_modules}")
+
         # apply_lora_adapters injects PEFT LoRA A/B matrices into the base model
         model.apply_lora_adapters(
             rank=lora_rank,
             target_modules=lora_target_modules,
         )
-        # Load LoRA weights from the checkpoint
-        if ckpt_path is None:
-            raise ValueError(f"--ckpt is required for method '{method}' (LoRA checkpoint needed)")
-        lora_ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
         if 'lora_state_dict' in lora_ckpt:
             loaded = 0
             for n, p in model.model.named_parameters():
@@ -242,6 +257,16 @@ def log_results(results: dict, method: str, seed: int, artifact_dir: str):
     for task, score in results.items():
         if score is not None:
             wandb.log({f'eval/{task}': score})
+
+    # Log bar chart — each task as a row so wandb renders bars not lines
+    if wandb.run is not None:
+        table = wandb.Table(columns=["task", "score"])
+        for task, score in results.items():
+            if score is not None:
+                table.add_data(task, score)
+        wandb.log({"eval/scores_bar": wandb.plot.bar(
+            table, "task", "score", title="LongBench Eval Scores")})
+
     # Save eval_outputs to artifact_dir
     eval_dir = os.path.join(artifact_dir, 'eval_outputs')
     os.makedirs(eval_dir, exist_ok=True)
@@ -263,20 +288,30 @@ def main():
     print(f"Wandb group: {EVAL_WANDB_GROUP}")
 
     if not args.no_wandb:
-        # Build descriptive run name including config, cache size, and eval split
-        run_name_parts = [f'eval-{args.method}']
-        if args.run_config:
-            run_name_parts.append(args.run_config.replace('_llama32_1b_instruct', '').replace('_llama32_1b', ''))
-        if args.cache_size:
-            run_name_parts.append(f'cs{args.cache_size}')
-        if args.held_out_eval:
-            run_name_parts.append('heldout')
-        run_name_parts.append(f'seed{args.seed}')
-        eval_run_name = '-'.join(run_name_parts)
+        # Build descriptive run name
+        is_recency = args.run_config and 'recency' in args.run_config
+        if args.method == 'base':
+            # llama-instruct-{cache_size}-recency  or  llama-instruct-full-cache
+            if is_recency and args.cache_size:
+                eval_run_name = f'llama-instruct-{args.cache_size}-recency'
+            else:
+                eval_run_name = 'llama-instruct-full-cache'
+        else:
+            # eval-{method}[-recency_baseline][-cs{N}]-seed{seed}
+            run_name_parts = [f'eval-{args.method}']
+            if is_recency:
+                run_name_parts.append('recency_baseline')
+            if args.cache_size:
+                run_name_parts.append(f'cs{args.cache_size}')
+            if args.held_out_eval:
+                run_name_parts.append('heldout')
+            run_name_parts.append(f'seed{args.seed}')
+            eval_run_name = '-'.join(run_name_parts)
 
+        wandb_group = args.wandb_group or EVAL_WANDB_GROUP
         wandb.init(
             project=EVAL_WANDB_PROJECT,
-            group=EVAL_WANDB_GROUP,
+            group=wandb_group,
             name=eval_run_name,
             config={'method': args.method, 'seed': args.seed, 'ckpt': args.ckpt,
                     'run_config': args.run_config, 'cache_size': args.cache_size},

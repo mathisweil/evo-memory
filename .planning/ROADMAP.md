@@ -43,7 +43,7 @@ Plans:
 
 ### Phase 9: SFT LoRA Training and m1 Revalidation
 
-**Goal:** Replace the NTP training objective with supervised QA finetuning (SFT — context+question→answer, answer-only loss) using **LLaMA 3.2-1B-Instruct** (supervisor recommendation); train m1-SFT on QASPER; validate outputs are non-degenerate and exceed base Instruct performance; gate all subsequent phases on SFT viability before cascading the new objective.
+**Goal:** Replace the NTP training objective with supervised QA finetuning (SFT — context+question->answer, answer-only loss) using **LLaMA 3.2-1B-Instruct** (supervisor recommendation); train m1-SFT on QASPER; validate outputs are non-degenerate and exceed base Instruct performance; gate all subsequent phases on SFT viability before cascading the new objective.
 **Requirements**: TRAIN-01, EXP-01
 **Depends on:** Phase 3 (uses LoRAGradTrainer infrastructure)
 **Runs before:** Phase 4 (validates SFT objective before m4-frozen and other conditions adopt it)
@@ -120,12 +120,12 @@ Plans:
   1. The interleaving controller exists as a standalone orchestration class; setting `interleave_freq: N` in config causes it to run N LoRA gradient steps then 1 NAMM CMA-ES step, cycling until the total token budget is exhausted; the wandb run shows alternating `namm/fitness` and `lora/loss` log entries confirming both are updating
   2. After each NAMM CMA-ES step within the interleaved run, NAMM fitness is non-decreasing (NAMM is learning, not degrading under LoRA interference); after each LoRA gradient step, `all(p.grad is not None for p in lora_params)` would pass (LoRA is still receiving gradient signal)
   3. The m4-iterative checkpoint passes the inspector; eval on all three LongBench tasks produces scores logged to wandb alongside m1 and m4-frozen; artifact set is complete in `results/m4_iterative/{seed}/`
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: Write interleaving orchestration controller (`lora_namm_interleaver.py`) — alternates `LoRAGradTrainer` gradient steps and `MemoryTrainer` CMA-ES steps with configurable frequency; coordinates checkpoint handoff between the two trainers each cycle; respects total token budget for gradient steps (TRAIN-07)
-- [ ] 05-02: Write `cfgs/run/m4_iterative.yaml` — uses interleaving controller, configures interleave_freq, same FAIR-01 token budget for LoRA steps; same token budget constraint as m4-frozen (PIPE-05)
-- [ ] 05-03: SSH to sideswipe/prowl; run m4-iterative; monitor both fitness and loss curves in wandb; eval checkpoint on all three tasks; save artifact set (EXP-04)
+- [ ] 05-01-PLAN.md — Write `lora_namm_interleaver.py` with `LoRANAMMInterleaver` composition class: alternates LoRA gradient epochs and CMA-ES steps; joint checkpoint with evolution + LoRA + AdamW + scheduler state; prefixed wandb logging (TRAIN-07)
+- [ ] 05-02-PLAN.md — Write `cfgs/run/m4_iterative.yaml` (instruct model, real CMA-ES, SFT mode, interleave schedule) + `namm_bam_eval_llama32_1b_instruct.yaml`; add `lora_namm_interleave` dispatch to `main.py`; fix `run_eval.py` m4_iterative routing (PIPE-05)
+- [ ] 05-03-PLAN.md — GPU: SSH to sideswipe/prowl; run m4-iterative training; checkpoint inspector; eval on all three tasks; verify artifact set in results/m4_iterative/1337/ (EXP-04)
 
 ### Phase 6: Analysis Metrics + m3 Run
 **Goal**: A post-hoc attention entropy analysis script loads any checkpoint and produces per-head entropy comparisons across conditions; the m3 two-stage pipeline (LoRA finetuning then NAMM CMA-ES) runs using the m1 checkpoint as handoff; a four-condition comparison table (m1, m3, m4-frozen, m4-iterative) plus the existing m2 baseline is exported as CSV and logged to wandb.

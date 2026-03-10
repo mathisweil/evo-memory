@@ -516,6 +516,10 @@ class LoRAGradTrainer:
         import dataclasses
         import yaml
         cfg_dict = dataclasses.asdict(cfg)
+        # Persist lora_rank and lora_target_modules so run_eval.py can read them
+        # without needing to inspect the checkpoint (belt-and-suspenders).
+        cfg_dict['lora_rank'] = self.model._lora_rank
+        cfg_dict['lora_target_modules'] = list(self.model._lora_target_modules)
         try:
             cfg_yaml = yaml.dump(cfg_dict, default_flow_style=False)
         except Exception:

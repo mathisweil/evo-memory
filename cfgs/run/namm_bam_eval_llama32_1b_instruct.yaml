@@ -1,15 +1,15 @@
 # @package _global_
-# Stage 1 training of NAMM on LLaMA 3.2-1B-Instruct
-# Identical to namm_bam_i1_llama32_1b.yaml but uses the instruct model.
-# Task: lb_3subset_eval (qasper + passage_retrieval_en + narrativeqa)
-# pop_size=8, samples_batch_size=16, cache_size=1024
+# Evaluate trained NAMM on LLaMA 3.2-1B-Instruct against the 3-task subset.
+# Run AFTER instruct stage 1 training; point init_from at the output ckpt.pt.
+#
+# Override cache_size from the CLI to evaluate at multiple budgets.
 defaults:
   - base_memory_policy/deep/bam/base_bam
   - override /model/wrapped_llm@_global_: llama32-1b-instruct
   - override /task@_global_: lb_3subset_eval
   - _self_
 
-run_name_suffix: 'llama32-1b-instruct-stage1'
+run_name_suffix: 'llama32-1b-instruct-eval'
 
 cache_size: 1024
 max_new_tokens: 64
@@ -26,6 +26,7 @@ scoring_attn_num_heads: 1
 scoring_attn_bias: true
 scoring_attn_use_rope: false
 scoring_attn_rope_theta: 50000
+scoring_attn_masking_strategy: backward
 
 n_fft: 32
 hop_length: 16
@@ -37,20 +38,22 @@ window_fn_log_name: hann
 pad_mode: constant
 output_magnitudes: true
 
+init_from: ~
+
 pop_size: 8
-samples_batch_size: 16
-batch_size: 1
-eval_max_batch_size: 1
-
 scoring_initializer: 0
-keep_past_epoch_checkpoints_every: 25
+keep_past_epoch_checkpoints_every: 1
 
-max_iters: 50
+batch_size: 4
 
-memory_policy_fixed_delay: 256
-max_memory_length: 1024
+scratch: false
+eval_only: true
+ddp_timeout_limit: '0:3:0'
 
 score_normalization_reference:
+add_bos_token: true
 
 wandb_log: true
-add_bos_token: true
+wandb_project: memory_evolution_hf
+wandb_group_name: Llama-3.2-1B-Instruct/chat-template-evals
+wandb_run_name: namm-instruct-cs${cache_size}-llama32-1b

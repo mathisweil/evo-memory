@@ -27,5 +27,8 @@ build/
 # OS
 .DS_Store
 
+# Legacy / archived
+_legacy/
+
 # Hydra outputs
 multirun/
