@@ -204,7 +204,7 @@ def main():
                 "run_config": args.run_config,
                 "filter_by_length": args.filter_by_length,
             },
-            "scores": {k: v for k, v in score_dicts[0].items()},
+            "scores": dict(score_dicts[0]),
         }
         results_path = os.path.join(output_dir, "results.json")
         with open(results_path, "w") as f:

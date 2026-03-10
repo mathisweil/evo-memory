@@ -97,6 +97,21 @@ def collect_runs(experiment_dir):
     return runs
 
 
+def _extract_scores(results):
+    """Extract final and baseline score dicts from a results dict."""
+    if results.get("type") == "eval":
+        return results.get("scores", {}), {}, {}
+    full_eval = results.get("full_eval", {})
+    baseline = results.get("baseline_eval", {})
+    training = results.get("training", {})
+    return full_eval.get("scores", {}), baseline.get("scores", {}), training
+
+
+def _get_qasper_f1(scores):
+    """Get qasper F1 from a scores dict, or None if not present."""
+    return scores.get("lb/qasper")
+
+
 def build_summary(runs):
     """Build a comparison table from all runs."""
     rows = []
@@ -104,29 +119,10 @@ def build_summary(runs):
         r = run["results"]
         is_eval_only = r.get("type") == "eval"
         config = r.get("config", {})
+        final_scores, baseline_scores, training = _extract_scores(r)
 
-        if is_eval_only:
-            # Eval-only run: scores at top level, no training/baseline data
-            final_scores = r.get("scores", {})
-            baseline_scores = {}
-            training = {}
-        else:
-            # Full training run
-            training = r.get("training", {})
-            full_eval = r.get("full_eval", {})
-            baseline = r.get("baseline_eval", {})
-            final_scores = full_eval.get("scores", {})
-            baseline_scores = baseline.get("scores", {})
-
-        # Get qasper F1 (main metric)
-        final_f1 = None
-        baseline_f1 = None
-        for k, v in final_scores.items():
-            if "qasper" in k:
-                final_f1 = v
-        for k, v in baseline_scores.items():
-            if "qasper" in k:
-                baseline_f1 = v
+        final_f1 = _get_qasper_f1(final_scores)
+        baseline_f1 = _get_qasper_f1(baseline_scores)
 
         rows.append({
             "method": run["method"],
@@ -179,22 +175,16 @@ def generate_plots(experiment_dir, runs):
         for run in method_runs:
             r = run["results"]
             is_eval_only = r.get("type") == "eval"
+            final_scores, baseline_scores, _ = _extract_scores(r)
 
-            if is_eval_only:
-                scores = r.get("scores", {})
-                baseline_scores = {}
-            else:
-                scores = r.get("full_eval", {}).get("scores", {})
-                baseline_scores = r.get("baseline_eval", {}).get("scores", {})
-
-            for k in scores:
-                if "qasper" in k:
-                    label = f"{method}/{run['run_name']}"
-                    all_labels.append(label)
-                    all_final.append(scores[k])
-                    all_baseline.append(baseline_scores.get(k, 0))
-                    all_types.append("eval" if is_eval_only else "training")
-                    colors_final.append(method_colors.get(method, "gray"))
+            f1 = _get_qasper_f1(final_scores)
+            if f1 is not None:
+                label = f"{method}/{run['run_name']}"
+                all_labels.append(label)
+                all_final.append(f1)
+                all_baseline.append(_get_qasper_f1(baseline_scores) or 0)
+                all_types.append("eval" if is_eval_only else "training")
+                colors_final.append(method_colors.get(method, "gray"))
 
     if all_labels:
         y = np.arange(len(all_labels))
