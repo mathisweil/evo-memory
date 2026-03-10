@@ -19,6 +19,9 @@ source "${VENV_DIR}/bin/activate"
 
 export HF_HOME="${REPO_DIR}/.hf_cache"
 export PJRT_DEVICE=TPU
+export GCS_BUCKET="statistical-nlp"
+export GCS_PROJECT="statistical-nlp"
+export VM_ID="${VM_ID:-$(hostname)}"
 cd "${REPO_DIR}"
 
-echo "Activated: venv=${VENV_DIR}, PJRT_DEVICE=TPU, cwd=$(pwd)"
+echo "Activated: venv=${VENV_DIR}, PJRT_DEVICE=TPU, GCS=${GCS_BUCKET}, VM=${VM_ID}, cwd=$(pwd)"
