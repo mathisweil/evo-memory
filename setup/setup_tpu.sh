@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 # =============================================================================
-# GPU VM Setup: ES Fine-Tuning with NAMM
+# TPU VM Setup: ES Fine-Tuning with NAMM
 #
-# Clones the repo, creates a Python venv, installs all deps, installs
-# Claude Code, and configures wandb + HuggingFace.
+# Creates a Python venv, installs PyTorch + torch_xla + all deps,
+# configures HuggingFace, and optionally installs Claude Code.
 #
-# Usage:
-#   bash setup.sh                        # UCL VM, uses $(whoami)
-#   bash setup.sh --user jsmith --gpu 0  # UCL VM, explicit username + GPU
-#   bash setup.sh --dir ~/ft-namm        # any machine, custom workspace dir
-#   bash setup.sh --noclaude             # skip Claude Code install
+# Usage (run ON the TPU VM after cloning the repo):
+#   bash setup/setup_tpu.sh
+#   bash setup/setup_tpu.sh --noclaude    # skip Claude Code install
+#
+# Or use setup_tpu_cmd.sh to bootstrap from scratch (clones repo first).
 #
 # Prerequisites:
-#   - python3 (3.9+) and pip
-#   - CUDA 12.1+ GPU drivers
+#   - TPU VM created with runtime version tpu-ubuntu2204-base (v4)
+#     or v2-alpha-tpuv5-lite (v5e) or v2-alpha-tpuv6e (v6e)
+#   - python3 (3.10+) and pip
 #   - Internet access (GitHub, PyPI, HuggingFace, npm)
+#
+# See TPU_PORT.md for the full migration plan.
 # =============================================================================
 
 set -euo pipefail
@@ -22,134 +25,113 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Parse arguments
 # ---------------------------------------------------------------------------
-GPU_ID=""
-USER_NAME=""
-CUSTOM_DIR=""
 INSTALL_CLAUDE=true
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --gpu)
-            GPU_ID="$2"
-            shift 2
-            ;;
-        --gpu=*)
-            GPU_ID="${1#*=}"
-            shift
-            ;;
-        --user)
-            USER_NAME="$2"
-            shift 2
-            ;;
-        --user=*)
-            USER_NAME="${1#*=}"
-            shift
-            ;;
-        --dir)
-            CUSTOM_DIR="$2"
-            shift 2
-            ;;
-        --dir=*)
-            CUSTOM_DIR="${1#*=}"
-            shift
-            ;;
         --noclaude)
             INSTALL_CLAUDE=false
             shift
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: bash setup.sh [--dir DIR | --user USERNAME] [--gpu GPU_ID] [--noclaude]"
+            echo "Usage: bash setup/setup_tpu.sh [--noclaude]"
             exit 1
             ;;
     esac
 done
 
-USER_NAME="${USER_NAME:-$(whoami)}"
-
 # ---------------------------------------------------------------------------
-# Config
+# Locate repo (script must be run from repo root or setup/ dir)
 # ---------------------------------------------------------------------------
-if [ -n "${CUSTOM_DIR}" ]; then
-    WORK_DIR="${CUSTOM_DIR}"
-else
-    WORK_DIR="/cs/student/project_msc/2025/csml/${USER_NAME}/SNLP/FT-NAMM"
-fi
-EVO_MEMORY_REPO="https://github.com/mathisweil/evo-memory.git"
-EVO_MEMORY_BRANCH="es-fine-tuning"
-REPO_DIR="${WORK_DIR}/evo-memory"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "${SCRIPT_DIR}")"
 VENV_DIR="${REPO_DIR}/venv"
 HF_CACHE_DIR="${REPO_DIR}/.hf_cache"
-SETUP_DIR="${REPO_DIR}/setup"
 
 echo '============================================================'
-echo ' ES Fine-Tuning + NAMM — GPU VM Setup'
+echo ' ES Fine-Tuning + NAMM — TPU VM Setup'
 echo '============================================================'
 echo ''
-echo "Workspace: ${WORK_DIR}"
+echo "Repo:     ${REPO_DIR}"
+echo ''
 
 # ---------------------------------------------------------------------------
-# GPU selection — pin to a single GPU
+# Verify TPU is available
 # ---------------------------------------------------------------------------
-if [ -n "${GPU_ID}" ]; then
-    export CUDA_VISIBLE_DEVICES="${GPU_ID}"
-    echo "GPU:       ${GPU_ID} (set via --gpu)"
-elif [ -z "${CUDA_VISIBLE_DEVICES:-}" ]; then
-    # Auto-detect: pick the first available GPU
-    if command -v nvidia-smi &>/dev/null; then
-        GPU_ID=$(nvidia-smi --query-gpu=index --format=csv,noheader | head -1 | tr -d ' ')
-        export CUDA_VISIBLE_DEVICES="${GPU_ID}"
-        echo "GPU:       ${GPU_ID} (auto-detected first GPU)"
-    else
-        echo "GPU:       nvidia-smi not found, skipping GPU pinning"
-    fi
+echo '[0/5] Checking TPU availability...'
+if [ -e /dev/accel0 ] || [ -d /dev/vfio ]; then
+    echo '  TPU device detected.'
 else
-    GPU_ID="${CUDA_VISIBLE_DEVICES}"
-    echo "GPU:       ${CUDA_VISIBLE_DEVICES} (from existing CUDA_VISIBLE_DEVICES)"
+    echo '  WARNING: No TPU device found (/dev/accel0 or /dev/vfio).'
+    echo '  Continuing anyway (deps will install, but training will fail).'
 fi
 echo ''
 
 # ---------------------------------------------------------------------------
-# 1. Create workspace
+# 1. System deps
 # ---------------------------------------------------------------------------
-mkdir -p "${WORK_DIR}"
-cd "${WORK_DIR}"
-
-# ---------------------------------------------------------------------------
-# 2. Clone repos (or update if already cloned)
-# ---------------------------------------------------------------------------
-echo '[1/5] Cloning repositories...'
-
-if [ -d "evo-memory" ]; then
-    echo '  evo-memory already exists, pulling latest...'
-    cd evo-memory
-    git fetch origin
-    git checkout "${EVO_MEMORY_BRANCH}"
-    git pull origin "${EVO_MEMORY_BRANCH}"
-    cd "${WORK_DIR}"
-else
-    git clone -b "${EVO_MEMORY_BRANCH}" "${EVO_MEMORY_REPO}"
-fi
-
+echo '[1/5] Installing system dependencies...'
+sudo apt-get update -qq
+sudo apt-get install -y -qq libopenblas-dev > /dev/null 2>&1
 echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 3. Install Python dependencies via activate.sh
+# 2. Python venv + PyTorch/XLA + project deps
 # ---------------------------------------------------------------------------
-echo '[2/5] Installing Python dependencies...'
+echo '[2/5] Setting up Python environment...'
 
-export CUDA_VISIBLE_DEVICES="${GPU_ID:-0}"
-source "${SETUP_DIR}/activate.sh"
+if [ ! -d "${VENV_DIR}" ]; then
+    echo "  Creating venv at ${VENV_DIR}..."
+    python3 -m venv "${VENV_DIR}"
+fi
 
-pip install --upgrade pip 2>&1 | tail -1
-python -c "from es_finetuning import ESTrainer, ESConfig; print('  es_finetuning imports OK')"
+source "${VENV_DIR}/bin/activate"
+pip install --upgrade pip -q
+
+# PyTorch + XLA (TPU support)
+echo '  Installing PyTorch + torch_xla...'
+pip install torch torch_xla[tpu] \
+    -f https://storage.googleapis.com/libtpu-releases/index.html \
+    -q
+
+# Project dependencies (skip GPU-only packages)
+echo '  Installing project dependencies...'
+pip install -q \
+    "numpy<2" \
+    "transformers==4.41.2" \
+    accelerate \
+    "datasets==2.20.0" \
+    tiktoken \
+    "wandb==0.16.6" \
+    tqdm \
+    "hydra-core==1.3.2" \
+    "pandas==2.2.2" \
+    "lm-eval==0.4.2" \
+    "fugashi==1.3.2" \
+    ftfy \
+    "peft==0.11.1" \
+    rouge \
+    jieba \
+    fuzzywuzzy \
+    einops \
+    "scipy==1.13.0" \
+    sentencepiece \
+    tensorboard \
+    matplotlib
+
+# Deliberately NOT installing: bitsandbytes (GPU-only), torchvision, torchaudio
 
 echo "  Python: $(python --version)"
+echo "  torch:  $(python -c 'import torch; print(torch.__version__)')"
+echo "  XLA:    $(python -c 'import torch_xla; print(torch_xla.__version__)')"
+cd "${REPO_DIR}"
+python -c "from es_finetuning import ESTrainer, ESConfig; print('  es_finetuning imports OK')"
 echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 4. HuggingFace setup
+# 3. HuggingFace setup
 # ---------------------------------------------------------------------------
 echo '[3/5] Setting up HuggingFace...'
 
@@ -157,7 +139,6 @@ mkdir -p "${HF_CACHE_DIR}"
 export HF_HOME="${HF_CACHE_DIR}"
 echo "  HF_HOME=${HF_HOME}"
 
-# Check if already logged in
 if python -c "from huggingface_hub import HfFolder; assert HfFolder.get_token()" 2>/dev/null; then
     echo '  Already logged into HuggingFace.'
 else
@@ -170,7 +151,7 @@ echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 5. wandb setup
+# 4. wandb setup
 # ---------------------------------------------------------------------------
 echo '[4/5] Setting up wandb...'
 
@@ -186,7 +167,7 @@ echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 6. Install Claude Code
+# 5. Install Claude Code
 # ---------------------------------------------------------------------------
 if [ "${INSTALL_CLAUDE}" = true ]; then
     echo '[5/5] Installing Claude Code...'
@@ -221,25 +202,25 @@ echo ''
 # Done — print summary
 # ---------------------------------------------------------------------------
 echo '============================================================'
-echo ' Setup complete!'
+echo ' TPU Setup complete!'
 echo '============================================================'
 echo ''
-echo "Workspace:        ${WORK_DIR}"
-echo "evo-memory:       ${WORK_DIR}/evo-memory (branch: ${EVO_MEMORY_BRANCH})"
+echo "Repo:             ${REPO_DIR}"
 echo "venv:             ${VENV_DIR}"
 echo "HF cache:         ${HF_CACHE_DIR}"
-if [ -n "${GPU_ID}" ]; then
-    echo "GPU:              ${GPU_ID}"
-fi
 echo ''
 echo 'To activate the environment in a new shell:'
-echo "  source ${SETUP_DIR}/activate.sh"
+echo "  source ${REPO_DIR}/setup/activate_tpu.sh"
 echo ''
-echo 'To run ES fine-tuning:'
-echo "  source ${SETUP_DIR}/activate.sh"
-echo '  python scripts/run_es.py --run_name test --num_iterations 2 --population_size 2 --mini_batch_size 2'
+echo 'Quick TPU smoke test:'
+echo '  export PJRT_DEVICE=TPU'
+echo "  python -c \"import torch_xla.core.xla_model as xm; print('TPU:', xm.xla_device())\""
+echo ''
+echo 'To run ES fine-tuning (smoke test):'
+echo "  source ${REPO_DIR}/setup/activate_tpu.sh"
+echo '  python scripts/run_es.py --run_name tpu_smoke --num_iterations 2 --population_size 2 --mini_batch_size 2'
 echo ''
 echo 'To start Claude Code:'
-echo "  source ${SETUP_DIR}/activate.sh"
+echo "  source ${REPO_DIR}/setup/activate_tpu.sh"
 echo '  claude'
 echo ''
