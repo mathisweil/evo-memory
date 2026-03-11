@@ -8,25 +8,32 @@ The core question: can the base model learn to cooperate with its eviction polic
 
 ## Quick Start
 
-**On a UCL VM:**
+**GPU (UCL VM):**
 ```bash
 git clone -b es-fine-tuning https://github.com/mathisweil/evo-memory.git
 bash evo-memory/setup/setup.sh
 ```
 
-**On any other machine:**
+**GPU (any other machine):**
 ```bash
 git clone -b es-fine-tuning https://github.com/mathisweil/evo-memory.git
 bash evo-memory/setup/setup.sh --dir ~/ft-namm
 ```
 
-This clones the repo, creates a venv, installs all dependencies, and prompts for HuggingFace + wandb login.
+**TPU VM (Google Cloud):**
+```bash
+git clone -b tpu https://github.com/mathisweil/evo-memory.git
+bash evo-memory/setup/setup_tpu.sh
+```
+
+This clones the repo, creates a venv, installs all dependencies, and prompts for HuggingFace + wandb login. The TPU setup additionally installs `torch_xla[tpu]` and `google-cloud-storage`.
 
 See `setup/setup.sh --help` for options (`--user`, `--gpu`, `--noclaude`, `--dir`).
 
 **In subsequent shells:**
 ```bash
-source setup/activate.sh
+source setup/activate.sh      # GPU
+source setup/activate_tpu.sh  # TPU (also sets PJRT_DEVICE, GCS vars, downloads XLA cache)
 ```
 
 ---
@@ -46,7 +53,8 @@ Utility scripts:
 | Script | Purpose |
 |---|---|
 | `scripts/generate_report.py` | Generate a comparison report from experiment results |
-| `scripts/cleanup_checkpoints.py` | Clean up intermediate checkpoint files |
+| `scripts/archive_experiment.py` | Archive completed experiments |
+| `scripts/warmup_xla_cache.sh` | Pre-compile XLA graphs for TPU (run once before experiments) |
 
 See [docs/examples.md](docs/examples.md) for copy-paste commands covering smoke tests and full runs for each pipeline.
 
@@ -76,9 +84,25 @@ peft==0.11.1
 numpy<2               (numpy 2.x breaks many downstream packages)
 ```
 
+**TPU additional dependencies:**
+```
+torch_xla[tpu]        (matching torch version; installed from Google's libtpu releases)
+google-cloud-storage  (for GCS experiment management and XLA cache syncing)
+```
+
 System requirement: GLIBC >= 2.28 (RHEL 8/9, Ubuntu 20.04+).
 
 HuggingFace access required for gated LLaMA 3.2-1B model: `huggingface-cli login`.
+
+---
+
+## TPU Notes
+
+- **XLA compilation**: First run on TPU is slow (~20 min) as XLA compiles graphs. Run `bash scripts/warmup_xla_cache.sh` once to pre-compile for all scenarios.
+- **XLA cache syncing**: `activate_tpu.sh` auto-downloads the XLA cache from GCS on startup; `run_es.py` auto-uploads it on exit.
+- **GCS integration**: Enabled by default (`--gcs`). Experiment manifests, checkpoints, and results sync to `gs://statistical-nlp/experiments/`. Disable with `--no-gcs`.
+- **Spot VM preemption**: SIGTERM is caught and triggers an emergency checkpoint upload. Re-running with the same `--run_name` auto-resumes from the latest GCS checkpoint.
+- **Fixed-size tensors**: XLA requires fixed tensor shapes. NAMM uses cache validity masking to pad KV caches to a fixed size on TPU, avoiding recompilation.
 
 ---
 

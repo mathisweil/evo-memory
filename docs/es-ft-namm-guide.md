@@ -371,9 +371,37 @@ python scripts/run_namm.py \
 
 **Key files:**
 - `scripts/run_es.py` — combined pipeline entry point
+- `scripts/run_eval.py` — full validation-set evaluation
 - `namm/trainer.py` — NAMM CMA-ES training (Stage 1)
 - `es_finetuning/trainer.py` — ESTrainer (Stage 2)
+- `es_finetuning/device.py` — device abstraction (TPU > CUDA > CPU)
+- `es_finetuning/gcs.py` — GCS experiment management and checkpointing
+- `es_finetuning/preemption.py` — spot VM preemption handler
 - `cfgs/run/namm_bam_i1_llama32_1b.yaml` — Hydra config for model/task/eviction
+
+---
+
+## GCS Integration and Preemption Handling
+
+GCS experiment management is enabled by default (`--gcs`). It provides:
+
+- **Manifest tracking**: A `manifest.json` in `gs://statistical-nlp/experiments/` tracks all experiments with optimistic concurrency control.
+- **Periodic checkpointing**: Every `--checkpoint_every` iterations (default 10), checkpoints are uploaded to GCS.
+- **Auto-resume**: Re-running with the same `--run_name` detects the latest GCS checkpoint and resumes training automatically.
+- **Preemption safety**: On spot VMs, SIGTERM (sent ~30s before termination) triggers an emergency checkpoint upload. Combined with auto-resume, this makes training resilient to preemption.
+
+Disable GCS with `--no-gcs` for purely local runs.
+
+---
+
+## TPU Support
+
+The combined ES+NAMM pipeline supports Google Cloud TPUs via a device abstraction layer.
+
+**Key TPU adaptations:**
+- **Fixed-size tensors**: XLA requires fixed tensor shapes across all code branches. NAMM uses cache validity masking to pad KV caches to `cache_size` and mask out invalid entries. Evicted entries are scored at minimum value to prevent them from being "re-selected".
+- **XLA compilation cache**: First-run compilation is slow. Use `scripts/warmup_xla_cache.sh` to pre-compile graphs for all (method, cache_size) combinations.
+- **Environment**: `setup/activate_tpu.sh` sets `PJRT_DEVICE=TPU`, GCS env vars, and auto-downloads the XLA cache.
 
 ---
 

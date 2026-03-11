@@ -219,10 +219,10 @@ python scripts/run_eval.py \
 python scripts/generate_report.py
 ```
 
-### 5b. Clean up intermediate checkpoints
+### 5b. Archive a completed experiment
 
 ```bash
-python scripts/cleanup_checkpoints.py
+python scripts/archive_experiment.py
 ```
 
 ---

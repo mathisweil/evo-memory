@@ -45,7 +45,7 @@ The scoring network is tiny (hundreds of parameters). The LLaMA model weights ar
 | `per_head` | false | false | Shared scoring params across attention heads |
 | `per_layer` | false | false | Shared scoring params across transformer layers |
 | **Benchmarks** | LongBench (36 tasks), InfiniteBench, ChouBun | Qasper (F1) | Evaluation tasks |
-| **Compute** | Not disclosed | 4x RTX 6000 24GB | Hardware |
+| **Compute** | Not disclosed | 4x RTX 6000 24GB / TPU v4 | Hardware |
 
 Key differences from the paper: we use a smaller model (1B vs 8B), smaller population (8 vs 32), fewer samples per step (16 vs 64), and single-stage training (200 iters vs 300+250+120 across 3 incremental stages). The paper also used a much larger update interval (512 vs our 256).
 

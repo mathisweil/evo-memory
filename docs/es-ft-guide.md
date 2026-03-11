@@ -26,7 +26,7 @@ Our adaptation uses Llama 3.2 1B on Qasper (long-document QA) with smaller popul
 | **precision** | bf16 | bf16 |
 | **Reward normalization** | z-score within iteration | z-score within iteration |
 | **Gradient computation** | Layer-by-layer in-place | Same |
-| **Compute** | 4x H100 (accelerated version) | 4x RTX 6000 24GB |
+| **Compute** | 4x H100 (accelerated version) | 4x RTX 6000 24GB / TPU v4 |
 
 Key differences: the original paper evaluates ALL data samples per population member per step (200 for Countdown). We subsample 16 per step from a pool of 150 due to compute constraints. The paper also uses much larger models (3-7B vs our 1B).
 
@@ -387,6 +387,34 @@ python scripts/run_es.py \
 - `es_finetuning/trainer.py` — ESTrainer loop
 - `es_finetuning/noise.py` — perturb/restore/update functions
 - `es_finetuning/config.py` — ESConfig dataclass
+- `es_finetuning/device.py` — device abstraction (TPU > CUDA > CPU)
+- `es_finetuning/gcs.py` — GCS experiment management and checkpointing
+- `es_finetuning/preemption.py` — spot VM preemption handler
+
+---
+
+## GCS Integration and Preemption Handling
+
+GCS experiment management is enabled by default (`--gcs`). It provides:
+
+- **Manifest tracking**: A `manifest.json` in `gs://statistical-nlp/experiments/` tracks all experiments with optimistic concurrency control.
+- **Periodic checkpointing**: Every `--checkpoint_every` iterations (default 10), checkpoints are uploaded to GCS.
+- **Auto-resume**: Re-running with the same `--run_name` detects the latest GCS checkpoint and resumes training automatically.
+- **Preemption safety**: On spot VMs, SIGTERM (sent ~30s before termination) triggers an emergency checkpoint upload. Combined with auto-resume, this makes training resilient to preemption.
+- **XLA cache syncing**: On TPU, compiled XLA graphs are synced to `gs://statistical-nlp/xla_cache` on exit and downloaded on startup via `activate_tpu.sh`.
+
+Disable GCS with `--no-gcs` for purely local runs.
+
+---
+
+## TPU Support
+
+The codebase supports both CUDA GPUs and Google Cloud TPUs via a device abstraction layer (`es_finetuning/device.py`).
+
+**Key TPU adaptations:**
+- **Fixed-size tensors**: XLA requires fixed tensor shapes across all code branches. NAMM uses cache validity masking (`namm/policy/base.py`, `namm/policy/deep_selection.py`) to pad KV caches to `cache_size` and mask out invalid entries, avoiding dynamic shapes that would trigger recompilation.
+- **XLA compilation cache**: First-run compilation is slow (~20 min). Use `scripts/warmup_xla_cache.sh` to pre-compile graphs for all (method, cache_size) combinations. Cached graphs persist in `$XLA_PERSISTENT_CACHE_PATH`.
+- **Environment**: Set `PJRT_DEVICE=TPU` (done automatically by `setup/activate_tpu.sh`).
 
 ---
 
