@@ -18,10 +18,26 @@ from transformers import LlamaPreTrainedModel
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
 from .base import MemoryPolicy, ParamMemoryPolicy
 from .base_dynamic import (
-    DynamicMemoryPolicy, DynamicParamMemoryPolicy, 
-    RecencyParams, AttentionParams, threshold_score_idxs
+    DynamicMemoryPolicy, DynamicParamMemoryPolicy,
+    RecencyParams, AttentionParams, threshold_score_idxs, is_tpu,
     )
 from  .base_deep_components import SelectionNetwork, ComponentOutputParams
+
+
+def _apply_cache_validity_mask(masked_full_scores, cache_validity_mask):
+    """On TPU, mask out previously-evicted cache entries so they score min."""
+    if cache_validity_mask is None:
+        return masked_full_scores
+    min_value = torch.finfo(masked_full_scores.dtype).min
+    n_kv = masked_full_scores.shape[-1]
+    n_old = cache_validity_mask.shape[-1]
+    # Pad: old cache validity + True for all new tokens
+    if n_old < n_kv:
+        full_validity = F.pad(
+            cache_validity_mask, (0, n_kv - n_old), value=True)
+    else:
+        full_validity = cache_validity_mask
+    return torch.where(full_validity, masked_full_scores, min_value)
 
 
 class DynamicSelection(SelectionNetwork):
@@ -71,15 +87,9 @@ class DynamicSelection(SelectionNetwork):
         
         masked_full_scores = torch.where(
             attn_mask.bool(), token_scores, min_value)
-        
-        
-        
-        
+        masked_full_scores = _apply_cache_validity_mask(
+            masked_full_scores, kwargs.get('cache_validity_mask'))
 
-        
-        
-        
-        
         masked_full_scores[..., -1] = max_value
         retained_idxs, new_mask = threshold_score_idxs(
             masked_full_scores=masked_full_scores,
@@ -179,6 +189,8 @@ class BinarySelection(SelectionNetwork):
 
         masked_full_scores = torch.where(
             attn_mask.bool(), token_scores, min_value)
+        masked_full_scores = _apply_cache_validity_mask(
+            masked_full_scores, kwargs.get('cache_validity_mask'))
         masked_full_scores[..., -1] = max_value
         retained_idxs, new_mask = threshold_score_idxs(
             masked_full_scores=masked_full_scores,
@@ -249,6 +261,8 @@ class TopKSelection(SelectionNetwork):
             min_value = torch.finfo(token_scores.dtype).min
             masked_full_scores = torch.where(
                 attn_mask.bool(), token_scores, min_value)
+            masked_full_scores = _apply_cache_validity_mask(
+                masked_full_scores, kwargs.get('cache_validity_mask'))
             _, retained_idxs = torch.topk(
                 masked_full_scores, k=self.cache_size, sorted=False, dim=-1)
             retained_idxs, _ = retained_idxs.sort(descending=False, dim=-1,)
