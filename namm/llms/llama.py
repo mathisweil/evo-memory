@@ -1,10 +1,12 @@
 import copy
 import math
-import numpy as np 
+import os
+import numpy as np
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union, Any, List
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
 
+_IS_TPU = os.environ.get("PJRT_DEVICE") == "TPU"
 
 import torch
 from torch import nn
@@ -198,13 +200,27 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         if self.update_cache_frequency > 1:
             raise NotImplementedError
         
-        self.attn_layers = get_all_submodules(module=self.model, 
+        self.attn_layers = get_all_submodules(module=self.model,
                                               target_layer_class=LlamaAttention,
                                               include_subclasses=True)
         print(f'Instantiating memory llm with {len(self.attn_layers)} ' +
               'attention layers')
-        
-    
+
+        self._setup_tpu_attention_refs()
+
+    def _setup_tpu_attention_refs(self):
+        """Give each attention layer a reference to the memory policy for
+        TPU cache validity masking."""
+        if not _IS_TPU:
+            return
+        for i, attn_layer in enumerate(self.attn_layers):
+            attn_layer._memory_policy = self.memory_policy
+            attn_layer._memory_layer_id = i
+
+    def swap_memory_policy(self, new_memory_policy):
+        super().swap_memory_policy(new_memory_policy)
+        self._setup_tpu_attention_refs()
+
     def move_model_to(self, *args, **kwargs):
         self.model.to(*args, **kwargs)
         self.lm_head.to(*args, **kwargs)
@@ -687,6 +703,31 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
         else:
             causal_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
             attn_weights = attn_weights + causal_mask
+
+        # TPU: mask out evicted cache entries so they don't affect attention.
+        if _IS_TPU and hasattr(self, '_memory_policy'):
+            cvm = getattr(self._memory_policy, 'cache_validity_mask', None)
+            if cvm is not None:
+                layer_mask = cvm[self._memory_layer_id]
+                if layer_mask is not None:
+                    # layer_mask: (bs, n_kv_heads, cache_size)
+                    # attn_weights: (bs, n_heads, q_len, kv_len)
+                    inv = ~layer_mask
+                    kv_len = attn_weights.shape[-1]
+                    mask_len = inv.shape[-1]
+                    if mask_len < kv_len:
+                        # Pad for new tokens (always valid).
+                        inv = F.pad(inv, (0, kv_len - mask_len), value=False)
+                    elif mask_len > kv_len:
+                        inv = inv[..., -kv_len:]
+                    # Expand for GQA: n_kv_heads → n_heads
+                    if inv.shape[1] != attn_weights.shape[1]:
+                        inv = inv.repeat_interleave(
+                            self.num_key_value_groups, dim=1)
+                    # (bs, n_heads, cache_size) → (bs, n_heads, 1, kv_len)
+                    inv = inv.unsqueeze(2)
+                    min_dtype = torch.finfo(attn_weights.dtype).min
+                    attn_weights = attn_weights.masked_fill(inv, min_dtype)
 
         # upcast attention to fp32
         attn_weights_to_return = nn.functional.softmax(
