@@ -125,6 +125,7 @@ def main():
         (memory_policy, memory_model, memory_evaluator,
          evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
     memory_model.to(device)
+    memory_evaluator.device = device
 
     # Load NAMM weights
     if args.namm_checkpoint:
@@ -159,11 +160,11 @@ def main():
         loaded = 0
         for name, val in es_state.items():
             if name in model_params:
-                device = model_params[name].device
+                param_dev = model_params[name].device
                 if is_delta:
-                    model_params[name].data.add_(val.to(device))
+                    model_params[name].data.add_(val.to(param_dev))
                 else:
-                    model_params[name].data.copy_(val.to(device))
+                    model_params[name].data.copy_(val.to(param_dev))
                 loaded += 1
         print(f"  Loaded {loaded}/{len(es_state)} ES-tuned parameters"
               f" ({'delta' if is_delta else 'absolute'} format)")
