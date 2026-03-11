@@ -146,6 +146,43 @@ def build_summary(runs, run_statuses=None):
     return rows
 
 
+def _extract_cache_size(run_name, config):
+    """Extract cache size from config or run name."""
+    cs = config.get("cache_size")
+    if cs:
+        return int(cs)
+    import re
+    m = re.search(r'c(\d+)', run_name)
+    if m:
+        return int(m.group(1))
+    m = re.search(r'cache(\d+)', run_name)
+    if m:
+        return int(m.group(1))
+    return None
+
+
+def _pretty_run_label(method, run_name, config, is_eval):
+    """Build a human-readable label for a run."""
+    method_labels = {"es_namm": "ES+NAMM", "es_only": "ES-only",
+                     "es_recency": "ES+Recency", "namm_only": "NAMM-only"}
+    ml = method_labels.get(method, method)
+
+    if is_eval:
+        # e.g. "es_only_mb16/eval_namm_c1024" -> eviction type + cache
+        eviction = "NAMM" if "namm" in run_name else "Recency"
+        cache = _extract_cache_size(run_name, config)
+        weights = ml
+        cache_str = f", cache {cache}" if cache else ""
+        return f"{weights} weights + {eviction} eviction{cache_str}"
+    else:
+        cache = _extract_cache_size(run_name, config)
+        if cache:
+            return f"{ml} (cache {cache})"
+        if method == "es_only":
+            return f"{ml} (full cache)"
+        return ml
+
+
 def generate_plots(experiment_dir, runs):
     """Generate comparison plots for the experiment."""
     try:
@@ -166,9 +203,11 @@ def generate_plots(experiment_dir, runs):
 
     method_colors = {"es_namm": "steelblue", "es_only": "seagreen",
                      "es_recency": "coral", "namm_only": "coral"}
+    method_labels = {"es_namm": "ES+NAMM", "es_only": "ES-only",
+                     "es_recency": "ES+Recency", "namm_only": "NAMM-only"}
 
     # Plot 1: F1 comparison bar chart
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(12, 7))
     all_labels = []
     all_baseline = []
     all_final = []
@@ -183,7 +222,8 @@ def generate_plots(experiment_dir, runs):
 
             f1 = _get_qasper_f1(final_scores)
             if f1 is not None:
-                label = f"{method}/{run['run_name']}"
+                label = _pretty_run_label(method, run["run_name"],
+                                          r.get("config", {}), is_eval_only)
                 all_labels.append(label)
                 all_final.append(f1)
                 all_baseline.append(_get_qasper_f1(baseline_scores) or 0)
@@ -194,19 +234,24 @@ def generate_plots(experiment_dir, runs):
         y = np.arange(len(all_labels))
         bar_h = 0.35
         ax.barh(y + bar_h / 2, all_baseline, bar_h, color="lightgray",
-                label="Baseline")
-        ax.barh(y - bar_h / 2, all_final, bar_h, color=colors_final,
-                label="Fine-tuned / Eval")
+                label="Pre-training baseline")
+        ax.barh(y - bar_h / 2, all_final, bar_h, color=colors_final)
         for i, (bv, fv, t) in enumerate(
                 zip(all_baseline, all_final, all_types)):
-            suffix = " (eval)" if t == "eval" else ""
-            ax.text(max(bv, fv) + 0.3, i, f"{fv:.1f}{suffix}", va="center",
+            ax.text(max(bv, fv) + 0.3, i, f"{fv:.1f}", va="center",
                     fontsize=8, fontweight="bold")
         ax.set_yticks(y)
-        ax.set_yticklabels(all_labels, fontsize=7)
-        ax.set_xlabel("F1 Score (0-100)")
-        ax.set_title("Qasper F1: Baseline vs Fine-tuned")
-        ax.legend()
+        ax.set_yticklabels(all_labels, fontsize=8)
+        ax.set_xlabel("Qasper F1 Score")
+        ax.set_title("Qasper F1: Effect of Eviction Policy and Cache Size")
+        # Build legend with method colors + baseline
+        from matplotlib.patches import Patch
+        legend_handles = [Patch(facecolor="lightgray", label="Pre-training baseline")]
+        for m in sorted(methods.keys()):
+            ml = method_labels.get(m, m)
+            legend_handles.append(Patch(facecolor=method_colors.get(m, "gray"),
+                                        label=ml))
+        ax.legend(handles=legend_handles, loc="lower right", fontsize=9)
         fig.tight_layout()
         fig.savefig(os.path.join(plots_dir, "f1_comparison.png"),
                     dpi=150, bbox_inches="tight")
@@ -224,7 +269,9 @@ def generate_plots(experiment_dir, runs):
             means = reward.get("mean", [])
             if not means:
                 continue
-            label = f"{run['method']}/{run['run_name']}"
+            config = run["results"].get("config", {})
+            label = _pretty_run_label(run["method"], run["run_name"],
+                                      config, is_eval=False)
             color = method_colors.get(run["method"], "gray")
             idx = method_run_count.get(run["method"], 0)
             method_run_count[run["method"]] = idx + 1
@@ -241,10 +288,10 @@ def generate_plots(experiment_dir, runs):
             else:
                 ax.plot(iters, means, linewidth=2, label=label,
                         color=color, linestyle=ls)
-        ax.set_xlabel("Iteration")
-        ax.set_ylabel("Reward (F1, 0-1)")
-        ax.set_title("Training Reward Curves (smoothed)")
-        ax.legend(fontsize=7)
+        ax.set_xlabel("ES Iteration")
+        ax.set_ylabel("Mean Reward (Qasper F1, 0-1)")
+        ax.set_title("ES Training Reward per Iteration")
+        ax.legend(fontsize=8, loc="upper left")
         ax.grid(True, alpha=0.3)
         fig.tight_layout()
         fig.savefig(os.path.join(plots_dir, "training_curves.png"),
