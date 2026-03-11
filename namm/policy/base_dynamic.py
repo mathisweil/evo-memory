@@ -17,6 +17,11 @@ from transformers import LlamaPreTrainedModel
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
 from .base import MemoryPolicy, ParamMemoryPolicy
 
+_IS_TPU = os.environ.get("PJRT_DEVICE") == "TPU"
+
+def is_tpu():
+    return _IS_TPU
+
 
 def compute_recency(position_ids, start_recency_from=1):
     most_recent_positions = position_ids[..., [-1]]
@@ -54,23 +59,26 @@ def threshold_score_idxs(
     
     
     thresholded_scores = sorted_scores >= dynamic_thresh
-    
-    
-    first_above_thresh = torch.sum(~thresholded_scores, dim=-1, 
-                                    dtype=torch.long)
 
-    discard_idx = torch.min(first_above_thresh)
+    if _IS_TPU and cache_size is not None and num_samples > cache_size:
+        # TPU path: return ALL cache_size indices for fixed tensor shapes.
+        # new_mask marks which entries are above threshold (valid).
+        retained_idxs = indices
+        new_mask = thresholded_scores
+        if preserve_order:
+            retained_idxs, sort_perm = retained_idxs.sort(
+                descending=False, dim=-1)
+            new_mask = torch.gather(new_mask, dim=-1, index=sort_perm)
+    else:
+        # GPU path: variable-size slicing (original behavior).
+        first_above_thresh = torch.sum(~thresholded_scores, dim=-1,
+                                        dtype=torch.long)
+        discard_idx = torch.min(first_above_thresh)
+        retained_idxs = indices[..., discard_idx:]
+        new_mask = thresholded_scores[..., discard_idx:]
+        if preserve_order:
+            retained_idxs, _ = retained_idxs.sort(descending=False, dim=-1)
 
-    
-
-    retained_idxs = indices[..., discard_idx:]
-
-    
-    new_mask = thresholded_scores[..., discard_idx:]
-
-    if preserve_order:
-        
-        retained_idxs, _ = retained_idxs.sort(descending=False, dim=-1,)
     return retained_idxs, new_mask
 
 @dataclass
@@ -125,7 +133,13 @@ class DynamicMemoryPolicy(MemoryPolicy):
 
     def is_dynamic(self,):
         return True
-    
+
+    def initialize_buffers(self,):
+        super().initialize_buffers()
+        if _IS_TPU and hasattr(self, 'cache_validity_mask'):
+            self.cache_validity_mask = [None for _ in range(
+                self.num_memory_layers)]
+
     def select_max_score_idxs(
         self,
         masked_full_scores,
@@ -276,6 +290,9 @@ class DynamicMemoryPolicy(MemoryPolicy):
     
     def initialize_cache_masks(self,):
         self.cache_masks = [None for _ in range(self.num_memory_layers)]
+        if _IS_TPU:
+            self.cache_validity_mask = [None for _ in range(
+                self.num_memory_layers)]
 
     def finalize_registration(self,):
         MemoryPolicy.finalize_registration(self,)
