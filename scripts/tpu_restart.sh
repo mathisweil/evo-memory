@@ -51,4 +51,9 @@ IP=$($GCLOUD compute tpus tpu-vm describe "$TPU_NAME" --zone="$ZONE" \
 echo "New IP: $IP"
 sed -i '' "/Host ${SSH_HOST}$/,/HostName /{s/HostName .*/HostName ${IP}/;}" "$SSH_CONFIG"
 
+# --- Push SSH keys and clean known_hosts ---
+echo "Pushing SSH keys to new VM..."
+ssh-keygen -R "$IP" 2>/dev/null || true
+$GCLOUD compute tpus tpu-vm ssh "$TPU_NAME" --zone="$ZONE" --command="echo 'SSH key pushed successfully'"
+
 echo "SSH config updated. Run: ssh $SSH_HOST"
