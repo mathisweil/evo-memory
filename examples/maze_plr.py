@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'vae'))
 from vae_model import CluttrVAE
 from vae_level_utils import decode_latent_to_levels, level_to_tokens
 from cmaes_manager import CMAESManager
+from cenie_scorer import CENIEScorer
 
 class UpdateState(IntEnum):
     DR = 0
@@ -434,10 +435,16 @@ def train_state_to_log_dict(train_state: TrainState, level_sampler: LevelSampler
     }
 
 def compute_score(config, dones, values, max_returns, advantages):
-    if config['score_function'] == "MaxMC":
+    """Compute regret-based scores (MaxMC or PVL). Used directly or as regret component for CENIE."""
+    if config['score_function'] in ("MaxMC", "cenie"):
+        # CENIE uses MaxMC as its regret component
         return max_mc(dones, values, max_returns)
     elif config['score_function'] == "pvl":
         return positive_value_loss(dones, advantages)
+    elif config['score_function'] == "sfl":
+        # SFL doesn't use regret-based scores; return zeros as placeholder
+        # (actual SFL scores computed separately via multi-rollout eval)
+        return jnp.zeros(dones.shape[1])
     else:
         raise ValueError(f"Unknown score function: {config['score_function']}")
 
@@ -451,6 +458,10 @@ def main(config=None, project="JAXUED_TEST"):
         tags.append("PLR")
     if config.get("use_cmaes"):
         tags.append("CMA-ES")
+    if config.get("score_function") == "sfl":
+        tags.append("SFL")
+    elif config.get("score_function") == "cenie":
+        tags.append("CENIE")
     run = wandb.init(config=config, project=project, group=config["run_name"], tags=tags)
     config = wandb.config
     
@@ -582,6 +593,75 @@ def main(config=None, project="JAXUED_TEST"):
         duplicate_check=config['buffer_duplicate_check'],
     )
     
+    # --- SFL: multi-rollout learnability scoring ---
+    def compute_sfl_scores(rng, train_state, levels, max_returns):
+        """Estimate learnability = p * (1-p) via multi-rollout evaluation.
+
+        Uses the training rollout result (max_returns > 0) plus additional
+        evaluation rollouts to estimate the agent's success rate p on each level.
+        """
+        # Success from the training rollout
+        train_success = (max_returns > 0).astype(jnp.float32)
+
+        # Additional eval rollouts using the unwrapped env
+        def sfl_eval_step(_, rng_eval):
+            rng_r, rng_e = jax.random.split(rng_eval)
+            init_obs_e, init_env_state_e = jax.vmap(eval_env.reset_to_level, (0, 0, None))(
+                jax.random.split(rng_r, config["num_train_envs"]), levels, env_params)
+            _, rewards_e, _ = evaluate_rnn(
+                rng_e, eval_env, env_params, train_state,
+                ActorCritic.initialize_carry((config["num_train_envs"],)),
+                init_obs_e, init_env_state_e,
+                env_params.max_steps_in_episode)
+            success = (rewards_e.sum(axis=0) > 0).astype(jnp.float32)
+            return _, success
+
+        eval_rngs = jax.random.split(rng, config["num_sfl_rollouts"] - 1)
+        _, eval_successes = jax.lax.scan(sfl_eval_step, None, eval_rngs)
+
+        # Combine training rollout + eval rollouts
+        all_successes = jnp.concatenate([train_success[None], eval_successes], axis=0)
+        p = all_successes.mean(axis=0)
+        return p * (1 - p)
+
+    # --- CENIE: novelty + regret scoring ---
+    cenie_scorer = None
+    if config["score_function"] == "cenie":
+        cenie_scorer = CENIEScorer(
+            buffer_size=config["cenie_buffer_size"],
+            n_components=config["cenie_num_components"],
+            alpha=config["cenie_alpha"],
+            temperature=config["temperature"],
+        )
+
+    def compute_cenie_scores(obs, actions, regret_scores):
+        """Compute CENIE combined novelty+regret scores via host callback."""
+        # Flatten obs to (T, N, D) and concatenate with actions
+        obs_flat = obs.image.reshape(config["num_steps"], config["num_train_envs"], -1)
+        actions_float = actions[..., None].astype(jnp.float32)
+        obs_actions = jnp.concatenate([obs_flat, actions_float], axis=-1)
+
+        # Update coverage buffer (side effect)
+        jax.debug.callback(cenie_scorer.add_to_buffer, obs_actions)
+
+        # Compute combined scores via pure callback
+        return jax.pure_callback(
+            cenie_scorer.compute_combined_score,
+            jax.ShapeDtypeStruct((config["num_train_envs"],), jnp.float32),
+            obs_actions, regret_scores,
+        )
+
+    def compute_level_scores(rng, train_state, levels, obs, actions,
+                             dones, values, max_returns, advantages):
+        """Unified score computation dispatching to MaxMC/PVL, SFL, or CENIE."""
+        if config["score_function"] == "sfl":
+            return compute_sfl_scores(rng, train_state, levels, max_returns)
+        elif config["score_function"] == "cenie":
+            regret_scores = compute_score(config, dones, values, max_returns, advantages)
+            return compute_cenie_scores(obs, actions, regret_scores)
+        else:
+            return compute_score(config, dones, values, max_returns, advantages)
+
     # --- CMA-ES population archive callback (runs on host via jax.debug.callback) ---
     def _save_cmaes_population(z_population, scores, es_mean, num_dr_updates, should_reset):
         """Save CMA-ES population archive before reset. Called from inside JIT via jax.debug.callback."""
@@ -699,7 +779,9 @@ def main(config=None, project="JAXUED_TEST"):
             )
             advantages, targets = compute_gae(config["gamma"], config["gae_lambda"], last_value, values, rewards, dones)
             max_returns = compute_max_returns(dones, rewards)
-            scores = compute_score(config, dones, values, max_returns, advantages)
+            rng, rng_score = jax.random.split(rng)
+            scores = compute_level_scores(rng_score, train_state, new_levels, obs, actions,
+                                          dones, values, max_returns, advantages)
 
             # CMA-ES: tell fitness and insert into buffer
             if config["use_cmaes"]:
@@ -799,7 +881,9 @@ def main(config=None, project="JAXUED_TEST"):
             )
             advantages, targets = compute_gae(config["gamma"], config["gae_lambda"], last_value, values, rewards, dones)
             max_returns = jnp.maximum(level_sampler.get_levels_extra(sampler, level_inds)["max_return"], compute_max_returns(dones, rewards))
-            scores = compute_score(config, dones, values, max_returns, advantages)
+            rng, rng_score = jax.random.split(rng)
+            scores = compute_level_scores(rng_score, train_state, levels, obs, actions,
+                                          dones, values, max_returns, advantages)
             sampler = level_sampler.update_batch(sampler, level_inds, scores, {"max_return": max_returns})
             
             # Update the policy using trajectories collected from replay levels
@@ -870,7 +954,9 @@ def main(config=None, project="JAXUED_TEST"):
             )
             advantages, targets = compute_gae(config["gamma"], config["gae_lambda"], last_value, values, rewards, dones)
             max_returns = compute_max_returns(dones, rewards)
-            scores = compute_score(config, dones, values, max_returns, advantages)
+            rng, rng_score = jax.random.split(rng)
+            scores = compute_level_scores(rng_score, train_state, child_levels, obs, actions,
+                                          dones, values, max_returns, advantages)
             sampler, _ = level_sampler.insert_batch(sampler, child_levels, scores, {"max_return": max_returns})
 
             # Update: train_state only modified if exploratory_grad_updates is on
@@ -1076,6 +1162,11 @@ def main(config=None, project="JAXUED_TEST"):
         if config["checkpoint_save_interval"] > 0:
             checkpoint_manager.save(eval_step, args=ocp.args.StandardSave(runner_state[1]))
             checkpoint_manager.wait_until_finished()
+
+        # CENIE: refit GMM between eval steps
+        if config["score_function"] == "cenie" and cenie_scorer is not None:
+            if (eval_step + 1) % config["cenie_refit_interval"] == 0:
+                cenie_scorer.refit_gmm()
 
         # Periodic buffer dump at configured intervals
         updates_so_far = (eval_step + 1) * config["eval_freq"]
@@ -1333,7 +1424,20 @@ if __name__=="__main__":
     group.add_argument("--entropy_coeff", type=float, default=1e-3)
     group.add_argument("--critic_coeff", type=float, default=0.5)
     # === PLR ===
-    group.add_argument("--score_function", type=str, default="MaxMC", choices=["MaxMC", "pvl"])
+    group.add_argument("--score_function", type=str, default="MaxMC",
+                       choices=["MaxMC", "pvl", "sfl", "cenie"],
+                       help="Level scoring function: MaxMC (regret), pvl (positive value loss), "
+                            "sfl (learnability p*(1-p)), cenie (novelty+regret)")
+    group.add_argument("--num_sfl_rollouts", type=int, default=10,
+                       help="Number of evaluation rollouts for SFL learnability estimation")
+    group.add_argument("--cenie_alpha", type=float, default=0.5,
+                       help="CENIE novelty weight (0=pure regret, 1=pure novelty)")
+    group.add_argument("--cenie_buffer_size", type=int, default=50000,
+                       help="CENIE state-action coverage buffer size (FIFO)")
+    group.add_argument("--cenie_num_components", type=int, default=10,
+                       help="CENIE GMM number of components")
+    group.add_argument("--cenie_refit_interval", type=int, default=5,
+                       help="Refit CENIE GMM every N eval steps")
     group.add_argument("--exploratory_grad_updates", action=argparse.BooleanOptionalAction, default=False)
     group.add_argument("--level_buffer_capacity", type=int, default=4000)
     group.add_argument("--replay_prob", type=float, default=0.8)
