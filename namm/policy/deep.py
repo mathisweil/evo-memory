@@ -20,8 +20,8 @@ from transformers import LlamaPreTrainedModel
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
 from .base import MemoryPolicy, ParamMemoryPolicy
 from .base_dynamic import (
-    DynamicMemoryPolicy, DynamicParamMemoryPolicy, 
-    RecencyParams, AttentionParams,
+    DynamicMemoryPolicy, DynamicParamMemoryPolicy,
+    RecencyParams, AttentionParams, is_tpu,
     )
 
 
@@ -336,7 +336,9 @@ class DeepMP(DynamicParamMemoryPolicy):
             new_sequences = False
         else:
             new_sequences = True
-        
+            if is_tpu() and hasattr(self, 'cache_validity_mask'):
+                self.cache_validity_mask[layer_id] = None
+
         if attn_mask is not None:
             
             attn_mask = attn_mask.unsqueeze(-2)[..., -num_all_tokens:]
@@ -553,6 +555,12 @@ class DeepMP(DynamicParamMemoryPolicy):
                     grads_per_head_per_out_token)
 
 
+        _tpu_kwargs = dict(kwargs)
+        if is_tpu() and hasattr(self, 'cache_validity_mask'):
+            cvm = self.cache_validity_mask[layer_id]
+            if cvm is not None:
+                _tpu_kwargs['cache_validity_mask'] = cvm
+
         retained_idxs, new_mask = self.selection_criteria.select_new_tokens(
             layer_id=layer_id,
             parameters=seletion_criteria_params,
@@ -564,7 +572,7 @@ class DeepMP(DynamicParamMemoryPolicy):
             position_ids=position_ids,
             threshold_shift=threshold_shift,
             analyze=analyze,
-            **kwargs,
+            **_tpu_kwargs,
             )
         
         
@@ -611,6 +619,13 @@ class DeepMP(DynamicParamMemoryPolicy):
             -1, -1, -1, n_embd)
         key_cache = torch.gather(key_cache, dim=-2, index=exp_retained_idxs)
         value_cache = torch.gather(value_cache, dim=-2, index=exp_retained_idxs)
+
+        if is_tpu() and hasattr(self, 'cache_validity_mask'):
+            # Zero out evicted KV entries and store validity mask.
+            validity = new_mask.unsqueeze(-1).to(key_cache.dtype)
+            key_cache = key_cache * validity
+            value_cache = value_cache * validity
+            self.cache_validity_mask[layer_id] = new_mask
 
         if self.requires_position_ids:
             if new_sequences:
