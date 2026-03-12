@@ -1,0 +1,8 @@
+# @package _global_
+# TPU preset for ES+NAMM runs with fixed batch shapes.
+defaults:
+  - namm_bam_i1_llama32_1b
+  - _self_
+
+batch_size: 18
+eval_max_batch_size: 18

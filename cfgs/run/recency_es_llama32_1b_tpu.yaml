@@ -1,0 +1,8 @@
+# @package _global_
+# TPU preset for ES recency runs with fixed batch shapes.
+defaults:
+  - recency_es_llama32_1b
+  - _self_
+
+batch_size: 18
+eval_max_batch_size: 18

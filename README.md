@@ -33,7 +33,7 @@ See `setup/setup.sh --help` for options (`--user`, `--gpu`, `--noclaude`, `--dir
 **In subsequent shells:**
 ```bash
 source setup/activate.sh      # GPU
-source setup/activate_tpu.sh  # TPU (also sets PJRT_DEVICE, GCS vars, downloads XLA cache)
+source setup/activate_tpu.sh  # TPU (also sets PJRT_DEVICE and GCS vars)
 ```
 
 ---
@@ -55,6 +55,7 @@ Utility scripts:
 | `scripts/generate_report.py` | Generate a comparison report from experiment results |
 | `scripts/archive_experiment.py` | Archive completed experiments |
 | `scripts/warmup_xla_cache.sh` | Pre-compile XLA graphs for TPU (run once before experiments) |
+| `scripts/tpu_smoke_matrix.sh` | Run end-to-end TPU smoke matrix (`es_only`, `es_recency`, `es_namm`) |
 
 See [docs/examples.md](docs/examples.md) for copy-paste commands covering smoke tests and full runs for each pipeline.
 
@@ -100,7 +101,9 @@ HuggingFace access required for gated LLaMA 3.2-1B model: `huggingface-cli login
 
 - **XLA compilation**: First run on TPU is slow (~20 min) as XLA compiles graphs. Run warmup once:
   `export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt && bash scripts/warmup_xla_cache.sh`
-- **XLA cache syncing**: `activate_tpu.sh` auto-downloads the XLA cache from GCS on startup; `run_es.py` auto-uploads it on exit.
+- **XLA cache syncing**: disabled by default. Opt in with:
+  - startup download: `XLA_CACHE_DOWNLOAD=1 source setup/activate_tpu.sh`
+  - upload on run exit: pass `--sync-xla-cache` to `scripts/run_es.py` (requires `--gcs` on TPU)
 - **GCS integration**: Enabled by default (`--gcs`). Experiment manifests, checkpoints, and results sync to `gs://statistical-nlp/experiments/`. Disable with `--no-gcs`.
 - **Spot VM preemption**: SIGTERM is caught and triggers an emergency checkpoint upload. Re-running with the same `--run_name` auto-resumes from the latest GCS checkpoint.
 - **Fixed-size tensors**: XLA requires fixed tensor shapes. NAMM uses cache validity masking to pad KV caches to a fixed size on TPU, avoiding recompilation.

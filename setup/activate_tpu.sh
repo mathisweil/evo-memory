@@ -30,10 +30,18 @@ export VM_ID="${VM_ID:-$(hostname)}"
 export XLA_PERSISTENT_CACHE_PATH="${REPO_DIR}/.xla_cache"
 mkdir -p "${XLA_PERSISTENT_CACHE_PATH}" 2>/dev/null
 
-# Pull cached XLA graphs from GCS if local cache is empty.
-if [ -z "$(ls -A "${XLA_PERSISTENT_CACHE_PATH}" 2>/dev/null)" ]; then
-    echo "Downloading XLA cache from GCS..."
-    gsutil -m rsync -r "gs://${GCS_BUCKET}/xla_cache" "${XLA_PERSISTENT_CACHE_PATH}" 2>/dev/null || true
+# Pull cached XLA graphs from GCS only when explicitly requested.
+# Set XLA_CACHE_DOWNLOAD=1 before sourcing this script to enable.
+XLA_CACHE_DOWNLOAD="${XLA_CACHE_DOWNLOAD:-0}"
+if [ "${XLA_CACHE_DOWNLOAD}" = "1" ]; then
+    if [ -z "$(ls -A "${XLA_PERSISTENT_CACHE_PATH}" 2>/dev/null)" ]; then
+        echo "Downloading XLA cache from GCS (XLA_CACHE_DOWNLOAD=1)..."
+        gsutil -m rsync -r "gs://${GCS_BUCKET}/xla_cache" "${XLA_PERSISTENT_CACHE_PATH}" 2>/dev/null || true
+    else
+        echo "Skipping XLA cache download (local cache is non-empty)."
+    fi
+else
+    echo "Skipping XLA cache download (set XLA_CACHE_DOWNLOAD=1 to enable)."
 fi
 
 cd "${REPO_DIR}"

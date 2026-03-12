@@ -225,6 +225,16 @@ python scripts/generate_report.py
 python scripts/archive_experiment.py
 ```
 
+### 5c. Run the TPU smoke matrix
+
+```bash
+export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
+bash scripts/tpu_smoke_matrix.sh
+
+# Optional: use GCS-backed runs
+GCS_MODE=gcs bash scripts/tpu_smoke_matrix.sh
+```
+
 ---
 
 ## Monitoring
@@ -249,7 +259,9 @@ cat experiments/experiment_N/es_namm/run_name/examples.json
 - GCS checkpointing is on by default (`--gcs`). Checkpoints sync to `gs://statistical-nlp/experiments/` every `--checkpoint_every` iterations (default 10). Disable with `--no-gcs`.
 - Auto-resume: if training is interrupted, re-run with the same `--run_name` and it will resume from the latest GCS checkpoint automatically.
 - Preemption-safe: SIGTERM handler triggers an immediate checkpoint upload before exit.
-- XLA compilation cache is synced to `gs://statistical-nlp/xla_cache` on exit and downloaded on `source activate_tpu.sh` if the local cache is empty.
+- XLA cache sync is opt-in:
+  - upload on run exit: pass `--sync-xla-cache` to `scripts/run_es.py` (with `--gcs`)
+  - startup download: `XLA_CACHE_DOWNLOAD=1 source setup/activate_tpu.sh`
 - Baseline and final full evaluations are run automatically; no periodic validation during training.
 - Q/A examples are captured during the final evaluation (controlled by `--n_examples`).
 - All NAMM configs live in `cfgs/run/*_llama32_1b.yaml`.

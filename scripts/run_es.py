@@ -30,6 +30,7 @@ import atexit
 import json
 import logging
 import os
+import shutil
 import socket
 import sys
 from datetime import datetime
@@ -70,6 +71,40 @@ def _sync_xla_cache_to_gcs():
     subprocess.run(
         ["gsutil", "-m", "rsync", "-r", cache_dir, f"gs://{bucket}/xla_cache"],
         check=False,
+    )
+
+
+def _maybe_enable_xla_cache_sync(args, is_tpu):
+    """Enable optional XLA cache sync, validating required prerequisites."""
+    if not args.sync_xla_cache:
+        return
+    if not args.gcs:
+        print("WARNING: --sync-xla-cache requested but GCS is disabled (--no-gcs).")
+        return
+    if not is_tpu:
+        print("WARNING: --sync-xla-cache requested but active device is not TPU.")
+        return
+
+    cache_dir = os.environ.get("XLA_PERSISTENT_CACHE_PATH", "")
+    bucket = os.environ.get("GCS_BUCKET", "")
+
+    if not cache_dir:
+        print("WARNING: --sync-xla-cache requested but XLA_PERSISTENT_CACHE_PATH is unset.")
+        return
+    if not os.path.isdir(cache_dir):
+        print(f"WARNING: --sync-xla-cache requested but cache dir does not exist: {cache_dir}")
+        return
+    if not bucket:
+        print("WARNING: --sync-xla-cache requested but GCS_BUCKET is unset.")
+        return
+    if shutil.which("gsutil") is None:
+        print("WARNING: --sync-xla-cache requested but 'gsutil' is not available.")
+        return
+
+    atexit.register(_sync_xla_cache_to_gcs)
+    print(
+        "XLA cache sync on exit enabled: "
+        f"{cache_dir} -> gs://{bucket}/xla_cache"
     )
 
 
@@ -385,6 +420,11 @@ def parse_args():
     parser.add_argument("--no-gcs", dest="gcs", action="store_false",
                         help="Disable GCS experiment management and checkpointing")
     parser.set_defaults(gcs=True)
+    parser.add_argument("--sync-xla-cache", dest="sync_xla_cache", action="store_true",
+                        help="Sync local XLA cache to GCS on exit (TPU + --gcs only)")
+    parser.add_argument("--no-sync-xla-cache", dest="sync_xla_cache", action="store_false",
+                        help="Disable XLA cache sync on exit")
+    parser.set_defaults(sync_xla_cache=False)
     parser.add_argument("--checkpoint_every", type=int, default=10,
                         help="Save checkpoint every N iterations (0 = final only)")
 
@@ -400,9 +440,6 @@ def main():
     # Auto-detect method
     if args.method is None:
         args.method = "es_namm" if args.namm_checkpoint else "es_only"
-
-    if args.gcs:
-        atexit.register(_sync_xla_cache_to_gcs)
 
     # Setup GCS client if requested
     gcs = None
@@ -453,6 +490,8 @@ def main():
         torch.backends.cudnn.allow_tf32 = True
 
     device = get_device()
+    is_tpu = is_tpu_device(device)
+    _maybe_enable_xla_cache_sync(args, is_tpu)
 
     print("=" * 60)
     print("ES Fine-Tuning: Llama 3.2 1B + NAMM on Qasper")
@@ -468,6 +507,8 @@ def main():
     if gcs:
         print(f"GCS: gs://{gcs.bucket_name}/ (checkpoint every "
               f"{args.checkpoint_every} iter)")
+    if args.sync_xla_cache:
+        print("XLA cache sync requested: enabled when TPU+GCS prerequisites are met")
     print()
 
     # 1. Load config and model
@@ -489,7 +530,6 @@ def main():
 
     memory_model.to(device)
 
-    is_tpu = is_tpu_device(device)
     if is_tpu:
         fixed_batch_size = validate_tpu_batch_settings(
             memory_evaluator.batch_size,

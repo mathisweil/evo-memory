@@ -67,6 +67,7 @@ source setup/activate_tpu.sh   # sets PJRT_DEVICE=TPU, XLA env vars
 Key env vars:
 - `PJRT_DEVICE=TPU`
 - `XLA_PERSISTENT_CACHE_PATH` — local dir for graph cache (writes but can't read)
+- `XLA_CACHE_DOWNLOAD=1` — optional; if set, `activate_tpu.sh` attempts a GCS download into `XLA_PERSISTENT_CACHE_PATH`
 - `XLA_USE_BF16=0` — disabled, using explicit dtype control
 
 ## Sequence Length Bucketing
@@ -87,6 +88,28 @@ source setup/activate_tpu.sh
 export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
 bash scripts/warmup_xla_cache.sh
 ```
+
+## Smoke Matrix Script
+`scripts/tpu_smoke_matrix.sh` runs the acceptance smoke matrix end-to-end:
+- `es_only`, `es_recency`, `es_namm`
+- short train runs (`iter=2`, `pop=2`) with fixed TPU-safe batch sizing
+- optional eval pass per run
+- summary output at `experiments/smoke_matrix/<timestamp>/summary.json`
+
+Usage:
+```bash
+source setup/activate_tpu.sh
+export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
+bash scripts/tpu_smoke_matrix.sh
+```
+
+Defaults:
+- Local mode (`--no-gcs`) for fast validation.
+- Set `GCS_MODE=gcs` to run with GCS-backed experiment tracking.
+
+## Optional XLA Cache Sync
+- Download is opt-in at activation: `XLA_CACHE_DOWNLOAD=1 source setup/activate_tpu.sh`
+- Upload is opt-in per run: add `--sync-xla-cache` to `scripts/run_es.py` (requires `--gcs`)
 
 ## GPU Compatibility
 All TPU changes are gated behind `_IS_TPU = os.environ.get("PJRT_DEVICE") == "TPU"`.

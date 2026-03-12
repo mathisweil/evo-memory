@@ -255,3 +255,38 @@ Remaining to complete M1:
 
 1. Run actual TPU smoke tests for `es_only`, `es_namm`, `es_recency`.
 2. Confirm no XLA runtime recompilation/regression on target TPU runtime.
+
+## 7) Priority 1 Implementation Status (Current Branch)
+
+Implemented in code:
+
+1. XLA cache sync behavior is now explicit/opt-in.
+- `scripts/run_es.py` adds `--sync-xla-cache` / `--no-sync-xla-cache` (default off).
+- Sync is enabled only when TPU + `--gcs` + required env/tools are present; otherwise warns and continues.
+- `setup/activate_tpu.sh` no longer auto-downloads cache by default.
+- Startup download now requires `XLA_CACHE_DOWNLOAD=1`.
+
+2. Added TPU smoke matrix runner.
+- `scripts/tpu_smoke_matrix.sh` runs:
+  - `es_only`, `es_recency`, `es_namm`
+  - short train runs (default `iter=2`, `pop=2`, `batch=18`)
+  - optional eval pass per method (`RUN_EVAL=1` by default)
+- Default mode is local (`--no-gcs`); set `GCS_MODE=gcs` to use GCS.
+- Writes machine-readable summary to:
+  - `experiments/smoke_matrix/<timestamp>/summary.json`
+
+3. Added strict TPU run presets.
+- `cfgs/run/full_cache_es_llama32_1b_tpu.yaml`
+- `cfgs/run/recency_es_llama32_1b_tpu.yaml`
+- `cfgs/run/namm_bam_i1_llama32_1b_tpu.yaml`
+- Each preset enforces fixed:
+  - `batch_size: 18`
+  - `eval_max_batch_size: 18`
+
+4. Documentation aligned with new behavior.
+- Updated cache sync semantics (opt-in) and smoke runner usage in:
+  - `README.md`
+  - `docs/tpu_notes.md`
+  - `docs/es-ft-guide.md`
+  - `docs/es-ft-namm-guide.md`
+  - `docs/examples.md`

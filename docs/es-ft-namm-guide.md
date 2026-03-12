@@ -389,6 +389,7 @@ GCS experiment management is enabled by default (`--gcs`). It provides:
 - **Periodic checkpointing**: Every `--checkpoint_every` iterations (default 10), checkpoints are uploaded to GCS.
 - **Auto-resume**: Re-running with the same `--run_name` detects the latest GCS checkpoint and resumes training automatically.
 - **Preemption safety**: On spot VMs, SIGTERM (sent ~30s before termination) triggers an emergency checkpoint upload. Combined with auto-resume, this makes training resilient to preemption.
+- **Optional XLA cache syncing**: On TPU, upload compiled graphs on exit with `--sync-xla-cache` (requires `--gcs`). Optional startup download: `XLA_CACHE_DOWNLOAD=1 source setup/activate_tpu.sh`.
 
 Disable GCS with `--no-gcs` for purely local runs.
 
@@ -401,7 +402,8 @@ The combined ES+NAMM pipeline supports Google Cloud TPUs via a device abstractio
 **Key TPU adaptations:**
 - **Fixed-size tensors**: XLA requires fixed tensor shapes across all code branches. NAMM uses cache validity masking to pad KV caches to `cache_size` and mask out invalid entries. Evicted entries are scored at minimum value to prevent them from being "re-selected".
 - **XLA compilation cache**: First-run compilation is slow. Use `scripts/warmup_xla_cache.sh` to pre-compile graphs for all (method, cache_size) combinations. Set `NAMM_CKPT` before running warmup.
-- **Environment**: `setup/activate_tpu.sh` sets `PJRT_DEVICE=TPU`, GCS env vars, and auto-downloads the XLA cache.
+- **Smoke validation**: `scripts/tpu_smoke_matrix.sh` runs `es_only`, `es_recency`, and `es_namm` train+eval smoke checks in one command.
+- **Environment**: `setup/activate_tpu.sh` sets `PJRT_DEVICE=TPU` and GCS env vars.
 
 ---
 
