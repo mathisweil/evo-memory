@@ -89,6 +89,13 @@ def parse_args():
 def main():
     args = parse_args()
 
+    # Resolve "latest" NAMM checkpoint from GCS
+    if args.namm_checkpoint == "latest":
+        from es_finetuning.gcs import GCSClient
+        _gcs = GCSClient()
+        cache_dir = os.path.join(REPO_ROOT, "exp_local", "pretrained")
+        args.namm_checkpoint = _gcs.download_latest_pretrained(cache_dir)
+
     if torch.cuda.is_available():
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True

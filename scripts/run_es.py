@@ -450,6 +450,13 @@ def main():
         gcs = GCSClient()
         preemption_handler = PreemptionHandler()
 
+    # Resolve "latest" NAMM checkpoint from GCS
+    if args.namm_checkpoint == "latest":
+        from es_finetuning.gcs import GCSClient
+        _gcs = gcs if gcs is not None else GCSClient()
+        cache_dir = os.path.join(REPO_ROOT, "exp_local", "pretrained")
+        args.namm_checkpoint = _gcs.download_latest_pretrained(cache_dir)
+
     # Setup experiment hierarchy
     if gcs:
         experiment_name, manifest = get_or_create_experiment_gcs(
