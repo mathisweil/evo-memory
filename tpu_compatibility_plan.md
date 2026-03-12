@@ -189,10 +189,10 @@ The branch already contains most of the foundation. The remaining work is a stab
 ## 4) Execution Checklist
 
 ### Milestone M1: Correctness
-- [ ] TPU batch invariant checks implemented.
-- [ ] Negative indexing/recency fixes implemented and tested.
-- [ ] `--no-gcs` added and documented.
-- [ ] Warmup script mismatch resolved.
+- [x] TPU batch invariant checks implemented.
+- [x] Negative indexing/recency fixes implemented and tested (CPU/unit + static checks; TPU runtime still required).
+- [x] `--no-gcs` added and documented.
+- [x] Warmup script mismatch resolved.
 - [ ] `es_only` TPU smoke test passes.
 - [ ] `es_namm` TPU smoke test passes.
 - [ ] `es_recency` TPU smoke test passes.
@@ -214,3 +214,44 @@ The branch already contains most of the foundation. The remaining work is a stab
 2. Run a deterministic TPU smoke matrix (`iter=2`) and record failures.
 3. Start first 50-iteration TPU run only after M1 passes.
 
+
+## 6) Priority 0 Implementation Status (Current Branch)
+
+Implemented in code:
+
+1. TPU batch invariants are now enforced in runtime code.
+- `scripts/run_es.py` and `scripts/run_eval.py` now use shared checks from `es_finetuning/tpu_guardrails.py`.
+- In TPU mode:
+  - `batch_size` cannot be `"auto"`.
+  - `batch_size` must be a positive integer.
+  - training requires `mini_batch_size == batch_size`.
+
+2. Explicit handling for partial final batches on TPU.
+- `namm/evaluator.py` now pads partial last batches in XLA mode via `pad_partial_tpu_batch(...)` and trims outputs back to original request count.
+- This prevents a new compile graph from being triggered by a smaller final batch.
+
+3. Recency/masking shape hardening.
+- `namm/policy/base.py`: recency path now uses bounded `keep=min(cache_size, seq_len)` slicing and handles `keep==0`.
+- `namm/llms/llama.py`: attention-mask and cache-validity-mask lengths are aligned to current KV length.
+- `namm/policy/deep_selection.py`: cache-validity mask now pads when shorter and right-trims when longer than current KV length.
+
+4. GCS CLI toggle contract is fixed.
+- `scripts/run_es.py` now supports explicit `--gcs` / `--no-gcs` with default enabled, matching docs.
+
+5. Warmup workflow reference mismatch is resolved.
+- `scripts/warmup_xla_cache.sh` exists and is referenced consistently by docs.
+
+Verification performed without TPU hardware:
+
+1. Added unit tests: `tests/test_tpu_guardrails.py`
+- Covers TPU device detection, batch invariant validation, and TPU partial-batch padding behavior.
+
+2. Executed in current dev environment:
+- `python3 -m unittest tests/test_tpu_guardrails.py` (pass)
+- `python3 -m unittest discover -s tests -p 'test_*.py'` (pass)
+- `python3 -m py_compile es_finetuning/tpu_guardrails.py namm/evaluator.py namm/policy/deep_selection.py scripts/run_es.py scripts/run_eval.py` (pass)
+
+Remaining to complete M1:
+
+1. Run actual TPU smoke tests for `es_only`, `es_namm`, `es_recency`.
+2. Confirm no XLA runtime recompilation/regression on target TPU runtime.

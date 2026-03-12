@@ -34,6 +34,7 @@ from utils import CtxCollator
 import json
 
 from utils.longbench import build_chat
+from es_finetuning.tpu_guardrails import pad_partial_tpu_batch
 
 
 class MemoryHFEvaluator():
@@ -681,9 +682,8 @@ class MemoryHFEvaluator():
 
         for i, (contexts, _) in enumerate(chunks):
             contexts = list(contexts)
-            original_context_count = len(contexts)
             start_idx = processed_reqs
-            end_idx = start_idx + original_context_count
+            end_idx = start_idx + len(contexts)
             chunk_indices = re_ords._reorder_indices[start_idx:end_idx]
 
             if pop_idxs is not None:
@@ -697,20 +697,15 @@ class MemoryHFEvaluator():
             else:
                 chunk_precached_tensors = None
 
-            # TPU/XLA path: pad final partial batch to keep a fixed batch
-            # dimension and avoid a separate compiled graph.
-            if (str(self.device).startswith("xla")
-                    and isinstance(batch_size, int)
-                    and 0 < original_context_count < batch_size):
-                pad_count = batch_size - original_context_count
-                contexts.extend([contexts[-1]] * pad_count)
-                if chunk_pop_idxs is not None:
-                    pad_pop_idxs = np.repeat(chunk_pop_idxs[-1], pad_count)
-                    chunk_pop_idxs = np.concatenate(
-                        [chunk_pop_idxs, pad_pop_idxs])
-                if chunk_precached_tensors is not None:
-                    chunk_precached_tensors.extend(
-                        [chunk_precached_tensors[-1]] * pad_count)
+            contexts, chunk_pop_idxs, chunk_precached_tensors, original_context_count = (
+                pad_partial_tpu_batch(
+                    contexts,
+                    chunk_pop_idxs,
+                    chunk_precached_tensors,
+                    batch_size,
+                    device=self.device,
+                )
+            )
 
             if chunk_pop_idxs is not None:
                 self.memory_policy.set_params_batch_idxs(

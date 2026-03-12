@@ -49,6 +49,10 @@ from hydra import compose, initialize
 from run_namm import make_eval_model, make_task_sampler
 from es_finetuning import ESConfig, ESTrainer
 from es_finetuning.device import get_device
+from es_finetuning.tpu_guardrails import (
+    is_tpu_device,
+    validate_tpu_batch_settings,
+)
 from utils.longbench import get_all_scores
 
 EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
@@ -485,25 +489,13 @@ def main():
 
     memory_model.to(device)
 
-    is_tpu = str(device).startswith("xla")
+    is_tpu = is_tpu_device(device)
     if is_tpu:
-        if memory_evaluator.batch_size == "auto":
-            raise ValueError(
-                "TPU requires a fixed integer batch size. "
-                "Set --batch_size explicitly (do not use 'auto')."
-            )
-        if not isinstance(memory_evaluator.batch_size, (int, np.integer)):
-            raise ValueError(
-                "TPU requires an integer batch size. "
-                f"Received: {memory_evaluator.batch_size!r}"
-            )
-        fixed_batch_size = int(memory_evaluator.batch_size)
-        if args.mini_batch_size != fixed_batch_size:
-            raise ValueError(
-                "TPU requires mini_batch_size == batch_size for stable shapes. "
-                f"Received mini_batch_size={args.mini_batch_size}, "
-                f"batch_size={fixed_batch_size}."
-            )
+        fixed_batch_size = validate_tpu_batch_settings(
+            memory_evaluator.batch_size,
+            args.mini_batch_size,
+            context="training",
+        )
         memory_evaluator.batch_size_per_gpu = fixed_batch_size
         print(f"TPU mode: using fixed batch size {fixed_batch_size}")
 

@@ -35,6 +35,9 @@ def _apply_cache_validity_mask(masked_full_scores, cache_validity_mask):
     if n_old < n_kv:
         full_validity = F.pad(
             cache_validity_mask, (0, n_kv - n_old), value=True)
+    elif n_old > n_kv:
+        # Keep the newest validity window when the current KV tensor is shorter.
+        full_validity = cache_validity_mask[..., -n_kv:]
     else:
         full_validity = cache_validity_mask
     return torch.where(full_validity, masked_full_scores, min_value)
