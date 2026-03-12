@@ -45,14 +45,6 @@ while [[ $# -gt 0 ]]; do
             USER_NAME="${1#*=}"
             shift
             ;;
-        --degree)
-            DEGREE="$2"
-            shift 2
-            ;;
-        --degree=*)
-            DEGREE="${1#*=}"
-            shift
-            ;;
         --dir)
             CUSTOM_DIR="$2"
             shift 2
@@ -61,13 +53,20 @@ while [[ $# -gt 0 ]]; do
             CUSTOM_DIR="${1#*=}"
             shift
             ;;
+        --degree)
+            DEGREE="$2"
+            shift 2
+            ;;
+        --degree=*)
+            DEGREE="${1#*=}"
+            shift
+            ;;
         --noclaude)
             INSTALL_CLAUDE=false
             shift
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: bash setup.sh [--dir DIR | --user USERNAME] [--gpu GPU_ID] [--noclaude]"
             exit 1
             ;;
     esac
