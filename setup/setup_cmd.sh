@@ -10,7 +10,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup/setup_cmd.sh -o /tmp/setup_cmd.sh
 #
 # Step 2: Run
-#   bash /tmp/setup_cmd.sh                        # UCL VM, uses $(whoami)
+#   bash /tmp/setup_cmd.sh  --degree csml                     # UCL VM, uses $(whoami)
 #   bash /tmp/setup_cmd.sh --user jsmith --gpu 2  # UCL VM, explicit user + GPU
 #   bash /tmp/setup_cmd.sh --dir ~/ft-namm        # any machine, custom dir
 #   bash /tmp/setup_cmd.sh --branch my-feature     # use a different branch
@@ -18,40 +18,42 @@
 
 set -euo pipefail
 
-# Parse --user, --dir, --branch from args (need them before forwarding to setup.sh)
+# Parse args
 USER_NAME=""
 CUSTOM_DIR=""
 CUSTOM_BRANCH=""
+DEGREE="csml"   # default
 
-for arg in "$@"; do
-    if [ "${prev:-}" = "--user" ]; then
-        USER_NAME="$arg"
-    elif [ "${prev:-}" = "--dir" ]; then
-        CUSTOM_DIR="$arg"
-    elif [ "${prev:-}" = "--branch" ]; then
-        CUSTOM_BRANCH="$arg"
-    fi
-    prev="$arg"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --user)
+            USER_NAME="$2"
+            shift 2
+            ;;
+        --dir)
+            CUSTOM_DIR="$2"
+            shift 2
+            ;;
+        --branch)
+            CUSTOM_BRANCH="$2"
+            shift 2
+            ;;
+        --degree)
+            DEGREE="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
 done
 
 USER_NAME="${USER_NAME:-$(whoami)}"
 
-BASE_DIR="/cs/student/project_msc/2025"
-
-# Dynamically detect the degree folder
-DEGREE_DIR=$(find "$BASE_DIR" -maxdepth 1 -type d -name "*${USER_NAME}*" -prune -o -type d -print | \
-             xargs -I{} find {} -maxdepth 1 -type d -name "$USER_NAME" 2>/dev/null | \
-             head -n 1 | awk -F'/' '{print $(NF-1)}')
-
-if [ -z "$DEGREE_DIR" ]; then
-    echo "Could not detect degree directory"
-    exit 1
-fi
-
 if [ -n "${CUSTOM_DIR}" ]; then
     WORK_DIR="${CUSTOM_DIR}"
 else
-    WORK_DIR="${BASE_DIR}/${DEGREE_DIR}/${USER_NAME}/SNLP/FT-NAMM"
+    WORK_DIR="/cs/student/project_msc/2025/${DEGREE}/${USER_NAME}/SNLP/FT-NAMM"
 fi
 
 REPO_DIR="${WORK_DIR}/evo-memory"
