@@ -7,7 +7,7 @@
 # Works from any shell (bash, zsh, csh, tcsh — doesn't matter).
 #
 # Step 1: Download (once)
-#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/scripts/setup_cmd.sh -o /tmp/setup_cmd.sh
+#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup/setup_cmd.sh -o /tmp/setup_cmd.sh
 #
 # Step 2: Run
 #   bash /tmp/setup_cmd.sh                        # UCL VM, uses $(whoami)
