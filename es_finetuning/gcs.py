@@ -14,6 +14,7 @@ import time
 GCS_BUCKET = os.environ.get("GCS_BUCKET", "statistical-nlp")
 GCS_PROJECT = os.environ.get("GCS_PROJECT", "statistical-nlp")
 GCS_EXPERIMENTS_PREFIX = "experiments"
+GCS_PRETRAINED_PREFIX = "NAMM_checkpoints/pretrained"
 
 
 def _iter_num_from_blob(blob):
@@ -193,6 +194,54 @@ class GCSClient:
                   f"{state_filename}")
 
         return local_path, training_state
+
+    # ── Pretrained NAMM checkpoints ─────────────────────────────────
+
+    def upload_pretrained(self, local_path):
+        """Upload a pretrained NAMM checkpoint to GCS.
+
+        Stored under NAMM_checkpoints/pretrained/<filename>.
+        """
+        filename = os.path.basename(local_path)
+        gcs_path = f"{GCS_PRETRAINED_PREFIX}/{filename}"
+        self.upload_file(local_path, gcs_path)
+        size_mb = os.path.getsize(local_path) / 1024**2
+        print(f"  Uploaded: gs://{self.bucket_name}/{gcs_path} ({size_mb:.1f} MB)")
+        return gcs_path
+
+    def download_latest_pretrained(self, local_cache_dir="exp_local/pretrained"):
+        """Download the most recently uploaded pretrained NAMM checkpoint.
+
+        Uses file size to skip re-downloading if a cached copy exists.
+        Returns the local path to the checkpoint.
+        """
+        blobs = [b for b in self.list_blobs(GCS_PRETRAINED_PREFIX)
+                 if b.name.endswith(".pt")]
+        if not blobs:
+            raise FileNotFoundError(
+                "No pretrained NAMM checkpoints found in "
+                f"gs://{self.bucket_name}/{GCS_PRETRAINED_PREFIX}/")
+
+        latest = sorted(blobs, key=lambda b: b.updated)[-1]
+        filename = os.path.basename(latest.name)
+        local_path = os.path.join(local_cache_dir, filename)
+
+        if os.path.exists(local_path) and os.path.getsize(local_path) == latest.size:
+            print(f"  NAMM checkpoint cached: {local_path}")
+            return local_path
+
+        size_mb = latest.size / 1024**2
+        print(f"  Downloading gs://{self.bucket_name}/{latest.name} "
+              f"({size_mb:.1f} MB)...")
+        self.download_file(latest.name, local_path)
+        print(f"  Saved: {local_path}")
+        return local_path
+
+    def list_pretrained(self):
+        """List all pretrained NAMM checkpoints in GCS."""
+        blobs = [b for b in self.list_blobs(GCS_PRETRAINED_PREFIX)
+                 if b.name.endswith(".pt")]
+        return sorted(blobs, key=lambda b: b.updated)
 
     def cleanup_old_checkpoints(self, experiment, method, run_name, keep=2):
         """Delete all but the most recent `keep` periodic checkpoints."""
