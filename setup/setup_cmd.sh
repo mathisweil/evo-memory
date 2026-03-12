@@ -22,6 +22,7 @@ set -euo pipefail
 USER_NAME=""
 CUSTOM_DIR=""
 CUSTOM_BRANCH=""
+
 for arg in "$@"; do
     if [ "${prev:-}" = "--user" ]; then
         USER_NAME="$arg"
@@ -32,13 +33,27 @@ for arg in "$@"; do
     fi
     prev="$arg"
 done
+
 USER_NAME="${USER_NAME:-$(whoami)}"
+
+BASE_DIR="/cs/student/project_msc/2025"
+
+# Dynamically detect the degree folder
+DEGREE_DIR=$(find "$BASE_DIR" -maxdepth 1 -type d -name "*${USER_NAME}*" -prune -o -type d -print | \
+             xargs -I{} find {} -maxdepth 1 -type d -name "$USER_NAME" 2>/dev/null | \
+             head -n 1 | awk -F'/' '{print $(NF-1)}')
+
+if [ -z "$DEGREE_DIR" ]; then
+    echo "Could not detect degree directory"
+    exit 1
+fi
 
 if [ -n "${CUSTOM_DIR}" ]; then
     WORK_DIR="${CUSTOM_DIR}"
 else
-    WORK_DIR="/cs/student/project_msc/2025/csml/${USER_NAME}/SNLP/FT-NAMM"
+    WORK_DIR="${BASE_DIR}/${DEGREE_DIR}/${USER_NAME}/SNLP/FT-NAMM"
 fi
+
 REPO_DIR="${WORK_DIR}/evo-memory"
 BRANCH="${CUSTOM_BRANCH:-es-fine-tuning}"
 REPO_URL="https://github.com/mathisweil/evo-memory.git"
