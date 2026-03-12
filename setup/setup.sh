@@ -25,6 +25,7 @@ set -euo pipefail
 GPU_ID=""
 USER_NAME=""
 CUSTOM_DIR=""
+DEGREE="csml"
 INSTALL_CLAUDE=true
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -42,6 +43,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --user=*)
             USER_NAME="${1#*=}"
+            shift
+            ;;
+        --degree)
+            DEGREE="$2"
+            shift 2
+            ;;
+        --degree=*)
+            DEGREE="${1#*=}"
             shift
             ;;
         --dir)
@@ -72,7 +81,7 @@ USER_NAME="${USER_NAME:-$(whoami)}"
 if [ -n "${CUSTOM_DIR}" ]; then
     WORK_DIR="${CUSTOM_DIR}"
 else
-    WORK_DIR="/cs/student/project_msc/2025/csml/${USER_NAME}/SNLP/FT-NAMM"
+    WORK_DIR="/cs/student/project_msc/2025/${DEGREE}/${USER_NAME}/SNLP/FT-NAMM"
 fi
 EVO_MEMORY_REPO="https://github.com/mathisweil/evo-memory.git"
 EVO_MEMORY_BRANCH="es-fine-tuning"
