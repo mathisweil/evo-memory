@@ -413,7 +413,7 @@ The codebase supports both CUDA GPUs and Google Cloud TPUs via a device abstract
 
 **Key TPU adaptations:**
 - **Fixed-size tensors**: XLA requires fixed tensor shapes across all code branches. NAMM uses cache validity masking (`namm/policy/base.py`, `namm/policy/deep_selection.py`) to pad KV caches to `cache_size` and mask out invalid entries, avoiding dynamic shapes that would trigger recompilation.
-- **XLA compilation cache**: First-run compilation is slow (~20 min). Use `scripts/warmup_xla_cache.sh` to pre-compile graphs for all (method, cache_size) combinations. Cached graphs persist in `$XLA_PERSISTENT_CACHE_PATH`.
+- **XLA compilation cache**: First-run compilation is slow (~20 min). Use `scripts/warmup_xla_cache.sh` to pre-compile graphs for all (method, cache_size) combinations. Set `NAMM_CKPT` before running warmup.
 - **Environment**: Set `PJRT_DEVICE=TPU` (done automatically by `setup/activate_tpu.sh`).
 
 ---

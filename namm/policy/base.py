@@ -363,8 +363,10 @@ class Recency(MemoryPolicy):
     def update_layer_cache(self, layer_id, key_cache, value_cache, num_new_tokens,
                            attn_weights, attn_mask=None, **kwargs,) -> Tuple[torch.Tensor, torch.Tensor]:
         if self.limit_cache:
-            return (key_cache[..., -self.cache_size:, :],
-                    value_cache[..., -self.cache_size:, :])
+            keep = min(self.cache_size, key_cache.shape[-2])
+            if keep == 0:
+                return (key_cache[..., :0, :], value_cache[..., :0, :])
+            return (key_cache[..., -keep:, :], value_cache[..., -keep:, :])
         else:
             return key_cache, value_cache
 
@@ -382,8 +384,10 @@ class AttnRequiringRecency(MemoryPolicy):
 
     def update_layer_cache(self, layer_id, key_cache, value_cache, num_new_tokens,
                            attn_weights, attn_mask=None, **kwargs,) -> Tuple[torch.Tensor, torch.Tensor]:
-        return (key_cache[..., -self.cache_size:, :],
-                value_cache[..., -self.cache_size:, :])
+        keep = min(self.cache_size, key_cache.shape[-2])
+        if keep == 0:
+            return (key_cache[..., :0, :], value_cache[..., :0, :])
+        return (key_cache[..., -keep:, :], value_cache[..., -keep:, :])
 
     @property
     def requires_attn_scores(self,):

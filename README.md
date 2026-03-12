@@ -98,7 +98,8 @@ HuggingFace access required for gated LLaMA 3.2-1B model: `huggingface-cli login
 
 ## TPU Notes
 
-- **XLA compilation**: First run on TPU is slow (~20 min) as XLA compiles graphs. Run `bash scripts/warmup_xla_cache.sh` once to pre-compile for all scenarios.
+- **XLA compilation**: First run on TPU is slow (~20 min) as XLA compiles graphs. Run warmup once:
+  `export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt && bash scripts/warmup_xla_cache.sh`
 - **XLA cache syncing**: `activate_tpu.sh` auto-downloads the XLA cache from GCS on startup; `run_es.py` auto-uploads it on exit.
 - **GCS integration**: Enabled by default (`--gcs`). Experiment manifests, checkpoints, and results sync to `gs://statistical-nlp/experiments/`. Disable with `--no-gcs`.
 - **Spot VM preemption**: SIGTERM is caught and triggers an emergency checkpoint upload. Re-running with the same `--run_name` auto-resumes from the latest GCS checkpoint.

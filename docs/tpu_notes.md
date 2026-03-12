@@ -81,6 +81,13 @@ Implemented in `namm/evaluator.py`.
 - NAMM × 6 cache sizes (1024-6144)
 - 13 total runs
 
+Usage:
+```bash
+source setup/activate_tpu.sh
+export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
+bash scripts/warmup_xla_cache.sh
+```
+
 ## GPU Compatibility
 All TPU changes are gated behind `_IS_TPU = os.environ.get("PJRT_DEVICE") == "TPU"`.
 GPU code paths are completely unchanged.

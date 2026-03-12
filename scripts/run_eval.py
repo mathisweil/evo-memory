@@ -127,6 +127,22 @@ def main():
     memory_model.to(device)
     memory_evaluator.device = device
 
+    is_tpu = str(device).startswith("xla")
+    if is_tpu:
+        if memory_evaluator.batch_size == "auto":
+            raise ValueError(
+                "TPU evaluation requires a fixed integer batch size. "
+                "Set --batch_size explicitly (do not use 'auto')."
+            )
+        if not isinstance(memory_evaluator.batch_size, (int, np.integer)):
+            raise ValueError(
+                "TPU evaluation requires an integer batch size. "
+                f"Received: {memory_evaluator.batch_size!r}"
+            )
+        fixed_batch_size = int(memory_evaluator.batch_size)
+        memory_evaluator.batch_size_per_gpu = fixed_batch_size
+        print(f"TPU mode: using fixed batch size {fixed_batch_size}")
+
     # Load NAMM weights
     if args.namm_checkpoint:
         print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")

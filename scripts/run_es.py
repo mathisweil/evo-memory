@@ -69,9 +69,6 @@ def _sync_xla_cache_to_gcs():
     )
 
 
-atexit.register(_sync_xla_cache_to_gcs)
-
-
 # ── Local experiment manifest management ──────────────────────────────
 
 def _load_manifest():
@@ -379,8 +376,11 @@ def parse_args():
                         help="Number of Q/A examples to capture")
 
     # GCS and checkpointing
-    parser.add_argument("--gcs", action="store_true", default=True,
+    parser.add_argument("--gcs", dest="gcs", action="store_true",
                         help="Enable GCS experiment management and checkpointing")
+    parser.add_argument("--no-gcs", dest="gcs", action="store_false",
+                        help="Disable GCS experiment management and checkpointing")
+    parser.set_defaults(gcs=True)
     parser.add_argument("--checkpoint_every", type=int, default=10,
                         help="Save checkpoint every N iterations (0 = final only)")
 
@@ -396,6 +396,9 @@ def main():
     # Auto-detect method
     if args.method is None:
         args.method = "es_namm" if args.namm_checkpoint else "es_only"
+
+    if args.gcs:
+        atexit.register(_sync_xla_cache_to_gcs)
 
     # Setup GCS client if requested
     gcs = None
@@ -481,6 +484,28 @@ def main():
          evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
 
     memory_model.to(device)
+
+    is_tpu = str(device).startswith("xla")
+    if is_tpu:
+        if memory_evaluator.batch_size == "auto":
+            raise ValueError(
+                "TPU requires a fixed integer batch size. "
+                "Set --batch_size explicitly (do not use 'auto')."
+            )
+        if not isinstance(memory_evaluator.batch_size, (int, np.integer)):
+            raise ValueError(
+                "TPU requires an integer batch size. "
+                f"Received: {memory_evaluator.batch_size!r}"
+            )
+        fixed_batch_size = int(memory_evaluator.batch_size)
+        if args.mini_batch_size != fixed_batch_size:
+            raise ValueError(
+                "TPU requires mini_batch_size == batch_size for stable shapes. "
+                f"Received mini_batch_size={args.mini_batch_size}, "
+                f"batch_size={fixed_batch_size}."
+            )
+        memory_evaluator.batch_size_per_gpu = fixed_batch_size
+        print(f"TPU mode: using fixed batch size {fixed_batch_size}")
 
     # 2. Load NAMM checkpoint
     if args.namm_checkpoint:

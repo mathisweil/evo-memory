@@ -680,14 +680,14 @@ class MemoryHFEvaluator():
         processed_reqs = 0
 
         for i, (contexts, _) in enumerate(chunks):
+            contexts = list(contexts)
+            original_context_count = len(contexts)
             start_idx = processed_reqs
-            end_idx = start_idx + len(contexts)
+            end_idx = start_idx + original_context_count
             chunk_indices = re_ords._reorder_indices[start_idx:end_idx]
 
             if pop_idxs is not None:
                 chunk_pop_idxs = pop_idxs[chunk_indices]
-                self.memory_policy.set_params_batch_idxs(
-                    param_idxs=chunk_pop_idxs)
             else:
                 chunk_pop_idxs = None
 
@@ -697,7 +697,26 @@ class MemoryHFEvaluator():
             else:
                 chunk_precached_tensors = None
 
-            processed_reqs += len(contexts)
+            # TPU/XLA path: pad final partial batch to keep a fixed batch
+            # dimension and avoid a separate compiled graph.
+            if (str(self.device).startswith("xla")
+                    and isinstance(batch_size, int)
+                    and 0 < original_context_count < batch_size):
+                pad_count = batch_size - original_context_count
+                contexts.extend([contexts[-1]] * pad_count)
+                if chunk_pop_idxs is not None:
+                    pad_pop_idxs = np.repeat(chunk_pop_idxs[-1], pad_count)
+                    chunk_pop_idxs = np.concatenate(
+                        [chunk_pop_idxs, pad_pop_idxs])
+                if chunk_precached_tensors is not None:
+                    chunk_precached_tensors.extend(
+                        [chunk_precached_tensors[-1]] * pad_count)
+
+            if chunk_pop_idxs is not None:
+                self.memory_policy.set_params_batch_idxs(
+                    param_idxs=chunk_pop_idxs)
+
+            processed_reqs += original_context_count
             successful_generation = False
             retry_iter = 0
             while not successful_generation:
@@ -724,7 +743,8 @@ class MemoryHFEvaluator():
                     else:
                         raise e
             for i, (cont_toks, context) in enumerate(
-                    zip(cont_toks_list, contexts)):
+                    zip(cont_toks_list[:original_context_count],
+                        contexts[:original_context_count])):
 
                 cont_toks = get_first_value_split(
                     seq=cont_toks, value=tok_stop_gen[0])

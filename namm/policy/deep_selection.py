@@ -271,7 +271,8 @@ class TopKSelection(SelectionNetwork):
                 num_samples, device=token_scores.device,).view(
                     1, 1, num_samples).expand_as(token_scores)
         if self.cache_size is not None:
-            attn_mask = attn_mask[..., -self.cache_size:]
+            keep = min(self.cache_size, attn_mask.shape[-1])
+            attn_mask = attn_mask[..., -keep:]
         new_mask = torch.ones_like(retained_idxs, dtype=torch.bool)*attn_mask
         return retained_idxs, new_mask
     

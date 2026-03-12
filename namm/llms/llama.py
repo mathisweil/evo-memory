@@ -302,7 +302,7 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         
         if self.memory_policy_fixed_delay is not None and num_new_tokens > 1:
             past_length = 0
-            if past_key_values is not None:
+            if past_key_values is not None and len(past_key_values) > 0:
                 num_all_tokens = past_key_values[0][0].shape[-2]
                 if num_all_tokens > 0:
                     past_length = self.memory_policy.get_rotary_offset(
@@ -493,9 +493,13 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                     )
 
         else:
+            if outputs.past_key_values is not None and len(outputs.past_key_values) > 0:
+                num_all_tokens = outputs.past_key_values[0][0].shape[-2]
+            else:
+                num_all_tokens = num_new_tokens
             self.memory_policy.update_rotary_offset(
                 num_new_tokens=num_new_tokens,
-                num_all_tokens=outputs.past_key_values[0][0].shape[-2]
+                num_all_tokens=num_all_tokens,
                 )
 
         if not return_dict:
@@ -562,36 +566,45 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
 
         past_length = 0
         if past_key_values is not None:
-            past_length = self.memory_policy.get_rotary_offset(layer_id=0)
+            past_length = int(
+                self.memory_policy.get_rotary_offset(layer_id=0).item())
             if (self.cache_size is not None 
                 and self.memory_policy_fixed_delay is None):
-                max_cache_length = torch.tensor(self.cache_size, 
-                                                device=past_length.device)
+                max_cache_length = int(self.cache_size)
             else:
                 max_cache_length = None
 
             if max_cache_length is None:
                 cache_length = past_length
             else:
-                cache_length = torch.min(max_cache_length, past_length)
+                cache_length = min(max_cache_length, past_length)
 
             if (attention_mask is not None and
                 attention_mask.shape[1] > input_ids.shape[1]):
-                input_ids = input_ids[
-                    :, -(attention_mask.shape[1] - past_length) :]
+                keep = attention_mask.shape[1] - past_length
+                if keep <= 0:
+                    input_ids = input_ids[:, :0]
+                elif keep < input_ids.shape[1]:
+                    input_ids = input_ids[:, -keep:]
 
 
             elif past_length < input_ids.shape[1]:
                 input_ids = input_ids[:, past_length:]
 
-            position_ids = position_ids[:, -input_ids.shape[1] :]
+            if input_ids.shape[1] > 0:
+                position_ids = position_ids[:, -input_ids.shape[1] :]
+            else:
+                position_ids = position_ids[:, :0]
             if (
                 max_cache_length is not None
                 and attention_mask is not None
                 and cache_length + input_ids.shape[1] > max_cache_length
             ):
-                attention_mask = attention_mask[:, 
-                    -(max_cache_length + input_ids.shape[1]):]
+                keep = min(
+                    max_cache_length + input_ids.shape[1],
+                    attention_mask.shape[1],
+                )
+                attention_mask = attention_mask[:, -keep:]
 
 
         if inputs_embeds is not None and past_key_values is None:

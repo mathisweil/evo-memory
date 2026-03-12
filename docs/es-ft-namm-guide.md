@@ -400,7 +400,7 @@ The combined ES+NAMM pipeline supports Google Cloud TPUs via a device abstractio
 
 **Key TPU adaptations:**
 - **Fixed-size tensors**: XLA requires fixed tensor shapes across all code branches. NAMM uses cache validity masking to pad KV caches to `cache_size` and mask out invalid entries. Evicted entries are scored at minimum value to prevent them from being "re-selected".
-- **XLA compilation cache**: First-run compilation is slow. Use `scripts/warmup_xla_cache.sh` to pre-compile graphs for all (method, cache_size) combinations.
+- **XLA compilation cache**: First-run compilation is slow. Use `scripts/warmup_xla_cache.sh` to pre-compile graphs for all (method, cache_size) combinations. Set `NAMM_CKPT` before running warmup.
 - **Environment**: `setup/activate_tpu.sh` sets `PJRT_DEVICE=TPU`, GCS env vars, and auto-downloads the XLA cache.
 
 ---
