@@ -171,10 +171,46 @@ echo '  Done.'
 echo ''
 
 # ---------------------------------------------------------------------------
-# 5. Install Claude Code
+# 5. Google Cloud setup
+# ---------------------------------------------------------------------------
+echo '[5/6] Setting up Google Cloud...'
+
+GCS_BUCKET="statistical-nlp"
+GCS_PROJECT="statistical-nlp"
+
+# Install gcloud CLI if not available
+if ! command -v gcloud &>/dev/null; then
+    echo '  gcloud CLI not found. Installing...'
+    GCLOUD_DIR="${HOME}/.local/google-cloud-sdk"
+    if [ ! -d "${GCLOUD_DIR}" ]; then
+        curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir="${HOME}/.local" 2>&1 | tail -5
+    fi
+    export PATH="${GCLOUD_DIR}/bin:${PATH}"
+fi
+
+# Authenticate if needed
+if gcloud auth application-default print-access-token &>/dev/null 2>&1; then
+    echo '  Already authenticated with GCS.'
+else
+    echo '  Please authenticate with Google Cloud (needed for experiment archival):'
+    gcloud auth application-default login --project "${GCS_PROJECT}" --no-launch-browser
+fi
+
+# Verify bucket access
+if gsutil ls "gs://${GCS_BUCKET}/" &>/dev/null 2>&1; then
+    echo "  Bucket gs://${GCS_BUCKET}/ accessible."
+else
+    echo "  WARNING: Cannot access gs://${GCS_BUCKET}/. You may need to run: gcloud auth application-default login"
+fi
+
+echo '  Done.'
+echo ''
+
+# ---------------------------------------------------------------------------
+# 6. Install Claude Code
 # ---------------------------------------------------------------------------
 if [ "${INSTALL_CLAUDE}" = true ]; then
-    echo '[5/5] Installing Claude Code...'
+    echo '[6/6] Installing Claude Code...'
 
     if command -v claude &>/dev/null; then
         echo '  Claude Code already installed.'
@@ -197,7 +233,7 @@ if [ "${INSTALL_CLAUDE}" = true ]; then
         fi
     fi
 else
-    echo '[5/5] Skipping Claude Code install (--noclaude)'
+    echo '[6/6] Skipping Claude Code install (--noclaude)'
 fi
 
 echo ''
