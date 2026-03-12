@@ -161,7 +161,9 @@ Validation should be done in three layers: static checks, smoke matrix, then sta
 Run from repo root:
 
 ```bash
-bash -n scripts/tpu_smoke_matrix.sh setup/activate_tpu.sh scripts/warmup_xla_cache.sh
+bash -n scripts/tpu_smoke_matrix.sh
+bash -n setup/activate_tpu.sh
+bash -n scripts/warmup_xla_cache.sh
 python3 -m py_compile scripts/run_es.py scripts/run_eval.py es_finetuning/tpu_guardrails.py
 python3 -m unittest tests/test_tpu_guardrails.py
 ```
@@ -472,8 +474,8 @@ cat experiments/experiment_<N>/es_namm/<run_name>/results.json
 
 1. Setup + activate environment.
 2. Run static checks (`py_compile`, unit test).
-3. Run `scripts/tpu_smoke_matrix.sh` in local mode.
-4. Run one 50-iteration `es_namm` job in GCS mode.
-5. Run preemption/resume validation.
-6. Run full experiment matrix (`es_only`, `es_recency`, `es_namm`) and evaluate all final checkpoints.
-
+3. Export `NAMM_CKPT` and verify the checkpoint file exists.
+4. Run `scripts/tpu_smoke_matrix.sh` in local mode.
+5. Run one 50-iteration `es_namm` job in GCS mode.
+6. Run preemption/resume validation.
+7. Run full experiment matrix (`es_only`, `es_recency`, `es_namm`) and evaluate all final checkpoints.
