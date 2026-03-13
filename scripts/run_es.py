@@ -32,8 +32,10 @@ import atexit
 import json
 import logging
 import os
+import pickle
 import shutil
 import socket
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -357,41 +359,110 @@ def _maybe_restore_resume_checkpoint(
 
 
 def _resolve_tpu_worker_count(explicit_count=None):
+    topology = _load_tpu_multichip_topology()
+    detected = topology["worker_count"]
+    if detected <= 1:
+        raise ValueError(
+            "The TPU multichip backend requires more than one local TPU worker."
+        )
+
     if explicit_count is not None:
         if explicit_count <= 1:
             raise ValueError("--worker-count must be > 1 for TPU multichip execution.")
-        return explicit_count
+        if explicit_count != detected:
+            raise ValueError(
+                "This TPU runtime was validated only when using all local TPU chips. "
+                f"Requested --worker-count={explicit_count}, detected {detected}."
+            )
+    return detected
 
-    env_candidates = (
-        "WORLD_SIZE",
-        "TPU_NUM_DEVICES",
-        "PJRT_LOCAL_PROCESS_COUNT",
-    )
-    for env_name in env_candidates:
-        raw_value = os.environ.get(env_name)
-        if raw_value and raw_value.isdigit() and int(raw_value) > 1:
-            return int(raw_value)
 
+def _load_tpu_multichip_topology(base_port=8476):
     try:
-        import torch_xla.runtime as xr
-        detected = int(xr.global_runtime_device_count())
-        if detected > 1:
-            return detected
-    except Exception:
-        pass
+        from torch_xla._internal import tpu
+        from torch_xla.core import xla_env_vars as xenv
+    except ImportError as exc:
+        raise RuntimeError(
+            "torch_xla is required for the TPU multichip execution backend."
+        ) from exc
 
-    try:
-        import torch_xla.core.xla_model as xm
-        detected = int(xm.xrt_world_size())
-        if detected > 1:
-            return detected
-    except Exception:
-        pass
+    worker_ips = tpu.get_worker_ips()
+    if len(worker_ips) != 1:
+        raise RuntimeError(
+            "The manual TPU multichip launcher currently supports single-host TPU VMs only."
+        )
 
-    raise ValueError(
-        "Unable to determine TPU worker count automatically. "
-        "Pass --worker-count explicitly."
-    )
+    tpu_env = tpu.get_tpu_env()
+    tpu_version = tpu.version()
+    accelerator_type = tpu_env[xenv.ACCELERATOR_TYPE]
+
+    if tpu_version >= 4:
+        default_process_bounds = tpu.MeshShape.from_string(
+            tpu_env[xenv.TPU_PROCESS_BOUNDS]
+        )
+        chips_per_process = tpu.MeshShape.from_string(
+            tpu_env[xenv.TPU_CHIPS_PER_PROCESS_BOUNDS]
+        )
+    else:
+        default_process_bounds = tpu.MeshShape.from_string(
+            tpu._ACCELERATOR_TYPE_TO_HOST_BOUNDS[accelerator_type]
+        )
+        chips_per_process = tpu.MeshShape.from_string("2,2,1")
+
+    process_bounds = default_process_bounds * chips_per_process
+    process_bounds_str = ",".join(str(dim) for dim in process_bounds)
+    if tpu_version == 7:
+        process_bounds_str += ",2"
+
+    worker_count = process_bounds.size
+    available_chips = tpu.num_available_chips()
+    if available_chips <= 0:
+        raise RuntimeError("No TPU chips detected for the multichip backend.")
+    if worker_count != available_chips:
+        raise RuntimeError(
+            "Unable to derive a stable one-process-per-chip TPU topology. "
+            f"Topology expects {worker_count} workers but the VM reports {available_chips} chips."
+        )
+
+    ports = list(range(base_port, base_port + worker_count))
+    process_endpoints = [
+        ",".join(f"{ip}:{port}" for port in ports)
+        for ip in worker_ips
+    ]
+
+    return {
+        "base_port": base_port,
+        "ports": ports,
+        "process_addresses": ",".join(process_endpoints),
+        "process_bounds": process_bounds_str,
+        "worker_count": worker_count,
+        "worker_id": int(tpu_env[xenv.WORKER_ID]),
+    }
+
+
+def _build_tpu_worker_env(worker_rank, worker_count):
+    topology = _load_tpu_multichip_topology()
+    if worker_count != topology["worker_count"]:
+        raise ValueError(
+            "Manual TPU worker env must use the full local TPU worker count. "
+            f"Received {worker_count}, expected {topology['worker_count']}."
+        )
+    if worker_rank < 0 or worker_rank >= worker_count:
+        raise ValueError(
+            f"worker_rank must be in [0, {worker_count}), received {worker_rank}"
+        )
+
+    cloud_tpu_task_id = topology["worker_id"] * worker_count + worker_rank
+    return {
+        "PJRT_LOCAL_PROCESS_RANK": str(worker_rank),
+        "PJRT_LOCAL_PROCESS_COUNT": str(worker_count),
+        "CLOUD_TPU_TASK_ID": str(cloud_tpu_task_id),
+        "TPU_VISIBLE_CHIPS": str(worker_rank),
+        "TPU_PROCESS_PORT": str(topology["ports"][worker_rank]),
+        "TPU_PROCESS_ADDRESSES": topology["process_addresses"],
+        "TPU_PROCESS_BOUNDS": topology["process_bounds"],
+        "TPU_CHIPS_PER_PROCESS_BOUNDS": "1,1,1",
+    }
 
 
 def _print_bucket_summary(bucket_pools, is_master):
@@ -593,7 +664,7 @@ def parse_args():
         description="ES fine-tuning of base LLM weights with NAMM evaluation")
 
     # Experiment hierarchy
-    parser.add_argument("--run_name", type=str, required=True,
+    parser.add_argument("--run_name", type=str, default=None,
                         help="Name for this run (e.g. cache1024_i50)")
     parser.add_argument("--experiment", type=int, default=None,
                         help="Experiment ID (default: most recent active, or create new)")
@@ -709,7 +780,18 @@ def parse_args():
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
-    return parser.parse_args()
+    # Internal TPU worker entrypoint used by the manual multichip launcher.
+    parser.add_argument("--_tpu-worker-payload", type=str, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--_tpu-worker-rank", type=int, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--_tpu-worker-count", type=int, default=None,
+                        help=argparse.SUPPRESS)
+
+    args = parser.parse_args()
+    if args._tpu_worker_payload is None and not args.run_name:
+        parser.error("--run_name is required")
+    return args
 
 
 def _apply_runtime_defaults(args):
@@ -994,6 +1076,136 @@ def _tpu_multichip_worker(worker_rank, payload):
     )
 
 
+def _initialize_manual_tpu_worker(worker_rank, worker_count):
+    try:
+        from torch_xla._internal import pjrt
+    except ImportError as exc:
+        raise RuntimeError(
+            "torch_xla is required for the TPU multichip execution backend."
+        ) from exc
+    pjrt.initialize_multiprocess(worker_rank, worker_count)
+
+
+def _run_manual_tpu_worker_from_payload(payload_path, worker_rank, worker_count):
+    if worker_rank is None or worker_count is None:
+        raise RuntimeError(
+            "Manual TPU worker entry requires both rank and worker-count."
+        )
+    with open(payload_path, "rb") as f:
+        payload = pickle.load(f)
+    _initialize_manual_tpu_worker(worker_rank, worker_count)
+    _tpu_multichip_worker(worker_rank, payload)
+
+
+def _terminate_tpu_worker_processes(processes):
+    active = [process for process in processes.values() if process.poll() is None]
+    for process in active:
+        try:
+            process.terminate()
+        except OSError:
+            pass
+
+    deadline = time.time() + 10.0
+    for process in active:
+        if process.poll() is not None:
+            continue
+        timeout = max(0.0, deadline - time.time())
+        try:
+            process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            pass
+
+    for process in active:
+        if process.poll() is not None:
+            continue
+        try:
+            process.kill()
+        except OSError:
+            pass
+
+    for process in active:
+        if process.poll() is not None:
+            continue
+        try:
+            process.wait(timeout=5.0)
+        except subprocess.TimeoutExpired:
+            pass
+
+
+def _launch_manual_tpu_workers(payload_path, run_dir, worker_count):
+    log_dir = os.path.join(run_dir, "worker_logs")
+    os.makedirs(log_dir, exist_ok=True)
+    print(f"Worker logs: {log_dir}")
+
+    script_path = os.path.abspath(__file__)
+    processes = {}
+    log_streams = {}
+
+    for worker_rank in range(worker_count):
+        child_env = os.environ.copy()
+        child_env.update(_build_tpu_worker_env(worker_rank, worker_count))
+
+        command = [
+            sys.executable,
+            "-u",
+            script_path,
+            "--_tpu-worker-payload",
+            payload_path,
+            "--_tpu-worker-rank",
+            str(worker_rank),
+            "--_tpu-worker-count",
+            str(worker_count),
+        ]
+
+        stdout_target = None
+        stderr_target = None
+        if worker_rank != 0:
+            log_path = os.path.join(log_dir, f"worker_{worker_rank}.log")
+            log_stream = open(log_path, "w", buffering=1)
+            stdout_target = log_stream
+            stderr_target = subprocess.STDOUT
+            log_streams[worker_rank] = log_stream
+
+        processes[worker_rank] = subprocess.Popen(
+            command,
+            cwd=REPO_ROOT,
+            env=child_env,
+            stdout=stdout_target,
+            stderr=stderr_target,
+        )
+
+    try:
+        while processes:
+            for worker_rank, process in list(processes.items()):
+                exit_code = process.poll()
+                if exit_code is None:
+                    continue
+
+                del processes[worker_rank]
+                if exit_code == 0:
+                    continue
+
+                _terminate_tpu_worker_processes(processes)
+                log_hint = ""
+                if worker_rank != 0:
+                    log_hint = (
+                        f" See {os.path.join(log_dir, f'worker_{worker_rank}.log')} "
+                        "for details."
+                    )
+                raise RuntimeError(
+                    f"TPU worker {worker_rank} exited with code {exit_code}.{log_hint}"
+                )
+
+            if processes:
+                time.sleep(1.0)
+    except BaseException:
+        _terminate_tpu_worker_processes(processes)
+        raise
+    finally:
+        for log_stream in log_streams.values():
+            log_stream.close()
+
+
 def _run_tpu_multichip_exact(
     args,
     *,
@@ -1002,17 +1214,11 @@ def _run_tpu_multichip_exact(
     resumed_history,
     resumed_training_state,
 ):
-    try:
-        import torch_xla.distributed.xla_multiprocessing as xmp
-    except ImportError as exc:
-        raise RuntimeError(
-            "torch_xla is required for the TPU multichip execution backend."
-        ) from exc
-
     worker_count = _resolve_tpu_worker_count(args.worker_count)
     args.worker_count = worker_count
 
     print(f"Launching TPU multichip exact backend with {worker_count} workers...")
+    print("Using manual per-chip TPU worker launch (xmp.spawn disabled on this runtime).")
     payload = {
         "args": vars(args).copy(),
         "experiment_name": experiment_name,
@@ -1021,16 +1227,27 @@ def _run_tpu_multichip_exact(
         "resumed_training_state": resumed_training_state,
         "worker_count": worker_count,
     }
-    xmp.spawn(
-        _tpu_multichip_worker,
-        args=(payload,),
-        nprocs=worker_count,
-        start_method="spawn",
-    )
+    payload_path = os.path.join(run_dir, "tpu_multichip_payload.pkl")
+    with open(payload_path, "wb") as f:
+        pickle.dump(payload, f)
+
+    try:
+        _launch_manual_tpu_workers(payload_path, run_dir, worker_count)
+    finally:
+        if os.path.exists(payload_path):
+            os.remove(payload_path)
 
 
 def main():
     args = parse_args()
+    if args._tpu_worker_payload is not None:
+        _run_manual_tpu_worker_from_payload(
+            args._tpu_worker_payload,
+            args._tpu_worker_rank,
+            args._tpu_worker_count,
+        )
+        return
+
     _apply_runtime_defaults(args)
 
     # Auto-detect method

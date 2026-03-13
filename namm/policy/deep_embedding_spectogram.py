@@ -206,12 +206,13 @@ class AttentionSpectrogram(TokenEmbedding):
 
         attn_stft = attn_stft.permute(dims=[0, 1, 4, 2, 3])
 
+        attn_stft_real = torch.view_as_real(attn_stft)
         if self.output_magnitudes:
-            attn_stft = attn_stft.abs()
+            # XLA keeps complex dtype for complex.abs(), so compute the
+            # magnitude explicitly from the real/imag view to stay real.
+            attn_stft = attn_stft_real.square().sum(dim=-1).sqrt()
         else:
-
-            attn_stft = torch.view_as_real(attn_stft).flatten(
-                start_dim=-2, end_dim=-1)
+            attn_stft = attn_stft_real.flatten(start_dim=-2, end_dim=-1)
 
         if self._custom_dtype is not None:
             attn_stft = attn_stft.to(dtype=self.ptdtype)
