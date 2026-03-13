@@ -415,6 +415,10 @@ def parse_args():
     # Q/A examples
     parser.add_argument("--n_examples", type=int, default=10,
                         help="Number of Q/A examples to capture")
+    parser.add_argument("--skip-full-eval", action="store_true",
+                        help="Skip baseline and final full-validation evaluation")
+    parser.add_argument("--skip-examples", action="store_true",
+                        help="Skip capturing final Q/A examples")
 
     # GCS and checkpointing
     parser.add_argument("--gcs", dest="gcs", action="store_true",
@@ -600,9 +604,13 @@ def main():
         task_sampler, args.mini_batch_size, train=True)
     evaluate_fn = make_evaluate_fn(
         task_sampler, memory_evaluator, args.mini_batch_size, train=True)
-    full_eval_fn = make_full_eval_fn(task_sampler, memory_evaluator)
-    examples_fn = make_examples_fn(
-        task_sampler, memory_evaluator, n_examples=args.n_examples)
+    full_eval_fn = None
+    if not args.skip_full_eval:
+        full_eval_fn = make_full_eval_fn(task_sampler, memory_evaluator)
+    examples_fn = None
+    if not args.skip_examples:
+        examples_fn = make_examples_fn(
+            task_sampler, memory_evaluator, n_examples=args.n_examples)
 
     # 8. Configure and run ES
     es_config = ESConfig(
@@ -633,6 +641,8 @@ def main():
             "experiment": experiment_name,
             "method": args.method,
             "run_name": args.run_name,
+            "skip_full_eval": args.skip_full_eval,
+            "skip_examples": args.skip_examples,
         },
         resume_from=args.resume_checkpoint,
         gcs_client=gcs,

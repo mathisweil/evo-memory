@@ -10,7 +10,7 @@ set -euo pipefail
 # Optional overrides:
 #   NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt \
 #   BATCH_SIZE=18 POP_SIZE=2 CACHE_SIZES="1024 2048 3072 4096 5120 6144" \
-#   NUM_ITERATIONS=1 FILTER_BY_LENGTH=32768 bash scripts/warmup_xla_cache.sh
+#   NUM_ITERATIONS=1 FILTER_BY_LENGTH=6500 bash scripts/warmup_xla_cache.sh
 #
 # If NAMM_CKPT is unset or set to "latest", the script resolves the newest
 # cached or GCS-backed pretrained NAMM checkpoint automatically.
@@ -55,7 +55,7 @@ resolve_namm_ckpt
 BATCH_SIZE="${BATCH_SIZE:-18}"
 POP_SIZE="${POP_SIZE:-2}"
 NUM_ITERATIONS="${NUM_ITERATIONS:-1}"
-FILTER_BY_LENGTH="${FILTER_BY_LENGTH:-32768}"
+FILTER_BY_LENGTH="${FILTER_BY_LENGTH:-6500}"
 CACHE_SIZES="${CACHE_SIZES:-1024 2048 3072 4096 5120 6144}"
 
 COMMON_ARGS=(
@@ -65,6 +65,8 @@ COMMON_ARGS=(
     --batch_size "${BATCH_SIZE}"
     --checkpoint_every 0
     --filter_by_length "${FILTER_BY_LENGTH}"
+    --skip-full-eval
+    --skip-examples
     --no-gcs
 )
 
@@ -75,9 +77,9 @@ run_warmup() {
     shift
     echo "========================================================================"
     echo "Warmup: ${label}"
-    echo "Command: python3 scripts/run_es.py $* ${COMMON_ARGS[*]}"
+    echo "Command: python3 -u scripts/run_es.py $* ${COMMON_ARGS[*]}"
     echo "========================================================================"
-    python3 scripts/run_es.py "$@" "${COMMON_ARGS[@]}"
+    python3 -u scripts/run_es.py "$@" "${COMMON_ARGS[@]}"
 }
 
 echo "Starting TPU/XLA warmup runs..."

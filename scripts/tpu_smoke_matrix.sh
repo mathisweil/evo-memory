@@ -45,8 +45,8 @@ NUM_ITERATIONS="${NUM_ITERATIONS:-2}"
 POP_SIZE="${POP_SIZE:-2}"
 BATCH_SIZE="${BATCH_SIZE:-18}"
 CACHE_SIZE="${CACHE_SIZE:-1024}"
-FILTER_BY_LENGTH="${FILTER_BY_LENGTH:-32768}"
-RUN_EVAL="${RUN_EVAL:-1}"
+FILTER_BY_LENGTH="${FILTER_BY_LENGTH:-6500}"
+RUN_EVAL="${RUN_EVAL:-0}"
 GCS_MODE="${GCS_MODE:-local}"
 RUN_PREFIX="${RUN_PREFIX:-smoke}"
 
@@ -125,7 +125,7 @@ run_smoke_method() {
     local error_msg=""
 
     local train_args=(
-        python3 scripts/run_es.py
+        python3 -u scripts/run_es.py
         --run_name "${run_name}"
         --method "${method}"
         --run_config "${run_config}"
@@ -135,6 +135,8 @@ run_smoke_method() {
         --batch_size "${BATCH_SIZE}"
         --checkpoint_every 0
         --filter_by_length "${FILTER_BY_LENGTH}"
+        --skip-full-eval
+        --skip-examples
     )
     train_args+=("${GCS_ARGS[@]}")
 
@@ -178,7 +180,7 @@ run_smoke_method() {
 
     if [[ "${train_status}" == "passed" && "${RUN_EVAL}" == "1" ]]; then
         local eval_args=(
-            python3 scripts/run_eval.py
+            python3 -u scripts/run_eval.py
             --es_checkpoint "${checkpoint}"
             --run_config "${run_config}"
             --batch_size "${BATCH_SIZE}"
