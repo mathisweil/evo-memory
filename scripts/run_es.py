@@ -382,7 +382,9 @@ def parse_args():
     parser.add_argument("--gcs", action="store_true", default=True,
                         help="Enable GCS experiment management and checkpointing")
     parser.add_argument("--checkpoint_every", type=int, default=10,
-                        help="Save checkpoint every N iterations (0 = final only)")
+                        help="Rolling checkpoint every M iterations, keep last 2 (0 = final only)")
+    parser.add_argument("--save_every", type=int, default=0,
+                        help="Permanent save every N iterations, never deleted (0 = disabled)")
 
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
@@ -556,6 +558,7 @@ def main():
         mini_batch_size=args.mini_batch_size,
         log_dir=run_dir,
         checkpoint_every=args.checkpoint_every if args.gcs else 0,
+        save_every=args.save_every,
     )
 
     trainer = ESTrainer(
