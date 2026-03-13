@@ -89,7 +89,9 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=None,
                         help="Inference batch size (default: use config value)")
     parser.add_argument("--filter_by_length", type=int, default=None,
-                        help="Drop samples longer than this (tokens). None = mid-crop instead")
+                        help="Drop samples longer than this (approx, word-based). None = mid-crop instead")
+    parser.add_argument("--filter_by_tokens", type=int, default=None,
+                        help="Drop samples exceeding this many tokens (exact, uses tokenizer)")
     parser.add_argument("--cache_size", type=int, default=None,
                         help="Override cache size for NAMM eviction")
     parser.add_argument("--output_dir", type=str, default=None,
@@ -201,6 +203,11 @@ def main():
     # Create task sampler and evaluate on full val set
     print("Creating task sampler...")
     task_sampler = make_task_sampler(cfg=cfg)
+
+    # Exact token-based filtering
+    if args.filter_by_tokens is not None:
+        task_sampler.filter_by_token_count(
+            memory_evaluator.tokenizer, args.filter_by_tokens)
 
     # Show val set sizes
     for task_n, n in task_sampler.num_prompts_per_lb_task.items():

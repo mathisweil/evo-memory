@@ -407,6 +407,8 @@ def parse_args():
 
     # Data filtering
     parser.add_argument("--filter_by_length", type=int, default=None)
+    parser.add_argument("--filter_by_tokens", type=int, default=None,
+                        help="Drop samples exceeding this many tokens (exact, uses tokenizer)")
 
     # Cache size (NAMM)
     parser.add_argument("--cache_size", type=int, default=None)
@@ -582,6 +584,11 @@ def main():
     # 3. Create task sampler
     print("Creating task sampler...")
     task_sampler = make_task_sampler(cfg=cfg)
+
+    # 3b. Exact token-based filtering (replaces approximate word-based filter)
+    if args.filter_by_tokens is not None:
+        task_sampler.filter_by_token_count(
+            memory_evaluator.tokenizer, args.filter_by_tokens)
 
     # 4. Auto-detect batch size
     if memory_evaluator.batch_size == "auto":

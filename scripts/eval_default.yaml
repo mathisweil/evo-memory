@@ -11,7 +11,8 @@ run_config: namm_bam_i1_llama32_1b  # Hydra run config name
 cache_size: null        # KV cache token budget; null = use run_config default
 
 # ── Data ────────────────────────────────────────────────────────────────
-filter_by_length: null  # Drop samples longer than this (tokens); null = mid-crop instead
+filter_by_length: null  # Drop samples longer than this (approx, word-based x1.3); null = mid-crop
+filter_by_tokens: null  # Drop samples exceeding this many tokens (exact, uses tokenizer); null = off
 batch_size: null        # Inference batch size; null = use run_config default
 
 # ── Generation / sampling ───────────────────────────────────────────────

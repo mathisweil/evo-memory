@@ -173,6 +173,41 @@ class TaskSampler():
         self.latest_sampled_idxs_per_lb_task = None
         self.latest_lb_tasks_names = None
 
+    def filter_by_token_count(self, tokenizer, max_tokens):
+        """Re-filter samples by actual token count using the model tokenizer.
+
+        Call after construction to replace the approximate word-based filter
+        with an exact token-based filter. Rebuilds prompts and counts.
+        """
+        for task in self.lb_jsons_per_task:
+            jsons = self.lb_jsons_per_task[task]
+            prompts = self.lb_prompts_per_task[task]
+            before = len(jsons)
+
+            # Tokenize all prompts and filter
+            keep = []
+            token_counts = []
+            for i, prompt in enumerate(prompts):
+                n_tokens = len(tokenizer.encode(prompt, add_special_tokens=False))
+                if n_tokens <= max_tokens:
+                    keep.append(i)
+                    token_counts.append(n_tokens)
+
+            self.lb_jsons_per_task[task] = [jsons[i] for i in keep]
+            self.lb_prompts_per_task[task] = [prompts[i] for i in keep]
+            after = len(keep)
+
+            if token_counts:
+                avg = sum(token_counts) / len(token_counts)
+                print(f"Token filter {task}: {before} -> {after} examples "
+                      f"(max={max_tokens}, avg={avg:.0f} tokens)")
+            else:
+                print(f"Token filter {task}: {before} -> 0 examples "
+                      f"(max={max_tokens})")
+
+        self.num_prompts_per_lb_task = {k: len(ps)
+                                        for k, ps in self.lb_prompts_per_task.items()}
+
         self.lb_training_tasks = [t for t in self.lb_tasks
                                   if t in self.training_tasks_subset]
         self.lb_test_tasks = [t for t in self.lb_tasks
