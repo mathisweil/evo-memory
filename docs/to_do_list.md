@@ -60,9 +60,22 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
   | es_namm c3072 | 13.12 | 27.46 |
   | es_namm c5120 | 14.43 | 31.85 |
 
-- [x] ~~**2.2** Cross-eval ES+NAMM under other policies~~ — dropped (not needed for main story)
+- [ ] **2.2** Re-run ES+NAMM training to convergence (~1000 iterations)
+  Experiment_2 ran only 50 iterations (matching the ES paper's setup for small tests), but the paper uses 500–1000 for full convergence. Resume from experiment_2 checkpoints or start fresh:
+  ```bash
+  for CS in 1024 3072 5120; do
+      python scripts/run_es.py \
+          --run_name cache${CS}_i1000 \
+          --namm_checkpoint latest \
+          --num_iterations 1000 \
+          --cache_size $CS \
+          --save_every 100
+  done
+  ```
 
-- [x] **2.3** Record ES-FT (with NAMM) row of the results grid
+- [x] ~~**2.3** Cross-eval ES+NAMM under other policies~~ — dropped (not needed for main story)
+
+- [x] **2.4** Record ES-FT (with NAMM) row of the results grid (50-iter preliminary)
 
 ---
 
@@ -148,8 +161,10 @@ NAMM clearly outperforms recency at all cache sizes, both for the base model and
 
 ## Status
 
-Phases 0–2 are **complete**. All training and evaluation data is in experiment_2.
+Phases 0–1 are **complete**. Phase 2 has preliminary results at 50 iterations but likely needs ~1000 for convergence (step 2.2).
 
-**Next:** Phase 3 (analysis and results grid) — no compute needed, just assembling and interpreting the data.
+**Next:**
+- **2.2**: Re-run ES+NAMM to 1000 iterations (main compute blocker)
+- **3.1**: Assemble results grid (can do preliminary analysis with 50-iter data now)
 
 Phases 4–5 are stretch goals if time permits.
