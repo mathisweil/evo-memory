@@ -53,6 +53,7 @@ Utility scripts:
 | Script | Purpose |
 |---|---|
 | `scripts/generate_report.py` | Generate a comparison report from experiment results |
+| `scripts/upload_pretrained.py` | Upload or list pretrained NAMM checkpoints in GCS |
 | `scripts/archive_experiment.py` | Archive completed experiments |
 | `scripts/warmup_xla_cache.sh` | Pre-compile XLA graphs for TPU (run once before experiments) |
 
@@ -62,11 +63,13 @@ See [docs/examples.md](docs/examples.md) for copy-paste commands covering smoke 
 
 Results are organised under:
 ```
-experiments/experiment_N/{es_namm,es_only}/run_name/
+experiments/experiment_N/{es_namm,es_only,es_recency}/run_name/
     config.json      # full configuration snapshot
     results.json     # final eval scores
     examples.json    # captured Q/A examples from final eval
-    checkpoints/     # final checkpoint only
+    checkpoints/
+        es_checkpoint_final.pt        # final checkpoint
+        saved/                        # permanent saves (--save_every)
 ```
 
 A `manifest.json` in `experiments/` tracks all experiments.
@@ -100,7 +103,7 @@ HuggingFace access required for gated LLaMA 3.2-1B model: `huggingface-cli login
 
 - **XLA compilation**: First run on TPU is slow (~20 min) as XLA compiles graphs. Run `bash scripts/warmup_xla_cache.sh` once to pre-compile for all scenarios.
 - **XLA cache syncing**: `activate_tpu.sh` auto-downloads the XLA cache from GCS on startup; `run_es.py` auto-uploads it on exit.
-- **GCS integration**: Enabled by default (`--gcs`). Experiment manifests, checkpoints, and results sync to `gs://statistical-nlp/experiments/`. Disable with `--no-gcs`.
+- **GCS integration**: Enabled by default (`--gcs`). Experiment manifests, checkpoints, and results sync to `gs://statistical-nlp/experiments/`. Pretrained NAMM checkpoints live in `gs://statistical-nlp/NAMM_checkpoints/pretrained/` (use `--namm_checkpoint latest`). Disable with `--no-gcs`.
 - **Spot VM preemption**: SIGTERM is caught and triggers an emergency checkpoint upload. Re-running with the same `--run_name` auto-resumes from the latest GCS checkpoint.
 - **Fixed-size tensors**: XLA requires fixed tensor shapes. NAMM uses cache validity masking to pad KV caches to a fixed size on TPU, avoiding recompilation.
 

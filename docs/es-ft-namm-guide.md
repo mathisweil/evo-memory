@@ -265,7 +265,7 @@ python scripts/run_es.py \
 
 python scripts/run_es.py \
     --run_name timing_with_namm \
-    --namm_checkpoint /path/to/ckpt.pt \
+    --namm_checkpoint latest \
     --num_iterations 10 \
     --population_size 8 \
     --mini_batch_size 16
@@ -275,7 +275,7 @@ python scripts/run_es.py \
 ```bash
 python scripts/run_es.py \
     --run_name full_es_namm \
-    --namm_checkpoint /path/to/ckpt.pt \
+    --namm_checkpoint latest \
     --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
@@ -334,7 +334,7 @@ Run tests 4 above for both ES-only and ES+NAMM checkpoints. Fill in:
 for SIGMA in 0.0005 0.001 0.005; do
     python scripts/run_es.py \
         --run_name sigma_namm_${SIGMA} \
-        --namm_checkpoint /path/to/ckpt.pt \
+        --namm_checkpoint latest \
         --num_iterations 50 \
         --sigma $SIGMA
 done

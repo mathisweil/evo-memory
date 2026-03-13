@@ -137,7 +137,7 @@ python scripts/run_namm.py 'run@_global_=recency_baseline_llama32_1b.yaml' init_
 ```bash
 python scripts/run_es.py \
     --run_name smoke_test_namm \
-    --namm_checkpoint exp_local/pretrained/namm_pretrained_romain.pt \
+    --namm_checkpoint latest \
     --num_iterations 2 \
     --population_size 2 \
     --mini_batch_size 2
@@ -148,7 +148,7 @@ python scripts/run_es.py \
 ```bash
 python scripts/run_es.py \
     --run_name full_with_namm \
-    --namm_checkpoint exp_local/pretrained/namm_pretrained_romain.pt \
+    --namm_checkpoint latest \
     --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
@@ -165,12 +165,11 @@ Results saved to `experiments/experiment_N/es_namm/full_with_namm/`.
 
 ```bash
 CKPT=experiments/experiment_N/es_namm/full_with_namm/checkpoints/es_checkpoint_final.pt
-NAMM_CKPT=exp_local/pretrained/namm_pretrained_romain.pt
 
 # Under NAMM (same policy used during training)
 python scripts/run_eval.py \
     --es_checkpoint $CKPT \
-    --namm_checkpoint $NAMM_CKPT
+    --namm_checkpoint latest
 
 # Under full cache (does fine-tuning under NAMM hurt full-cache perf?)
 python scripts/run_namm.py 'run@_global_=full_cache_baseline_llama32_1b.yaml' init_from=$CKPT
@@ -197,7 +196,7 @@ python scripts/run_eval.py \
 ```bash
 python scripts/run_eval.py \
     --es_checkpoint experiments/experiment_N/es_namm/run_name/checkpoints/es_checkpoint_final.pt \
-    --namm_checkpoint exp_local/pretrained/namm_pretrained_romain.pt
+    --namm_checkpoint latest
 ```
 
 ### 4c. With a different batch size
@@ -205,7 +204,7 @@ python scripts/run_eval.py \
 ```bash
 python scripts/run_eval.py \
     --es_checkpoint experiments/experiment_N/es_namm/run_name/checkpoints/es_checkpoint_final.pt \
-    --namm_checkpoint exp_local/pretrained/namm_pretrained_romain.pt \
+    --namm_checkpoint latest \
     --batch_size 8
 ```
 
@@ -219,7 +218,17 @@ python scripts/run_eval.py \
 python scripts/generate_report.py
 ```
 
-### 5b. Archive a completed experiment
+### 5b. Upload or list pretrained NAMM checkpoints
+
+```bash
+# Upload a new checkpoint
+python scripts/upload_pretrained.py exp_local/pretrained/namm_pretrained_romain_v2.pt
+
+# List what's in GCS
+python scripts/upload_pretrained.py --list
+```
+
+### 5c. Archive a completed experiment
 
 ```bash
 python scripts/archive_experiment.py
@@ -246,7 +255,8 @@ cat experiments/experiment_N/es_namm/run_name/examples.json
 ## Tips
 
 - Use `tmux` for long runs: `tmux new -s train`, then detach with `Ctrl+b d`.
-- GCS checkpointing is on by default (`--gcs`). Checkpoints sync to `gs://statistical-nlp/experiments/` every `--checkpoint_every` iterations (default 10). Disable with `--no-gcs`.
+- GCS checkpointing is on by default (`--gcs`). Rolling checkpoints sync to `gs://statistical-nlp/experiments/` every `--checkpoint_every` iterations (default 10, keep last 2). Use `--save_every N` to permanently save every N iterations. Disable with `--no-gcs`.
+- Pretrained NAMM checkpoints are stored in `gs://statistical-nlp/NAMM_checkpoints/pretrained/`. Use `--namm_checkpoint latest` to auto-download the most recent one.
 - Auto-resume: if training is interrupted, re-run with the same `--run_name` and it will resume from the latest GCS checkpoint automatically.
 - Preemption-safe: SIGTERM handler triggers an immediate checkpoint upload before exit.
 - XLA compilation cache is synced to `gs://statistical-nlp/xla_cache` on exit and downloaded on `source activate_tpu.sh` if the local cache is empty.

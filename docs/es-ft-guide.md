@@ -63,7 +63,7 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 | `--noise_mode` | `correlated` | Noise correlation: `correlated` or `iid` |
 | `--initial_seed` | `33` | NumPy random seed for reproducibility |
 | `--mini_batch_size` | `16` | Qasper samples per population member evaluation |
-| `--namm_checkpoint` | `None` | Path to pre-trained NAMM `ckpt.pt` (optional) |
+| `--namm_checkpoint` | `None` | Path to pre-trained NAMM `ckpt.pt`, or `latest` to auto-download from GCS |
 | `--run_config` | `namm_bam_i1_llama32_1b` | Hydra config name for model/task setup |
 | `--batch_size` | config value | GPU inference batch size for the evaluator |
 | `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
@@ -72,7 +72,8 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 | `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
 | `--resume_checkpoint` | `None` | Path to checkpoint to resume from |
 | `--gcs` | `True` | Enable GCS experiment management and checkpointing |
-| `--checkpoint_every` | `10` | Save checkpoint to GCS every N iterations (0 = final only) |
+| `--checkpoint_every` | `10` | Rolling checkpoint every M iterations, keep last 2 (0 = final only) |
+| `--save_every` | `0` | Permanent save every N iterations, never deleted (0 = disabled) |
 
 ### Model/task config (from Hydra)
 
@@ -89,11 +90,13 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 
 Results are organised under:
 ```
-experiments/experiment_N/{es_namm,es_only}/run_name/
+experiments/experiment_N/{es_namm,es_only,es_recency}/run_name/
     config.json      # full configuration snapshot
     results.json     # final eval scores
     examples.json    # captured Q/A examples from final eval
-    checkpoints/     # final checkpoint only
+    checkpoints/
+        es_checkpoint_final.pt        # final checkpoint
+        saved/                        # permanent saves (--save_every)
 ```
 
 A `manifest.json` in `experiments/` tracks all experiments and their runs.
@@ -125,7 +128,7 @@ for iteration in range(num_iterations):          # 50 iterations
         p += alpha * update
 
 # After training: baseline eval + final full eval + Q/A example capture
-# Only the final checkpoint is saved (no intermediate checkpoints)
+# Checkpoints: rolling (--checkpoint_every, keep 2) + permanent (--save_every) + final
 ```
 
 **Important:** All population members in a given iteration are evaluated on the same batch of samples (resampled once via `pre_step_fn`). This matches how NAMM's CMA-ES trainer works and ensures reward differences between members reflect weight quality, not sample variance.
@@ -249,7 +252,7 @@ Every one of these tensors gets perturbed by `sigma * noise` and then restored a
 - `results.json` — final evaluation scores
 - `examples.json` — captured Q/A examples
 
-**Checkpoint format:** `experiments/experiment_N/.../run_name/checkpoints/es_checkpoint_final.pt` — dict of `{param_name: tensor}` for optimised base LLM parameters only. Only the final checkpoint is saved.
+**Checkpoint format:** `experiments/experiment_N/.../run_name/checkpoints/es_checkpoint_final.pt` — dict of `{param_name: tensor}` for optimised base LLM parameters only. Rolling checkpoints (keep last 2) are saved every `--checkpoint_every` iterations for auto-resume. Permanent saves (`--save_every`) go to `checkpoints/saved/` and are never cleaned up.
 
 ---
 
@@ -335,7 +338,7 @@ Record: total wall time, final training and validation reward, checkpoint path.
 ```bash
 python scripts/run_es.py \
     --run_name full_with_namm \
-    --namm_checkpoint /path/to/ckpt.pt \
+    --namm_checkpoint latest \
     --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16 \
@@ -371,7 +374,7 @@ python scripts/run_es.py \
 ```bash
 python scripts/run_es.py \
     --run_name my_run \
-    --namm_checkpoint /path/to/ckpt.pt \
+    --namm_checkpoint latest \
     --num_iterations 50 \
     --population_size 8 \
     --mini_batch_size 16
@@ -390,6 +393,7 @@ python scripts/run_es.py \
 - `es_finetuning/device.py` — device abstraction (TPU > CUDA > CPU)
 - `es_finetuning/gcs.py` — GCS experiment management and checkpointing
 - `es_finetuning/preemption.py` — spot VM preemption handler
+- `scripts/upload_pretrained.py` — upload/list pretrained NAMM checkpoints in GCS
 
 ---
 
@@ -398,8 +402,10 @@ python scripts/run_es.py \
 GCS experiment management is enabled by default (`--gcs`). It provides:
 
 - **Manifest tracking**: A `manifest.json` in `gs://statistical-nlp/experiments/` tracks all experiments with optimistic concurrency control.
-- **Periodic checkpointing**: Every `--checkpoint_every` iterations (default 10), checkpoints are uploaded to GCS.
+- **Rolling checkpoints**: Every `--checkpoint_every` iterations (default 10), checkpoints are uploaded to GCS. Only the last 2 are kept; older ones are deleted.
+- **Permanent saves**: Every `--save_every` iterations (default 0 = disabled), checkpoints are saved to `checkpoints/saved/` and never cleaned up.
 - **Auto-resume**: Re-running with the same `--run_name` detects the latest GCS checkpoint and resumes training automatically.
+- **Pretrained NAMM checkpoints**: Stored in `gs://statistical-nlp/NAMM_checkpoints/pretrained/`. Use `--namm_checkpoint latest` to auto-download the most recent one. Upload new checkpoints with `python scripts/upload_pretrained.py`.
 - **Preemption safety**: On spot VMs, SIGTERM (sent ~30s before termination) triggers an emergency checkpoint upload. Combined with auto-resume, this makes training resilient to preemption.
 - **XLA cache syncing**: On TPU, compiled XLA graphs are synced to `gs://statistical-nlp/xla_cache` on exit and downloaded on startup via `activate_tpu.sh`.
 

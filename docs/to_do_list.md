@@ -116,7 +116,7 @@ Use `run@_global_=recency_baseline_llama32_1b.yaml` config.
   for SIGMA in 0.0005 0.001 0.005; do
       python scripts/run_es.py \
           --run_name sigma_sweep_${SIGMA} \
-          --namm_checkpoint /path/to/ckpt.pt \
+          --namm_checkpoint latest \
           --num_iterations 50 \
           --sigma $SIGMA
   done
@@ -127,7 +127,7 @@ Use `run@_global_=recency_baseline_llama32_1b.yaml` config.
   for POP in 4 8 16; do
       python scripts/run_es.py \
           --run_name pop_sweep_${POP} \
-          --namm_checkpoint /path/to/ckpt.pt \
+          --namm_checkpoint latest \
           --num_iterations 50 \
           --population_size $POP
   done
@@ -138,7 +138,7 @@ Use `run@_global_=recency_baseline_llama32_1b.yaml` config.
   for MODE in correlated iid; do
       python scripts/run_es.py \
           --run_name noise_${MODE} \
-          --namm_checkpoint /path/to/ckpt.pt \
+          --namm_checkpoint latest \
           --num_iterations 50 \
           --noise_mode $MODE
   done
