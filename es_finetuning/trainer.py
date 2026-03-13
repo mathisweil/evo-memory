@@ -184,7 +184,9 @@ class ESTrainer:
         print(f"Optimizing {len(self.param_names)} parameters")
         print(f"Logging to {log_dir}")
         if cfg.checkpoint_every > 0:
-            print(f"Periodic checkpoints every {cfg.checkpoint_every} iterations")
+            print(f"Rolling checkpoints every {cfg.checkpoint_every} iterations (keep last 2)")
+        if cfg.save_every > 0:
+            print(f"Permanent saves every {cfg.save_every} iterations")
         if self.gcs_client:
             print(f"GCS sync enabled: gs://{self.gcs_client.bucket_name}/")
         if self.preemption_handler:
@@ -286,7 +288,14 @@ class ESTrainer:
                 preempted = True
                 break
 
-            # Periodic checkpoint
+            # Permanent save (kept forever, never cleaned up)
+            if (cfg.save_every > 0
+                    and (iteration + 1) % cfg.save_every == 0
+                    and (iteration + 1) < cfg.num_iterations):
+                self._save_permanent_checkpoint(
+                    checkpoint_dir, iteration + 1)
+
+            # Periodic checkpoint (rolling, keep last 2)
             if (cfg.checkpoint_every > 0
                     and (iteration + 1) % cfg.checkpoint_every == 0
                     and (iteration + 1) < cfg.num_iterations):
@@ -344,6 +353,40 @@ class ESTrainer:
             print("  GCS upload complete.")
 
         print("Done.")
+
+    def _save_permanent_checkpoint(self, checkpoint_dir, iteration):
+        """Save a permanent checkpoint that is never cleaned up.
+
+        Stored in checkpoints/saved/ to keep them separate from the
+        rolling periodic checkpoints.
+        """
+        saved_dir = os.path.join(checkpoint_dir, "saved")
+        os.makedirs(saved_dir, exist_ok=True)
+        filename = f"es_checkpoint_iter{iteration:03d}.pt"
+        local_path = os.path.join(saved_dir, filename)
+
+        state = {"__format__": "delta"}
+        all_params = dict(self.model.named_parameters())
+        for name in self.param_names:
+            delta = all_params[name].detach().cpu() - self._initial_params[name]
+            state[name] = delta.to(torch.float16)
+        torch.save(state, local_path)
+        size_mb = os.path.getsize(local_path) / 1024**2
+
+        if self.gcs_client and self.experiment_name:
+            gcs_path = (
+                f"{self.gcs_client._run_prefix(self.experiment_name, self.method, self.run_name)}"
+                f"/checkpoints/saved/{filename}")
+            try:
+                self.gcs_client.upload_file(local_path, gcs_path)
+                print(f"  Permanent save iter {iteration} -> GCS ({size_mb:.1f} MB)")
+            except Exception as e:
+                print(f"  WARNING: GCS upload failed for permanent save "
+                      f"iter {iteration}: {e}")
+                print(f"  Saved locally: {local_path}")
+        else:
+            print(f"  Permanent save iter {iteration}: {local_path} "
+                  f"({size_mb:.1f} MB)")
 
     def _save_checkpoint(self, checkpoint_dir):
         """Save delta checkpoint (current - initial weights)."""
