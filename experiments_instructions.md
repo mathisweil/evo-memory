@@ -92,21 +92,21 @@ bash scripts/setup.sh --dir ~/ft-namm
 source scripts/activate.sh
 ```
 
-### 3.5 Critical Model Path Check
+### 3.5 Critical Model Access Check
 
-`cfgs/model/wrapped_llm/llama32-1b.yaml` hardcodes:
-
-```yaml
-pretrained_llm_name: .hf_cache/models--meta-llama--Llama-3.2-1B/snapshots/4e20de...
-```
-
-If that exact snapshot path does not exist, runs will fail before model load.
-
-Fix once by editing `pretrained_llm_name` to your local downloaded LLaMA 3.2-1B directory (must contain `config.json`), e.g.:
+`cfgs/model/wrapped_llm/llama32-1b.yaml` should point at the Hugging Face repo ID:
 
 ```yaml
-pretrained_llm_name: .hf_cache/llama32_1b_local
+pretrained_llm_name: meta-llama/Llama-3.2-1B-Instruct
 ```
+
+On a new machine, the first model load downloads into `HF_HOME` automatically.
+
+If runs fail before model load, check:
+
+1. your Hugging Face token has access to the gated Llama 3.2 model;
+2. `HF_HOME` is set correctly;
+3. you are on a branch with the repo-ID-based config rather than an old snapshot-pinned config.
 
 Then place model files there (gated model access required).
 

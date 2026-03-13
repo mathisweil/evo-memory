@@ -159,6 +159,8 @@ python3 -c "from es_finetuning import ESTrainer, ESConfig; print('es_finetuning 
 
 Expected: XLA device like `xla:0`.
 
+On the first real training/eval run, Transformers may download `meta-llama/Llama-3.2-1B-Instruct` into `HF_HOME` if it is not already cached. That is expected as long as the Hugging Face token has access to the gated model.
+
 ## 3.5 Required Runtime Inputs
 
 Recommended (easy path): wrapper scripts auto-resolve a pretrained NAMM checkpoint by using a local cached `.pt` file first, and falling back to GCS only if no local checkpoint exists.
@@ -527,13 +529,17 @@ cat experiments/experiment_<N>/es_namm/<run_name>/results.json
 - Fix: rerun `bash setup/setup_tpu.sh --noclaude`.
 - If needed, recreate the environment with `rm -rf venv && bash setup/setup_tpu.sh --noclaude`.
 
-5. XLA cache upload does not run:
+5. `FileNotFoundError: .hf_cache/.../snapshots/.../config.json` when loading Llama 3.2:
+- Cause: older code pinned one machine-specific Hugging Face snapshot hash.
+- Fix: pull the latest branch changes; the model now resolves via the repo ID `meta-llama/Llama-3.2-1B-Instruct`.
+
+6. XLA cache upload does not run:
 - `--sync-xla-cache` is opt-in and requires TPU + `--gcs` + `gsutil` + `GCS_BUCKET`.
 
-6. Slow first run:
+7. Slow first run:
 - Expected due XLA compilation; run warmup and/or smoke first.
 
-7. Resume not happening:
+8. Resume not happening:
 - Resume auto-detection is GCS-backed; ensure same `--run_name` and `--gcs`.
 
 ---

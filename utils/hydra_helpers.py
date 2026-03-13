@@ -31,23 +31,24 @@ class LlamaCompatModel:
     @staticmethod
     def from_pretrained(pretrained_model_name_or_path,
                         max_position_embeddings=None, **kwargs):
-        import json
         import os
-        from transformers import LlamaConfig
+        source = pretrained_model_name_or_path
 
-        # Resolve relative paths from the original working directory
-        # (Hydra changes cwd to the output dir at runtime)
-        if not os.path.isabs(pretrained_model_name_or_path):
+        # Resolve relative local paths from the original working directory.
+        # Keep Hugging Face repo IDs untouched (e.g. meta-llama/Llama-3.2-1B-Instruct).
+        if source.startswith("~"):
+            source = os.path.expanduser(source)
+        if not os.path.isabs(source):
             try:
                 from hydra.utils import get_original_cwd
-                pretrained_model_name_or_path = os.path.join(
-                    get_original_cwd(), pretrained_model_name_or_path)
+                local_candidate = os.path.join(get_original_cwd(), source)
             except ValueError:
-                pass  # Not running under Hydra, relative path is fine
+                local_candidate = os.path.abspath(source)
+            if source.startswith(".") or os.path.exists(local_candidate):
+                source = local_candidate
 
-        config_file = os.path.join(pretrained_model_name_or_path, 'config.json')
-        with open(config_file) as f:
-            cfg = json.load(f)
+        config = AutoConfig.from_pretrained(source)
+        cfg = config.to_dict()
 
         # Replace new-style llama3 rope_scaling with None so the NAMM
         # _init_rope falls back to standard LlamaRotaryEmbedding.
@@ -57,10 +58,10 @@ class LlamaCompatModel:
         if max_position_embeddings is not None:
             cfg['max_position_embeddings'] = max_position_embeddings
 
-        config = LlamaConfig(**cfg)
+        config = type(config)(**cfg)
         kwargs.pop('rope_scaling', None)  # prevent conflicting kwarg
         return AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path, config=config, **kwargs)
+            source, config=config, **kwargs)
 
 def initialize_cfg(
         config_path="cfgs",
