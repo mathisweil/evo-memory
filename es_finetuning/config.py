@@ -15,3 +15,7 @@ class ESConfig:
     log_dir: str = "es_runs"  # Directory for results, checkpoints, examples
     checkpoint_every: int = 0  # Periodic checkpoint interval (0 = final only)
     save_every: int = 0  # Permanent save interval (0 = disabled); kept forever, never cleaned up
+    temperature: float = 0.0  # Generation temperature for training evals (0 = greedy)
+    eval_temperature: float = 0.0  # Generation temperature for full eval (0 = greedy)
+    num_samples: int = 1  # Number of generation samples per question during training (averaged)
+    eval_num_samples: int = 1  # Number of generation samples per question during full eval (averaged)
