@@ -85,6 +85,12 @@ Implemented in `namm/evaluator.py`.
 Usage:
 ```bash
 source setup/activate_tpu.sh
+bash scripts/warmup_xla_cache.sh
+```
+
+To pin a specific local checkpoint instead of auto-resolving the latest cached/GCS copy:
+
+```bash
 export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
 bash scripts/warmup_xla_cache.sh
 ```
@@ -99,6 +105,12 @@ bash scripts/warmup_xla_cache.sh
 Usage:
 ```bash
 source setup/activate_tpu.sh
+bash scripts/tpu_smoke_matrix.sh
+```
+
+To pin a specific local checkpoint instead of auto-resolving the latest cached/GCS copy:
+
+```bash
 export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
 bash scripts/tpu_smoke_matrix.sh
 ```

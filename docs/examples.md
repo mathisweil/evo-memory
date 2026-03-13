@@ -228,11 +228,17 @@ python scripts/archive_experiment.py
 ### 5c. Run the TPU smoke matrix
 
 ```bash
-export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
 bash scripts/tpu_smoke_matrix.sh
 
 # Optional: use GCS-backed runs
 GCS_MODE=gcs bash scripts/tpu_smoke_matrix.sh
+```
+
+To pin a specific local pretrained NAMM checkpoint instead of auto-resolving the latest cached/GCS copy:
+
+```bash
+export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
+bash scripts/tpu_smoke_matrix.sh
 ```
 
 ---

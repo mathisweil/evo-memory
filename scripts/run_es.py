@@ -21,8 +21,10 @@ Usage:
     python scripts/run_es.py --gcs --checkpoint_every 10 --run_name cache1024 ...
 
     # Quick smoke test:
-    python scripts/run_es.py --run_name test \
-        --num_iterations 2 --population_size 2 --mini_batch_size 2
+    python scripts/run_es.py --run_name test --method es_only \
+        --run_config full_cache_es_llama32_1b_tpu \
+        --num_iterations 2 --population_size 2 \
+        --mini_batch_size 18 --batch_size 18 --no-gcs
 """
 
 import argparse

@@ -9,6 +9,7 @@ Provides a lazy-initialized GCS client with helpers for:
 import json
 import os
 import re
+import sys
 import time
 
 GCS_BUCKET = os.environ.get("GCS_BUCKET", "statistical-nlp")
@@ -209,6 +210,31 @@ class GCSClient:
         print(f"  Uploaded: gs://{self.bucket_name}/{gcs_path} ({size_mb:.1f} MB)")
         return gcs_path
 
+    def resolve_pretrained_checkpoint(self, local_cache_dir="exp_local/pretrained"):
+        """Return a local pretrained NAMM checkpoint path.
+
+        If a local cached checkpoint already exists, use the most recently
+        modified `.pt` file. Otherwise, download the latest checkpoint from GCS.
+        """
+        os.makedirs(local_cache_dir, exist_ok=True)
+        local_candidates = sorted(
+            [
+                os.path.join(local_cache_dir, filename)
+                for filename in os.listdir(local_cache_dir)
+                if filename.endswith(".pt")
+            ],
+            key=os.path.getmtime,
+            reverse=True,
+        )
+        if local_candidates:
+            print(
+                f"  Using local NAMM checkpoint: {local_candidates[0]}",
+                file=sys.stderr,
+            )
+            return local_candidates[0]
+
+        return self.download_latest_pretrained(local_cache_dir)
+
     def download_latest_pretrained(self, local_cache_dir="exp_local/pretrained"):
         """Download the most recently uploaded pretrained NAMM checkpoint.
 
@@ -227,14 +253,14 @@ class GCSClient:
         local_path = os.path.join(local_cache_dir, filename)
 
         if os.path.exists(local_path) and os.path.getsize(local_path) == latest.size:
-            print(f"  NAMM checkpoint cached: {local_path}")
+            print(f"  NAMM checkpoint cached: {local_path}", file=sys.stderr)
             return local_path
 
         size_mb = latest.size / 1024**2
         print(f"  Downloading gs://{self.bucket_name}/{latest.name} "
-              f"({size_mb:.1f} MB)...")
+              f"({size_mb:.1f} MB)...", file=sys.stderr)
         self.download_file(latest.name, local_path)
-        print(f"  Saved: {local_path}")
+        print(f"  Saved: {local_path}", file=sys.stderr)
         return local_path
 
     def list_pretrained(self):

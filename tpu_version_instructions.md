@@ -113,13 +113,28 @@ Optional (skip Claude install):
 bash setup/setup_tpu.sh --noclaude
 ```
 
+If a previous setup attempt installed a broken XLA stack, rerun the script after pulling the latest branch changes:
+
+```bash
+bash setup/setup_tpu.sh --noclaude
+```
+
+If that shell still imports the wrong wheels, recreate the venv and run setup again:
+
+```bash
+rm -rf venv
+bash setup/setup_tpu.sh --noclaude
+```
+
 The setup script installs:
 
 - Python venv
-- `torch`, `torch_xla[tpu]`
+- pinned TPU runtime pair: `torch==2.9.0` and `torch_xla[tpu]==2.9.0`
 - project dependencies
 - `google-cloud-storage`
 - prompts for Hugging Face and wandb login
+
+The version pin matters. Installing unpinned latest `torch` / `torch_xla` can produce an `_XLAC` undefined-symbol import failure on TPU VMs.
 
 ## 3.3 Activate Environment
 
@@ -146,27 +161,18 @@ Expected: XLA device like `xla:0`.
 
 ## 3.5 Required Runtime Inputs
 
-Recommended (easy path): auto-set `NAMM_CKPT` from local cache or GCS.
+Recommended (easy path): wrapper scripts auto-resolve a pretrained NAMM checkpoint by using a local cached `.pt` file first, and falling back to GCS only if no local checkpoint exists.
 
-This is required by wrapper scripts like `scripts/warmup_xla_cache.sh` and `scripts/tpu_smoke_matrix.sh`.
+This means `scripts/warmup_xla_cache.sh` and `scripts/tpu_smoke_matrix.sh` do not require a manual `export NAMM_CKPT=...` step anymore unless you want to pin a specific file.
+
+If you want to resolve it explicitly once per shell and reuse the local path across manual commands:
 
 ```bash
-export NAMM_CKPT="$(
-python3 - <<'PY'
-import os, importlib.util
-repo = os.getcwd()
-spec = importlib.util.spec_from_file_location(
-    "gcs_mod", os.path.join(repo, "es_finetuning", "gcs.py"))
-mod = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(mod)
-print(mod.GCSClient().download_latest_pretrained(
-    os.path.join(repo, "exp_local", "pretrained")))
-PY
-)"
+export NAMM_CKPT="$(python3 scripts/upload_pretrained.py --latest-path)"
 test -f "$NAMM_CKPT" && echo "Using NAMM_CKPT=$NAMM_CKPT"
 ```
 
-Fallback (manual local path):
+Fallback (pin a manual local path):
 
 ```bash
 export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt
@@ -182,6 +188,9 @@ Alternative for direct entrypoints (`scripts/run_es.py` and `scripts/run_eval.py
 List/upload helpers:
 
 ```bash
+# Resolve a local pretrained checkpoint path (prefer cache, else download latest)
+python3 scripts/upload_pretrained.py --latest-path
+
 # List checkpoints in bucket
 python3 scripts/upload_pretrained.py --list
 
@@ -204,17 +213,23 @@ Run from repo root:
 bash -n scripts/tpu_smoke_matrix.sh
 bash -n setup/activate_tpu.sh
 bash -n scripts/warmup_xla_cache.sh
-python3 -m py_compile scripts/run_es.py scripts/run_eval.py scripts/upload_pretrained.py es_finetuning/tpu_guardrails.py es_finetuning/gcs.py
-python3 -m unittest tests/test_tpu_guardrails.py
+python3 -m py_compile \
+  scripts/run_es.py \
+  scripts/run_eval.py \
+  scripts/upload_pretrained.py \
+  es_finetuning/tpu_guardrails.py \
+  es_finetuning/gcs.py
+python3 -m unittest tests/test_tpu_guardrails.py tests/test_gcs_pretrained.py
 ```
 
 ## 4.2 Optional Compile Warmup
 
 ```bash
 source setup/activate_tpu.sh
-# Ensure NAMM_CKPT is set (run the Section 3.5 auto-set command once per shell)
 bash scripts/warmup_xla_cache.sh
 ```
+
+`scripts/warmup_xla_cache.sh` auto-resolves the latest pretrained NAMM checkpoint unless you already exported `NAMM_CKPT` to pin a specific file.
 
 Default warmup behavior:
 
@@ -226,12 +241,10 @@ Default warmup behavior:
 
 ```bash
 source setup/activate_tpu.sh
-# Ensure NAMM_CKPT is set (run the Section 3.5 auto-set command once per shell)
 bash scripts/tpu_smoke_matrix.sh
 ```
 
-Note: `scripts/tpu_smoke_matrix.sh` currently requires `NAMM_CKPT` (local path).  
-`--namm_checkpoint latest` is available in `scripts/run_es.py` / `scripts/run_eval.py`, not in this wrapper script.
+`scripts/tpu_smoke_matrix.sh` auto-resolves the latest pretrained NAMM checkpoint unless you already exported `NAMM_CKPT` to pin a specific file.
 
 What it runs:
 
@@ -266,13 +279,12 @@ Run a longer GCS-enabled training command and send SIGTERM:
 
 ```bash
 source setup/activate_tpu.sh
-# Ensure NAMM_CKPT is set (run the Section 3.5 auto-set command once per shell)
 
 python3 scripts/run_es.py \
   --run_name preempt_test_namm \
   --method es_namm \
   --run_config namm_bam_i1_llama32_1b_tpu \
-  --namm_checkpoint "$NAMM_CKPT" \
+  --namm_checkpoint latest \
   --num_iterations 50 \
   --population_size 8 \
   --mini_batch_size 18 \
@@ -377,13 +389,11 @@ python3 scripts/run_es.py \
 ### Smoke
 
 ```bash
-# Ensure NAMM_CKPT is set (run the Section 3.5 auto-set command once per shell)
-
 python3 scripts/run_es.py \
   --run_name es_namm_smoke_c1024 \
   --method es_namm \
   --run_config namm_bam_i1_llama32_1b_tpu \
-  --namm_checkpoint "$NAMM_CKPT" \
+  --namm_checkpoint latest \
   --cache_size 1024 \
   --num_iterations 2 \
   --population_size 2 \
@@ -395,24 +405,6 @@ python3 scripts/run_es.py \
 ```
 
 ### Main run
-
-```bash
-python3 scripts/run_es.py \
-  --run_name es_namm_i50_c1024 \
-  --method es_namm \
-  --run_config namm_bam_i1_llama32_1b_tpu \
-  --namm_checkpoint "$NAMM_CKPT" \
-  --cache_size 1024 \
-  --num_iterations 50 \
-  --population_size 8 \
-  --mini_batch_size 18 \
-  --batch_size 18 \
-  --filter_by_length "$FILTER" \
-  --checkpoint_every 10 \
-  --gcs
-```
-
-Main run (auto-resolve latest checkpoint from GCS):
 
 ```bash
 python3 scripts/run_es.py \
@@ -471,17 +463,6 @@ python3 scripts/run_eval.py \
 ```bash
 python3 scripts/run_eval.py \
   --es_checkpoint experiments/experiment_N/es_namm/es_namm_i50_c1024/checkpoints/es_checkpoint_final.pt \
-  --namm_checkpoint "$NAMM_CKPT" \
-  --run_config namm_bam_i1_llama32_1b_tpu \
-  --cache_size 1024 \
-  --batch_size 18
-```
-
-Evaluate ES+NAMM checkpoint (auto-resolve latest pretrained NAMM from GCS):
-
-```bash
-python3 scripts/run_eval.py \
-  --es_checkpoint experiments/experiment_N/es_namm/es_namm_i50_c1024/checkpoints/es_checkpoint_final.pt \
   --namm_checkpoint latest \
   --run_config namm_bam_i1_llama32_1b_tpu \
   --cache_size 1024 \
@@ -534,20 +515,25 @@ cat experiments/experiment_<N>/es_namm/<run_name>/results.json
 1. `TPU requires a fixed integer batch size`:
 - Use TPU preset configs or pass `--batch_size 18 --mini_batch_size 18`.
 
-2. `NAMM_CKPT is required` in warmup/smoke scripts:
-- `scripts/warmup_xla_cache.sh` and `scripts/tpu_smoke_matrix.sh` require a local path.
-- Export `NAMM_CKPT` and verify file path exists.
+2. `NAMM_CKPT` problems in warmup/smoke scripts:
+- `scripts/warmup_xla_cache.sh` and `scripts/tpu_smoke_matrix.sh` auto-resolve the latest pretrained checkpoint if `NAMM_CKPT` is unset or set to `latest`.
+- To pin a specific file, export `NAMM_CKPT=/abs/path/to/checkpoint.pt` and verify it exists.
 
 3. `No pretrained NAMM checkpoints found in gs://.../NAMM_checkpoints/pretrained/`:
 - Upload one first via `python3 scripts/upload_pretrained.py <checkpoint.pt>`, or use a local `NAMM_CKPT` path.
 
-4. XLA cache upload does not run:
+4. `_XLAC ... undefined symbol ...` when importing `torch_xla`:
+- Cause: mismatched `torch` / `torch_xla` wheels.
+- Fix: rerun `bash setup/setup_tpu.sh --noclaude`.
+- If needed, recreate the environment with `rm -rf venv && bash setup/setup_tpu.sh --noclaude`.
+
+5. XLA cache upload does not run:
 - `--sync-xla-cache` is opt-in and requires TPU + `--gcs` + `gsutil` + `GCS_BUCKET`.
 
-5. Slow first run:
+6. Slow first run:
 - Expected due XLA compilation; run warmup and/or smoke first.
 
-6. Resume not happening:
+7. Resume not happening:
 - Resume auto-detection is GCS-backed; ensure same `--run_name` and `--gcs`.
 
 ---
@@ -555,9 +541,10 @@ cat experiments/experiment_<N>/es_namm/<run_name>/results.json
 ## 9) Recommended Execution Order on a Fresh TPU VM
 
 1. Setup + activate environment.
-2. Run static checks (`py_compile`, unit test).
-3. Run the Section 3.5 auto-set command to export `NAMM_CKPT`.
-4. Run `scripts/tpu_smoke_matrix.sh` in local mode.
-5. Run one 50-iteration `es_namm` job in GCS mode.
-6. Run preemption/resume validation.
-7. Run full experiment matrix (`es_only`, `es_recency`, `es_namm`) and evaluate all final checkpoints.
+2. Run quick sanity checks (`import torch_xla`, `xm.xla_device()`).
+3. Run static checks (`py_compile`, unit test).
+4. Optional but useful: run `python3 scripts/upload_pretrained.py --latest-path` once to confirm checkpoint resolution works.
+5. Run `scripts/tpu_smoke_matrix.sh` in local mode.
+6. Run one 50-iteration `es_namm` job in GCS mode.
+7. Run preemption/resume validation.
+8. Run full experiment matrix (`es_only`, `es_recency`, `es_namm`) and evaluate all final checkpoints.

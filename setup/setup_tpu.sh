@@ -47,6 +47,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "${SCRIPT_DIR}")"
 VENV_DIR="${REPO_DIR}/venv"
 HF_CACHE_DIR="${REPO_DIR}/.hf_cache"
+TORCH_VERSION="${TORCH_VERSION:-2.9.0}"
+TORCH_XLA_VERSION="${TORCH_XLA_VERSION:-2.9.0}"
+LIBTPU_INDEX_URL="${LIBTPU_INDEX_URL:-https://storage.googleapis.com/libtpu-releases/index.html}"
 
 echo '============================================================'
 echo ' ES Fine-Tuning + NAMM — TPU VM Setup'
@@ -91,9 +94,14 @@ source "${VENV_DIR}/bin/activate"
 pip install --upgrade pip -q
 
 # PyTorch + XLA (TPU support)
-echo '  Installing PyTorch + torch_xla...'
-pip install torch torch_xla[tpu] \
-    -f https://storage.googleapis.com/libtpu-releases/index.html \
+echo "  Installing PyTorch ${TORCH_VERSION} + torch_xla ${TORCH_XLA_VERSION}..."
+# Keep torch and torch_xla pinned to the tested TPU stack. Installing "latest"
+# can pull an ABI-mismatched pair that fails to import _XLAC at runtime.
+pip uninstall -y -q torch_xla torch libtpu > /dev/null 2>&1 || true
+pip install --upgrade --force-reinstall \
+    "torch==${TORCH_VERSION}" \
+    "torch_xla[tpu]==${TORCH_XLA_VERSION}" \
+    -f "${LIBTPU_INDEX_URL}" \
     -q
 
 # Project dependencies (skip GPU-only packages)
@@ -127,8 +135,29 @@ pip install -q \
 # Deliberately NOT installing: bitsandbytes (GPU-only), torchvision, torchaudio
 
 echo "  Python: $(python --version)"
-echo "  torch:  $(python -c 'import torch; print(torch.__version__)')"
-echo "  XLA:    $(python -c 'import torch_xla; print(torch_xla.__version__)')"
+echo '  Verifying torch + torch_xla import compatibility...'
+TORCH_VERSION="${TORCH_VERSION}" TORCH_XLA_VERSION="${TORCH_XLA_VERSION}" python - <<'PY'
+import os
+import torch
+import torch_xla
+
+expected_torch = os.environ["TORCH_VERSION"]
+expected_xla = os.environ["TORCH_XLA_VERSION"]
+actual_torch = torch.__version__.split("+")[0]
+actual_xla = torch_xla.__version__.split("+")[0]
+
+if actual_torch != expected_torch:
+    raise SystemExit(
+        f"torch version mismatch: expected {expected_torch}, got {torch.__version__}"
+    )
+if actual_xla != expected_xla:
+    raise SystemExit(
+        f"torch_xla version mismatch: expected {expected_xla}, got {torch_xla.__version__}"
+    )
+
+print(f"  torch:  {torch.__version__}")
+print(f"  XLA:    {torch_xla.__version__}")
+PY
 cd "${REPO_DIR}"
 python -c "from es_finetuning import ESTrainer, ESConfig; print('  es_finetuning imports OK')"
 echo '  Done.'
@@ -148,7 +177,11 @@ if python -c "from huggingface_hub import HfFolder; assert HfFolder.get_token()"
 else
     echo '  Please log in to HuggingFace (needed for Llama 3.2 access):'
     echo '  Get your token from: https://huggingface.co/settings/tokens'
-    huggingface-cli login
+    if command -v hf >/dev/null 2>&1; then
+        hf auth login
+    else
+        huggingface-cli login
+    fi
 fi
 
 echo '  Done.'
@@ -222,7 +255,11 @@ echo "  python -c \"import torch_xla.core.xla_model as xm; print('TPU:', xm.xla_
 echo ''
 echo 'To run ES fine-tuning (smoke test):'
 echo "  source ${REPO_DIR}/setup/activate_tpu.sh"
-echo '  python scripts/run_es.py --run_name tpu_smoke --num_iterations 2 --population_size 2 --mini_batch_size 2'
+echo '  python scripts/run_es.py --run_name tpu_smoke --method es_only --run_config full_cache_es_llama32_1b_tpu --num_iterations 2 --population_size 2 --mini_batch_size 18 --batch_size 18 --checkpoint_every 0 --filter_by_length 32768 --no-gcs'
+echo ''
+echo 'Full TPU acceptance smoke (train + eval for es_only/es_recency/es_namm):'
+echo "  source ${REPO_DIR}/setup/activate_tpu.sh"
+echo '  bash scripts/tpu_smoke_matrix.sh'
 echo ''
 echo 'To start Claude Code:'
 echo "  source ${REPO_DIR}/setup/activate_tpu.sh"

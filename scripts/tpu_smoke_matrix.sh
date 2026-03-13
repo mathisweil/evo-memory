@@ -15,6 +15,32 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 1
 fi
 
+resolve_namm_ckpt() {
+    if [[ -n "${NAMM_CKPT:-}" && "${NAMM_CKPT}" != "latest" ]]; then
+        if [[ ! -f "${NAMM_CKPT}" ]]; then
+            echo "ERROR: NAMM checkpoint not found: ${NAMM_CKPT}"
+            exit 1
+        fi
+        return
+    fi
+
+    echo "Resolving latest pretrained NAMM checkpoint..."
+    local resolved=""
+    if ! resolved="$(python3 scripts/upload_pretrained.py --latest-path)"; then
+        echo "ERROR: Failed to resolve latest pretrained NAMM checkpoint."
+        echo "Set NAMM_CKPT=/abs/path/to/checkpoint.pt or upload one with:"
+        echo "  python3 scripts/upload_pretrained.py /abs/path/to/checkpoint.pt"
+        exit 1
+    fi
+    if [[ -z "${resolved}" || ! -f "${resolved}" ]]; then
+        echo "ERROR: Latest pretrained NAMM checkpoint did not resolve to a local file: ${resolved}"
+        exit 1
+    fi
+
+    export NAMM_CKPT="${resolved}"
+    echo "Using NAMM_CKPT=${NAMM_CKPT}"
+}
+
 NUM_ITERATIONS="${NUM_ITERATIONS:-2}"
 POP_SIZE="${POP_SIZE:-2}"
 BATCH_SIZE="${BATCH_SIZE:-18}"
@@ -198,6 +224,8 @@ echo "Smoke matrix output dir: ${SMOKE_DIR}"
 echo "NUM_ITERATIONS=${NUM_ITERATIONS}, POP_SIZE=${POP_SIZE}, BATCH_SIZE=${BATCH_SIZE}"
 echo "CACHE_SIZE=${CACHE_SIZE}, FILTER_BY_LENGTH=${FILTER_BY_LENGTH}, RUN_EVAL=${RUN_EVAL}"
 echo "GCS_MODE=${GCS_MODE}"
+
+resolve_namm_ckpt
 
 if ! run_smoke_method "es_only" "full_cache_es_llama32_1b_tpu" 0 0; then
     failed_methods=$((failed_methods + 1))

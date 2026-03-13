@@ -5,6 +5,7 @@ Usage:
     python scripts/upload_pretrained.py exp_local/pretrained/namm_pretrained_romain_v2.pt
     python scripts/upload_pretrained.py exp_local/pretrained/*.pt
     python scripts/upload_pretrained.py --list
+    python scripts/upload_pretrained.py --latest-path
 """
 
 import argparse
@@ -31,9 +32,23 @@ def main():
                         help="Local .pt file(s) to upload")
     parser.add_argument("--list", action="store_true",
                         help="List pretrained checkpoints in GCS")
+    parser.add_argument(
+        "--latest-path",
+        action="store_true",
+        help="Print a local pretrained checkpoint path, preferring an existing cached .pt file and otherwise downloading the latest from GCS",
+    )
+    parser.add_argument(
+        "--cache-dir",
+        default=os.path.join(REPO_ROOT, "exp_local", "pretrained"),
+        help="Local cache directory used with --latest-path",
+    )
     args = parser.parse_args()
 
     gcs = GCSClient()
+
+    if args.latest_path:
+        print(gcs.resolve_pretrained_checkpoint(args.cache_dir))
+        return
 
     if args.list:
         blobs = gcs.list_pretrained()

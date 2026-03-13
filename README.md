@@ -26,7 +26,7 @@ git clone -b tpu https://github.com/mathisweil/evo-memory.git
 bash evo-memory/setup/setup_tpu.sh
 ```
 
-This clones the repo, creates a venv, installs all dependencies, and prompts for HuggingFace + wandb login. The TPU setup additionally installs `torch_xla[tpu]` and `google-cloud-storage`.
+This clones the repo, creates a venv, installs all dependencies, and prompts for HuggingFace + wandb login. The TPU setup additionally installs pinned `torch==2.9.0`, `torch_xla[tpu]==2.9.0`, and `google-cloud-storage`.
 
 See `setup/setup.sh --help` for options (`--user`, `--gpu`, `--noclaude`, `--dir`).
 
@@ -79,7 +79,8 @@ A `manifest.json` in `experiments/` tracks all experiments.
 Pin these versions exactly — newer versions break at runtime.
 
 ```
-torch==2.3.1          (cu121 build for GPU; TPU uses torch_xla matching version)
+torch==2.3.1          (GPU setup path)
+torch==2.9.0          (TPU setup path; must match torch_xla)
 transformers==4.45.2  (supports Llama 3.2 rope_type)
 peft==0.11.1
 numpy<2               (numpy 2.x breaks many downstream packages)
@@ -87,7 +88,7 @@ numpy<2               (numpy 2.x breaks many downstream packages)
 
 **TPU additional dependencies:**
 ```
-torch_xla[tpu]        (matching torch version; installed from Google's libtpu releases)
+torch_xla[tpu]==2.9.0 (matching TPU torch version; installed from Google's libtpu releases)
 google-cloud-storage  (for GCS experiment management and XLA cache syncing)
 ```
 
@@ -100,6 +101,8 @@ HuggingFace access required for gated LLaMA 3.2-1B model: `huggingface-cli login
 ## TPU Notes
 
 - **XLA compilation**: First run on TPU is slow (~20 min) as XLA compiles graphs. Run warmup once:
+  `bash scripts/warmup_xla_cache.sh`
+  or pin a specific checkpoint with:
   `export NAMM_CKPT=/abs/path/to/namm_pretrained_romain_v2.pt && bash scripts/warmup_xla_cache.sh`
 - **XLA cache syncing**: disabled by default. Opt in with:
   - startup download: `XLA_CACHE_DOWNLOAD=1 source setup/activate_tpu.sh`
