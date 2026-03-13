@@ -18,12 +18,16 @@ import numpy as np
 import torch
 
 from .config import ESConfig
-from .noise import apply_es_update, perturb_weights, restore_weights
+from .population import (
+    SingleProcessPopulationExecutor,
+    summarize_phase_history,
+)
 from .utils import force_memory_cleanup, setup_tensorboard
 
 
 def _save_results_json(path, config_dict, history, baseline_eval,
-                       full_eval_result, total_time):
+                       full_eval_result, total_time,
+                       phase_history=None, benchmark_summary=None):
     """Write results.json summarizing the experiment."""
     results = {
         "config": config_dict,
@@ -39,6 +43,10 @@ def _save_results_json(path, config_dict, history, baseline_eval,
             },
         },
     }
+    if phase_history:
+        results["training"]["phase_timing_s"] = phase_history
+    if benchmark_summary is not None:
+        results["training"]["benchmark"] = benchmark_summary
     if baseline_eval is not None:
         results["baseline_eval"] = baseline_eval
     if full_eval_result is not None:
@@ -89,7 +97,9 @@ class ESTrainer:
                  full_eval_fn=None, examples_fn=None,
                  metadata=None, resume_from=None,
                  gcs_client=None, preemption_handler=None,
-                 experiment_name=None, method=None, run_name=None):
+                 experiment_name=None, method=None, run_name=None,
+                 population_executor=None, is_master=True,
+                 startup_time_s: float = 0.0):
         self.model = model
         self.param_names = param_names
         self.evaluate_fn = evaluate_fn
@@ -104,6 +114,11 @@ class ESTrainer:
         self.experiment_name = experiment_name
         self.method = method
         self.run_name = run_name
+        self.population_executor = (
+            population_executor or SingleProcessPopulationExecutor()
+        )
+        self.is_master = bool(is_master and self.population_executor.is_master)
+        self.startup_time_s = float(startup_time_s)
 
         # Verify all param_names exist in model
         model_param_names = {n for n, _ in model.named_parameters()}
@@ -120,6 +135,10 @@ class ESTrainer:
             name: all_params[name].detach().cpu().clone()
             for name in param_names
         }
+
+    def _print(self, *args, **kwargs):
+        if self.is_master:
+            print(*args, **kwargs)
 
     def train(self, resumed_history=None, numpy_state_restored=False):
         """Run the ES optimization loop.
@@ -144,112 +163,115 @@ class ESTrainer:
             if numpy_state_restored:
                 # Numpy RNG was restored exactly from training state —
                 # no need to seed or replay.
-                print(f"Resuming from iteration {start_iteration} "
-                      f"(checkpoint: {self.resume_from}, "
-                      f"numpy state restored)")
+                self._print(
+                    f"Resuming from iteration {start_iteration} "
+                    f"(checkpoint: {self.resume_from}, "
+                    f"numpy state restored)"
+                )
             else:
                 # Fallback: seed and replay RNG to approximate state.
                 np.random.seed(cfg.initial_seed)
                 for i in range(start_iteration):
                     np.random.randint(0, 2**30, size=cfg.population_size,
                                       dtype=np.int64)
-                print(f"Resuming from iteration {start_iteration} "
-                      f"(checkpoint: {self.resume_from}, "
-                      f"seed replay)")
+                self._print(
+                    f"Resuming from iteration {start_iteration} "
+                    f"(checkpoint: {self.resume_from}, "
+                    f"seed replay)"
+                )
         else:
             np.random.seed(cfg.initial_seed)
 
         # Setup logging — use log_dir directly (caller sets up hierarchy)
         log_dir = cfg.log_dir
-        writer = setup_tensorboard(log_dir)
+        writer = setup_tensorboard(log_dir) if self.is_master else None
         checkpoint_dir = os.path.join(log_dir, "checkpoints")
-        os.makedirs(checkpoint_dir, exist_ok=True)
+        if self.is_master:
+            os.makedirs(checkpoint_dir, exist_ok=True)
 
         # Save full config
         config_dict = asdict(cfg)
         config_dict.update(self.metadata)
-        config_path = os.path.join(log_dir, "config.json")
-        with open(config_path, "w") as f:
-            json.dump(config_dict, f, indent=2, default=str)
-        print(f"Config saved to {config_path}")
+        if self.is_master:
+            config_path = os.path.join(log_dir, "config.json")
+            with open(config_path, "w") as f:
+                json.dump(config_dict, f, indent=2, default=str)
+            self._print(f"Config saved to {config_path}")
 
         # Upload config to GCS
-        if self.gcs_client and self.experiment_name:
+        if self.is_master and self.gcs_client and self.experiment_name:
             self.gcs_client.upload_run_file(
                 config_path, self.experiment_name, self.method, self.run_name,
                 "config.json")
 
-        print(f"ES Training: pop={cfg.population_size}, iter={cfg.num_iterations}, "
-              f"sigma={cfg.sigma}, alpha={cfg.alpha}, mode={cfg.noise_mode}")
-        print(f"Optimizing {len(self.param_names)} parameters")
-        print(f"Logging to {log_dir}")
+        self._print(
+            f"ES Training: pop={cfg.population_size}, iter={cfg.num_iterations}, "
+            f"sigma={cfg.sigma}, alpha={cfg.alpha}, mode={cfg.noise_mode}"
+        )
+        self._print(f"Optimizing {len(self.param_names)} parameters")
+        self._print(f"Logging to {log_dir}")
         if cfg.checkpoint_every > 0:
-            print(f"Periodic checkpoints every {cfg.checkpoint_every} iterations")
+            self._print(
+                f"Periodic checkpoints every {cfg.checkpoint_every} iterations"
+            )
         if self.gcs_client:
-            print(f"GCS sync enabled: gs://{self.gcs_client.bucket_name}/")
+            self._print(f"GCS sync enabled: gs://{self.gcs_client.bucket_name}/")
         if self.preemption_handler:
-            print("Preemption handler active (SIGTERM)")
+            self._print("Preemption handler active (SIGTERM)")
 
         # Baseline full eval (skip if resuming)
         baseline_eval = None
-        if self.full_eval_fn and start_iteration == 0:
-            print("\nRunning baseline evaluation (before training)...")
+        if self.is_master and self.full_eval_fn and start_iteration == 0:
+            self._print("\nRunning baseline evaluation (before training)...")
             eval_start = time.time()
             baseline_eval = self.full_eval_fn(self.model)
             eval_time = time.time() - eval_start
             baseline_eval["time_s"] = round(eval_time, 1)
-            print(f"Baseline eval complete in {eval_time:.1f}s")
+            self._print(f"Baseline eval complete in {eval_time:.1f}s")
             for k, v in baseline_eval.get("scores", {}).items():
-                print(f"  {_clean_task_name(k)}: {v:.2f}")
+                self._print(f"  {_clean_task_name(k)}: {v:.2f}")
 
         # Training loop
         if resumed_history:
             history = resumed_history
         else:
             history = {"mean": [], "min": [], "max": [], "time": []}
+        phase_history = {}
         training_start = time.time()
         preempted = False
 
         for iteration in range(start_iteration, cfg.num_iterations):
-            iter_start = time.time()
             force_memory_cleanup()
 
-            seeds = np.random.randint(
-                0, 2**30, size=cfg.population_size, dtype=np.int64
-            ).tolist()
+            seeds = None
+            if self.is_master:
+                seeds = np.random.randint(
+                    0,
+                    2**30,
+                    size=cfg.population_size,
+                    dtype=np.int64,
+                ).tolist()
+            seeds = self.population_executor.broadcast_object(
+                f"es_seeds_iter_{iteration}",
+                seeds,
+            )
 
             if self.pre_step_fn is not None:
                 self.pre_step_fn()
 
-            rewards = []
-            for member_idx, seed in enumerate(seeds):
-                perturb_weights(
-                    self.model, seed, cfg.sigma,
-                    self.param_names, cfg.noise_mode
-                )
-
-                reward = self.evaluate_fn(self.model)
-                rewards.append(reward)
-
-                restore_weights(
-                    self.model, seed, cfg.sigma,
-                    self.param_names, cfg.noise_mode
-                )
-
-                force_memory_cleanup()
-
-            rewards_arr = np.array(rewards, dtype=np.float32)
-            normalized = (
-                (rewards_arr - rewards_arr.mean())
-                / (rewards_arr.std() + 1e-8)
+            iter_result = self.population_executor.run_iteration(
+                model=self.model,
+                param_names=self.param_names,
+                evaluate_fn=self.evaluate_fn,
+                seeds=seeds,
+                sigma=cfg.sigma,
+                alpha=cfg.alpha,
+                noise_mode=cfg.noise_mode,
+                population_size=cfg.population_size,
+                iteration=iteration,
             )
-
-            apply_es_update(
-                self.model, seeds, normalized, cfg.sigma, cfg.alpha,
-                self.param_names, cfg.population_size, cfg.noise_mode
-            )
-
-            iter_time = time.time() - iter_start
+            rewards_arr = iter_result.rewards
+            iter_time = iter_result.phase_times.get("iteration_s", 0.0)
 
             mean_r = rewards_arr.mean().item()
             min_r = rewards_arr.min().item()
@@ -260,29 +282,50 @@ class ESTrainer:
             history["max"].append(round(max_r, 6))
             history["time"].append(round(iter_time, 1))
 
-            writer.add_scalar("reward/mean", mean_r, iteration)
-            writer.add_scalar("reward/min", min_r, iteration)
-            writer.add_scalar("reward/max", max_r, iteration)
-            writer.add_scalar("time/iteration_sec", iter_time, iteration)
+            for phase_name, phase_value in iter_result.phase_times.items():
+                phase_history.setdefault(phase_name, []).append(
+                    round(float(phase_value), 6)
+                )
 
-            if torch.cuda.is_available():
+            if writer is not None:
+                writer.add_scalar("reward/mean", mean_r, iteration)
+                writer.add_scalar("reward/min", min_r, iteration)
+                writer.add_scalar("reward/max", max_r, iteration)
+                writer.add_scalar("time/iteration_sec", iter_time, iteration)
+                for phase_name, phase_value in iter_result.phase_times.items():
+                    writer.add_scalar(
+                        f"time/{phase_name}",
+                        phase_value,
+                        iteration,
+                    )
+
+            if writer is not None and torch.cuda.is_available():
                 mem_mb = torch.cuda.memory_allocated() / 1024**2
                 writer.add_scalar("device/memory_mb", mem_mb, iteration)
 
-            print(f"[{iteration + 1}/{cfg.num_iterations}] "
-                  f"mean={mean_r:.4f} min={min_r:.4f} max={max_r:.4f} "
-                  f"time={iter_time:.1f}s")
+            self._print(
+                f"[{iteration + 1}/{cfg.num_iterations}] "
+                f"mean={mean_r:.4f} min={min_r:.4f} max={max_r:.4f} "
+                f"time={iter_time:.1f}s"
+            )
 
             # Check for preemption
             if (self.preemption_handler
                     and self.preemption_handler.check()):
-                print(f"Preemption detected at iteration {iteration + 1}. "
-                      f"Saving emergency checkpoint...")
-                self._save_periodic_checkpoint(
-                    checkpoint_dir, iteration + 1, history, training_start)
+                self._print(
+                    f"Preemption detected at iteration {iteration + 1}. "
+                    f"Saving emergency checkpoint..."
+                )
+                if self.is_master:
+                    self._save_periodic_checkpoint(
+                        checkpoint_dir, iteration + 1, history, training_start)
+                self.population_executor.barrier(
+                    f"preempted_iter_{iteration + 1}"
+                )
                 self._update_run_status("preempted", iteration + 1)
-                print("Emergency checkpoint saved. Exiting.")
-                writer.close()
+                self._print("Emergency checkpoint saved. Exiting.")
+                if writer is not None:
+                    writer.close()
                 preempted = True
                 break
 
@@ -290,60 +333,94 @@ class ESTrainer:
             if (cfg.checkpoint_every > 0
                     and (iteration + 1) % cfg.checkpoint_every == 0
                     and (iteration + 1) < cfg.num_iterations):
-                self._save_periodic_checkpoint(
-                    checkpoint_dir, iteration + 1, history, training_start)
+                if self.is_master:
+                    self._save_periodic_checkpoint(
+                        checkpoint_dir, iteration + 1, history, training_start)
+                self.population_executor.barrier(
+                    f"checkpoint_iter_{iteration + 1}"
+                )
 
         total_time = time.time() - training_start
 
         if preempted:
             sys.exit(130)  # 128 + SIGTERM(2) — distinct from normal exit
 
-        print(f"Training complete in {total_time:.1f}s ({total_time / 3600:.1f}h)")
+        self._print(
+            f"Training complete in {total_time:.1f}s ({total_time / 3600:.1f}h)"
+        )
 
         # Final checkpoint
-        self._save_checkpoint(checkpoint_dir)
-        if self.gcs_client and self.experiment_name:
+        if self.is_master:
+            self._save_checkpoint(checkpoint_dir)
+        if self.is_master and self.gcs_client and self.experiment_name:
             final_path = os.path.join(checkpoint_dir, "es_checkpoint_final.pt")
             self.gcs_client.upload_checkpoint(
                 final_path, self.experiment_name, self.method,
                 self.run_name, "es_checkpoint_final.pt")
-        writer.close()
+        if writer is not None:
+            writer.close()
+        self.population_executor.barrier("final_checkpoint")
 
         # Full evaluation on fine-tuned weights
         full_eval_result = None
-        if self.full_eval_fn:
-            print("\nRunning full evaluation (after training)...")
+        if self.is_master and self.full_eval_fn:
+            self._print("\nRunning full evaluation (after training)...")
             eval_start = time.time()
             full_eval_result = self.full_eval_fn(self.model)
             eval_time = time.time() - eval_start
             full_eval_result["time_s"] = round(eval_time, 1)
-            print(f"Full eval complete in {eval_time:.1f}s")
+            self._print(f"Full eval complete in {eval_time:.1f}s")
             for k, v in full_eval_result.get("scores", {}).items():
-                print(f"  {_clean_task_name(k)}: {v:.2f}")
+                self._print(f"  {_clean_task_name(k)}: {v:.2f}")
 
         # Save results
-        results_path = os.path.join(log_dir, "results.json")
-        _save_results_json(results_path, config_dict, history, baseline_eval,
-                           full_eval_result, total_time)
+        benchmark_summary = None
+        if cfg.benchmark_mode != "off":
+            benchmark_summary = summarize_phase_history(
+                phase_history,
+                startup_time_s=self.startup_time_s,
+                warmup_iterations=cfg.benchmark_warmup_iterations,
+            )
+            if self.is_master and benchmark_summary is not None:
+                self._print("Benchmark summary:")
+                self._print(
+                    f"  startup={benchmark_summary['startup_time_s']:.2f}s "
+                    f"warmup_iters={benchmark_summary['warmup_iterations']}"
+                )
+                for phase_name, median_value in sorted(
+                        benchmark_summary["phase_median_s"].items()):
+                    self._print(f"  median {phase_name}={median_value:.2f}s")
+        if self.is_master:
+            results_path = os.path.join(log_dir, "results.json")
+            _save_results_json(
+                results_path,
+                config_dict,
+                history,
+                baseline_eval,
+                full_eval_result,
+                total_time,
+                phase_history=phase_history,
+                benchmark_summary=benchmark_summary,
+            )
 
         # Capture Q/A examples
-        if self.examples_fn:
-            print("\nCapturing Q/A examples...")
+        if self.is_master and self.examples_fn:
+            self._print("\nCapturing Q/A examples...")
             examples = self.examples_fn(self.model)
             examples_path = os.path.join(log_dir, "examples.json")
             with open(examples_path, "w") as f:
                 json.dump(examples, f, indent=2, ensure_ascii=False)
-            print(f"  Saved {len(examples)} examples to {examples_path}")
+            self._print(f"  Saved {len(examples)} examples to {examples_path}")
 
         # Upload all artifacts to GCS
-        if self.gcs_client and self.experiment_name:
-            print("Uploading artifacts to GCS...")
+        if self.is_master and self.gcs_client and self.experiment_name:
+            self._print("Uploading artifacts to GCS...")
             self.gcs_client.upload_run_artifacts(
                 log_dir, self.experiment_name, self.method, self.run_name)
             self._update_run_status("completed")
-            print("  GCS upload complete.")
+            self._print("  GCS upload complete.")
 
-        print("Done.")
+        self._print("Done.")
 
     def _save_checkpoint(self, checkpoint_dir):
         """Save delta checkpoint (current - initial weights)."""
@@ -357,7 +434,7 @@ class ESTrainer:
 
         torch.save(state, path)
         size_mb = os.path.getsize(path) / 1024**2
-        print(f"  Checkpoint saved: {path} ({size_mb:.1f} MB)")
+        self._print(f"  Checkpoint saved: {path} ({size_mb:.1f} MB)")
 
     def _save_periodic_checkpoint(self, checkpoint_dir, iteration,
                                   history, training_start):
@@ -407,15 +484,21 @@ class ESTrainer:
                     self.gcs_client.upload_run_file(
                         f, self.experiment_name, self.method,
                         self.run_name, os.path.basename(f))
-                print(f"  Checkpoint iter {iteration} saved to GCS "
-                      f"({size_mb:.1f} MB)")
+                self._print(
+                    f"  Checkpoint iter {iteration} saved to GCS "
+                    f"({size_mb:.1f} MB)"
+                )
             except Exception as e:
-                print(f"  WARNING: GCS upload failed for iter {iteration}: "
-                      f"{e}")
-                print(f"  Checkpoint saved locally: {local_path}")
+                self._print(
+                    f"  WARNING: GCS upload failed for iter {iteration}: "
+                    f"{e}"
+                )
+                self._print(f"  Checkpoint saved locally: {local_path}")
         else:
-            print(f"  Checkpoint iter {iteration} saved: {local_path} "
-                  f"({size_mb:.1f} MB)")
+            self._print(
+                f"  Checkpoint iter {iteration} saved: {local_path} "
+                f"({size_mb:.1f} MB)"
+            )
 
         # Clean up local periodic checkpoints (keep only latest)
         for old in glob.glob(
@@ -447,7 +530,7 @@ class ESTrainer:
         try:
             self.gcs_client.update_manifest(updater)
         except Exception as e:
-            print(f"  WARNING: Failed to update manifest: {e}")
+            self._print(f"  WARNING: Failed to update manifest: {e}")
 
 
 def _serialize_numpy_state(state):

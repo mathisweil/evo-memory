@@ -35,6 +35,7 @@ import os
 import shutil
 import socket
 import sys
+import time
 from datetime import datetime
 
 import numpy as np
@@ -50,7 +51,17 @@ for _p in (REPO_ROOT, SCRIPT_DIR):
 
 from hydra import compose, initialize
 from run_namm import make_eval_model, make_task_sampler
-from es_finetuning import ESConfig, ESTrainer
+from es_finetuning import (
+    ESConfig,
+    ESTrainer,
+    ExactTpuPopulationExecutor,
+    SingleProcessPopulationExecutor,
+)
+from es_finetuning.bucketing import (
+    build_bucketed_request_pools,
+    iter_compile_warmup_requests,
+    make_bucketed_resample_fn,
+)
 from es_finetuning.device import get_device
 from es_finetuning.tpu_guardrails import (
     is_tpu_device,
@@ -264,6 +275,213 @@ def load_hydra_config(run_config, extra_overrides=None):
     return cfg
 
 
+def _build_hydra_overrides(args):
+    hydra_overrides = []
+    if args.batch_size is not None:
+        hydra_overrides.append(f"batch_size={args.batch_size}")
+    if args.filter_by_length is not None:
+        hydra_overrides.append(f"filter_by_length={args.filter_by_length}")
+    if args.cache_size is not None:
+        hydra_overrides.append(f"cache_size={args.cache_size}")
+        hydra_overrides.append(f"max_memory_length={args.cache_size}")
+    hydra_overrides.extend(args.override)
+    return hydra_overrides
+
+
+def _load_namm_checkpoint_into_model(args, memory_model, device):
+    if not args.namm_checkpoint:
+        return
+
+    print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
+    ckpt = torch.load(args.namm_checkpoint, map_location="cpu",
+                      weights_only=False)
+    evo_state = ckpt["evolution_state"]
+
+    best_member = evo_state["best_member"]
+    params = best_member.unsqueeze(0).to(device)
+    memory_model.set_memory_params(params)
+
+    buffers_prefix = "stored_buffers_to_save."
+    buffers_dict = {
+        k[len(buffers_prefix):]: v.to(device)
+        for k, v in evo_state.items()
+        if k.startswith(buffers_prefix)
+    }
+    if buffers_dict:
+        memory_model.load_buffers_dict(buffers_dict=buffers_dict)
+        print(f"  Loaded {len(buffers_dict)} normalization buffers")
+
+    print(
+        f"  Loaded NAMM best_member ({best_member.shape[0]} params) "
+        f"from iter {ckpt.get('iter_num', '?')}, "
+        f"best_val={ckpt.get('best_val_loss', '?')}"
+    )
+
+
+def _maybe_restore_resume_checkpoint(
+    memory_model,
+    resume_checkpoint,
+    resumed_training_state,
+):
+    """Load a saved ES checkpoint into the model if present."""
+    numpy_state_restored = False
+    if resume_checkpoint:
+        print(f"Loading ES checkpoint weights: {resume_checkpoint}")
+
+        es_state = torch.load(
+            resume_checkpoint,
+            map_location="cpu",
+            weights_only=True,
+        )
+        model_params = dict(memory_model.named_parameters())
+        is_delta = es_state.pop("__format__", None) == "delta"
+        loaded = 0
+        for name, val in es_state.items():
+            if name in model_params:
+                if is_delta:
+                    model_params[name].data.add_(val.to(model_params[name].dtype))
+                else:
+                    model_params[name].data.copy_(val)
+                loaded += 1
+        fmt = "delta" if is_delta else "full (legacy)"
+        print(f"  Loaded {loaded} parameter tensors ({fmt} format)")
+
+        if (resumed_training_state
+                and "numpy_random_state" in resumed_training_state):
+            from es_finetuning.trainer import restore_numpy_state
+            restore_numpy_state(resumed_training_state["numpy_random_state"])
+            numpy_state_restored = True
+            print("  Restored numpy random state from training state")
+
+    return numpy_state_restored
+
+
+def _resolve_tpu_worker_count(explicit_count=None):
+    if explicit_count is not None:
+        if explicit_count <= 1:
+            raise ValueError("--worker-count must be > 1 for TPU multichip execution.")
+        return explicit_count
+
+    env_candidates = (
+        "WORLD_SIZE",
+        "TPU_NUM_DEVICES",
+        "PJRT_LOCAL_PROCESS_COUNT",
+    )
+    for env_name in env_candidates:
+        raw_value = os.environ.get(env_name)
+        if raw_value and raw_value.isdigit() and int(raw_value) > 1:
+            return int(raw_value)
+
+    try:
+        import torch_xla.runtime as xr
+        detected = int(xr.global_runtime_device_count())
+        if detected > 1:
+            return detected
+    except Exception:
+        pass
+
+    try:
+        import torch_xla.core.xla_model as xm
+        detected = int(xm.xrt_world_size())
+        if detected > 1:
+            return detected
+    except Exception:
+        pass
+
+    raise ValueError(
+        "Unable to determine TPU worker count automatically. "
+        "Pass --worker-count explicitly."
+    )
+
+
+def _print_bucket_summary(bucket_pools, is_master):
+    if not is_master or not bucket_pools:
+        return
+    print("Active TPU prompt buckets:")
+    for bucket_len, per_task_indices in sorted(bucket_pools.items()):
+        task_summary = ", ".join(
+            f"{task_name}={len(indices)}"
+            for task_name, indices in sorted(per_task_indices.items())
+        )
+        print(f"  <= {bucket_len} tokens: {task_summary}")
+
+
+def _maybe_build_bucketed_resample_fn(
+    task_sampler,
+    evaluator,
+    *,
+    sampled_requests_per_task,
+    enable_bucketing,
+    is_master,
+):
+    if not enable_bucketing:
+        return None, None
+
+    training_tasks = {
+        task_name: task_sampler.lb_prompts_per_task[task_name]
+        for task_name in task_sampler.lb_training_tasks
+    }
+    if not training_tasks:
+        return None, None
+
+    max_prompt_conditioning = None
+    if evaluator.max_conditioning_length is not None:
+        max_prompt_conditioning = (
+            evaluator.max_conditioning_length - evaluator.max_gen_toks
+        )
+        if max_prompt_conditioning <= 0:
+            max_prompt_conditioning = None
+
+    bucket_pools = build_bucketed_request_pools(
+        task_prompts=training_tasks,
+        tokenizer=evaluator.tokenizer,
+        sampled_requests_per_task=sampled_requests_per_task,
+        max_prompt_conditioning=max_prompt_conditioning,
+        add_special_tokens=evaluator.add_bos_token,
+    )
+    if not bucket_pools:
+        if is_master:
+            print(
+                "WARNING: No eligible TPU prompt buckets found; "
+                "falling back to the default random resampler."
+            )
+        return None, None
+
+    _print_bucket_summary(bucket_pools, is_master)
+    return (
+        make_bucketed_resample_fn(
+            task_sampler,
+            bucket_pools,
+            sampled_requests_per_task=sampled_requests_per_task,
+        ),
+        bucket_pools,
+    )
+
+
+def _run_compile_warmup(
+    *,
+    model,
+    evaluate_fn,
+    task_sampler,
+    bucket_pools,
+    sampled_requests_per_task,
+    is_master,
+):
+    if not bucket_pools:
+        return
+
+    if is_master:
+        print("Running TPU compile warmup across active prompt buckets...")
+
+    for bucket_len, requests_dict in iter_compile_warmup_requests(
+            bucket_pools,
+            sampled_requests_per_task=sampled_requests_per_task):
+        if is_master:
+            print(f"  Warmup bucket <= {bucket_len} tokens")
+        task_sampler.set_requests_per_task(requests_dict)
+        evaluate_fn(model)
+
+
 # ── Evaluation function factories ───────────────────────────────────────
 
 def make_resample_fn(task_sampler, mini_batch_size, train=True):
@@ -272,6 +490,7 @@ def make_resample_fn(task_sampler, mini_batch_size, train=True):
             train=train,
             sampled_requests_per_task=mini_batch_size,
         )
+        return task_sampler.get_requests_per_task()
     return resample_fn
 
 
@@ -434,14 +653,385 @@ def parse_args():
     parser.add_argument("--checkpoint_every", type=int, default=10,
                         help="Save checkpoint every N iterations (0 = final only)")
 
+    # Execution and benchmarking
+    parser.add_argument(
+        "--execution-backend",
+        type=str,
+        default="single_process",
+        choices=["single_process", "tpu_multichip_exact"],
+        help="Execution backend for ES population evaluation.",
+    )
+    parser.add_argument(
+        "--worker-count",
+        type=int,
+        default=None,
+        help="Worker count for TPU multichip execution. Auto-detected if omitted.",
+    )
+    parser.add_argument(
+        "--benchmark-mode",
+        type=str,
+        default="off",
+        choices=["off", "train_only"],
+        help="Benchmark mode. 'train_only' skips full eval/examples and records phase summaries.",
+    )
+    parser.add_argument(
+        "--benchmark-warmup-iterations",
+        type=int,
+        default=1,
+        help="Ignore the first N iterations when computing steady-state benchmark summaries.",
+    )
+    parser.add_argument(
+        "--bucketed-tpu-sampling",
+        dest="bucketed_tpu_sampling",
+        action="store_true",
+        help="Use tokenizer-length buckets to keep TPU training batches shape-stable.",
+    )
+    parser.add_argument(
+        "--no-bucketed-tpu-sampling",
+        dest="bucketed_tpu_sampling",
+        action="store_false",
+        help="Disable TPU length-bucketed minibatch sampling.",
+    )
+    parser.add_argument(
+        "--compile-warmup",
+        dest="compile_warmup",
+        action="store_true",
+        help="Run one training-path warmup pass per active TPU prompt bucket before training.",
+    )
+    parser.add_argument(
+        "--no-compile-warmup",
+        dest="compile_warmup",
+        action="store_false",
+        help="Disable TPU compile warmup.",
+    )
+    parser.set_defaults(bucketed_tpu_sampling=None, compile_warmup=None)
+
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
     return parser.parse_args()
 
 
+def _apply_runtime_defaults(args):
+    if args.benchmark_mode == "train_only":
+        args.skip_full_eval = True
+        args.skip_examples = True
+
+    if args.execution_backend == "tpu_multichip_exact":
+        if args.bucketed_tpu_sampling is None:
+            args.bucketed_tpu_sampling = True
+        if args.compile_warmup is None:
+            args.compile_warmup = True
+    else:
+        if args.bucketed_tpu_sampling is None:
+            args.bucketed_tpu_sampling = False
+        if args.compile_warmup is None:
+            args.compile_warmup = False
+
+
+def _run_training_process(
+    args,
+    *,
+    experiment_name,
+    run_dir,
+    resumed_history,
+    resumed_training_state,
+    gcs_client,
+    preemption_handler,
+    population_executor,
+    is_master,
+    worker_rank,
+    worker_count,
+):
+    startup_start = time.time()
+
+    if torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+
+    device = get_device()
+    is_tpu = is_tpu_device(device)
+    if is_master:
+        _maybe_enable_xla_cache_sync(args, is_tpu)
+
+    if args.execution_backend == "tpu_multichip_exact" and not is_tpu:
+        raise RuntimeError(
+            "The 'tpu_multichip_exact' backend requires an active XLA device."
+        )
+
+    if is_master:
+        print("=" * 60)
+        print("ES Fine-Tuning: Llama 3.2 1B + NAMM on Qasper")
+        print("=" * 60)
+        print(f"Experiment: {experiment_name}")
+        print(f"Method: {args.method}")
+        print(f"Run: {args.run_name}")
+        print(f"Output: {run_dir}")
+        print(f"Config: sigma={args.sigma}, alpha={args.alpha}, "
+              f"pop={args.population_size}, iter={args.num_iterations}")
+        print(f"Noise mode: {args.noise_mode}")
+        print(f"Mini-batch size: {args.mini_batch_size}")
+        print(f"Execution backend: {args.execution_backend}")
+        print(f"Workers: {worker_count} (rank {worker_rank})")
+        if gcs_client:
+            print(f"GCS: gs://{gcs_client.bucket_name}/ (checkpoint every "
+                  f"{args.checkpoint_every} iter)")
+        if args.sync_xla_cache:
+            print(
+                "XLA cache sync requested: enabled when TPU+GCS prerequisites "
+                "are met"
+            )
+        print()
+
+    # 1. Load config and model
+    if is_master:
+        print("Loading config and model via Hydra...")
+    cfg = load_hydra_config(
+        args.run_config,
+        extra_overrides=_build_hydra_overrides(args),
+    )
+
+    with torch.no_grad():
+        (memory_policy, memory_model, memory_evaluator,
+         evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
+
+    memory_model.to(device)
+
+    if is_tpu:
+        fixed_batch_size = validate_tpu_batch_settings(
+            memory_evaluator.batch_size,
+            args.mini_batch_size,
+            context="training",
+        )
+        memory_evaluator.batch_size_per_gpu = fixed_batch_size
+        memory_evaluator.batch_size = fixed_batch_size
+        if is_master:
+            print(f"TPU mode: using fixed batch size {fixed_batch_size}")
+
+    # 2. Load NAMM checkpoint
+    _load_namm_checkpoint_into_model(args, memory_model, device)
+
+    batch_idxs = np.zeros([1])
+    memory_policy.set_params_batch_idxs(batch_idxs)
+
+    # 3. Create task sampler
+    if is_master:
+        print("Creating task sampler...")
+    task_sampler = make_task_sampler(cfg=cfg)
+
+    # 4. Auto-detect batch size
+    if memory_evaluator.batch_size == "auto":
+        if is_master:
+            print("Auto-detecting optimal batch size...")
+        detected_bs = memory_evaluator._detect_batch_size()
+        memory_evaluator.batch_size_per_gpu = detected_bs
+        memory_evaluator.batch_size = detected_bs
+        if is_master:
+            print(f"  Auto-detected batch size: {detected_bs}")
+    elif is_master:
+        print(f"  Using fixed batch size: {memory_evaluator.batch_size}")
+
+    # 5. Get base LLM param names
+    param_names = get_base_llm_param_names(memory_model)
+    if is_master:
+        print(f"Base LLM parameters to optimize: {len(param_names)}")
+
+    # 6. Build evaluation functions
+    if is_master:
+        print("Building evaluation functions...")
+    resample_fn = make_resample_fn(
+        task_sampler, args.mini_batch_size, train=True)
+    evaluate_fn = make_evaluate_fn(
+        task_sampler, memory_evaluator, args.mini_batch_size, train=True)
+
+    bucket_pools = None
+    if is_tpu:
+        bucketed_resample_fn, bucket_pools = _maybe_build_bucketed_resample_fn(
+            task_sampler,
+            memory_evaluator,
+            sampled_requests_per_task=args.mini_batch_size,
+            enable_bucketing=args.bucketed_tpu_sampling,
+            is_master=is_master,
+        )
+        if bucketed_resample_fn is not None:
+            resample_fn = bucketed_resample_fn
+
+    if worker_count > 1:
+        resample_step = {"value": 0}
+        base_resample_fn = resample_fn
+
+        def synchronized_resample_fn():
+            requests_dict = None
+            if is_master:
+                requests_dict = base_resample_fn()
+            requests_dict = population_executor.broadcast_object(
+                f"sampled_requests_iter_{resample_step['value']}",
+                requests_dict,
+            )
+            if requests_dict is not None:
+                task_sampler.set_requests_per_task(requests_dict)
+            resample_step["value"] += 1
+            return requests_dict
+
+        resample_fn = synchronized_resample_fn
+
+    full_eval_fn = None
+    if is_master and not args.skip_full_eval:
+        full_eval_fn = make_full_eval_fn(task_sampler, memory_evaluator)
+    examples_fn = None
+    if is_master and not args.skip_examples:
+        examples_fn = make_examples_fn(
+            task_sampler, memory_evaluator, n_examples=args.n_examples)
+
+    # 7. Configure and run ES
+    es_config = ESConfig(
+        sigma=args.sigma,
+        alpha=args.alpha,
+        population_size=args.population_size,
+        num_iterations=args.num_iterations,
+        noise_mode=args.noise_mode,
+        initial_seed=args.initial_seed,
+        mini_batch_size=args.mini_batch_size,
+        log_dir=run_dir,
+        checkpoint_every=args.checkpoint_every if args.gcs else 0,
+        execution_backend=args.execution_backend,
+        benchmark_mode=args.benchmark_mode,
+        benchmark_warmup_iterations=args.benchmark_warmup_iterations,
+    )
+
+    trainer = ESTrainer(
+        model=memory_model,
+        param_names=param_names,
+        evaluate_fn=evaluate_fn,
+        config=es_config,
+        pre_step_fn=resample_fn,
+        full_eval_fn=full_eval_fn,
+        examples_fn=examples_fn,
+        metadata={
+            "namm_checkpoint": args.namm_checkpoint,
+            "run_config": args.run_config,
+            "train_samples": args.train_samples,
+            "num_base_params": len(param_names),
+            "experiment": experiment_name,
+            "method": args.method,
+            "run_name": args.run_name,
+            "skip_full_eval": args.skip_full_eval,
+            "skip_examples": args.skip_examples,
+            "execution_backend": args.execution_backend,
+            "worker_count": worker_count,
+            "worker_rank": worker_rank,
+            "bucketed_tpu_sampling": args.bucketed_tpu_sampling,
+            "compile_warmup": args.compile_warmup,
+            "benchmark_mode": args.benchmark_mode,
+        },
+        resume_from=args.resume_checkpoint,
+        gcs_client=gcs_client if is_master else None,
+        preemption_handler=preemption_handler,
+        experiment_name=experiment_name,
+        method=args.method,
+        run_name=args.run_name,
+        population_executor=population_executor,
+        is_master=is_master,
+        startup_time_s=0.0,
+    )
+
+    numpy_state_restored = _maybe_restore_resume_checkpoint(
+        memory_model,
+        args.resume_checkpoint,
+        resumed_training_state,
+    )
+
+    if is_tpu and args.compile_warmup and bucket_pools:
+        _run_compile_warmup(
+            model=memory_model,
+            evaluate_fn=evaluate_fn,
+            task_sampler=task_sampler,
+            bucket_pools=bucket_pools,
+            sampled_requests_per_task=args.mini_batch_size,
+            is_master=is_master,
+        )
+        population_executor.barrier("compile_warmup_complete")
+
+    trainer.startup_time_s = time.time() - startup_start
+
+    if is_master:
+        print()
+        print("Starting ES training...")
+    with torch.no_grad():
+        trainer.train(
+            resumed_history=resumed_history,
+            numpy_state_restored=numpy_state_restored,
+        )
+
+
+def _tpu_multichip_worker(worker_rank, payload):
+    args = argparse.Namespace(**payload["args"])
+    worker_count = payload["worker_count"]
+
+    gcs_client = None
+    if args.gcs and worker_rank == 0:
+        from es_finetuning.gcs import GCSClient
+        gcs_client = GCSClient()
+
+    preemption_handler = None
+    if args.gcs:
+        from es_finetuning.preemption import PreemptionHandler
+        preemption_handler = PreemptionHandler()
+
+    executor = ExactTpuPopulationExecutor(worker_rank, worker_count)
+    _run_training_process(
+        args,
+        experiment_name=payload["experiment_name"],
+        run_dir=payload["run_dir"],
+        resumed_history=payload["resumed_history"],
+        resumed_training_state=payload["resumed_training_state"],
+        gcs_client=gcs_client,
+        preemption_handler=preemption_handler,
+        population_executor=executor,
+        is_master=worker_rank == 0,
+        worker_rank=worker_rank,
+        worker_count=worker_count,
+    )
+
+
+def _run_tpu_multichip_exact(
+    args,
+    *,
+    experiment_name,
+    run_dir,
+    resumed_history,
+    resumed_training_state,
+):
+    try:
+        import torch_xla.distributed.xla_multiprocessing as xmp
+    except ImportError as exc:
+        raise RuntimeError(
+            "torch_xla is required for the TPU multichip execution backend."
+        ) from exc
+
+    worker_count = _resolve_tpu_worker_count(args.worker_count)
+    args.worker_count = worker_count
+
+    print(f"Launching TPU multichip exact backend with {worker_count} workers...")
+    payload = {
+        "args": vars(args).copy(),
+        "experiment_name": experiment_name,
+        "run_dir": run_dir,
+        "resumed_history": resumed_history,
+        "resumed_training_state": resumed_training_state,
+        "worker_count": worker_count,
+    }
+    xmp.spawn(
+        _tpu_multichip_worker,
+        args=(payload,),
+        nprocs=worker_count,
+        start_method="spawn",
+    )
+
+
 def main():
     args = parse_args()
+    _apply_runtime_defaults(args)
 
     # Auto-detect method
     if args.method is None:
@@ -449,12 +1039,9 @@ def main():
 
     # Setup GCS client if requested
     gcs = None
-    preemption_handler = None
     if args.gcs:
         from es_finetuning.gcs import GCSClient
-        from es_finetuning.preemption import PreemptionHandler
         gcs = GCSClient()
-        preemption_handler = PreemptionHandler()
 
     # Resolve "latest" NAMM checkpoint from GCS
     if args.namm_checkpoint == "latest":
@@ -498,198 +1085,34 @@ def main():
     if gcs:
         claim_run_gcs(gcs, experiment_name, args.method, args.run_name)
 
-    if torch.cuda.is_available():
-        torch.backends.cuda.matmul.allow_tf32 = True
-        torch.backends.cudnn.allow_tf32 = True
-
-    device = get_device()
-    is_tpu = is_tpu_device(device)
-    _maybe_enable_xla_cache_sync(args, is_tpu)
-
-    print("=" * 60)
-    print("ES Fine-Tuning: Llama 3.2 1B + NAMM on Qasper")
-    print("=" * 60)
-    print(f"Experiment: {experiment_name}")
-    print(f"Method: {args.method}")
-    print(f"Run: {args.run_name}")
-    print(f"Output: {run_dir}")
-    print(f"Config: sigma={args.sigma}, alpha={args.alpha}, "
-          f"pop={args.population_size}, iter={args.num_iterations}")
-    print(f"Noise mode: {args.noise_mode}")
-    print(f"Mini-batch size: {args.mini_batch_size}")
-    if gcs:
-        print(f"GCS: gs://{gcs.bucket_name}/ (checkpoint every "
-              f"{args.checkpoint_every} iter)")
-    if args.sync_xla_cache:
-        print("XLA cache sync requested: enabled when TPU+GCS prerequisites are met")
-    print()
-
-    # 1. Load config and model
-    print("Loading config and model via Hydra...")
-    hydra_overrides = []
-    if args.batch_size is not None:
-        hydra_overrides.append(f"batch_size={args.batch_size}")
-    if args.filter_by_length is not None:
-        hydra_overrides.append(f"filter_by_length={args.filter_by_length}")
-    if args.cache_size is not None:
-        hydra_overrides.append(f"cache_size={args.cache_size}")
-        hydra_overrides.append(f"max_memory_length={args.cache_size}")
-    hydra_overrides.extend(args.override)
-    cfg = load_hydra_config(args.run_config, extra_overrides=hydra_overrides)
-
-    with torch.no_grad():
-        (memory_policy, memory_model, memory_evaluator,
-         evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
-
-    memory_model.to(device)
-
-    if is_tpu:
-        fixed_batch_size = validate_tpu_batch_settings(
-            memory_evaluator.batch_size,
-            args.mini_batch_size,
-            context="training",
+    if args.execution_backend == "tpu_multichip_exact":
+        _run_tpu_multichip_exact(
+            args,
+            experiment_name=experiment_name,
+            run_dir=run_dir,
+            resumed_history=resumed_history,
+            resumed_training_state=resumed_training_state,
         )
-        memory_evaluator.batch_size_per_gpu = fixed_batch_size
-        print(f"TPU mode: using fixed batch size {fixed_batch_size}")
+        return
 
-    # 2. Load NAMM checkpoint
-    if args.namm_checkpoint:
-        print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
-        ckpt = torch.load(args.namm_checkpoint, map_location="cpu",
-                          weights_only=False)
-        evo_state = ckpt['evolution_state']
+    preemption_handler = None
+    if args.gcs:
+        from es_finetuning.preemption import PreemptionHandler
+        preemption_handler = PreemptionHandler()
 
-        best_member = evo_state['best_member']
-        params = best_member.unsqueeze(0).to(device)
-        memory_model.set_memory_params(params)
-
-        buffers_prefix = 'stored_buffers_to_save.'
-        buffers_dict = {
-            k[len(buffers_prefix):]: v.to(device)
-            for k, v in evo_state.items()
-            if k.startswith(buffers_prefix)
-        }
-        if buffers_dict:
-            memory_model.load_buffers_dict(buffers_dict=buffers_dict)
-            print(f"  Loaded {len(buffers_dict)} normalization buffers")
-
-        print(f"  Loaded NAMM best_member ({best_member.shape[0]} params) "
-              f"from iter {ckpt.get('iter_num', '?')}, "
-              f"best_val={ckpt.get('best_val_loss', '?')}")
-
-    batch_idxs = np.zeros([1])
-    memory_policy.set_params_batch_idxs(batch_idxs)
-
-    # 3. Create task sampler
-    print("Creating task sampler...")
-    task_sampler = make_task_sampler(cfg=cfg)
-
-    # 4. Auto-detect batch size
-    if memory_evaluator.batch_size == "auto":
-        print("Auto-detecting optimal batch size...")
-        detected_bs = memory_evaluator._detect_batch_size()
-        memory_evaluator.batch_size_per_gpu = detected_bs
-        memory_evaluator.batch_size = detected_bs
-        print(f"  Auto-detected batch size: {detected_bs}")
-    else:
-        print(f"  Using fixed batch size: {memory_evaluator.batch_size}")
-
-    # 5. Get base LLM param names
-    param_names = get_base_llm_param_names(memory_model)
-    print(f"Base LLM parameters to optimize: {len(param_names)}")
-
-    # 7. Build evaluation functions
-    print("Building evaluation functions...")
-    resample_fn = make_resample_fn(
-        task_sampler, args.mini_batch_size, train=True)
-    evaluate_fn = make_evaluate_fn(
-        task_sampler, memory_evaluator, args.mini_batch_size, train=True)
-    full_eval_fn = None
-    if not args.skip_full_eval:
-        full_eval_fn = make_full_eval_fn(task_sampler, memory_evaluator)
-    examples_fn = None
-    if not args.skip_examples:
-        examples_fn = make_examples_fn(
-            task_sampler, memory_evaluator, n_examples=args.n_examples)
-
-    # 8. Configure and run ES
-    es_config = ESConfig(
-        sigma=args.sigma,
-        alpha=args.alpha,
-        population_size=args.population_size,
-        num_iterations=args.num_iterations,
-        noise_mode=args.noise_mode,
-        initial_seed=args.initial_seed,
-        mini_batch_size=args.mini_batch_size,
-        log_dir=run_dir,
-        checkpoint_every=args.checkpoint_every if args.gcs else 0,
-    )
-
-    trainer = ESTrainer(
-        model=memory_model,
-        param_names=param_names,
-        evaluate_fn=evaluate_fn,
-        config=es_config,
-        pre_step_fn=resample_fn,
-        full_eval_fn=full_eval_fn,
-        examples_fn=examples_fn,
-        metadata={
-            "namm_checkpoint": args.namm_checkpoint,
-            "run_config": args.run_config,
-            "train_samples": args.train_samples,
-            "num_base_params": len(param_names),
-            "experiment": experiment_name,
-            "method": args.method,
-            "run_name": args.run_name,
-            "skip_full_eval": args.skip_full_eval,
-            "skip_examples": args.skip_examples,
-        },
-        resume_from=args.resume_checkpoint,
+    _run_training_process(
+        args,
+        experiment_name=experiment_name,
+        run_dir=run_dir,
+        resumed_history=resumed_history,
+        resumed_training_state=resumed_training_state,
         gcs_client=gcs,
         preemption_handler=preemption_handler,
-        experiment_name=experiment_name,
-        method=args.method,
-        run_name=args.run_name,
+        population_executor=SingleProcessPopulationExecutor(),
+        is_master=True,
+        worker_rank=0,
+        worker_count=1,
     )
-
-    # 8. Load ES checkpoint AFTER trainer init (so initial_params snapshot
-    #    captures the true base weights, not the resumed weights)
-    numpy_state_restored = False
-    if args.resume_checkpoint:
-        print(f"Loading ES checkpoint weights: {args.resume_checkpoint}")
-
-        es_state = torch.load(args.resume_checkpoint, map_location="cpu",
-                              weights_only=True)
-        model_params = dict(memory_model.named_parameters())
-        is_delta = es_state.pop("__format__", None) == "delta"
-        loaded = 0
-        for name, val in es_state.items():
-            if name in model_params:
-                if is_delta:
-                    model_params[name].data.add_(val.to(model_params[name].dtype))
-                else:
-                    model_params[name].data.copy_(val)
-                loaded += 1
-        fmt = "delta" if is_delta else "full (legacy)"
-        print(f"  Loaded {loaded} parameter tensors ({fmt} format)")
-
-        # Restore numpy RNG state from training state (if available).
-        # Must happen AFTER weight loading but BEFORE train() which
-        # would otherwise call np.random.seed() and destroy this state.
-        if (resumed_training_state
-                and "numpy_random_state" in resumed_training_state):
-            from es_finetuning.trainer import restore_numpy_state
-            restore_numpy_state(resumed_training_state["numpy_random_state"])
-            numpy_state_restored = True
-            print("  Restored numpy random state from training state")
-
-    print()
-    print("Starting ES training...")
-    with torch.no_grad():
-        trainer.train(resumed_history=resumed_history,
-                      numpy_state_restored=numpy_state_restored)
-
-    print("Done.")
 
 
 if __name__ == "__main__":

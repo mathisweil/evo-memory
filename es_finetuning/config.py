@@ -14,3 +14,6 @@ class ESConfig:
     mini_batch_size: int = 16  # Samples per population eval (passed to evaluate_fn)
     log_dir: str = "es_runs"  # Directory for results, checkpoints, examples
     checkpoint_every: int = 0  # Periodic checkpoint interval (0 = final only)
+    execution_backend: str = "single_process"  # Training execution backend
+    benchmark_mode: str = "off"  # "off" or "train_only"
+    benchmark_warmup_iterations: int = 0  # Ignore first N iterations in summaries
