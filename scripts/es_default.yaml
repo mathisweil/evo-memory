@@ -35,6 +35,7 @@ temperature: 0.0        # Training generation temperature (0 = greedy decoding)
 eval_temperature: 0.0   # Full eval generation temperature (0 = greedy decoding)
 num_samples: 1          # Samples per question during training; averaged for fitness score
 eval_num_samples: 1     # Samples per question during full eval; averaged for reported score
+# num_beams: 1          # Hardcoded to 1 in evaluator.py (beam search disabled)
 
 # ── Checkpointing & GCS ────────────────────────────────────────────────
 gcs: true               # Sync experiments and checkpoints to GCS
