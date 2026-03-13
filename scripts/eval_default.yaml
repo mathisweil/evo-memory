@@ -17,6 +17,7 @@ batch_size: null        # Inference batch size; null = use run_config default
 # ── Generation / sampling ───────────────────────────────────────────────
 temperature: 0.0        # Generation temperature (0 = greedy decoding)
 num_samples: 1          # Samples per question; averaged for reported score (prints std when > 1)
+# num_beams: 1          # Hardcoded to 1 in evaluator.py (beam search disabled)
 
 # ── Output ──────────────────────────────────────────────────────────────
 output_dir: null        # Directory for eval log and results.json; null = auto-derive from es_checkpoint
