@@ -481,14 +481,17 @@ class MemoryHFEvaluator():
     def _model_generate(self, context, stop,
                         tok_stop=False,
                         **generation_kwargs):
-        generation_kwargs["temperature"] = generation_kwargs.get(
-            "temperature", 0.0)
+        temperature = generation_kwargs.get("temperature", 0.0)
+        generation_kwargs["temperature"] = temperature
         do_sample = generation_kwargs.get("do_sample", None)
 
-        # temp == 0 gets converted do_sample = false
-        if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
-            generation_kwargs["do_sample"] = do_sample = False
-        if do_sample is False and generation_kwargs.get("temperature") == 0.0:
+        if temperature > 0:
+            # Non-zero temperature: sample from the distribution
+            if do_sample is None:
+                generation_kwargs["do_sample"] = True
+        else:
+            # Zero temperature: greedy decoding
+            generation_kwargs["do_sample"] = False
             generation_kwargs.pop("temperature")
 
         # build stopping criteria
@@ -671,8 +674,6 @@ class MemoryHFEvaluator():
             tok_stop=True,
             max_new_tokens=max_gen_tokens,
             num_beams=1,
-            do_sample=False,
-            temperature=1.0,
         )
 
         shared_gen_kwargs.update(model_kwargs)

@@ -28,6 +28,8 @@ Usage:
 import argparse
 import atexit
 import json
+
+import yaml
 import logging
 import os
 import socket
@@ -237,34 +239,57 @@ def make_resample_fn(task_sampler, mini_batch_size, train=True):
     return resample_fn
 
 
-def make_evaluate_fn(task_sampler, evaluator, mini_batch_size, train=True):
+def _gen_model_kwargs(temperature):
+    """Build model_kwargs dict for generation temperature."""
+    if temperature > 0:
+        return {"temperature": temperature, "do_sample": True}
+    return {}
+
+
+def make_evaluate_fn(task_sampler, evaluator, mini_batch_size, train=True,
+                     temperature=0.0, num_samples=1):
+    gen_kwargs = _gen_model_kwargs(temperature)
+
     def evaluate_fn(model):
-        score_dicts = task_sampler.evaluate(
-            lm=evaluator,
-            train=train,
-            evolved_model=False,
-            pop_reps=1,
-            resample_requests=False,
-            sampled_requests_per_task=mini_batch_size,
-        )
-        score = score_dicts[0].get("lb/qasper", 0.0) / 100.0
-        return score
+        scores = []
+        for _ in range(num_samples):
+            score_dicts = task_sampler.evaluate(
+                lm=evaluator,
+                train=train,
+                evolved_model=False,
+                pop_reps=1,
+                resample_requests=False,
+                sampled_requests_per_task=mini_batch_size,
+                model_kwargs=gen_kwargs,
+            )
+            scores.append(score_dicts[0].get("lb/qasper", 0.0) / 100.0)
+        return sum(scores) / len(scores)
     return evaluate_fn
 
 
-def make_full_eval_fn(task_sampler, evaluator):
+def make_full_eval_fn(task_sampler, evaluator,
+                      temperature=0.0, num_samples=1):
+    gen_kwargs = _gen_model_kwargs(temperature)
+
     def full_eval_fn(model):
-        score_dicts = task_sampler.evaluate(
-            lm=evaluator,
-            train=False,
-            evolved_model=False,
-            pop_reps=1,
-            resample_requests=True,
-            sampled_requests_per_task=None,
-        )
-        scores = score_dicts[0]
-        num_samples = sum(task_sampler.num_prompts_per_lb_task.values())
-        return {"scores": scores, "num_samples": num_samples}
+        all_score_dicts = []
+        for _ in range(num_samples):
+            score_dicts = task_sampler.evaluate(
+                lm=evaluator,
+                train=False,
+                evolved_model=False,
+                pop_reps=1,
+                resample_requests=True,
+                sampled_requests_per_task=None,
+                model_kwargs=gen_kwargs,
+            )
+            all_score_dicts.append(score_dicts[0])
+        # Average across samples
+        avg_scores = {}
+        for k in all_score_dicts[0]:
+            avg_scores[k] = sum(d[k] for d in all_score_dicts) / len(all_score_dicts)
+        num_data_samples = sum(task_sampler.num_prompts_per_lb_task.values())
+        return {"scores": avg_scores, "num_samples": num_data_samples}
     return full_eval_fn
 
 
@@ -331,13 +356,31 @@ def get_base_llm_param_names(model):
 
 # ── CLI ─────────────────────────────────────────────────────────────────
 
+def _load_config_defaults(parser):
+    """Load defaults from a YAML config file specified by --config."""
+    # Pre-parse just --config without erroring on other args
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("--config", type=str, default=None)
+    pre_args, _ = pre_parser.parse_known_args()
+    if pre_args.config:
+        with open(pre_args.config) as f:
+            cfg = yaml.safe_load(f)
+        # Set defaults from config file; CLI args will override
+        parser.set_defaults(**{k: v for k, v in cfg.items()
+                               if v is not None})
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="ES fine-tuning of base LLM weights with NAMM evaluation")
 
+    # Config file (defaults that CLI args override)
+    parser.add_argument("--config", type=str, default=None,
+                        help="YAML config file (see scripts/es_default.yaml)")
+
     # Experiment hierarchy
-    parser.add_argument("--run_name", type=str, required=True,
-                        help="Name for this run (e.g. cache1024_i50)")
+    parser.add_argument("--run_name", type=str, default=None,
+                        help="(required) Name for this run (e.g. cache1024_i50)")
     parser.add_argument("--experiment", type=int, default=None,
                         help="Experiment ID (default: most recent active, or create new)")
     parser.add_argument("--method", type=str, default=None,
@@ -386,10 +429,24 @@ def parse_args():
     parser.add_argument("--save_every", type=int, default=0,
                         help="Permanent save every N iterations, never deleted (0 = disabled)")
 
+    # Generation temperature and sampling
+    parser.add_argument("--temperature", type=float, default=0.0,
+                        help="Generation temperature for training evals (0 = greedy)")
+    parser.add_argument("--eval_temperature", type=float, default=0.0,
+                        help="Generation temperature for full eval (0 = greedy)")
+    parser.add_argument("--num_samples", type=int, default=1,
+                        help="Samples per question during training (averaged for fitness)")
+    parser.add_argument("--eval_num_samples", type=int, default=1,
+                        help="Samples per question during full eval (averaged for score)")
+
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
-    return parser.parse_args()
+    _load_config_defaults(parser)
+    args = parser.parse_args()
+    if not args.run_name:
+        parser.error("--run_name is required (via CLI or config file)")
+    return args
 
 
 def main():
@@ -467,6 +524,9 @@ def main():
           f"pop={args.population_size}, iter={args.num_iterations}")
     print(f"Noise mode: {args.noise_mode}")
     print(f"Mini-batch size: {args.mini_batch_size}")
+    if args.temperature > 0 or args.eval_temperature > 0:
+        print(f"Temperature: train={args.temperature}, eval={args.eval_temperature}")
+        print(f"Num samples: train={args.num_samples}, eval={args.eval_num_samples}")
     if gcs:
         print(f"GCS: gs://{gcs.bucket_name}/ (checkpoint every "
               f"{args.checkpoint_every} iter)")
@@ -542,8 +602,11 @@ def main():
     resample_fn = make_resample_fn(
         task_sampler, args.mini_batch_size, train=True)
     evaluate_fn = make_evaluate_fn(
-        task_sampler, memory_evaluator, args.mini_batch_size, train=True)
-    full_eval_fn = make_full_eval_fn(task_sampler, memory_evaluator)
+        task_sampler, memory_evaluator, args.mini_batch_size, train=True,
+        temperature=args.temperature, num_samples=args.num_samples)
+    full_eval_fn = make_full_eval_fn(
+        task_sampler, memory_evaluator,
+        temperature=args.eval_temperature, num_samples=args.eval_num_samples)
     examples_fn = make_examples_fn(
         task_sampler, memory_evaluator, n_examples=args.n_examples)
 
@@ -559,6 +622,10 @@ def main():
         log_dir=run_dir,
         checkpoint_every=args.checkpoint_every if args.gcs else 0,
         save_every=args.save_every,
+        temperature=args.temperature,
+        eval_temperature=args.eval_temperature,
+        num_samples=args.num_samples,
+        eval_num_samples=args.eval_num_samples,
     )
 
     trainer = ESTrainer(

@@ -19,6 +19,7 @@ import sys
 
 import numpy as np
 import torch
+import yaml
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
@@ -63,8 +64,22 @@ def get_output_dir(args):
     return None
 
 
+def _load_config_defaults(parser):
+    """Load defaults from a YAML config file specified by --config."""
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("--config", type=str, default=None)
+    pre_args, _ = pre_parser.parse_known_args()
+    if pre_args.config:
+        with open(pre_args.config) as f:
+            cfg = yaml.safe_load(f)
+        parser.set_defaults(**{k: v for k, v in cfg.items()
+                               if v is not None})
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate ES fine-tuned model")
+    parser.add_argument("--config", type=str, default=None,
+                        help="YAML config file (see scripts/eval_default.yaml)")
     parser.add_argument("--es_checkpoint", type=str, default=None,
                         help="Path to ES fine-tuned checkpoint (omit for baseline)")
     parser.add_argument("--namm_checkpoint", type=str, default=None,
@@ -79,6 +94,11 @@ def parse_args():
                         help="Override cache size for NAMM eviction")
     parser.add_argument("--output_dir", type=str, default=None,
                         help="Directory to save eval log. Auto-derived from --es_checkpoint if not set")
+    parser.add_argument("--temperature", type=float, default=0.0,
+                        help="Generation temperature (0 = greedy)")
+    parser.add_argument("--num_samples", type=int, default=1,
+                        help="Samples per question (averaged for final score)")
+    _load_config_defaults(parser)
     return parser.parse_args()
 
 
@@ -186,24 +206,48 @@ def main():
     for task_n, n in task_sampler.num_prompts_per_lb_task.items():
         print(f"  Task: {task_n}, total samples: {n}")
 
+    # Generation kwargs
+    gen_kwargs = {}
+    if args.temperature > 0:
+        gen_kwargs = {"temperature": args.temperature, "do_sample": True}
+        print(f"Temperature: {args.temperature}, num_samples: {args.num_samples}")
+
     print("\nEvaluating on FULL validation set...")
-    with torch.no_grad():
-        score_dicts = task_sampler.evaluate(
-            lm=memory_evaluator,
-            train=False,
-            evolved_model=False,
-            pop_reps=1,
-            resample_requests=True,
-            sampled_requests_per_task=None,
-        )
+    all_score_dicts = []
+    for sample_i in range(args.num_samples):
+        if args.num_samples > 1:
+            print(f"  Sample {sample_i + 1}/{args.num_samples}...")
+        with torch.no_grad():
+            score_dicts = task_sampler.evaluate(
+                lm=memory_evaluator,
+                train=False,
+                evolved_model=False,
+                pop_reps=1,
+                resample_requests=True,
+                sampled_requests_per_task=None,
+                model_kwargs=gen_kwargs,
+            )
+        all_score_dicts.append(score_dicts[0])
+
+    # Average across samples
+    avg_scores = {}
+    for k in all_score_dicts[0]:
+        values = [d[k] for d in all_score_dicts]
+        avg_scores[k] = sum(values) / len(values)
 
     print("\n" + "=" * 50)
     print("RESULTS (full validation set)")
+    if args.num_samples > 1:
+        print(f"  (averaged over {args.num_samples} samples, temperature={args.temperature})")
     print("=" * 50)
-    for k, v in sorted(score_dicts[0].items()):
+    for k, v in sorted(avg_scores.items()):
         print(f"  {k}: {v:.4f}")
-    qasper = score_dicts[0].get("lb/qasper", 0.0)
+    qasper = avg_scores.get("lb/qasper", 0.0)
     print(f"\n  Qasper F1: {qasper:.2f} (0-100 scale) = {qasper/100:.4f}")
+    if args.num_samples > 1:
+        qasper_values = [d.get("lb/qasper", 0.0) for d in all_score_dicts]
+        std = (sum((v - qasper) ** 2 for v in qasper_values) / len(qasper_values)) ** 0.5
+        print(f"  Qasper F1 std: {std:.2f} (over {args.num_samples} samples)")
 
     # Save results.json for generate_report.py
     if output_dir:
@@ -215,8 +259,10 @@ def main():
                 "cache_size": args.cache_size,
                 "run_config": args.run_config,
                 "filter_by_length": args.filter_by_length,
+                "temperature": args.temperature,
+                "num_samples": args.num_samples,
             },
-            "scores": dict(score_dicts[0]),
+            "scores": dict(avg_scores),
         }
         results_path = os.path.join(output_dir, "results.json")
         with open(results_path, "w") as f:
