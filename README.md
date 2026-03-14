@@ -22,7 +22,7 @@ bash evo-memory/setup/setup.sh --dir ~/ft-namm
 
 This clones the repo, creates a venv, installs all dependencies, and prompts for HuggingFace + wandb login.
 
-See `setup/setup.sh --help` for options (`--user`, `--gpu`, `--noclaude`, `--dir`).
+See `setup/setup.sh --help` for options (`--user`, `--gpu`, `--noclaude`, `--dir`, `--degree`).
 
 **In subsequent shells:**
 ```bash
