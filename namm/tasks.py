@@ -208,13 +208,18 @@ class TaskSampler():
         self.num_prompts_per_lb_task = {k: len(ps)
                                         for k, ps in self.lb_prompts_per_task.items()}
 
-    def filter_answers_by_token_count(self, tokenizer, max_tokens):
+    def filter_answers_by_token_count(self, tokenizer, max_tokens=None):
         """Remove samples whose shortest gold answer exceeds max_tokens.
 
         Ensures every remaining sample can be fully generated within
-        max_new_tokens budget.
+        max_new_tokens budget. If max_tokens is None, uses the per-task
+        max generation length from lb_task2maxlen.
         """
         for task in self.lb_jsons_per_task:
+            task_max = max_tokens if max_tokens is not None else self.lb_task2maxlen.get(task)
+            if task_max is None:
+                continue
+
             jsons = self.lb_jsons_per_task[task]
             prompts = self.lb_prompts_per_task[task]
             before = len(jsons)
@@ -230,14 +235,14 @@ class TaskSampler():
                 shortest = min(
                     len(tokenizer.encode(a, add_special_tokens=False))
                     for a in answers)
-                if shortest <= max_tokens:
+                if shortest <= task_max:
                     keep.append(i)
 
             self.lb_jsons_per_task[task] = [jsons[i] for i in keep]
             self.lb_prompts_per_task[task] = [prompts[i] for i in keep]
             after = len(keep)
             print(f"Answer token filter {task}: {before} -> {after} examples "
-                  f"(max={max_tokens})")
+                  f"(max={task_max})")
 
         self.num_prompts_per_lb_task = {k: len(ps)
                                         for k, ps in self.lb_prompts_per_task.items()}
