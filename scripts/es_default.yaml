@@ -25,7 +25,7 @@ cache_size: null        # KV cache token budget; null = use run_config default
 # ── Data ────────────────────────────────────────────────────────────────
 filter_by_length: null  # Drop samples longer than this (approx, word-based x1.3); null = mid-crop
 filter_by_tokens: null  # Drop samples exceeding this many tokens (exact, uses tokenizer); null = off
-filter_answers_by_tokens: null  # Drop samples whose shortest answer exceeds this many tokens; null = off
+filter_answers_by_tokens: 64    # Drop samples whose shortest answer exceeds this many tokens
 train_samples: 150      # Number of Qasper samples used for training
 
 # ── Evaluation ──────────────────────────────────────────────────────────
