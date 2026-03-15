@@ -409,6 +409,8 @@ def parse_args():
     parser.add_argument("--filter_by_length", type=int, default=None)
     parser.add_argument("--filter_by_tokens", type=int, default=None,
                         help="Drop samples exceeding this many tokens (exact, uses tokenizer)")
+    parser.add_argument("--filter_answers_by_tokens", type=int, default=None,
+                        help="Drop samples whose shortest answer exceeds this many tokens")
 
     # Cache size (NAMM)
     parser.add_argument("--cache_size", type=int, default=None)
@@ -589,6 +591,10 @@ def main():
     if args.filter_by_tokens is not None:
         task_sampler.filter_by_token_count(
             memory_evaluator.tokenizer, args.filter_by_tokens)
+
+    if args.filter_answers_by_tokens is not None:
+        task_sampler.filter_answers_by_token_count(
+            memory_evaluator.tokenizer, args.filter_answers_by_tokens)
 
     # 4. Auto-detect batch size
     if memory_evaluator.batch_size == "auto":
