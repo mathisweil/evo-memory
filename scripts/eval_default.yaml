@@ -13,12 +13,14 @@ cache_size: null        # KV cache token budget; null = use run_config default
 # ── Data ────────────────────────────────────────────────────────────────
 filter_by_length: null  # Drop samples longer than this (approx, word-based x1.3); null = mid-crop
 filter_by_tokens: null  # Drop samples exceeding this many tokens (exact, uses tokenizer); null = off
+filter_answers_by_tokens: null  # Drop samples whose shortest answer exceeds this many tokens; null = off
 batch_size: null        # Inference batch size; null = use run_config default
 
 # ── Generation / sampling ───────────────────────────────────────────────
 temperature: 0.0        # Generation temperature (0 = greedy decoding)
 num_samples: 1          # Samples per question; averaged for reported score (prints std when > 1)
 # num_beams: 1          # Hardcoded to 1 in evaluator.py (beam search disabled)
+# max_new_tokens: 64    # Set in Hydra run config (cfgs/run/*.yaml), not a CLI arg
 
 # ── Output ──────────────────────────────────────────────────────────────
 output_dir: null        # Directory for eval log and results.json; null = auto-derive from es_checkpoint

@@ -25,6 +25,7 @@ cache_size: null        # KV cache token budget; null = use run_config default
 # ── Data ────────────────────────────────────────────────────────────────
 filter_by_length: null  # Drop samples longer than this (approx, word-based x1.3); null = mid-crop
 filter_by_tokens: null  # Drop samples exceeding this many tokens (exact, uses tokenizer); null = off
+filter_answers_by_tokens: null  # Drop samples whose shortest answer exceeds this many tokens; null = off
 train_samples: 150      # Number of Qasper samples used for training
 
 # ── Evaluation ──────────────────────────────────────────────────────────
@@ -37,6 +38,7 @@ eval_temperature: 0.0   # Full eval generation temperature (0 = greedy decoding)
 num_samples: 1          # Samples per question during training; averaged for fitness score
 eval_num_samples: 1     # Samples per question during full eval; averaged for reported score
 # num_beams: 1          # Hardcoded to 1 in evaluator.py (beam search disabled)
+# max_new_tokens: 64    # Set in Hydra run config (cfgs/run/*.yaml), not a CLI arg
 
 # ── Checkpointing & GCS ────────────────────────────────────────────────
 gcs: true               # Sync experiments and checkpoints to GCS

@@ -92,6 +92,8 @@ def parse_args():
                         help="Drop samples longer than this (approx, word-based). None = mid-crop instead")
     parser.add_argument("--filter_by_tokens", type=int, default=None,
                         help="Drop samples exceeding this many tokens (exact, uses tokenizer)")
+    parser.add_argument("--filter_answers_by_tokens", type=int, default=None,
+                        help="Drop samples whose shortest answer exceeds this many tokens")
     parser.add_argument("--cache_size", type=int, default=None,
                         help="Override cache size for NAMM eviction")
     parser.add_argument("--output_dir", type=str, default=None,
@@ -208,6 +210,10 @@ def main():
     if args.filter_by_tokens is not None:
         task_sampler.filter_by_token_count(
             memory_evaluator.tokenizer, args.filter_by_tokens)
+
+    if args.filter_answers_by_tokens is not None:
+        task_sampler.filter_answers_by_token_count(
+            memory_evaluator.tokenizer, args.filter_answers_by_tokens)
 
     # Show val set sizes
     for task_n, n in task_sampler.num_prompts_per_lb_task.items():
