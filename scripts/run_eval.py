@@ -102,6 +102,10 @@ def parse_args():
                         help="Generation temperature (0 = greedy)")
     parser.add_argument("--num_samples", type=int, default=1,
                         help="Samples per question (averaged for final score)")
+    parser.add_argument("--train_split", type=float, default=0.9,
+                        help="Train/test split fraction (must match training)")
+    parser.add_argument("--split_seed", type=int, default=42,
+                        help="Seed for deterministic train/test split")
     _load_config_defaults(parser)
     return parser.parse_args()
 
@@ -204,7 +208,8 @@ def main():
 
     # Create task sampler and evaluate on full val set
     print("Creating task sampler...")
-    task_sampler = make_task_sampler(cfg=cfg)
+    task_sampler = make_task_sampler(
+        cfg=cfg, train_split=args.train_split, split_seed=args.split_seed)
 
     # Exact token-based filtering
     if args.filter_by_tokens is not None:
