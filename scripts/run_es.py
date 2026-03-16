@@ -288,7 +288,11 @@ def make_full_eval_fn(task_sampler, evaluator,
         avg_scores = {}
         for k in all_score_dicts[0]:
             avg_scores[k] = sum(d[k] for d in all_score_dicts) / len(all_score_dicts)
-        num_data_samples = sum(task_sampler.num_prompts_per_lb_task.values())
+        if task_sampler._test_idxs_per_task is not None:
+            num_data_samples = sum(
+                len(v) for v in task_sampler._test_idxs_per_task.values())
+        else:
+            num_data_samples = sum(task_sampler.num_prompts_per_lb_task.values())
         return {"scores": avg_scores, "num_samples": num_data_samples}
     return full_eval_fn
 
@@ -419,7 +423,10 @@ def parse_args():
     parser.add_argument("--resume_checkpoint", type=str, default=None)
 
     # Data splits
-    parser.add_argument("--train_samples", type=int, default=150)
+    parser.add_argument("--train_split", type=float, default=0.9,
+                        help="Fraction of data for training (rest is held-out eval)")
+    parser.add_argument("--split_seed", type=int, default=42,
+                        help="Seed for deterministic train/test split")
 
     # Q/A examples
     parser.add_argument("--n_examples", type=int, default=10,
@@ -585,7 +592,8 @@ def main():
 
     # 3. Create task sampler
     print("Creating task sampler...")
-    task_sampler = make_task_sampler(cfg=cfg)
+    task_sampler = make_task_sampler(
+        cfg=cfg, train_split=args.train_split, split_seed=args.split_seed)
 
     # 3b. Exact token-based filtering (replaces approximate word-based filter)
     if args.filter_by_tokens is not None:
@@ -652,7 +660,8 @@ def main():
         metadata={
             "namm_checkpoint": args.namm_checkpoint,
             "run_config": args.run_config,
-            "train_samples": args.train_samples,
+            "train_split": args.train_split,
+            "split_seed": args.split_seed,
             "num_base_params": len(param_names),
             "experiment": experiment_name,
             "method": args.method,
@@ -679,8 +688,10 @@ def main():
         loaded = 0
         for name, val in es_state.items():
             if name in model_params:
+                val = val.to(device=model_params[name].device,
+                             dtype=model_params[name].dtype)
                 if is_delta:
-                    model_params[name].data.add_(val.to(model_params[name].dtype))
+                    model_params[name].data.add_(val)
                 else:
                     model_params[name].data.copy_(val)
                 loaded += 1

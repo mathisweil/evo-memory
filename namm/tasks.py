@@ -43,6 +43,8 @@ class TaskSampler():
         store_gen_outputs_path: Optional[str] = None,
         max_conditioning_length: Optional[int] = None,
         max_answer_tokens: Optional[int] = None,
+        train_split: Optional[float] = None,
+        split_seed: int = 42,
     ):
 
         self.store_gen_outputs = store_gen_outputs
@@ -80,14 +82,17 @@ class TaskSampler():
             else:
                 raise NotImplementedError
 
-        self.training_tasks_subset = training_tasks_subset or tasks
-        self.test_tasks_subset = test_tasks_subset or tasks
+        self.lb_training_tasks = training_tasks_subset or tasks
+        self.lb_test_tasks = test_tasks_subset or tasks
         self.prefetched_task_tensors = {t: None for t in tasks}
         self.loaded_cached_model_data = False
         self.cached_per_task_stats = {}
         self.max_conditioning_length = max_conditioning_length
         self.max_answer_tokens = max_answer_tokens
+        self.train_split = train_split
+        self.split_seed = split_seed
         self.init_tasks()
+        self._build_split()
 
     def get_cached_per_task_stats(self, reset=True) -> dict:
         cached_per_task_stats = copy.deepcopy(self.cached_per_task_stats)
@@ -173,6 +178,27 @@ class TaskSampler():
         self.latest_sampled_idxs_per_lb_task = None
         self.latest_lb_tasks_names = None
 
+    def _build_split(self):
+        """Build deterministic train/test index split for each task."""
+        if self.train_split is None or self.train_split >= 1.0:
+            self._train_idxs_per_task = None
+            self._test_idxs_per_task = None
+            return
+
+        rng = np.random.RandomState(self.split_seed)
+        self._train_idxs_per_task = {}
+        self._test_idxs_per_task = {}
+
+        for task in self.lb_jsons_per_task:
+            n = len(self.lb_jsons_per_task[task])
+            idxs = np.arange(n)
+            rng.shuffle(idxs)
+            n_train = int(n * self.train_split)
+            self._train_idxs_per_task[task] = idxs[:n_train]
+            self._test_idxs_per_task[task] = idxs[n_train:]
+            print(f"Train/test split {task}: {n_train} train, "
+                  f"{n - n_train} test ({self.train_split:.0%})")
+
     def filter_by_token_count(self, tokenizer, max_tokens):
         """Re-filter samples by actual token count using the model tokenizer.
 
@@ -207,6 +233,7 @@ class TaskSampler():
 
         self.num_prompts_per_lb_task = {k: len(ps)
                                         for k, ps in self.lb_prompts_per_task.items()}
+        self._build_split()
 
     def filter_answers_by_token_count(self, tokenizer, max_tokens=None):
         """Remove samples whose shortest gold answer exceeds max_tokens.
@@ -246,6 +273,7 @@ class TaskSampler():
 
         self.num_prompts_per_lb_task = {k: len(ps)
                                         for k, ps in self.lb_prompts_per_task.items()}
+        self._build_split()
 
     def resample_requests(self, train: bool,
                           sampled_requests_per_task: Optional[int] = None,
@@ -300,13 +328,21 @@ class TaskSampler():
 
         sampled_idxs_per_lb_task = {}
         for task_n in tasks_names:
-            num_task_prompts = self.num_prompts_per_lb_task[task_n]
-            if sampled_requests_per_task is not None:
-                sampled_idxs = np.random.choice(
-                    num_task_prompts, replace=False,
-                    size=sampled_requests_per_task)
+            # Use split indices if available
+            if self._train_idxs_per_task is not None:
+                if train:
+                    eligible = self._train_idxs_per_task[task_n]
+                else:
+                    eligible = self._test_idxs_per_task[task_n]
             else:
-                sampled_idxs = np.arange(num_task_prompts)
+                eligible = np.arange(self.num_prompts_per_lb_task[task_n])
+
+            if sampled_requests_per_task is not None:
+                size = min(sampled_requests_per_task, len(eligible))
+                sampled_idxs = np.random.choice(
+                    eligible, replace=False, size=size)
+            else:
+                sampled_idxs = eligible
             sampled_idxs_per_lb_task[task_n] = sampled_idxs
         self.latest_sampled_idxs_per_lb_task = sampled_idxs_per_lb_task
 
@@ -336,6 +372,7 @@ class TaskSampler():
         if len(tasks_subset) > 0:
             lb_dicts, lb_stats = self.evaluate_lb_tasks_for_pop(
                 lm=lm,
+                train=train,
                 pop_reps=pop_reps, pop_idxs=pop_idxs,
                 resample_requests=resample_requests,
                 sampled_requests_per_task=sampled_requests_per_task,
@@ -373,7 +410,8 @@ class TaskSampler():
     def evaluate_lb_tasks_for_pop(
         self,
         lm,
-        pop_reps: int,
+        train: bool = False,
+        pop_reps: int = 1,
         pop_idxs: Optional[np.array] = None,
         resample_requests: bool = True,
         sampled_requests_per_task: Optional[int] = None,
@@ -415,25 +453,45 @@ class TaskSampler():
         for task_n in tasks_names:
             task_prompts = self.lb_prompts_per_task[task_n]
             task_jsons = self.lb_jsons_per_task[task_n]
+
+            # Get eligible indices for this split
+            if self._train_idxs_per_task is not None:
+                if train:
+                    eligible = self._train_idxs_per_task[task_n]
+                else:
+                    eligible = self._test_idxs_per_task[task_n]
+            else:
+                eligible = None  # no split, use all
+
             if not resample_requests:
                 sampled_idxs = self.latest_sampled_idxs_per_lb_task[task_n]
                 prompts = [task_prompts[i] for i in sampled_idxs]
                 jsons = [task_jsons[i] for i in sampled_idxs]
 
             elif sampled_requests_per_task is not None:
-                sampled_idxs = np.random.choice(
-                    len(task_prompts), replace=False,
-                    size=sampled_requests_per_task)
+                if eligible is not None:
+                    size = min(sampled_requests_per_task, len(eligible))
+                    sampled_idxs = np.random.choice(
+                        eligible, replace=False, size=size)
+                else:
+                    sampled_idxs = np.random.choice(
+                        len(task_prompts), replace=False,
+                        size=sampled_requests_per_task)
                 prompts = [task_prompts[i] for i in sampled_idxs]
                 jsons = [task_jsons[i] for i in sampled_idxs]
             else:
-                sampled_idxs = None
-                if limit is not None:
-                    prompts = task_prompts[:limit]
-                    jsons = task_jsons[:limit]
+                if eligible is not None:
+                    sampled_idxs = eligible
+                    prompts = [task_prompts[i] for i in eligible]
+                    jsons = [task_jsons[i] for i in eligible]
                 else:
-                    prompts = task_prompts
-                    jsons = task_jsons
+                    sampled_idxs = None
+                    if limit is not None:
+                        prompts = task_prompts[:limit]
+                        jsons = task_jsons[:limit]
+                    else:
+                        prompts = task_prompts
+                        jsons = task_jsons
             sampled_idxs_per_lb_task[task_n] = sampled_idxs
 
             sampled_task_jsons[task_n] = jsons
