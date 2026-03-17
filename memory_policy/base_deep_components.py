@@ -574,13 +574,15 @@ class DeepMemoryPolicyComponent(
         '''Filters all buffers to only include retained idxs'''
         if self.ema_output:
             if self.has_embedding_dim:
-                # expand across the ouput (embedding) dim. (if present)
-                retained_idxs = retained_idxs.unsqueeze(-1).expand(
-                    -1, -1, -1, self.get_embedding_dim())
+                # expand across the output (embedding) dim. (if present)
+                unsqueezed = retained_idxs.unsqueeze(-1)
+                expand_shape = [-1] * (unsqueezed.ndim - 1) + [self.get_embedding_dim()]
+                retained_idxs = unsqueezed.expand(*expand_shape)
             ema_output: torch.Tensor = self.ema_output_buffer[layer_id]
-                
+            # Token dim is second-to-last when embedding dim is present, else last
+            token_dim = -2 if self.has_embedding_dim else -1
             self.ema_output_buffer[layer_id] = torch.gather(
-                input=ema_output, dim=2, index=retained_idxs)
+                input=ema_output, dim=token_dim, index=retained_idxs)
         elif self.output_past_non_reduced_history:
             # bs x num_heads x history_len x num_all_tokens x emb_dim
             current_output_history = self.past_outputs_buffer[layer_id]

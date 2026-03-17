@@ -146,7 +146,8 @@ class DummyEvolution(MemoryEvolution):
                  param_clip,
                  score_processing):
         nn.Module.__init__(self,)
-        assert param_size == 0
+        # Allow non-zero param_size for frozen-NAMM + LoRA (m4): the NAMM
+        # params are loaded from checkpoint and never evolved.
         self.pop_size = pop_size
         self.param_size = param_size
         self.param_clip = param_clip

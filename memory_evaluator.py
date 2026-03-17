@@ -64,6 +64,7 @@ class MemoryHFEvaluator():
         self.log_misc = log_misc
         self.model = model
         self.tokenizer = tokenizer
+        self.world_size = int(os.environ.get('WORLD_SIZE', 1))
         if self.tokenizer is not None:
             self.setup_tokenizer_padding()
         else:
@@ -504,6 +505,14 @@ class MemoryHFEvaluator():
                 context_enc = context_enc[..., -1:]
                 raise NotImplementedError
 
+            # If eviction logging is active, clear the log before this sample
+            # so we capture only this sample's eviction steps.
+            eviction_active = (self.is_memory_model and
+                               hasattr(self.memory_policy, '_record_eviction_log')
+                               and self.memory_policy._record_eviction_log)
+            if eviction_active:
+                self.memory_policy._eviction_log = []
+
             generation_out = self._model_generate(
                 context=context_enc,
                 attention_mask=attn_masks,
@@ -513,6 +522,26 @@ class MemoryHFEvaluator():
             cont = generation_out[:, context_enc.shape[1]:]
             if self.log_misc:
                 print(f'OUTPUT CONTENT - LEN {cont.shape}')
+
+            # Collect eviction diagnostic (limit to first 2 samples per eval)
+            if eviction_active and self._eviction_diag_count < 2:
+                eviction_log = self.memory_policy.get_and_clear_eviction_log()
+                if eviction_log:
+                    diag = self.format_eviction_diagnostic(
+                        token_ids=context_enc[0],
+                        eviction_log=eviction_log)
+                    html_diag = self.format_eviction_diagnostic_html(
+                        token_ids=context_enc[0],
+                        eviction_log=eviction_log)
+                    gen_text = self.tok_decode(cont[0].tolist(),
+                                              skip_special_tokens=True)
+                    print(diag)
+                    print(f"Generated answer: {gen_text}\n")
+                    self._eviction_diag_entries.append(
+                        html_diag +
+                        f'<p><b>Generated answer:</b> {gen_text}</p>')
+                    self._eviction_diag_count += 1
+
             cont_list += cont.tolist()
         return cont_list
 
@@ -615,6 +644,8 @@ class MemoryHFEvaluator():
     ) -> List[str]:
 
         res = []
+        self._eviction_diag_count = 0  # reset per evaluate_lb call
+        self._eviction_diag_entries = []  # collected for wandb logging
         using_precache = precached_tensors is not None
 
         if max_gen_tokens is None:
@@ -784,6 +815,120 @@ class MemoryHFEvaluator():
             pbar.close()
 
         return res
+
+    def format_eviction_diagnostic(self, token_ids, eviction_log, max_display_tokens=2000):
+        """Render original prompt with ANSI colors showing retained vs evicted tokens.
+
+        Args:
+            token_ids: 1-D list/tensor of original input token IDs.
+            eviction_log: list of (layer_id, retained_idxs_1d, seq_len) from
+                          DeepMP._eviction_log (layer 0 only).
+            max_display_tokens: cap output length for readability.
+
+        Returns:
+            A string where retained tokens are green and evicted tokens are
+            shown in red with strikethrough.
+        """
+        if isinstance(token_ids, torch.Tensor):
+            token_ids = token_ids.tolist()
+        n = len(token_ids)
+
+        # Compose successive eviction steps to find which *original* positions
+        # survive.  At each eviction step the retained_idxs are relative to
+        # the current cache (= surviving positions from the previous step plus
+        # any new tokens appended since).  We track the mapping
+        #   current_positions -> original_positions
+        # and update it after each eviction.
+
+        # Initially every position maps to itself.
+        current_to_original = list(range(n))
+
+        for (_layer_id, retained_idxs_t, seq_len) in eviction_log:
+            retained_idxs = retained_idxs_t.tolist()
+            # Between the last eviction and this one the model may have
+            # appended new tokens (split processing).  The seq_len tells us
+            # how long the cache was *before* eviction.  If our mapping is
+            # shorter we need to extend it with the next original positions.
+            while len(current_to_original) < seq_len:
+                # Next original token position that hasn't been added yet.
+                next_orig = current_to_original[-1] + 1 if current_to_original else 0
+                if next_orig < n:
+                    current_to_original.append(next_orig)
+                else:
+                    break
+            # Apply the eviction: keep only the retained positions.
+            current_to_original = [current_to_original[i]
+                                   for i in retained_idxs
+                                   if i < len(current_to_original)]
+
+        surviving_original_positions = set(current_to_original)
+
+        # Build annotated output
+        GREEN = '\033[92m'
+        RED = '\033[91m'
+        STRIKE = '\033[9m'
+        RESET = '\033[0m'
+
+        display_n = min(n, max_display_tokens)
+        parts = []
+        for pos in range(display_n):
+            tok_str = self.tokenizer.decode([token_ids[pos]])
+            if pos in surviving_original_positions:
+                parts.append(f"{GREEN}{tok_str}{RESET}")
+            else:
+                parts.append(f"{RED}{STRIKE}{tok_str}{RESET}")
+
+        header_lines = [
+            f"--- Eviction diagnostic (layer 0, head 0) ---",
+            f"Total tokens: {n}  |  Retained: {len(surviving_original_positions)}  "
+            f"|  Evicted: {n - len(surviving_original_positions)}  "
+            f"|  Eviction steps: {len(eviction_log)}",
+            f"Legend: {GREEN}retained{RESET}  {RED}{STRIKE}evicted{RESET}",
+            "",
+        ]
+        return "\n".join(header_lines) + "".join(parts) + "\n"
+
+    def format_eviction_diagnostic_html(self, token_ids, eviction_log, max_display_tokens=2000):
+        """Same as format_eviction_diagnostic but returns HTML for wandb."""
+        import html as html_mod
+        if isinstance(token_ids, torch.Tensor):
+            token_ids = token_ids.tolist()
+        n = len(token_ids)
+
+        current_to_original = list(range(n))
+        for (_layer_id, retained_idxs_t, seq_len) in eviction_log:
+            retained_idxs = retained_idxs_t.tolist()
+            while len(current_to_original) < seq_len:
+                next_orig = current_to_original[-1] + 1 if current_to_original else 0
+                if next_orig < n:
+                    current_to_original.append(next_orig)
+                else:
+                    break
+            current_to_original = [current_to_original[i]
+                                   for i in retained_idxs
+                                   if i < len(current_to_original)]
+
+        surviving = set(current_to_original)
+        display_n = min(n, max_display_tokens)
+        parts = []
+        for pos in range(display_n):
+            tok_str = html_mod.escape(self.tokenizer.decode([token_ids[pos]]))
+            if pos in surviving:
+                parts.append(f'<span style="color:green">{tok_str}</span>')
+            else:
+                parts.append(
+                    f'<span style="color:red;text-decoration:line-through">'
+                    f'{tok_str}</span>')
+
+        header = (
+            f'<b>Eviction diagnostic (layer 0, head 0)</b><br>'
+            f'Total tokens: {n} | Retained: {len(surviving)} | '
+            f'Evicted: {n - len(surviving)} | '
+            f'Steps: {len(eviction_log)}<br>'
+            f'Legend: <span style="color:green">retained</span> '
+            f'<span style="color:red;text-decoration:line-through">evicted</span>'
+            f'<br><br>')
+        return header + ''.join(parts)
 
     @property
     def eot_token_id(self):

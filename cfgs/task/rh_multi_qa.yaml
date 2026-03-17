@@ -1,0 +1,26 @@
+# Multi-task QA evaluation — matches rhautier's instruct NAMM setup.
+# Same 4 tasks used for LoRA SFT training (lora_task_names in run config).
+defaults:
+  - base_sampler
+  - _self_
+
+tasks:
+  - "lb/qasper"
+  - "lb/multifieldqa_en"
+  - "lb/hotpotqa"
+  - "lb/2wikimqa"
+metrics: 'perf'
+
+training_tasks_subset:
+  - "lb/qasper"
+  - "lb/multifieldqa_en"
+  - "lb/hotpotqa"
+  - "lb/2wikimqa"
+
+test_tasks_subset:
+  - "lb/qasper"
+  - "lb/multifieldqa_en"
+  - "lb/hotpotqa"
+  - "lb/2wikimqa"
+
+tasks_log_name: rh-multi-qa

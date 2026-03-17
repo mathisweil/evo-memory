@@ -211,7 +211,8 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         self.lm_head.to(*args, **kwargs)
         return self
 
-    def apply_lora_adapters(self, rank=4, target_modules=None):
+    def apply_lora_adapters(self, rank=4, target_modules=None,
+                            lora_alpha=None, lora_dropout=0.0):
         """Inject PEFT LoRA adapters into self.model (LlamaMemoryModel).
 
         Must be called AFTER WrappedLlamaForCausalLM construction is complete
@@ -223,11 +224,13 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         """
         if target_modules is None:
             target_modules = ['q_proj', 'v_proj']
+        if lora_alpha is None:
+            lora_alpha = rank
         peft_config = LoraConfig(
             r=rank,
             target_modules=target_modules,
-            lora_alpha=rank,      # standard convention: alpha = rank
-            lora_dropout=0.0,     # no dropout — ES has no gradient flow
+            lora_alpha=lora_alpha,
+            lora_dropout=lora_dropout,
             bias='none',
         )
         self.model = get_peft_model(self.model, peft_config)
@@ -275,6 +278,7 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         cache_position: Optional[torch.LongTensor] = None,
         output_queries: bool = False,
         apply_memory_policy: bool = True,
+        skip_lm_head: bool = False,
         limit_new_tokens: Optional[int] = None,
         output_attentions_full_precision: Optional[bool] = None,
         memory_policy_kwargs: Optional[dict] = None,
@@ -327,7 +331,10 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         if self.memory_policy_fixed_delay is not None and num_new_tokens > 1:
             past_length = 0
             if past_key_values is not None:
-                num_all_tokens = past_key_values[0][0].shape[-2]
+                if isinstance(past_key_values, DynamicCache):
+                    num_all_tokens = past_key_values.get_seq_length()
+                else:
+                    num_all_tokens = past_key_values[0][0].shape[-2]
                 if num_all_tokens > 0:
                     past_length = self.memory_policy.get_rotary_offset(
                         layer_id=0).item()
@@ -391,6 +398,10 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                     )
                 
             num_splits = len(split_tokens)
+            # When output_hidden_states is requested during split processing
+            # (e.g., m4 LoRA training with NAMM), accumulate each split's
+            # last-layer hidden states so the caller gets the full sequence.
+            _accumulated_hidden = [] if output_hidden_states else None
 
             for idx in range(num_splits-1):
                 input_ids = split_tokens[idx]
@@ -421,9 +432,13 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                     output_attentions_full_precision=(
                         output_attentions_full_precision),
                     always_buffer_cache=always_buffer_cache,
+                    skip_lm_head=skip_lm_head,
                 )
                 past_key_values = curr_outputs.past_key_values
-                
+                if _accumulated_hidden is not None:
+                    # hidden_states[-1] is the last decoder layer's output
+                    _accumulated_hidden.append(curr_outputs.hidden_states[-1])
+
             input_ids = split_tokens[-1]
             position_ids = split_position_ids[-1]
             if cache_position is not None:
@@ -458,28 +473,44 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
 
 
         hidden_states = outputs[0]
-        if self.config.pretraining_tp > 1:
-            lm_head_slices = self.lm_head.weight.split(
-                self.vocab_size // self.config.pretraining_tp, dim=0)
-            logits = [F.linear(hidden_states, lm_head_slices[i]) 
-                      for i in range(self.config.pretraining_tp)]
-            logits = torch.cat(logits, dim=-1)
-        else:
-            logits = self.lm_head(hidden_states)
-        logits = logits.float()
 
-        loss = None
-        if labels is not None:
-            # Shift so that tokens < n predict n
-            shift_logits = logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
-            # Flatten the tokens
-            loss_fct = CrossEntropyLoss()
-            shift_logits = shift_logits.view(-1, self.config.vocab_size)
-            shift_labels = shift_labels.view(-1)
-            # Enable model parallelism
-            shift_labels = shift_labels.to(shift_logits.device)
-            loss = loss_fct(shift_logits, shift_labels)
+        # If split processing accumulated hidden states from earlier chunks,
+        # prepend them so the caller gets the full [B, seq_len, hidden_dim].
+        if split_processing and _accumulated_hidden is not None and _accumulated_hidden:
+            _accumulated_hidden.append(outputs.hidden_states[-1])
+            full_hidden = torch.cat(_accumulated_hidden, dim=1)
+            # Replace outputs.hidden_states with full sequence version
+            outputs.hidden_states = tuple(
+                list(outputs.hidden_states[:-1]) + [full_hidden])
+            hidden_states = full_hidden
+
+        if skip_lm_head:
+            # Caller will apply lm_head in chunks to avoid OOM.
+            logits = None
+            loss = None
+        else:
+            if self.config.pretraining_tp > 1:
+                lm_head_slices = self.lm_head.weight.split(
+                    self.vocab_size // self.config.pretraining_tp, dim=0)
+                logits = [F.linear(hidden_states, lm_head_slices[i])
+                          for i in range(self.config.pretraining_tp)]
+                logits = torch.cat(logits, dim=-1)
+            else:
+                logits = self.lm_head(hidden_states)
+            logits = logits.float()
+
+            loss = None
+            if labels is not None:
+                # Shift so that tokens < n predict n
+                shift_logits = logits[..., :-1, :].contiguous()
+                shift_labels = labels[..., 1:].contiguous()
+                # Flatten the tokens
+                loss_fct = CrossEntropyLoss()
+                shift_logits = shift_logits.view(-1, self.config.vocab_size)
+                shift_labels = shift_labels.view(-1)
+                # Enable model parallelism
+                shift_labels = shift_labels.to(shift_logits.device)
+                loss = loss_fct(shift_logits, shift_labels)
 
         if apply_memory_policy:
             update_iter = True
@@ -520,9 +551,13 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
             # Guard: gradient checkpointing forces use_cache=False internally,
             # so past_key_values may be None during LoRA training.
             if outputs.past_key_values is not None:
+                if isinstance(outputs.past_key_values, DynamicCache):
+                    num_all_tokens = outputs.past_key_values.get_seq_length()
+                else:
+                    num_all_tokens = outputs.past_key_values[0][0].shape[-2]
                 self.memory_policy.update_rotary_offset(
                     num_new_tokens=num_new_tokens,
-                    num_all_tokens=outputs.past_key_values[0][0].shape[-2]
+                    num_all_tokens=num_all_tokens,
                     )
 
         if not return_dict:
@@ -723,7 +758,11 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
                 sdpa_mask, is_causal = None, True
             else:
                 sdpa_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
-                is_causal = False
+                # Fallback if mask size mismatches KV cache (NAMM eviction)
+                if sdpa_mask.shape[-1] != key_states.shape[-2]:
+                    sdpa_mask, is_causal = None, True
+                else:
+                    is_causal = False
             attn_output = F.scaled_dot_product_attention(
                 query_states, key_states, value_states,
                 attn_mask=sdpa_mask,
@@ -747,6 +786,18 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
                 attn_weights = attn_weights + causal_mask
             else:
                 causal_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
+                # Guard against size mismatch between the 4D causal mask from
+                # _update_causal_mask and the actual KV cache size after NAMM
+                # eviction.  DynamicCache.get_seq_length() can be stale when
+                # the cache was built from a NAMM legacy-format tuple.
+                if causal_mask.shape[-1] != attn_weights.shape[-1]:
+                    n_q, n_k = attn_weights.shape[-2:]
+                    dtype, device = hidden_states.dtype, hidden_states.device
+                    min_dtype = torch.finfo(dtype).min
+                    causal_mask = torch.full((n_q, n_q), fill_value=min_dtype,
+                                             dtype=dtype, device=device)
+                    causal_mask = torch.triu(causal_mask, diagonal=1)
+                    causal_mask = F.pad(causal_mask, (n_k-n_q, 0))
                 attn_weights = attn_weights + causal_mask
 
             # upcast attention to fp32

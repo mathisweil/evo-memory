@@ -52,8 +52,8 @@ class LongBenchSFTDataset(Dataset):
         task_names  : List of LongBench task names (e.g. ['qasper', 'narrativeqa',
                       'passage_retrieval_en']).  Must exist in dataset2prompt.json.
         tokenizer   : HuggingFace tokenizer with apply_chat_template support.
-        max_seq_len : Maximum token sequence length after left-truncation.
-                      Default 3500 leaves headroom within the 4096-token RoPE window.
+        max_seq_len : Maximum total token sequence length.  Samples exceeding this
+                      are discarded (not truncated), matching rhautier's approach.
         cache_dir   : HF datasets cache directory (optional, defaults to HF default).
         seed        : Random seed for one-time shuffle of self.samples.
         train_frac  : Fraction of each task's examples to use for training (default 0.8).
@@ -86,7 +86,8 @@ class LongBenchSFTDataset(Dataset):
                 )
 
         samples = []
-        n_skipped = 0
+        n_skipped_no_answer = 0
+        n_skipped_too_long = 0
 
         for task_name in task_names:
             task_template = all_templates[task_name]
@@ -98,13 +99,21 @@ class LongBenchSFTDataset(Dataset):
                 cache_dir=cache_dir,
             )
             items = list(dataset)
+            n_total_task = len(items)
             if train_frac < 1.0:
                 n_train = int(len(items) * train_frac)
                 items = items[:n_train]
-                print(f"  {task_name}: using first {n_train}/{len(dataset)} examples (train_frac={train_frac})")
+                print(f"  {task_name}: using first {n_train}/{n_total_task} examples (train_frac={train_frac})")
+            task_count = 0
+            task_skipped_long = 0
+            task_prompt_lens = []
+            task_answer_lens = []
             for item in items:
-                # Use first gold answer; fall back to 'unanswerable' if empty.
-                answer = item['answers'][0] if item['answers'] else 'unanswerable'
+                # Use first gold answer; skip if no answers.
+                if not item['answers']:
+                    n_skipped_no_answer += 1
+                    continue
+                answer = item['answers'][0]
 
                 # Format prompt using LongBench template, then wrap in chat format.
                 user_content = task_template.format(**item)
@@ -126,35 +135,49 @@ class LongBenchSFTDataset(Dataset):
 
                 # Answer boundary: first index in full_ids that belongs to the answer.
                 label_start = len(prompt_ids)
+                n_answer_tokens = len(full_ids) - label_start
 
-                # Left-truncate: keep the last max_seq_len tokens, adjusting label_start.
-                len_before = len(full_ids)
-                if len_before > max_seq_len:
-                    full_ids = full_ids[-max_seq_len:]
-                    label_start = max(0, label_start - (len_before - max_seq_len))
+                # Discard samples exceeding max_seq_len (matching rhautier — no truncation)
+                if len(full_ids) > max_seq_len:
+                    n_skipped_too_long += 1
+                    task_skipped_long += 1
+                    continue
 
-                # Skip guard: if all answer tokens were truncated away, skip this item.
+                # Skip samples where prompt fills entire sequence (no answer tokens)
                 if label_start >= len(full_ids):
-                    n_skipped += 1
+                    n_skipped_no_answer += 1
                     continue
 
                 samples.append({
                     'full_ids': torch.tensor(full_ids, dtype=torch.long),
                     'label_start': label_start,
                 })
+                task_count += 1
+                task_prompt_lens.append(label_start)
+                task_answer_lens.append(n_answer_tokens)
 
-        total = len(samples) + n_skipped
-        print(
-            f"LongBenchSFTDataset: {len(samples)} samples loaded, "
-            f"{n_skipped} skipped (label_start >= seq_len)"
-        )
-        if total > 0 and n_skipped / total > 0.1:
-            print(
-                f"WARNING: LongBenchSFTDataset skipped {n_skipped}/{total} "
-                f"({100 * n_skipped / total:.1f}%) samples — more than 10% were discarded "
-                f"because all answer tokens fell outside max_seq_len={max_seq_len}. "
-                f"Consider increasing max_seq_len."
-            )
+            # Per-task stats
+            if task_prompt_lens:
+                avg_prompt = sum(task_prompt_lens) / len(task_prompt_lens)
+                avg_answer = sum(task_answer_lens) / len(task_answer_lens)
+                print(f"  {task_name}: {task_count} kept, {task_skipped_long} discarded (>{max_seq_len} tokens)")
+                print(f"    prompt tokens:  min={min(task_prompt_lens)}, avg={avg_prompt:.0f}, max={max(task_prompt_lens)}")
+                print(f"    answer tokens:  min={min(task_answer_lens)}, avg={avg_answer:.0f}, max={max(task_answer_lens)}")
+            else:
+                print(f"  {task_name}: 0 kept, {task_skipped_long} discarded")
+
+        # Overall stats
+        total = len(samples) + n_skipped_no_answer + n_skipped_too_long
+        print(f"\nLongBenchSFTDataset: {len(samples)} samples loaded from {total} total")
+        print(f"  Skipped: {n_skipped_too_long} exceeding max_seq_len={max_seq_len}, "
+              f"{n_skipped_no_answer} no/empty answer")
+        if len(samples) > 0:
+            all_prompt_lens = [s['label_start'] for s in samples]
+            all_answer_lens = [len(s['full_ids']) - s['label_start'] for s in samples]
+            all_seq_lens = [len(s['full_ids']) for s in samples]
+            print(f"  Overall prompt tokens:  min={min(all_prompt_lens)}, avg={sum(all_prompt_lens)/len(all_prompt_lens):.0f}, max={max(all_prompt_lens)}")
+            print(f"  Overall answer tokens:  min={min(all_answer_lens)}, avg={sum(all_answer_lens)/len(all_answer_lens):.0f}, max={max(all_answer_lens)}")
+            print(f"  Overall sequence len:   min={min(all_seq_lens)}, avg={sum(all_seq_lens)/len(all_seq_lens):.0f}, max={max(all_seq_lens)}")
 
         # One-time shuffle with a fixed seed for reproducibility.
         random.Random(seed).shuffle(samples)

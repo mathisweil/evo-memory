@@ -1,0 +1,5 @@
+# Stub: this config is always overridden by run-level defaults.
+# It exists only so Hydra can resolve the default reference in deep.yaml.
+defaults:
+  - attn_spec_norm
+  - _self_

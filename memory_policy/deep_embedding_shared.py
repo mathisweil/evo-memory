@@ -80,12 +80,9 @@ class PositionalEmbedding(Embedding):
         self.register_buffer('embeddings', torch.tensor(embeddings))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        
-        
-        
-        
-        
-        emb =  self.embeddings[x] 
-        
+        # Clamp recency values to valid table range — after many eviction steps
+        # recency can exceed max_position_id for long-surviving tokens.
+        x = torch.clamp(x, min=0, max=self.max_position_id)
+        emb = self.embeddings[x]
         return emb
 

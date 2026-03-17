@@ -155,6 +155,11 @@ class DeepMP(DynamicParamMemoryPolicy):
         self.initialize_buffer_dicts_to_merge(
             buffers_to_merge=[], sub_buffer_storages=self.component_names)
 
+        # Eviction diagnostics: when enabled, records per-layer retained indices
+        # for each eviction step so we can reconstruct what the model "sees".
+        self._record_eviction_log = False
+        self._eviction_log = []  # list of (layer_id, retained_idxs_cpu, seq_len)
+
     def setup_properties(self,):
         self._requires_attn_scores = self.true_for_any_component(
             'requires_attn_scores')
@@ -172,7 +177,23 @@ class DeepMP(DynamicParamMemoryPolicy):
     @record_mask_based_sparsity.setter
     def record_mask_based_sparsity(self, value):
         self._record_mask_based_sparsity = value
-        
+
+    @property
+    def record_eviction_log(self):
+        return self._record_eviction_log
+
+    @record_eviction_log.setter
+    def record_eviction_log(self, value):
+        self._record_eviction_log = value
+        if value:
+            self._eviction_log = []
+
+    def get_and_clear_eviction_log(self):
+        """Return the eviction log and reset it."""
+        log = self._eviction_log
+        self._eviction_log = []
+        return log
+
     def get_init_param_values(self,):
         return self.get_init_param_values_post_setup()
     
@@ -448,7 +469,6 @@ class DeepMP(DynamicParamMemoryPolicy):
             analyze=analyze,
             **kwargs,
             )
-
         if analyze:
             
             token_scores_per_head = torch.unbind(token_scores[0], dim=0)
@@ -566,14 +586,15 @@ class DeepMP(DynamicParamMemoryPolicy):
             analyze=analyze,
             **kwargs,
             )
-        
-        
-        
-        
-        
-        
-        
-            
+        # Record eviction diagnostics (only layer 0 to keep it manageable)
+        if self._record_eviction_log and layer_id == 0:
+            seq_len = token_scores.shape[-1]
+            self._eviction_log.append((
+                layer_id,
+                retained_idxs[0, 0].detach().cpu().clone(),  # head 0, batch 0
+                seq_len,
+            ))
+
         if not analyze:
             self.selection_criteria.filter_buffer_values(
                 layer_id=layer_id,

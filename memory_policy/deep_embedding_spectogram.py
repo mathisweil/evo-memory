@@ -280,8 +280,9 @@ class AttentionSpectrogram(TokenEmbedding):
         if self.pad_attn_required > 0:
             prev_attn_buffer: torch.Tensor = self.prev_attn_buffer[layer_id]
             prev_new_tokens = prev_attn_buffer.shape[-1]
-            expanded_idxs = retained_idxs.unsqueeze(-1).expand(
-                -1, -1, -1, prev_new_tokens)
+            unsqueezed = retained_idxs.unsqueeze(-1)
+            expand_shape = [-1] * (unsqueezed.ndim - 1) + [prev_new_tokens]
+            expanded_idxs = unsqueezed.expand(*expand_shape)
             prev_attn_buffer = torch.gather(
                 input=prev_attn_buffer,
                 dim=-2,

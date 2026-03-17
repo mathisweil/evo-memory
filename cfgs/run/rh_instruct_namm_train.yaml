@@ -1,0 +1,36 @@
+# @package _global_
+# Llama 3.2 1B Instruct with NAMM — CMA-ES training on multi-task QA.
+# Matches rhautier's llama32_instruct_multi_qa_namm.yaml with 80/10/10 split
+# so that NAMM and LoRA training/eval use identical data partitions.
+defaults:
+  - base_memory_policy/deep/bam/base_bam
+  - override /model/wrapped_llm@_global_: llama32-1b-instruct
+  - override /task@_global_: rh_multi_qa
+  - _self_
+
+eval_only: false
+max_iters: 200
+max_new_tokens: 64
+max_conditioning_length: 6500
+score_normalization_reference: null
+
+cache_size: 1024
+memory_policy_fixed_delay: 256
+
+# architecture — matches rhautier
+scoring_attn_hidden_dim: 32
+scoring_attn_bias: true
+
+pop_size: 8
+samples_batch_size: 2
+batch_size: 1
+
+# 80/10/10 deterministic split — same as LoRA training
+# ES trains on the 80% train set; test set held out for final eval
+train_frac: 0.8
+val_frac: 0.1
+
+wandb_log: true
+wandb_run_name: rh-instruct-namm-multi-qa-seed${seed}
+wandb_group_name: Llama-3.2-1B-Instruct/namm-replication
+wandb_project: memory_evolution_hf

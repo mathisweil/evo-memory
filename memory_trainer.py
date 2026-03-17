@@ -69,6 +69,8 @@ class TrainerConfig:
     store_eval_results_locally: bool
     record_per_task_eval_stats: bool
 
+    eviction_diag_interval: Optional[int]
+
     always_save_checkpoint: bool
     keep_past_epoch_checkpoints_every: Optional[int]
     use_amp: Optional[bool]
@@ -237,6 +239,9 @@ class MemoryTrainer():
             self.eval_total_samples = 1
             self.store_best_candidate_solution = False
             self.eval_params_per_ddp = 1
+
+        self.eviction_diag_interval = getattr(
+            trainer_config, 'eviction_diag_interval', None)
 
         self.record_advanced_eval_stats = (
             trainer_config.record_advanced_eval_stats)
@@ -918,13 +923,31 @@ class MemoryTrainer():
         return tensor
 
     @torch.no_grad()
-    def _evaluate(self, iter_num, **log_kwargs):
+    def _evaluate(self, iter_num, log_eviction_diagnostic=False, **log_kwargs):
 
         if self.use_auxiliary_loss:
             self.auxiliary_loss.restart_recording()
 
+        # Enable eviction logging for this eval pass if requested.
+        # Fix the numpy RNG so the same samples are picked each time.
+        _rng_state = None
+        if log_eviction_diagnostic and hasattr(
+                self.model, 'memory_policy') and hasattr(
+                self.model.memory_policy, 'record_eviction_log'):
+            self.model.memory_policy.record_eviction_log = True
+            _rng_state = np.random.get_state()
+            np.random.seed(42)  # fixed seed → same eval samples every time
+
         if self.master_process or self.allow_distributed_eval:
             evaluation_results = self.estimate_loss()
+
+        # Disable eviction logging and restore RNG after eval
+        if log_eviction_diagnostic and hasattr(
+                self.model, 'memory_policy') and hasattr(
+                self.model.memory_policy, 'record_eviction_log'):
+            self.model.memory_policy.record_eviction_log = False
+            if _rng_state is not None:
+                np.random.set_state(_rng_state)
 
         if self.model.memory_policy_has_buffers_to_merge() and (
                 not self.model.are_sync_buffers_frozen()):
@@ -953,6 +976,15 @@ class MemoryTrainer():
 
             if self.wandb_log:
                 wandb.log(wandb_log_dict)
+                # Log eviction diagnostic HTML to wandb if available
+                if log_eviction_diagnostic and hasattr(
+                        self.evaluation_model, '_eviction_diag_entries'):
+                    for i, html_entry in enumerate(
+                            self.evaluation_model._eviction_diag_entries):
+                        wandb.log({
+                            "eviction_diagnostic": wandb.Html(html_entry),
+                            "iter": iter_num,
+                        })
             if self.store_best_candidate_solution and self.master_process:
                 self._save_ckpt(
                     iter_num=iter_num, save_path=self.eval_ckpt_path)
@@ -1211,7 +1243,16 @@ class MemoryTrainer():
                     self.eval_only) or (self.force_initial_re_eval and
                                         iter_num == self.start_iter):
 
-                logged_dict = self._evaluate(iter_num=iter_num,)
+                # Eviction diagnostic: show retained/evicted tokens at
+                # configurable intervals (eviction_diag_interval) and last eval.
+                _do_eviction_diag = False
+                if self.eviction_diag_interval is not None:
+                    _do_eviction_diag = (
+                        (iter_num % self.eviction_diag_interval == 0) or
+                        iter_num == max_iters or self.eval_only)
+                logged_dict = self._evaluate(
+                    iter_num=iter_num,
+                    log_eviction_diagnostic=_do_eviction_diag,)
                 if self.store_eval_results_locally:
                     if self.master_process:
                         store_path = self.eval_path_fmt.format(iter_num)

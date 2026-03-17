@@ -42,6 +42,16 @@ def threshold_score_idxs(
     
 
     num_samples = masked_full_scores.shape[-1]
+
+    # Guard against NaN/Inf from uninitialised CMA-ES parameters —
+    # replace with a large negative (but not dtype.min, which can cause
+    # CUDA asserts in topk/sort on some architectures).
+    safe_neg = torch.tensor(-1e9, device=masked_full_scores.device,
+                            dtype=masked_full_scores.dtype)
+    masked_full_scores = torch.where(
+        torch.isfinite(masked_full_scores),
+        masked_full_scores, safe_neg)
+
     if cache_size is not None and num_samples > cache_size:
         sorted_scores, indices = torch.topk(
             masked_full_scores, k=cache_size, sorted=True, dim=-1)
@@ -50,22 +60,22 @@ def threshold_score_idxs(
     else:
         sorted_scores, indices = torch.sort(
             masked_full_scores, descending=False, dim=-1)
-    
-    
-    
+
     thresholded_scores = sorted_scores >= dynamic_thresh
-    
-    
-    first_above_thresh = torch.sum(~thresholded_scores, dim=-1, 
+
+    first_above_thresh = torch.sum(~thresholded_scores, dim=-1,
                                     dtype=torch.long)
 
     discard_idx = torch.min(first_above_thresh)
 
-    
+    # Safety: always retain at least one token — randomly initialised CMA-ES
+    # parameters can produce thresholds that reject everything.
+    # Move to CPU for safe Python-level slicing (avoids CUDA device asserts).
+    max_discard = indices.shape[-1] - 1
+    discard_idx = min(discard_idx.item(), max_discard)
 
     retained_idxs = indices[..., discard_idx:]
 
-    
     new_mask = thresholded_scores[..., discard_idx:]
 
     if preserve_order:

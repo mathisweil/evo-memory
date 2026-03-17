@@ -38,6 +38,7 @@ trainer_config:
   record_advanced_eval_stats: ${record_advanced_eval_stats}
   store_eval_results_locally: ${store_eval_results_locally}
   record_per_task_eval_stats: ${record_per_task_eval_stats}
+  eviction_diag_interval: ${eviction_diag_interval}
 
   always_save_checkpoint: ${always_save_checkpoint}
   keep_past_epoch_checkpoints_every: ${keep_past_epoch_checkpoints_every}
@@ -79,6 +80,7 @@ scratch: true
 record_advanced_eval_stats: true
 store_eval_results_locally: true
 record_per_task_eval_stats: false
+eviction_diag_interval:
 
 # precision
 use_amp: false

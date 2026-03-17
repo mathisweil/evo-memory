@@ -1,0 +1,37 @@
+# @package _global_
+# Llama 3.2 1B Instruct — recency eviction baseline eval.
+# Uses the same 80/10/10 split + multi-task setup for fair comparison
+# with NAMM and LoRA experiments.
+# Override cache_size on CLI: cache_size=1024, cache_size=2048, cache_size=4096
+defaults:
+  - override /model/wrapped_llm@_global_: llama32-1b-instruct
+  - override /task@_global_: rh_multi_qa
+  - override /policy@_global_: none
+  - override /typing@_global_: half_attn
+  - override /auxiliary_loss@_global_: none
+  - override /evolution@_global_: dummy
+  - _self_
+
+eval_only: true
+init_from: null
+max_new_tokens: 64
+max_conditioning_length: 6500
+eval_max_batch_size: 4
+add_bos_token: true
+score_normalization_reference: null
+dtype: bfloat16
+seed: 1337
+batch_size: 1
+samples_batch_size: 4
+eval_samples_batch_size:
+
+cache_size: 1024
+
+# 80/10/10 split — eval runs on the 10% test set
+train_frac: 0.8
+val_frac: 0.1
+
+wandb_log: true
+wandb_project: memory_evolution_hf
+wandb_run_name: rh-instruct-recency-${cache_size}-eval-seed${seed}
+wandb_group_name: Llama-3.2-1B-Instruct/baselines

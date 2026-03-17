@@ -86,7 +86,7 @@ class TaskSampler():
     def add_long_bench_task(self, task, metric):
         bench_name, task_name = task.split('/')
         assert bench_name == 'lb'
-        dataset = load_dataset('THUDM/LongBench', task_name, split='test')
+        dataset = load_dataset('THUDM/LongBench', task_name, split='test', trust_remote_code=True)
         self.lb_datasets.append(dataset)
         self.lb_tasks.append(task)
         self.lb_metrics.append(metric)
@@ -170,6 +170,74 @@ class TaskSampler():
         self.lb_test_tasks = [t for t in self.lb_tasks
                               if t in self.test_tasks_subset]
 
+        # Populated by apply_train_val_test_split(); None means "use all"
+        self._train_idxs_per_task = None
+        self._val_idxs_per_task = None
+        self._test_idxs_per_task = None
+
+    # ------------------------------------------------------------------
+    # Deterministic train / val / test split
+    # ------------------------------------------------------------------
+
+    def apply_train_val_test_split(self, train_frac=0.8, val_frac=0.1,
+                                    max_conditioning_length=None,
+                                    tokenizer=None):
+        """Partition each task's prompts into deterministic train/val/test sets.
+
+        When max_conditioning_length and tokenizer are provided, prompts
+        exceeding that token length are filtered out BEFORE splitting so that
+        each partition has proportional representation of usable prompts.
+
+        After calling this method:
+          - resample_requests_lb(train=True) samples only from train indices
+          - resample_requests_lb(train=False) samples only from test indices
+          - get_split_indices('val') returns val indices for held-out evaluation
+        """
+        self._train_idxs_per_task = {}
+        self._val_idxs_per_task = {}
+        self._test_idxs_per_task = {}
+
+        for task_n in self.lb_tasks:
+            prompts = self.lb_prompts_per_task[task_n]
+            all_idxs = np.arange(len(prompts))
+
+            # Filter out prompts that exceed max_conditioning_length
+            if max_conditioning_length is not None and tokenizer is not None:
+                eligible = []
+                for idx in all_idxs:
+                    n_tok = len(tokenizer.encode(prompts[idx], add_special_tokens=False))
+                    if n_tok <= max_conditioning_length:
+                        eligible.append(idx)
+                n_dropped = len(all_idxs) - len(eligible)
+                eligible = np.array(eligible)
+            else:
+                eligible = all_idxs
+                n_dropped = 0
+
+            n_eligible = len(eligible)
+            n_train = int(n_eligible * train_frac)
+            n_val = int(n_eligible * val_frac)
+            n_test = n_eligible - n_train - n_val
+
+            self._train_idxs_per_task[task_n] = eligible[:n_train]
+            self._val_idxs_per_task[task_n] = eligible[n_train:n_train + n_val]
+            self._test_idxs_per_task[task_n] = eligible[n_train + n_val:]
+
+            print(f"  {task_n}: {len(all_idxs)} total, {n_dropped} filtered "
+                  f"(>{max_conditioning_length} tok) → "
+                  f"{n_train} train / {n_val} val / {n_test} test")
+
+    def get_split_indices(self, split='val'):
+        """Return {task_name: np.array of indices} for the given split."""
+        if split == 'train':
+            return self._train_idxs_per_task
+        elif split == 'val':
+            return self._val_idxs_per_task
+        elif split == 'test':
+            return self._test_idxs_per_task
+        else:
+            raise ValueError(f"Unknown split: {split}")
+
     def resample_requests(self, train: bool,
                           sampled_requests_per_task: Optional[int] = None,
                           task_batch_size: Optional[int] = None,
@@ -223,13 +291,24 @@ class TaskSampler():
 
         sampled_idxs_per_lb_task = {}
         for task_n in tasks_names:
-            num_task_prompts = self.num_prompts_per_lb_task[task_n]
-            if sampled_requests_per_task is not None:
-                sampled_idxs = np.random.choice(
-                    num_task_prompts, replace=False,
-                    size=sampled_requests_per_task)
+            # When a train/val/test split is active, restrict sampling to
+            # the appropriate partition; otherwise use all prompts.
+            if self._train_idxs_per_task is not None:
+                if train:
+                    eligible_idxs = self._train_idxs_per_task.get(
+                        task_n, np.arange(self.num_prompts_per_lb_task[task_n]))
+                else:
+                    eligible_idxs = self._test_idxs_per_task.get(
+                        task_n, np.arange(self.num_prompts_per_lb_task[task_n]))
             else:
-                sampled_idxs = np.arange(num_task_prompts)
+                eligible_idxs = np.arange(self.num_prompts_per_lb_task[task_n])
+
+            if sampled_requests_per_task is not None:
+                size = min(sampled_requests_per_task, len(eligible_idxs))
+                sampled_idxs = np.random.choice(
+                    eligible_idxs, replace=False, size=size)
+            else:
+                sampled_idxs = eligible_idxs
             sampled_idxs_per_lb_task[task_n] = sampled_idxs
         self.latest_sampled_idxs_per_lb_task = sampled_idxs_per_lb_task
 

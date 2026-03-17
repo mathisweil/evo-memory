@@ -1,0 +1,42 @@
+# @package _global_
+# Llama 3.2 1B Instruct + NAMM — eval on held-out test set after training.
+# Uses the same 80/10/10 split as training so test indices are consistent.
+# Update init_from to point to your trained checkpoint.
+defaults:
+  - base_memory_policy/deep/bam/base_bam
+  - override /model/wrapped_llm@_global_: llama32-1b-instruct
+  - override /task@_global_: rh_multi_qa
+  - _self_
+
+eval_only: true
+max_new_tokens: 64
+max_conditioning_length: 6500
+score_normalization_reference: null
+dtype: bfloat16
+seed: 1337
+batch_size: 1
+samples_batch_size: 4
+eval_max_batch_size: 4
+eval_samples_batch_size:
+add_bos_token: true
+
+cache_size: 1024
+memory_policy_fixed_delay: 256
+
+# architecture — must match training
+scoring_attn_hidden_dim: 32
+scoring_attn_bias: true
+
+# 80/10/10 split — eval runs on the 10% test set
+train_frac: 0.8
+val_frac: 0.1
+
+# UPDATE THIS after training completes:
+init_from: 'exp_local/memory_evolution_hf/Llama-3.2-1B-Instruct/namm-replication/rh-instruct-namm-multi-qa-seed1337/1337/ckpt.pt'
+
+pop_size: 8
+
+wandb_log: true
+wandb_project: memory_evolution_hf
+wandb_run_name: rh-instruct-namm-${cache_size}-eval-seed${seed}
+wandb_group_name: Llama-3.2-1B-Instruct/namm-replication

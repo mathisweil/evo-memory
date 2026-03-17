@@ -65,21 +65,14 @@ class DynamicSelection(SelectionNetwork):
         '''Produces indexes for the selected KV cache tokens and a selection
            mask.'''
         dynamic_thresh = parameters
-        min_value = torch.finfo(token_scores.dtype).min
-        max_value = torch.finfo(dynamic_thresh.dtype).max
-        
-        
+        # Use safe sentinel values instead of dtype.min/max to avoid
+        # CUDA device-side asserts in topk/sort with extreme bfloat16 values.
+        min_value = -1e9
+        max_value = 1e9
+
         masked_full_scores = torch.where(
             attn_mask.bool(), token_scores, min_value)
-        
-        
-        
-        
 
-        
-        
-        
-        
         masked_full_scores[..., -1] = max_value
         retained_idxs, new_mask = threshold_score_idxs(
             masked_full_scores=masked_full_scores,
@@ -161,22 +154,27 @@ class BinarySelection(SelectionNetwork):
         
         
         
-        min_value = torch.finfo(token_scores.dtype).min
-        max_value = torch.finfo(token_scores.dtype).max
+        # Use safe sentinel values instead of dtype.min/max to avoid
+        # CUDA device-side asserts in topk/sort with extreme bfloat16 values.
+        min_value = -1e9
+        max_value = 1e9
 
         if self.is_probabilistic:
             if self._needs_learned_temp:
                 temp = parameters
             else:
                 temp = self.initial_temp
-            
+
             probabilities = F.sigmoid(masked_full_scores/temp)
             random_samples = torch.rand_like(probabilities)
-            
-            
+
+
             token_scores = (probabilities >= random_samples).to(
                 probabilities.dtype) - 0.5
 
+        if attn_mask is None:
+            attn_mask = torch.ones(token_scores.shape, dtype=torch.bool,
+                                   device=token_scores.device)
         masked_full_scores = torch.where(
             attn_mask.bool(), token_scores, min_value)
         masked_full_scores[..., -1] = max_value
@@ -246,7 +244,7 @@ class TopKSelection(SelectionNetwork):
         
         num_samples = token_scores.shape[-1]
         if self.cache_size is not None and num_samples > self.cache_size:
-            min_value = torch.finfo(token_scores.dtype).min
+            min_value = -1e9
             masked_full_scores = torch.where(
                 attn_mask.bool(), token_scores, min_value)
             _, retained_idxs = torch.topk(

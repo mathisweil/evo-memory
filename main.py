@@ -156,7 +156,10 @@ def main(cfg: DictConfig):
         with torch.no_grad():
             (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
                 auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
-            # Note: task_sampler NOT needed — LoRAGradTrainer uses LongBenchNTPDataset internally
+            # task_sampler for periodic F1 evaluation during training
+            _tokenizer = getattr(memory_evaluator, 'tokenizer', None)
+            task_sampler = make_task_sampler(
+                cfg=cfg, log_prefix=log_prefix, tokenizer=_tokenizer)
 
         # Build LoRATrainerConfig from Hydra cfg
         lora_cfg = LoRATrainerConfig(
@@ -181,6 +184,8 @@ def main(cfg: DictConfig):
             dtype=cfg.get('dtype', 'bfloat16'),
             sft_mode=cfg.get('lora_sft_mode', False),
             train_frac=cfg.get('lora_train_frac', 0.8),
+            val_frac=cfg.get('lora_val_frac', 0.1),
+            max_conditioning_length=cfg.get('max_conditioning_length', 6500),
         )
 
         # Cast backbone to bfloat16 and move to device before LoRA injection.
@@ -200,12 +205,25 @@ def main(cfg: DictConfig):
         # Apply LoRA adapters BEFORE trainer construction (assert in __init__ checks this)
         lora_rank = cfg.get('lora_rank', 8)
         lora_targets = list(cfg.get('lora_target_modules', ['q_proj', 'v_proj']))
-        memory_model.apply_lora_adapters(rank=lora_rank, target_modules=lora_targets)
-        print(f"LoRA applied: rank={lora_rank}, targets={lora_targets}")
+        lora_alpha = cfg.get('lora_alpha', None)
+        lora_dropout = cfg.get('lora_dropout', 0.0)
+        memory_model.apply_lora_adapters(
+            rank=lora_rank, target_modules=lora_targets,
+            lora_alpha=lora_alpha, lora_dropout=lora_dropout,
+        )
+        print(f"LoRA applied: rank={lora_rank}, targets={lora_targets}, "
+              f"alpha={lora_alpha or lora_rank}, dropout={lora_dropout}")
 
         # wandb init (before trainer so run.id is available for artifact contract)
         if cfg.wandb_config.wandb_log and master_process:
             wandb_init(cfg=cfg)
+
+        # Apply the same filter-then-split to task_sampler so that
+        # LoRAGradTrainer._set_split_indices reads identical partitions.
+        task_sampler.apply_train_val_test_split(
+            train_frac=lora_cfg.train_frac, val_frac=lora_cfg.val_frac,
+            max_conditioning_length=lora_cfg.max_conditioning_length,
+            tokenizer=_tokenizer)
 
         # Build trainer — NO torch.no_grad() wrapper so autograd graph survives
         cfg_yaml = OmegaConf.to_yaml(cfg)
@@ -215,6 +233,8 @@ def main(cfg: DictConfig):
             model=memory_model,
             tokenizer=tokenizer,
             evaluation_model=memory_evaluator,
+            task_sampler=task_sampler,
+            memory_policy=memory_policy,
             trainer_config=lora_cfg,
             wandb_config=cfg.wandb_config,
             device=cfg.device,
@@ -224,7 +244,7 @@ def main(cfg: DictConfig):
         trainer.train()
 
     else:
-        # Existing MemoryTrainer path — UNCHANGED, no modifications
+        # MemoryTrainer path (CMA-ES NAMM training / eval)
         with torch.no_grad():
             (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
                 auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
@@ -233,6 +253,17 @@ def main(cfg: DictConfig):
             _tokenizer = getattr(memory_evaluator, 'tokenizer', None)
             task_sampler = make_task_sampler(
                 cfg=cfg, log_prefix=log_prefix, tokenizer=_tokenizer)
+
+            # Apply deterministic train/val/test split (matches LoRA split).
+            # Filter by max_conditioning_length BEFORE splitting so each
+            # partition has proportional representation of usable prompts.
+            train_frac = cfg.get('train_frac', None)
+            val_frac = cfg.get('val_frac', 0.1)
+            if train_frac is not None and train_frac < 1.0:
+                task_sampler.apply_train_val_test_split(
+                    train_frac=train_frac, val_frac=val_frac,
+                    max_conditioning_length=cfg.get('max_conditioning_length', None),
+                    tokenizer=_tokenizer)
 
             trainer = hydra.utils.instantiate(
                 cfg.trainer,

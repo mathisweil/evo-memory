@@ -128,6 +128,13 @@ class GeneralizedLinear(StatelessGeneralizedOperation):
             # this is guaranteed to be 3-dimensional
             input = input.flatten(start_dim=1, end_dim=-2)
 
+        # Ensure weight/bias match input dtype (custom_fwd may cast inputs to
+        # float32 while module parameters remain in bfloat16).
+        if weight.dtype != input.dtype:
+            weight = weight.to(input.dtype)
+        if bias is not None and bias.dtype != input.dtype:
+            bias = bias.to(input.dtype)
+
         if parallel_operations is not None:
             if bias is not None:
                 out = torch.baddbmm(input=bias, batch1=input, batch2=weight)

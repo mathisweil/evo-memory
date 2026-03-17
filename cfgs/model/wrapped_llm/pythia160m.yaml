@@ -1,0 +1,5 @@
+# Stub: this config is always overridden by run-level defaults.
+# Exists only so Hydra can resolve the default reference in hf_evaluator.yaml.
+defaults:
+  - base
+  - _self_
