@@ -1,25 +1,50 @@
 #!/bin/bash
-# TPU restart script — handles preempted spot/preemptible TPU VMs
-# Usage: ./scripts/tpu_restart.sh
+# TPU restart script — handles preempted spot/preemptible and on-demand TPU VMs
+# Usage: ./setup/tpu_restart.sh [--v6e | --v4]  (default: --v6e)
 
 set -euo pipefail
 
-# --- Configuration ---
-TPU_NAME="hyperscale-v6e"
-ZONE="europe-west4-a"
-ACCELERATOR="v6e-8"
-RUNTIME="v2-alpha-tpuv6e"
-SSH_HOST="gcp-tpu-v6e"
+# --- Parse arguments ---
+TPU_TYPE="${1:---v6e}"
+
+case "$TPU_TYPE" in
+    --v6e)
+        TPU_NAME="hyperscale-v6e"
+        ZONE="europe-west4-a"
+        ACCELERATOR="v6e-8"
+        RUNTIME="v2-alpha-tpuv6e"
+        SSH_HOST="gcp-tpu-v6e"
+        CREATE_FLAGS="--spot --preemptible"
+        ;;
+    --v4)
+        TPU_NAME="hyperscale-v4"
+        ZONE="us-central2-b"
+        ACCELERATOR="v4-8"
+        RUNTIME="tpu-vm-tf-2.17.0-pjrt"
+        SSH_HOST="gcp-tpu-v4"
+        CREATE_FLAGS=""
+        ;;
+    *)
+        echo "Usage: $0 [--v6e | --v4]"
+        echo "  --v6e  Spot v6e-8 in europe-west4-a (default)"
+        echo "  --v4   On-demand v4-8 in us-central2-b"
+        exit 1
+        ;;
+esac
+
 SSH_CONFIG="$HOME/.ssh/config"
 GCLOUD="/opt/homebrew/bin/gcloud"
+
+echo "TPU type: $TPU_TYPE ($TPU_NAME in $ZONE, $ACCELERATOR)"
 
 # --- Check current status ---
 echo "Checking TPU status..."
 STATUS=$($GCLOUD compute tpus tpu-vm describe "$TPU_NAME" --zone="$ZONE" --format="get(state)" 2>/dev/null || echo "NOT_FOUND")
+HEALTH=$($GCLOUD compute tpus tpu-vm describe "$TPU_NAME" --zone="$ZONE" --format="get(health)" 2>/dev/null || echo "UNKNOWN")
 
-echo "Status: $STATUS"
+echo "Status: $STATUS  Health: $HEALTH"
 
-if [ "$STATUS" = "READY" ]; then
+if [ "$STATUS" = "READY" ] && [ "$HEALTH" != "UNHEALTHY_MAINTENANCE" ]; then
     IP=$($GCLOUD compute tpus tpu-vm describe "$TPU_NAME" --zone="$ZONE" \
         --format="get(networkEndpoints[0].accessConfig.externalIp)")
     echo "TPU is already running at $IP"
@@ -29,9 +54,9 @@ if [ "$STATUS" = "READY" ]; then
     exit 0
 fi
 
-# --- Delete if exists (PREEMPTED, STOPPED, etc.) ---
+# --- Delete if exists (PREEMPTED, STOPPED, UNHEALTHY, etc.) ---
 if [ "$STATUS" != "NOT_FOUND" ]; then
-    echo "Deleting TPU (state: $STATUS)..."
+    echo "Deleting TPU (state: $STATUS, health: $HEALTH)..."
     $GCLOUD compute tpus tpu-vm delete "$TPU_NAME" --zone="$ZONE" --quiet
     echo "Deleted."
 fi
@@ -42,7 +67,7 @@ $GCLOUD compute tpus tpu-vm create "$TPU_NAME" \
     --zone="$ZONE" \
     --accelerator-type="$ACCELERATOR" \
     --version="$RUNTIME" \
-    --spot --preemptible
+    $CREATE_FLAGS
 
 # --- Get new IP and update SSH config ---
 IP=$($GCLOUD compute tpus tpu-vm describe "$TPU_NAME" --zone="$ZONE" \
