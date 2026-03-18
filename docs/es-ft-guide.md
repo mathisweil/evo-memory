@@ -10,23 +10,23 @@ Our adaptation uses Llama 3.2 1B on Qasper (long-document QA) with smaller popul
 
 ### Original paper parameters vs ours
 
-| Parameter | ES paper (Qiu et al.) | Our setup |
-|---|---|---|
-| **Model** | Qwen 2.5 7B/3B Instruct | Llama 3.2 1B Instruct |
-| **Tasks** | Conciseness, Countdown, MATH | Qasper (long-doc QA) |
-| **population_size** | 30 | 8 |
-| **sigma** | 0.001 | 0.001 |
-| **alpha** | 0.0005 | 0.0005 |
-| **num_iterations** | 500-1000 | 50 |
-| **initial_seed** | 33 | 33 |
-| **noise_mode** | Partially correlated (default) | Correlated |
-| **data_samples** | 200 (Countdown), varies | 150 (train pool) |
-| **mini_batch_size** | All samples evaluated per step | 16 |
-| **max_new_tokens** | 100 (Conciseness), 1024 (Countdown) | 64 |
-| **precision** | bf16 | bf16 |
-| **Reward normalization** | z-score within iteration | z-score within iteration |
-| **Gradient computation** | Layer-by-layer in-place | Same |
-| **Compute** | 4x H100 (accelerated version) | 4x RTX 6000 24GB / TPU v4 |
+| Parameter                | ES paper (Qiu et al.)               | Our setup                 |
+| ------------------------ | ----------------------------------- | ------------------------- |
+| **Model**                | Qwen 2.5 7B/3B Instruct             | Llama 3.2 1B Instruct     |
+| **Tasks**                | Conciseness, Countdown, MATH        | Qasper (long-doc QA)      |
+| **population_size**      | 30                                  | 8                         |
+| **sigma**                | 0.001                               | 0.001                     |
+| **alpha**                | 0.0005                              | 0.0005                    |
+| **num_iterations**       | 500-1000                            | 50                        |
+| **initial_seed**         | 33                                  | 33                        |
+| **noise_mode**           | Partially correlated (default)      | Correlated                |
+| **data_samples**         | 200 (Countdown), varies             | 150 (train pool)          |
+| **mini_batch_size**      | All samples evaluated per step      | 16                        |
+| **max_new_tokens**       | 100 (Conciseness), 1024 (Countdown) | 64                        |
+| **precision**            | bf16                                | bf16                      |
+| **Reward normalization** | z-score within iteration            | z-score within iteration  |
+| **Gradient computation** | Layer-by-layer in-place             | Same                      |
+| **Compute**              | 4x H100 (accelerated version)       | 4x RTX 6000 24GB / TPU v4 |
 
 Key differences: the original paper evaluates ALL data samples per population member per step (200 for Countdown). We subsample 16 per step from a pool of 150 due to compute constraints. The paper also uses much larger models (3-7B vs our 1B).
 
@@ -51,38 +51,38 @@ The key advantage for our setting: ES can optimise through any evaluation pipeli
 
 ### ES hyperparameters (argparse)
 
-| Parameter | Default | Meaning |
-|---|---|---|
-| `--run_name` | (required) | Name for this run (e.g. `cache1024_i50`) |
-| `--experiment` | auto | Existing experiment ID to add to, or creates new |
-| `--method` | auto | `es_namm` or `es_only` (auto-detected from `--namm_checkpoint`) |
-| `--sigma` | `0.001` | Noise scale for weight perturbations |
-| `--alpha` | `0.0005` | ES learning rate (step size for weight update) |
-| `--population_size` | `8` | Number of perturbed models evaluated per iteration |
-| `--num_iterations` | `50` | Total ES iterations |
-| `--noise_mode` | `correlated` | Noise correlation: `correlated` or `iid` |
-| `--initial_seed` | `33` | NumPy random seed for reproducibility |
-| `--mini_batch_size` | `16` | Qasper samples per population member evaluation |
-| `--namm_checkpoint` | `None` | Path to pre-trained NAMM `ckpt.pt`, or `latest` to auto-download from GCS |
-| `--run_config` | `namm_bam_i1_llama32_1b` | Hydra config name for model/task setup |
-| `--batch_size` | config value | GPU inference batch size for the evaluator |
-| `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
-| `--cache_size` | `None` | Override cache size for NAMM eviction |
-| `--train_samples` | `150` | Qasper samples in training pool |
-| `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
-| `--resume_checkpoint` | `None` | Path to checkpoint to resume from |
-| `--gcs` | `True` | Enable GCS experiment management and checkpointing |
-| `--checkpoint_every` | `10` | Rolling checkpoint every M iterations, keep last 2 (0 = final only) |
-| `--save_every` | `0` | Permanent save every N iterations, never deleted (0 = disabled) |
+| Parameter             | Default          | Meaning                                |
+| --------------------- | ---------------- | -------------------------------------- |
+| `--run_name`          | (required)       | Run name (e.g. `cache1024_i50`)        |
+| `--experiment`        | auto             | Experiment ID to add to, or new        |
+| `--method`            | auto             | `es_namm`/`es_only` (auto-detected)   |
+| `--sigma`             | `0.001`          | Noise scale for weight perturbation    |
+| `--alpha`             | `0.0005`         | ES learning rate (step size)           |
+| `--population_size`   | `8`              | Perturbed models per iteration         |
+| `--num_iterations`    | `50`             | Total ES iterations                    |
+| `--noise_mode`        | `correlated`     | `correlated` or `iid`                  |
+| `--initial_seed`      | `33`             | NumPy seed for reproducibility         |
+| `--mini_batch_size`   | `16`             | Samples per pop member eval            |
+| `--namm_checkpoint`   | `None`           | NAMM `ckpt.pt` path, or `latest`       |
+| `--run_config`        | `namm_bam_i1_*`  | Hydra config for model/task            |
+| `--batch_size`        | config value     | GPU inference batch size               |
+| `--filter_by_length`  | `None` (def 6500)| Override Hydra `filter_by_length`      |
+| `--cache_size`        | `None`           | Override NAMM eviction cache size      |
+| `--train_samples`     | `150`            | Qasper samples in training pool        |
+| `--n_examples`        | `10`             | Q/A examples captured in final eval    |
+| `--resume_checkpoint` | `None`           | Checkpoint path to resume from         |
+| `--gcs`               | `True`           | Enable GCS mgmt and checkpointing      |
+| `--checkpoint_every`  | `10`             | Rolling ckpt every M iters (keep 2)    |
+| `--save_every`        | `0`              | Permanent save every N iters (0=off)   |
 
 ### Model/task config (from Hydra)
 
-| Parameter | Default | Meaning |
-|---|---|---|
-| `cache_size` | 1024 | KV-cache budget (tokens kept after eviction) |
-| `memory_policy_fixed_delay` | 256 | Tokens between NAMM eviction calls |
-| `max_new_tokens` | 64 | Max generated tokens per sample. Also filters out samples whose shortest answer exceeds this |
-| `max_position_id` | 6500 (= `filter_by_length`) | Max conditioning window; samples longer than this are dropped |
+| Parameter              | Default | Meaning                             |
+| ---------------------- | ------- | ----------------------------------- |
+| `cache_size`           | 1024    | KV-cache budget (tokens kept)       |
+| `mem_policy_fixed_del` | 256     | Tokens between eviction calls       |
+| `max_new_tokens`       | 64      | Max gen tokens; also filters answers|
+| `max_position_id`      | 6500    | Max window; longer samples dropped  |
 
 ---
 
@@ -216,15 +216,15 @@ Each forward pass runs the full LLaMA inference pipeline (with NAMM eviction if 
 
 ES perturbs **all base LLM parameters** — everything except `memory_policy.*`. For LLaMA 3.2-1B-Instruct, this includes:
 
-| Tensor group | Count | Shape | Total params |
-|---|---|---|---|
-| `model.embed_tokens.weight` | 1 | (128256, 2048) | 262M |
-| `self_attn.{q,k,v,o}_proj.weight` | 4 x 16 layers | (2048, 2048) or GQA variants | ~268M |
-| `mlp.{gate,up,down}_proj.weight` | 3 x 16 layers | (2048, 5632) and transpose | ~541M |
-| `{input,post_attention}_layernorm.weight` | 2 x 16 layers | (2048,) | 65K |
-| `model.norm.weight` | 1 | (2048,) | 2K |
-| `lm_head.weight` | 1 | (128256, 2048) | 262M |
-| **Total** | **147 tensors** | | **~1.24B parameters** |
+| Tensor group                   | Count         | Shape              | Params   |
+| ------------------------------ | ------------- | ------------------ | -------- |
+| `embed_tokens.weight`          | 1             | (128256, 2048)     | 262M     |
+| `self_attn.{q,k,v,o}_proj`    | 4 x 16 layers | (2048, 2048) / GQA | ~268M    |
+| `mlp.{gate,up,down}_proj`     | 3 x 16 layers | (2048, 5632) etc.  | ~541M    |
+| `{in,post_attn}_layernorm`    | 2 x 16 layers | (2048,)            | 65K      |
+| `model.norm.weight`           | 1             | (2048,)            | 2K       |
+| `lm_head.weight`              | 1             | (128256, 2048)     | 262M     |
+| **Total**                     | **147**       |                    | **1.24B**|
 
 Every one of these tensors gets perturbed by `sigma * noise` and then restored after evaluation. The perturbation is applied in the model's native dtype (bfloat16).
 
@@ -234,18 +234,18 @@ Every one of these tensors gets perturbed by `sigma * noise` and then restored a
 
 **Measured (smoke test, single Quadro RTX 6000 24 GB):**
 
-| Config | Time/iter | GPU mem |
-|---|---|---|
-| pop=2, mini_batch=2, bs=8 | ~22s | 11 GB |
+| Config                    | Time/iter | GPU mem |
+| ------------------------- | --------- | ------- |
+| pop=2, mini_batch=2, bs=8 | ~22s      | 11 GB   |
 
 **Extrapolated to full runs:**
 
-| Config | Est. time/iter | Total estimate |
-|---|---|---|
-| pop=8, mini_batch=16, bs=8 | ~12 min | ~10h (50 iter) |
-| pop=8, mini_batch=4, bs=8 | ~3 min | ~2.5h (50 iter) |
-| pop=4, mini_batch=4, bs=8 | ~1.5 min | ~1.3h (50 iter) |
-| pop=8, mini_batch=8, bs=8 | [TODO: measure] | [TODO] |
+| Config                     | Est. time/iter  | Total estimate  |
+| -------------------------- | --------------- | --------------- |
+| pop=8, mini_batch=16, bs=8 | ~12 min         | ~10h (50 iter)  |
+| pop=8, mini_batch=4, bs=8  | ~3 min          | ~2.5h (50 iter) |
+| pop=4, mini_batch=4, bs=8  | ~1.5 min        | ~1.3h (50 iter) |
+| pop=8, mini_batch=8, bs=8  | [TODO: measure] | [TODO]          |
 
 **Logging:** Results are written to `experiments/experiment_N/{es_namm,es_only}/run_name/`:
 - `config.json` — full run configuration

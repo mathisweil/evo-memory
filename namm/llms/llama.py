@@ -33,6 +33,7 @@ from namm.policy import MemoryPolicy
 from utils import empty_gpu_cache, get_all_submodules
 from namm.llms.base import (
     MemoryModelWrapper, MemoryAttention, MemoryDecoderLayer)
+from peft import LoraConfig, get_peft_model
 
 from transformers.modeling_outputs import (
     BaseModelOutputWithPast,
@@ -221,6 +222,49 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         super().swap_memory_policy(new_memory_policy)
         self._setup_tpu_attention_refs()
 
+    def apply_lora_adapters(self, rank=4, target_modules=None,
+                            lora_alpha=None, lora_dropout=0.0):
+        """Inject PEFT LoRA adapters into self.model (LlamaMemoryModel).
+
+        Must be called AFTER WrappedLlamaForCausalLM construction is complete
+        (i.e., after load_partial_state_dict has loaded real base weights).
+        Never call from __init__.
+
+        Forces LoRA parameters to float32 regardless of base model dtype,
+        preventing bfloat16 underflow at ES sigma=0.001.
+        """
+        if target_modules is None:
+            target_modules = ['q_proj', 'v_proj']
+        if lora_alpha is None:
+            lora_alpha = rank
+        peft_config = LoraConfig(
+            r=rank,
+            target_modules=target_modules,
+            lora_alpha=lora_alpha,
+            lora_dropout=lora_dropout,
+            bias='none',
+        )
+        self.model = get_peft_model(self.model, peft_config)
+        # Freeze lm_head: PEFT only freezes self.model's params (the backbone
+        # passed to get_peft_model), not self.lm_head which lives on the outer
+        # WrappedLlamaForCausalLM. Freeze it explicitly so it doesn't leak into
+        # the LoRA param list (it would be bfloat16 and break the float32 check).
+        for p in self.lm_head.parameters():
+            p.requires_grad_(False)
+        # CRITICAL: force float32 on LoRA params regardless of base model dtype.
+        # get_peft_model() on a bfloat16 model produces bfloat16 LoRA weights,
+        # which causes underflow at sigma=0.001. Cast unconditionally.
+        for p in self.model.parameters():
+            if p.requires_grad:
+                p.data = p.data.to(torch.float32)
+        # Store config for checkpoint save/load
+        self._lora_rank = rank
+        self._lora_target_modules = list(target_modules)
+
+    def has_lora_adapters(self):
+        """Return True if apply_lora_adapters() has been called."""
+        return hasattr(self, '_lora_rank')
+
     def move_model_to(self, *args, **kwargs):
         self.model.to(*args, **kwargs)
         self.lm_head.to(*args, **kwargs)
@@ -251,6 +295,7 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
         cache_position: Optional[torch.LongTensor] = None,
         output_queries: bool = False,
         apply_memory_policy: bool = True,
+        skip_lm_head: bool = False,
         limit_new_tokens: Optional[int] = None,
         output_attentions_full_precision: Optional[bool] = None,
         memory_policy_kwargs: Optional[dict] = None,
@@ -346,7 +391,7 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                 max_position_ids = position_ids.max(
                     dim=-1, keepdim=True).values
                 self.set_max_seq_lens(max_position_ids)
-            
+
             split_tokens = torch.split(
                 input_ids,
                 split_size_or_sections=split_lens,
@@ -358,15 +403,19 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                 split_size_or_sections=split_lens,
                 dim=-1,
                 )
-            
+
             if cache_position is not None:
                 split_cache_position = torch.split(
                     cache_position,
                     split_size_or_sections=split_lens,
                     dim=-1,
                     )
-                
+
             num_splits = len(split_tokens)
+            # When output_hidden_states is requested during split processing
+            # (e.g., m4 LoRA training with NAMM), accumulate each split's
+            # last-layer hidden states so the caller gets the full sequence.
+            _accumulated_hidden = [] if output_hidden_states else None
 
             for idx in range(num_splits-1):
                 input_ids = split_tokens[idx]
@@ -393,18 +442,22 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                     return_dict=return_dict,
                     cache_position=cache_position,
                     apply_memory_policy=apply_memory_policy,
+                    skip_lm_head=skip_lm_head,
                     limit_new_tokens=None,
                     output_attentions_full_precision=(
                         output_attentions_full_precision),
                     always_buffer_cache=always_buffer_cache,
                 )
                 past_key_values = curr_outputs.past_key_values
-                
+                if _accumulated_hidden is not None:
+                    # hidden_states[-1] is the last decoder layer's output
+                    _accumulated_hidden.append(curr_outputs.hidden_states[-1])
+
             input_ids = split_tokens[-1]
             position_ids = split_position_ids[-1]
             if cache_position is not None:
                 cache_position = split_cache_position[-1]
-        
+
             num_new_tokens = input_ids.shape[1]
 
             if unspecified_max_seq_lens:
@@ -434,28 +487,44 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
 
 
         hidden_states = outputs[0]
-        if self.config.pretraining_tp > 1:
-            lm_head_slices = self.lm_head.weight.split(
-                self.vocab_size // self.config.pretraining_tp, dim=0)
-            logits = [F.linear(hidden_states, lm_head_slices[i]) 
-                      for i in range(self.config.pretraining_tp)]
-            logits = torch.cat(logits, dim=-1)
-        else:
-            logits = self.lm_head(hidden_states)
-        logits = logits.float()
 
-        loss = None
-        if labels is not None:
-            # Shift so that tokens < n predict n
-            shift_logits = logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
-            # Flatten the tokens
-            loss_fct = CrossEntropyLoss()
-            shift_logits = shift_logits.view(-1, self.config.vocab_size)
-            shift_labels = shift_labels.view(-1)
-            # Enable model parallelism
-            shift_labels = shift_labels.to(shift_logits.device)
-            loss = loss_fct(shift_logits, shift_labels)
+        # If split processing accumulated hidden states from earlier chunks,
+        # prepend them so the caller gets the full [B, seq_len, hidden_dim].
+        if split_processing and _accumulated_hidden is not None and _accumulated_hidden:
+            _accumulated_hidden.append(outputs.hidden_states[-1])
+            full_hidden = torch.cat(_accumulated_hidden, dim=1)
+            # Replace outputs.hidden_states with full sequence version
+            outputs.hidden_states = tuple(
+                list(outputs.hidden_states[:-1]) + [full_hidden])
+            hidden_states = full_hidden
+
+        if skip_lm_head:
+            # Caller will apply lm_head in chunks to avoid OOM.
+            logits = None
+            loss = None
+        else:
+            if self.config.pretraining_tp > 1:
+                lm_head_slices = self.lm_head.weight.split(
+                    self.vocab_size // self.config.pretraining_tp, dim=0)
+                logits = [F.linear(hidden_states, lm_head_slices[i])
+                          for i in range(self.config.pretraining_tp)]
+                logits = torch.cat(logits, dim=-1)
+            else:
+                logits = self.lm_head(hidden_states)
+            logits = logits.float()
+
+            loss = None
+            if labels is not None:
+                # Shift so that tokens < n predict n
+                shift_logits = logits[..., :-1, :].contiguous()
+                shift_labels = labels[..., 1:].contiguous()
+                # Flatten the tokens
+                loss_fct = CrossEntropyLoss()
+                shift_logits = shift_logits.view(-1, self.config.vocab_size)
+                shift_labels = shift_labels.view(-1)
+                # Enable model parallelism
+                shift_labels = shift_labels.to(shift_logits.device)
+                loss = loss_fct(shift_logits, shift_labels)
 
         if apply_memory_policy:
             update_iter = True
