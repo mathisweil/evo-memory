@@ -18,15 +18,15 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 
 - [x] **0.5** Record base model row of the results grid
 
-  | Model | Eviction | cache | qasper |
-  |---|---|---|---|
-  | base | full | full | 14.08 |
-  | base | NAMM | 1024 | 11.65 |
-  | base | NAMM | 3072 | 13.12 |
-  | base | NAMM | 5120 | 14.43 |
-  | base | recency | 1024 | 1.28 |
-  | base | recency | 3072 | 5.05 |
-  | base | recency | 5120 | 10.50 |
+| Model | Eviction | cache | qasper |
+| ----- | -------- | ----- | ------ |
+| base  | full     | full  | 14.08  |
+| base  | NAMM     | 1024  | 11.65  |
+| base  | NAMM     | 3072  | 13.12  |
+| base  | NAMM     | 5120  | 14.43  |
+| base  | recency  | 1024  | 1.28   |
+| base  | recency  | 3072  | 5.05   |
+| base  | recency  | 5120  | 10.50  |
 
 ---
 
@@ -36,15 +36,15 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 
 - [x] **1.2** Evaluate ES-fine-tuned (no NAMM) model under all eviction policies
 
-  | Policy | F1 |
-  |---|---|
-  | Full cache | 30.78 (= es_only final eval) |
-  | NAMM c1024 | 21.06 (post-hoc) |
-  | NAMM c3072 | 28.82 (post-hoc) |
-  | NAMM c5120 | 29.33 (post-hoc) |
-  | Recency c1024 | 1.20 |
-  | Recency c3072 | 8.69 |
-  | Recency c5120 | 20.59 |
+| Policy        | F1                           |
+| ------------- | ---------------------------- |
+| Full cache    | 30.78 (= es_only final eval) |
+| NAMM c1024    | 21.06 (post-hoc)             |
+| NAMM c3072    | 28.82 (post-hoc)             |
+| NAMM c5120    | 29.33 (post-hoc)             |
+| Recency c1024 | 1.20                         |
+| Recency c3072 | 8.69                         |
+| Recency c5120 | 20.59                        |
 
 - [x] **1.3** Record ES-FT (no NAMM) row of the results grid
 
@@ -54,11 +54,11 @@ Smoke tests are done. Environment works. All three pipelines (NAMM eval, NAMM tr
 
 - [x] **2.1** Run ES fine-tuning with frozen NAMM eviction active — 3 runs completed:
 
-  | Run | Baseline F1 | Final F1 |
-  |---|---|---|
-  | es_namm c1024 | 11.65 | 22.53 |
-  | es_namm c3072 | 13.12 | 27.46 |
-  | es_namm c5120 | 14.43 | 31.85 |
+| Run           | Baseline F1 | Final F1 |
+| ------------- | ----------- | -------- |
+| es_namm c1024 | 11.65       | 22.53    |
+| es_namm c3072 | 13.12       | 27.46    |
+| es_namm c5120 | 14.43       | 31.85    |
 
 - [ ] **2.2** Re-run ES+NAMM training to convergence (~1000 iterations)
   Experiment_2 ran only 50 iterations (matching the ES paper's setup for small tests), but the paper uses 500–1000 for full convergence. Resume from experiment_2 checkpoints or start fresh:

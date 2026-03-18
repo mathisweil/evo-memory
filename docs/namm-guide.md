@@ -24,54 +24,77 @@ The scoring network is tiny (hundreds of parameters). The LLaMA model weights ar
 
 ### CMA-ES and training parameters
 
-| Parameter | NAMM paper (Llama 3 8B) | Our setup (LLaMA 3.2-1B-Instruct) | Meaning |
-|---|---|---|---|
-| **Model** | Llama 3 8B (context extended to 32K via NTK-aware RoPE) | LLaMA 3.2-1B-Instruct | Base LLM (frozen during NAMM training) |
-| **Scoring network params** | ~4,000 | ~4,000 | Total learnable parameters |
-| `max_iters` | 300 + 250 + 120 (3 stages) | 200 | CMA-ES generations |
-| `pop_size` | 32 | 8 | Population size (candidates per generation) |
-| `samples_batch_size` | 64 | 16 | Samples evaluated per CMA-ES step |
-| `batch_size` | -- | auto | GPU inference batch size |
-| `cache_size` | 1024 | 1024 | KV-cache budget (tokens kept after eviction) |
-| `memory_policy_fixed_delay` | 512 | 256 | Tokens between eviction calls |
-| `max_new_tokens` | -- | 64 | Max generated tokens per evaluation sample |
-| `elite_ratio` | 0.5 | 0.5 | Top fraction used in CMA mean update |
-| `init_sigma` | 0.65 | 0.065 | Initial CMA-ES step size |
-| `c_m` | 1.0 | 1.0 | Mean update learning rate |
-| `prefer_mean_to_best` | -- | true | Checkpoint the CMA mean, not the best member |
-| `scoring_initializer` | 0 | 0 | Scoring network initialised to all zeros |
-| `filter_by_length` | -- | 6500 | Drop samples longer than this (tokens). Also sets `max_position_id` and `max_position_embeddings` |
-| `max_position_id` | -- | 6500 (= `filter_by_length`) | Max conditioning window; tied to `filter_by_length` |
-| `per_head` | false | false | Shared scoring params across attention heads |
-| `per_layer` | false | false | Shared scoring params across transformer layers |
-| **Benchmarks** | LongBench (36 tasks), InfiniteBench, ChouBun | Qasper (F1) | Evaluation tasks |
-| **Compute** | Not disclosed | 4x RTX 6000 24GB / TPU v4 | Hardware |
+**Paper vs our setup:**
+
+| Parameter              | Paper          | Ours                |
+| ---------------------- | -------------- | ------------------- |
+| **Model**              | Llama 3 8B     | LLaMA 3.2-1B-Inst   |
+| **Scoring params**     | ~4,000         | ~4,000              |
+| `max_iters`            | 670 (3 stages) | 200                 |
+| `pop_size`             | 32             | 8                   |
+| `samples_batch_size`   | 64             | 16                  |
+| `batch_size`           | --             | auto                |
+| `cache_size`           | 1024           | 1024                |
+| `mem_policy_fixed_del` | 512            | 256                 |
+| `max_new_tokens`       | --             | 64                  |
+| `elite_ratio`          | 0.5            | 0.5                 |
+| `init_sigma`           | 0.65           | 0.065               |
+| `c_m`                  | 1.0            | 1.0                 |
+| `prefer_mean_to_best`  | --             | true                |
+| `scoring_initializer`  | 0              | 0                   |
+| `filter_by_length`     | --             | 6500                |
+| `max_position_id`      | --             | 6500                |
+| `per_head`             | false          | false               |
+| `per_layer`            | false          | false               |
+| **Benchmarks**         | LongBench etc. | Qasper (F1)         |
+| **Compute**            | Not disclosed  | 4x RTX 6000 / TPUv4 |
+
+**Parameter meanings:**
+
+| Parameter              | Meaning                              |
+| ---------------------- | ------------------------------------ |
+| `max_iters`            | CMA-ES generations                   |
+| `pop_size`             | Candidates per generation            |
+| `samples_batch_size`   | Samples evaluated per CMA-ES step    |
+| `batch_size`           | GPU inference batch size             |
+| `cache_size`           | KV-cache budget (tokens kept)        |
+| `mem_policy_fixed_del` | Tokens between eviction calls        |
+| `max_new_tokens`       | Max generated tokens per sample      |
+| `elite_ratio`          | Top fraction for CMA mean update     |
+| `init_sigma`           | Initial CMA-ES step size             |
+| `c_m`                  | Mean update learning rate            |
+| `prefer_mean_to_best`  | Checkpoint CMA mean, not best member |
+| `scoring_initializer`  | Init scoring network to all zeros    |
+| `filter_by_length`     | Drop samples > N tokens; sets maxpos |
+| `max_position_id`      | Max conditioning window              |
+| `per_head`             | Shared scoring across attn heads     |
+| `per_layer`            | Shared scoring across layers         |
 
 Key differences from the paper: we use a smaller model (1B vs 8B), smaller population (8 vs 32), fewer samples per step (16 vs 64), and single-stage training (200 iters vs 300+250+120 across 3 incremental stages). The paper also used a much larger update interval (512 vs our 256).
 
-**Note:** `max_new_tokens` also controls answer-length filtering — samples whose shortest answer exceeds `max_new_tokens` (by word-count estimate) are automatically dropped.
+**Note:** `max_new_tokens` also controls answer-length filtering -- samples whose shortest answer exceeds `max_new_tokens` (by word-count estimate) are automatically dropped.
 
 ### BAM scoring network architecture
 
-| Parameter | Value | Meaning |
-|---|---|---|
-| `scoring_attn_hidden_dim` | 32 | Hidden dimension of the attention scoring head |
-| `scoring_attn_num_heads` | 1 | Number of attention heads in scoring network |
-| `scoring_attn_bias` | true | Use bias in scoring attention |
-| `scoring_attn_masking_strategy` | `backward` | Causal masking |
-| `embedding_reduction_mode` | `ema` | Exponential moving average on token embeddings |
-| `embedding_ema_coeff` | 0.99 | EMA decay coefficient |
+| Parameter                       | Value      | Meaning                                        |
+| ------------------------------- | ---------- | ---------------------------------------------- |
+| `scoring_attn_hidden_dim`       | 32         | Hidden dimension of the attention scoring head |
+| `scoring_attn_num_heads`        | 1          | Number of attention heads in scoring network   |
+| `scoring_attn_bias`             | true       | Use bias in scoring attention                  |
+| `scoring_attn_masking_strategy` | `backward` | Causal masking                                 |
+| `embedding_reduction_mode`      | `ema`      | Exponential moving average on token embeddings |
+| `embedding_ema_coeff`           | 0.99       | EMA decay coefficient                          |
 
 ### Token embedding (STFT spectrogram)
 
-| Parameter | Value |
-|---|---|
-| `n_fft` | 32 |
-| `hop_length` | 16 |
-| `window_fn` | Hann, length 32 |
-| `recency_embed_dim` | 8 |
-| `recency_max_freq` | 50000 |
-| `joining_strategy` | `append` |
+| Parameter           | Value           |
+| ------------------- | --------------- |
+| `n_fft`             | 32              |
+| `hop_length`        | 16              |
+| `window_fn`         | Hann, length 32 |
+| `recency_embed_dim` | 8               |
+| `recency_max_freq`  | 50000           |
+| `joining_strategy`  | `append`        |
 
 ---
 
@@ -105,16 +128,19 @@ for iteration in range(max_iters):        # 200 generations
 - Update covariance `C` via rank-1 + rank-mu updates
 - Update step size `sigma` via cumulative step-size adaptation (CSA)
 
-### CMA-ES internal hyperparameters (auto-computed from `pop_size` and `param_size`)
-| Symbol | Formula | Role |
-|---|---|---|
-| `c_sigma` | `(mu_eff + 2) / (n + mu_eff + 5)` | Step-size adaptation rate |
-| `d_sigma` | `1 + 2*max(0, sqrt((mu_eff-1)/(n+1))-1) + c_sigma` | Step-size damping |
-| `c_c` | `(4 + mu_eff/n) / (n + 4 + 2*mu_eff/n)` | Rank-1 path decay |
-| `c_1` | `alpha_cov / ((n+1.3)^2 + mu_eff)` | Rank-1 learning rate |
-| `c_mu` | `min(1-c_1, alpha_cov * (mu_eff - 2 + 1/mu_eff) / ((n+2)^2 + alpha_cov*mu_eff/2))` | Rank-mu learning rate |
+### CMA-ES internal hyperparameters (auto-computed)
 
-Where `n = min(param_size, 40000)` for numerical stability, `alpha_cov = 2`.
+Derived from `pop_size` and `param_size`; `n = min(param_size, 40000)`, `alpha_cov = 2`.
+
+| Symbol    | Role              | Formula                            |
+| --------- | ----------------- | ---------------------------------- |
+| `c_sigma` | Step-size adapt   | `(mu_eff+2)/(n+mu_eff+5)`         |
+| `d_sigma` | Step-size damp    | `1+2*max(0,sqrt(...)−1)+c_sigma`   |
+| `c_c`     | Rank-1 path decay | `(4+mu_eff/n)/(n+4+2*mu_eff/n)`   |
+| `c_1`     | Rank-1 LR         | `alpha_cov/((n+1.3)^2+mu_eff)`    |
+| `c_mu`    | Rank-mu LR        | `min(1−c_1, alpha_cov*(...)/(…))` |
+
+Full formulas: see Hansen 2016 CMA-ES tutorial, Section 3.
 
 ---
 
@@ -142,17 +168,17 @@ Each forward pass processes a long Qasper document (typically 2000-4000 tokens i
 
 **Measured (smoke test, single Quadro RTX 6000 24 GB):**
 
-| Config | Time/iter | GPU mem |
-|---|---|---|
-| pop=2, samples=2, new_tok=16, bs=8 | ~50s | 11 GB |
+| Config                             | Time/iter | GPU mem |
+| ---------------------------------- | --------- | ------- |
+| pop=2, samples=2, new_tok=16, bs=8 | ~50s      | 11 GB   |
 
 **Extrapolated to full run:**
 
-| Config | Est. time/iter | Total estimate |
-|---|---|---|
-| pop=8, samples=16, new_tok=64, bs=8 | ~13 min | ~44h (200 iter) |
-| pop=8, samples=16, new_tok=64, bs=4 | [TODO: measure] | [TODO] |
-| pop=8, samples=16, new_tok=64, bs=1 | [TODO: measure] | [TODO] |
+| Config                              | Est. time/iter  | Total estimate  |
+| ----------------------------------- | --------------- | --------------- |
+| pop=8, samples=16, new_tok=64, bs=8 | ~13 min         | ~44h (200 iter) |
+| pop=8, samples=16, new_tok=64, bs=4 | [TODO: measure] | [TODO]          |
+| pop=8, samples=16, new_tok=64, bs=1 | [TODO: measure] | [TODO]          |
 
 **Notes:**
 - batch_size=8 uses ~11 GB on a 24 GB GPU. This is the sweet spot.

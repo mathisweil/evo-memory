@@ -1,5 +1,6 @@
 import abc
 from typing import Optional
+import torch
 from namm.policy import MemoryPolicy
 
 
@@ -103,6 +104,62 @@ class MemoryModelWrapper(abc.ABC):
 # 
     def are_sync_buffers_frozen(self,):
         return self.memory_policy.are_sync_buffers_frozen()
+
+    def _get_lora_params(self):
+        """Enumerate LoRA-only parameters (requires_grad=True).
+
+        After apply_lora_adapters(), PEFT sets requires_grad=False on all base
+        model parameters and requires_grad=True only on LoRA A/B matrices.
+        This makes requires_grad the authoritative LoRA discriminator.
+
+        Returns:
+            List of parameter tensors (in model.parameters() iteration order).
+            Order is deterministic for a fixed PEFT version — do NOT sort by name.
+        """
+        return [p for p in self.model.parameters() if p.requires_grad]
+
+    def get_lora_params_flat(self):
+        """Return LoRA weights as a new detached CPU float32 flat tensor.
+
+        Returns a copy (not a view). Safe to modify without affecting the model.
+        Returns an empty tensor if no LoRA adapters have been injected.
+        """
+        lora_params = self._get_lora_params()
+        if not lora_params:
+            return torch.tensor([], dtype=torch.float32)
+        return torch.cat([
+            p.detach().cpu().float().flatten() for p in lora_params
+        ])
+
+    def set_lora_params(self, flat_vec):
+        """Restore LoRA weights from a flat float32 vector.
+
+        Casts flat_vec values back to each parameter's dtype before writing,
+        preserving the float32 storage for LoRA while correctly handling
+        devices (writes to wherever the parameter currently lives).
+
+        Args:
+            flat_vec: 1D tensor of length == total LoRA parameter count.
+
+        Raises:
+            ValueError: If flat_vec length does not match total LoRA params.
+        """
+        lora_params = self._get_lora_params()
+        total = sum(p.numel() for p in lora_params)
+        if len(flat_vec) != total:
+            raise ValueError(
+                f"set_lora_params: flat_vec size {len(flat_vec)} != "
+                f"total_lora_params {total}"
+            )
+        offset = 0
+        for p in lora_params:
+            numel = p.numel()
+            p.data.copy_(
+                flat_vec[offset:offset + numel]
+                .reshape(p.shape)
+                .to(dtype=p.dtype, device=p.device)
+            )
+            offset += numel
 
 class MemoryDecoderLayer(abc.ABC):
     

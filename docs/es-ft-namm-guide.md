@@ -12,10 +12,10 @@ This combines two existing works:
 
 NAMM and ES fine-tuning operate on completely different parameters at different levels:
 
-| System | What it optimises | Optimiser | During combined run |
-|---|---|---|---|
-| NAMM | Scoring network (~hundreds of params) | CMA-ES | **Frozen** — pre-trained checkpoint loaded, weights fixed |
-| ES fine-tuning | Base LLM weights (~1.24B params) | NES | **Active** — perturbs and updates all base LLM parameters |
+| System | What it optimises          | Optimiser | During combined run              |
+| ------ | -------------------------- | --------- | -------------------------------- |
+| NAMM   | Scoring net (~100s params) | CMA-ES    | **Frozen** -- weights fixed      |
+| ES FT  | Base LLM weights (~1.24B)  | NES       | **Active** -- perturbs all base  |
 
 The NAMM scoring network is trained first (Stage 1), then frozen. ES fine-tuning (Stage 2) modifies the base LLM weights while the frozen NAMM policy continues to run inside every attention layer, evicting tokens from the KV cache.
 
@@ -47,42 +47,42 @@ Conversely, if the frozen NAMM policy becomes stale as weights drift, we'd expec
 
 ### ES hyperparameters (argparse)
 
-| Parameter | Default | Meaning |
-|---|---|---|
-| `--run_name` | (required) | Name for this run (e.g. `cache1024_i50`) |
-| `--experiment` | auto | Existing experiment ID to add to, or creates new |
-| `--method` | auto | `es_namm` or `es_only` (auto-detected from `--namm_checkpoint`) |
-| `--sigma` | `0.001` | Noise scale for LLM weight perturbations |
-| `--alpha` | `0.0005` | ES learning rate |
-| `--population_size` | `8` | Perturbed models per ES iteration |
-| `--num_iterations` | `50` | Total ES iterations |
-| `--noise_mode` | `correlated` | Noise correlation mode |
-| `--initial_seed` | `33` | NumPy random seed for reproducibility |
-| `--mini_batch_size` | `16` | Qasper samples per evaluation |
-| `--batch_size` | config value | GPU inference batch size for the evaluator |
-| `--filter_by_length` | `None` (config default: 6500) | Override the Hydra `filter_by_length` value. Omit to use config default (6500) |
-| `--train_samples` | `150` | Qasper samples in training pool |
-| `--n_examples` | `10` | Number of Q/A examples to capture during final eval |
-| `--resume_checkpoint` | `None` | Path to checkpoint to resume from |
-| `--gcs` | `True` | Enable GCS experiment management and checkpointing |
-| `--checkpoint_every` | `10` | Save checkpoint to GCS every N iterations |
+| Parameter             | Default          | Meaning                              |
+| --------------------- | ---------------- | ------------------------------------ |
+| `--run_name`          | (required)       | Run name (e.g. `cache1024_i50`)      |
+| `--experiment`        | auto             | Experiment ID to add to, or new      |
+| `--method`            | auto             | `es_namm`/`es_only` (auto-detected) |
+| `--sigma`             | `0.001`          | Noise scale for LLM weight perturb   |
+| `--alpha`             | `0.0005`         | ES learning rate                     |
+| `--population_size`   | `8`              | Perturbed models per iteration       |
+| `--num_iterations`    | `50`             | Total ES iterations                  |
+| `--noise_mode`        | `correlated`     | `correlated` or `iid`                |
+| `--initial_seed`      | `33`             | NumPy seed for reproducibility       |
+| `--mini_batch_size`   | `16`             | Qasper samples per evaluation        |
+| `--batch_size`        | config value     | GPU inference batch size              |
+| `--filter_by_length`  | `None` (def 6500)| Override Hydra `filter_by_length`    |
+| `--train_samples`     | `150`            | Qasper samples in training pool      |
+| `--n_examples`        | `10`             | Q/A examples in final eval           |
+| `--resume_checkpoint` | `None`           | Checkpoint path to resume from       |
+| `--gcs`               | `True`           | Enable GCS mgmt and checkpointing    |
+| `--checkpoint_every`  | `10`             | Save ckpt to GCS every N iters       |
 
 ### NAMM-specific
 
-| Parameter | Value | Meaning |
-|---|---|---|
-| `--namm_checkpoint` | (required) | Path to pre-trained NAMM `ckpt.pt` |
-| `--run_config` | `namm_bam_i1_llama32_1b` | Hydra config (defines cache_size, eviction delay, etc.) |
-| `--cache_size` | `None` | Override cache size for NAMM eviction |
-| `cache_size` | 1024 | KV-cache budget (from Hydra config) |
-| `memory_policy_fixed_delay` | 256 | Tokens between eviction calls (from Hydra config) |
+| Parameter              | Value            | Meaning                         |
+| ---------------------- | ---------------- | ------------------------------- |
+| `--namm_checkpoint`    | (required)       | Path to NAMM `ckpt.pt`         |
+| `--run_config`         | `namm_bam_i1_*`  | Hydra config for eviction etc. |
+| `--cache_size`         | `None`           | Override NAMM cache size        |
+| `cache_size`           | 1024             | KV-cache budget (Hydra)        |
+| `mem_policy_fixed_del` | 256              | Tokens between evictions       |
 
 ### Model/task config (from Hydra)
 
-| Parameter | Default | Meaning |
-|---|---|---|
-| `max_new_tokens` | 64 | Max generated tokens per sample. Also filters out samples whose shortest answer exceeds this |
-| `max_position_id` | 6500 (= `filter_by_length`) | Max conditioning window; samples longer than this are dropped |
+| Parameter         | Default | Meaning                             |
+| ----------------- | ------- | ----------------------------------- |
+| `max_new_tokens`  | 64      | Max gen tokens; also filters answers|
+| `max_position_id` | 6500    | Max window; longer samples dropped  |
 
 ### What the NAMM checkpoint contains
 
@@ -187,35 +187,35 @@ Total forward passes:
 
 ### Cost comparison
 
-| Pipeline | Fwd passes (50 iter) | Cost per fwd pass | Relative cost |
-|---|---|---|---|
-| ES only (full cache) | 6,400 | Full LLaMA inference, no eviction | 1.0x |
-| ES + NAMM | 6,400 | Full LLaMA inference + NAMM scoring/eviction | ~1.05-1.1x [TODO: measure] |
-| NAMM only (200 iter, pop=8) | 25,600 | Full LLaMA inference + NAMM scoring/eviction | -- |
+| Pipeline         | Fwd passes | Cost per fwd pass        | Relative  |
+| ---------------- | ---------- | ------------------------ | --------- |
+| ES only          | 6,400      | LLaMA, no eviction       | 1.0x      |
+| ES + NAMM        | 6,400      | LLaMA + NAMM eviction    | ~1.05-1.1x|
+| NAMM only (200i) | 25,600     | LLaMA + NAMM eviction    | --        |
 
 The NAMM scoring overhead is small (tiny MLP+attention on a few hundred tokens), so combined cost ~ ES-only cost. The dominant cost is always the LLaMA forward pass.
 
 ### Total wall time estimate
 
-| Config | Est. time/iter | Total estimate |
-|---|---|---|
-| pop=8, mini_batch=16, bs=8, NAMM active | ~12-15 min | ~10-13h (50 iter) |
-| pop=8, mini_batch=4, bs=8, NAMM active | ~3-4 min | ~2.5-3.3h (50 iter) |
-| [TODO: measure actual overhead of NAMM vs no-NAMM] | | |
+| Config (NAMM active)       | Est. time/iter | Total (50 iter) |
+| -------------------------- | -------------- | --------------- |
+| pop=8, mb=16, bs=8         | ~12-15 min     | ~10-13h         |
+| pop=8, mb=4, bs=8          | ~3-4 min       | ~2.5-3.3h       |
+| [TODO: measure NAMM delta] |                |                 |
 
 ---
 
 ## Comparison: Standalone vs Combined
 
-| Aspect | NAMM only | ES only | ES + NAMM |
-|---|---|---|---|
-| What's optimised | Scoring network φ | LLM weights θ | LLM weights θ (φ frozen) |
-| Optimiser | CMA-ES | NES | NES |
-| Parameter count | ~hundreds | ~1.24B | ~1.24B (+ frozen φ) |
-| Forward passes/iter | pop x samples = 128 | pop x mini_batch = 128 | pop x mini_batch = 128 |
-| Typical runtime | ~44h (200 iter) | ~10h (50 iter) | ~10-13h (50 iter) |
-| Eviction during eval | Yes (optimised) | Optional (if checkpoint loaded) | Yes (frozen) |
-| Reward signal | F1 reflects eviction quality | F1 reflects LLM quality | F1 reflects LLM+eviction interaction |
+| Aspect           | NAMM only        | ES only          | ES + NAMM          |
+| ---------------- | ---------------- | ---------------- | ------------------ |
+| Optimised        | Scoring net phi  | LLM weights      | LLM (phi frozen)   |
+| Optimiser        | CMA-ES           | NES              | NES                |
+| Param count      | ~hundreds        | ~1.24B           | ~1.24B (+frozen)   |
+| Fwd passes/iter  | pop x samp = 128 | pop x mb = 128   | pop x mb = 128     |
+| Typical runtime  | ~44h (200 iter)  | ~10h (50 iter)   | ~10-13h (50 iter)  |
+| Eviction in eval | Yes (optimised)  | Optional         | Yes (frozen)       |
+| Reward signal    | Eviction quality | LLM quality      | LLM+eviction       |
 
 ---
 
@@ -317,17 +317,17 @@ python scripts/run_namm.py \
 ### 5. Build the 2x3 comparison grid
 Run tests 4 above for both ES-only and ES+NAMM checkpoints. Fill in:
 
-| Model | Eviction | cache | qasper | passage_ret | narrativeqa |
-|---|---|---|---|---|---|
-| base | full | 4096 | 8.30 | 3.59 | 7.32 |
-| base | NAMM | 1024 | 7.00 | 3.58 | 6.91 |
-| base | recency | 1024 | 1.76 | 0.78 | 0.80 |
-| ES-FT (no NAMM) | full | 4096 | [TODO] | [TODO] | [TODO] |
-| ES-FT (no NAMM) | NAMM | 1024 | [TODO] | [TODO] | [TODO] |
-| ES-FT (no NAMM) | recency | 1024 | [TODO] | [TODO] | [TODO] |
-| ES-FT (with NAMM) | NAMM | 1024 | [TODO] | [TODO] | [TODO] |
-| ES-FT (with NAMM) | full | 4096 | [TODO] | [TODO] | [TODO] |
-| ES-FT (with NAMM) | recency | 1024 | [TODO] | [TODO] | [TODO] |
+| Model             | Eviction | cache | qasper | passage_ret | narrativeqa |
+| ----------------- | -------- | ----- | ------ | ----------- | ----------- |
+| base              | full     | 4096  | 8.30   | 3.59        | 7.32        |
+| base              | NAMM     | 1024  | 7.00   | 3.58        | 6.91        |
+| base              | recency  | 1024  | 1.76   | 0.78        | 0.80        |
+| ES-FT (no NAMM)   | full     | 4096  | [TODO] | [TODO]      | [TODO]      |
+| ES-FT (no NAMM)   | NAMM     | 1024  | [TODO] | [TODO]      | [TODO]      |
+| ES-FT (no NAMM)   | recency  | 1024  | [TODO] | [TODO]      | [TODO]      |
+| ES-FT (with NAMM) | NAMM     | 1024  | [TODO] | [TODO]      | [TODO]      |
+| ES-FT (with NAMM) | full     | 4096  | [TODO] | [TODO]      | [TODO]      |
+| ES-FT (with NAMM) | recency  | 1024  | [TODO] | [TODO]      | [TODO]      |
 
 ### 6. Sigma sweep with NAMM active
 ```bash
