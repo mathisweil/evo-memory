@@ -400,15 +400,24 @@ class LoRAGradTrainer:
             shift_hidden = hidden_states[:, :-1, :].contiguous()
             shift_labels = phase2_labels[:, 1:].contiguous().view(-1)
         else:
-            # Single forward pass for non-NAMM mode
-            outputs = self.model(
-                input_ids=input_ids,
-                use_cache=True,
-                apply_memory_policy=False,
-                limit_new_tokens=input_ids.shape[1],
-                output_hidden_states=True,
-                skip_lm_head=True,
-            )
+            # Single forward pass for non-NAMM mode.
+            # Temporarily disable memory_policy_fixed_delay to prevent the
+            # model from splitting the input into chunks (not needed without
+            # NAMM eviction, and split processing requires use_cache=True
+            # which conflicts with gradient checkpointing).
+            saved_delay = getattr(self.model, 'memory_policy_fixed_delay', None)
+            self.model.memory_policy_fixed_delay = None
+            try:
+                outputs = self.model(
+                    input_ids=input_ids,
+                    use_cache=True,
+                    apply_memory_policy=False,
+                    limit_new_tokens=None,
+                    output_hidden_states=True,
+                    skip_lm_head=True,
+                )
+            finally:
+                self.model.memory_policy_fixed_delay = saved_delay
             hidden_states = outputs.hidden_states[-1]
             shift_hidden = hidden_states[:, :-1, :].contiguous()
             shift_labels = labels[:, 1:].contiguous().view(-1)
