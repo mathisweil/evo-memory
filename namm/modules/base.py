@@ -129,7 +129,14 @@ class GeneralizedLinear(StatelessGeneralizedOperation):
             input = input.flatten(start_dim=1, end_dim=-2)
 
         if parallel_operations is not None:
+            # CMA-ES params may be float32 while model runs in bfloat16;
+            # cast params to match input dtype to keep the model dtype
+            # consistent through the rest of the forward pass.
+            if weight.dtype != input.dtype:
+                weight = weight.to(input.dtype)
             if bias is not None:
+                if bias.dtype != input.dtype:
+                    bias = bias.to(input.dtype)
                 out = torch.baddbmm(input=bias, batch1=input, batch2=weight)
             else:
                 out = input @ weight

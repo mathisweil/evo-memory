@@ -188,8 +188,11 @@ class AttentionSpectrogram(TokenEmbedding):
         flat_rel_attn_weights = rel_attn_weights.flatten(
             start_dim=0, end_dim=-2)
 
+        # cuFFT does not support bfloat16; run STFT in float32 and cast
+        # back after extracting real-valued magnitudes/components.
+        orig_dtype = flat_rel_attn_weights.dtype
         flat_attn_stft = torch.stft(
-            input=flat_rel_attn_weights,
+            input=flat_rel_attn_weights.float(),
             n_fft=self.n_fft,
             hop_length=self.stft_stride,
             center=False,
@@ -197,7 +200,7 @@ class AttentionSpectrogram(TokenEmbedding):
             normalized=False,
             onesided=True,
             return_complex=True,
-            window=self.stft_window,
+            window=self.stft_window.float(),
         )
 
         attn_stft = flat_attn_stft.view(
@@ -207,11 +210,10 @@ class AttentionSpectrogram(TokenEmbedding):
         attn_stft = attn_stft.permute(dims=[0, 1, 4, 2, 3])
 
         if self.output_magnitudes:
-            attn_stft = attn_stft.abs()
+            attn_stft = attn_stft.abs().to(orig_dtype)
         else:
-
             attn_stft = torch.view_as_real(attn_stft).flatten(
-                start_dim=-2, end_dim=-1)
+                start_dim=-2, end_dim=-1).to(orig_dtype)
 
         if self._custom_dtype is not None:
             attn_stft = attn_stft.to(dtype=self.ptdtype)
