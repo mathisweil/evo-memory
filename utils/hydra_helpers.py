@@ -46,8 +46,16 @@ class LlamaCompatModel:
                 pass  # Not running under Hydra, relative path is fine
 
         config_file = os.path.join(pretrained_model_name_or_path, 'config.json')
-        with open(config_file) as f:
-            cfg = json.load(f)
+        try:
+            with open(config_file) as f:
+                cfg = json.load(f)
+        except FileNotFoundError:
+            # Not a local path — resolve via HuggingFace Hub
+            from huggingface_hub import hf_hub_download
+            resolved = hf_hub_download(pretrained_model_name_or_path,
+                                       'config.json')
+            with open(resolved) as f:
+                cfg = json.load(f)
 
         # Replace new-style llama3 rope_scaling with None so the NAMM
         # _init_rope falls back to standard LlamaRotaryEmbedding.

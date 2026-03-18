@@ -562,9 +562,13 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                     )
 
         else:
+            if outputs.past_key_values is not None:
+                num_all_tokens = outputs.past_key_values[0][0].shape[-2]
+            else:
+                num_all_tokens = num_new_tokens
             self.memory_policy.update_rotary_offset(
                 num_new_tokens=num_new_tokens,
-                num_all_tokens=outputs.past_key_values[0][0].shape[-2]
+                num_all_tokens=num_all_tokens,
                 )
 
         if not return_dict:

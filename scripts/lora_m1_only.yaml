@@ -1,16 +1,20 @@
-# LoRA gradient fine-tuning default configuration
-# Usage: python scripts/run_lora.py --config scripts/lora_default.yaml --run_name my_run
-# CLI args override values in this file.
+# m1 condition: LoRA-only finetuning on QASPER, no NAMM eviction, full KV cache.
+# Ported from cfgs/run/m1_lora_only.yaml (eda3f19).
+# Token budget anchor for FAIR-01: all other conditions must use the same
+# num_epochs, gradient_accumulation_steps, and task set.
+#
+# Usage:
+#   python scripts/run_lora.py --config scripts/lora_m1_only.yaml --run_name m1_test
 
 # ── Experiment ──────────────────────────────────────────────────────────
-run_name: null          # (required) Name for this run
-experiment: null        # Experiment ID; null = most recent active or create new
-method: lora_grad       # Training method identifier
+run_name: null
+experiment: null
+method: m1_lora_only
 
 # ── LoRA hyperparameters ────────────────────────────────────────────────
 lora_rank: 8
 lora_target_modules: [q_proj, v_proj]
-lora_alpha: null         # null = defaults to rank
+lora_alpha: null
 lora_dropout: 0.0
 learning_rate: 2e-4
 weight_decay: 0.01
@@ -28,22 +32,22 @@ namm_checkpoint: null
 run_config: namm_bam_i1_llama32_1b
 cache_size: null
 
-# ── Data (shared with ES for fair comparison) ───────────────────────────
+# ── Data ────────────────────────────────────────────────────────────────
 filter_by_tokens: null
 filter_answers_by_tokens: 64
 train_split: 0.8
-val_split: 0.1           # LoRA needs val for early stopping
+val_split: 0.1
 split_seed: 42
 
 # ── Evaluation ──────────────────────────────────────────────────────────
 eval_interval: 40
 log_interval: 10
-batch_size_eval: null     # inference batch size for F1 eval
+batch_size_eval: null
 
 # ── Checkpointing & GCS ────────────────────────────────────────────────
 gcs: true
-checkpoint_every: 0       # LoRA saves at eval_interval, not rolling
+checkpoint_every: 0
 resume_checkpoint: null
 
 # ── Advanced ────────────────────────────────────────────────────────────
-override: []            # Extra Hydra config overrides
+override: []

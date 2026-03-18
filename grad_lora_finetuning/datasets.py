@@ -60,9 +60,11 @@ class LongBenchNTPDataset(Dataset):
 
         samples = []
         for task_name in task_names:
+            # Strip 'lb/' prefix added by TaskSampler (HF expects bare name)
+            hf_name = task_name.removeprefix('lb/')
             dataset = load_dataset(
                 'THUDM/LongBench',
-                task_name,
+                hf_name,
                 split='test',
                 trust_remote_code=True,
                 cache_dir=cache_dir,
@@ -155,7 +157,10 @@ class LongBenchSFTDataset(Dataset):
         with open(_LONGBENCH_PROMPT_PATH) as f:
             all_templates = json.load(f)
 
-        for task in task_names:
+        # Strip 'lb/' prefix added by TaskSampler (HF expects bare name)
+        bare_names = [t.removeprefix('lb/') for t in task_names]
+
+        for task in bare_names:
             if task not in all_templates:
                 raise ValueError(
                     f"Task '{task}' not found in {_LONGBENCH_PROMPT_PATH}. "
@@ -166,7 +171,7 @@ class LongBenchSFTDataset(Dataset):
         n_skipped_no_answer = 0
         n_skipped_too_long = 0
 
-        for task_name in task_names:
+        for task_name in bare_names:
             task_template = all_templates[task_name]
             dataset = load_dataset(
                 'THUDM/LongBench',
