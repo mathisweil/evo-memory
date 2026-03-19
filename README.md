@@ -6,7 +6,7 @@ Fine-tuning LLaMA 3.2-1B-Instruct via evolutionary strategies (ES) or LoRA while
 
 ## Setup
 
-### bash / zsh
+### Quick start
 
 ```bash
 git clone https://github.com/mathisweil/evo-memory.git
@@ -15,10 +15,22 @@ cp .env.example .env    # edit: LLM_MODEL_PATH, HF_CACHE_DIR, CUDA_VISIBLE_DEVIC
 bash setup/setup.sh     # auto-detects hardware: TPU → GPU → local (~2 min)
 ```
 
-Hardware flags (override auto-detection): `--tpu`, `--gpu [N]`, `--local`
+### Environment-to-command reference
+
+| Environment | First-time setup | Subsequent shells |
+|---|---|---|
+| **Google Cloud TPU** | `bash setup/setup.sh --tpu` | `source setup/activate.sh` |
+| **CUDA GPU** | `bash setup/setup.sh --gpu` | `source setup/activate.sh` |
+| **CUDA GPU (pin device)** | `bash setup/setup.sh --gpu 2` | `source setup/activate.sh` |
+| **UCL CSH cluster** | `bash setup/setup.sh --ucl-csh` | `source setup/activate.csh` |
+| **Local / CPU-only** | `bash setup/setup.sh --local` | `source setup/activate.sh` |
+| **Fresh remote machine** | `bash /tmp/setup_cmd.sh [flags]` | `source setup/activate.sh` |
+
+Hardware flags (override auto-detection): `--tpu`, `--gpu [N]`, `--local`, `--ucl-csh`
 Optional flags: `--skip-gcs`, `--skip-wandb`, `--noclaude`
 
-**On a fresh remote machine** (clone + setup in one step):
+### Fresh remote machine (clone + setup in one step)
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/main/setup/setup_cmd.sh \
     -o /tmp/setup_cmd.sh
@@ -32,14 +44,6 @@ UCL GPU machines (csh shell — `bash` must be invoked explicitly; use backticks
 ```csh
 bash /tmp/setup_cmd.sh --dir /cs/student/project_msc/2025/dsml/`whoami` --skip-gcs
 ```
-
-**Subsequent shells:**
-```bash
-source setup/activate.sh        # bash/zsh (GPU / local)
-source setup/activate_tpu.sh    # TPU VM
-```
-
----
 
 ### csh / tcsh — UCL GPU machines
 
@@ -57,8 +61,6 @@ huggingface-cli login         # one-time: required for gated LLaMA 3.2
 ```
 
 `setup.sh` is bash-only; HF/wandb/GCS login must be done manually on csh machines.
-
-**Subsequent shells:** `source setup/activate.csh`
 
 ---
 

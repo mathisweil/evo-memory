@@ -1,6 +1,6 @@
 # ─── evo-memory Python dependencies ──────────────────────────────────────────
 # Python 3.10+ required. System requirement: GLIBC >= 2.28 (Ubuntu 20.04+).
-# GPU builds: CUDA 12.1 drivers. For TPU, see setup/setup_tpu.sh.
+# GPU builds: CUDA 12.1 drivers. For TPU, run: bash setup/setup.sh --tpu
 #
 # Install:
 #   pip install -r requirements.txt
