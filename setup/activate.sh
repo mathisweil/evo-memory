@@ -20,10 +20,18 @@ source "${VENV_DIR}/bin/activate"
 # Install/update deps
 pip install -q -r "${REPO_DIR}/requirements.txt"
 
-export HF_HOME="${REPO_DIR}/.hf_cache"
+# Load .env if present (values already in environment take precedence)
+if [ -f "${REPO_DIR}/.env" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "${REPO_DIR}/.env"
+    set +a
+fi
+
+export HF_HOME="${HF_CACHE_DIR:-${REPO_DIR}/.hf_cache}"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
-export GCS_BUCKET="statistical-nlp"
-export GCS_PROJECT="statistical-nlp"
+export GCS_BUCKET="${GCS_BUCKET:-statistical-nlp}"
+export GCS_PROJECT="${GCS_PROJECT:-statistical-nlp}"
 cd "${REPO_DIR}"
 
 echo "Activated: venv=${VENV_DIR}, GPU=${CUDA_VISIBLE_DEVICES}, GCS=${GCS_BUCKET}, cwd=$(pwd)"

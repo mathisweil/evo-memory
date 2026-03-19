@@ -43,19 +43,23 @@ logging.getLogger("transformers.generation.stopping_criteria").setLevel(logging.
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
-for _p in (REPO_ROOT, SCRIPT_DIR):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 from hydra import compose, initialize
-from run_namm import make_eval_model, make_task_sampler
+from namm.run_utils import make_eval_model, make_task_sampler
 from es_finetuning import ESConfig, ESTrainer
 from es_finetuning.device import get_device
-from utils.longbench import get_all_scores
-
-EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
-MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
-
+from namm.evaluation.longbench import get_all_scores
+from experiment_utils import (
+    get_or_create_experiment,
+    get_or_create_experiment_gcs,
+    claim_run_gcs,
+    load_hydra_config,
+    get_base_llm_param_names,
+    EXPERIMENTS_DIR,
+    MANIFEST_PATH,
+)
 
 def _sync_xla_cache_to_gcs():
     """Upload local XLA compilation cache to GCS for persistence across VMs."""
@@ -72,160 +76,6 @@ def _sync_xla_cache_to_gcs():
 
 
 atexit.register(_sync_xla_cache_to_gcs)
-
-
-# ── Local experiment manifest management ──────────────────────────────
-
-def _load_manifest():
-    if os.path.exists(MANIFEST_PATH):
-        with open(MANIFEST_PATH) as f:
-            return json.load(f)
-    return {"experiments": {}}
-
-
-def _save_manifest(manifest):
-    os.makedirs(EXPERIMENTS_DIR, exist_ok=True)
-    with open(MANIFEST_PATH, "w") as f:
-        json.dump(manifest, f, indent=2)
-
-
-def _next_experiment_id(manifest):
-    existing = [int(k.split("_")[1]) for k in manifest["experiments"]
-                if k.startswith("experiment_")]
-    return max(existing, default=0) + 1
-
-
-def get_or_create_experiment(experiment_id=None):
-    """Get an existing active experiment or create a new one.
-
-    If no experiment_id is given, uses the most recent active experiment.
-    If no active experiments exist, creates a new one.
-
-    Returns (experiment_name, manifest).
-    """
-    manifest = _load_manifest()
-
-    if experiment_id is not None:
-        name = f"experiment_{experiment_id}"
-        if name not in manifest["experiments"]:
-            raise ValueError(f"{name} does not exist. Available: "
-                             f"{list(manifest['experiments'].keys())}")
-        status = manifest["experiments"][name]["status"]
-        if status != "active":
-            raise ValueError(f"{name} is '{status}', not 'active'. "
-                             "Cannot add runs to a non-active experiment.")
-        return name, manifest
-
-    # Find most recent active experiment
-    active = [(name, info) for name, info in manifest["experiments"].items()
-              if info["status"] == "active"]
-    if active:
-        # Sort by ID (highest = most recent)
-        active.sort(key=lambda x: int(x[0].split("_")[1]), reverse=True)
-        name = active[0][0]
-        print(f"Using active experiment: {name}")
-        return name, manifest
-
-    # No active experiments — create new one
-    new_id = _next_experiment_id(manifest)
-    name = f"experiment_{new_id}"
-    manifest["experiments"][name] = {
-        "status": "active",
-        "created": datetime.now().isoformat(),
-    }
-    _save_manifest(manifest)
-    print(f"Created new experiment: {name}")
-    return name, manifest
-
-
-# ── GCS experiment manifest management ────────────────────────────────
-
-def get_or_create_experiment_gcs(gcs, experiment_id=None):
-    """GCS-backed version of get_or_create_experiment."""
-
-    if experiment_id is not None:
-        name = f"experiment_{experiment_id}"
-
-        def ensure_exists(manifest):
-            if name not in manifest["experiments"]:
-                raise ValueError(
-                    f"{name} does not exist. Available: "
-                    f"{list(manifest['experiments'].keys())}")
-            status = manifest["experiments"][name]["status"]
-            if status != "active":
-                raise ValueError(
-                    f"{name} is '{status}', not 'active'.")
-            return manifest
-
-        manifest = gcs.update_manifest(ensure_exists)
-        return name, manifest
-
-    # Try to find active experiment or create one
-    manifest, generation = gcs.load_manifest()
-    active = [(n, i) for n, i in manifest["experiments"].items()
-              if i["status"] == "active"]
-    if active:
-        active.sort(key=lambda x: int(x[0].split("_")[1]), reverse=True)
-        name = active[0][0]
-        print(f"Using active experiment: {name}")
-        return name, manifest
-
-    # Create new one
-    existing = [int(k.split("_")[1]) for k in manifest["experiments"]
-                if k.startswith("experiment_")]
-    new_id = max(existing, default=0) + 1
-    name = f"experiment_{new_id}"
-
-    def create(m):
-        m["experiments"][name] = {
-            "status": "active",
-            "created": datetime.now().isoformat(),
-        }
-        return m
-
-    manifest = gcs.update_manifest(create)
-    print(f"Created new experiment: {name}")
-    return name, manifest
-
-
-def claim_run_gcs(gcs, experiment_name, method, run_name):
-    """Atomically register a run as 'running' in the GCS manifest."""
-    vm_id = os.environ.get("VM_ID", socket.gethostname())
-    run_key = f"{method}/{run_name}"
-
-    def updater(manifest):
-        exp = manifest["experiments"].setdefault(experiment_name, {})
-        runs = exp.setdefault("runs", {})
-        if run_key in runs and runs[run_key].get("status") == "running":
-            raise RuntimeError(
-                f"Run {run_key} already claimed by "
-                f"{runs[run_key].get('vm_id', 'unknown')}")
-        runs[run_key] = {
-            "status": "running",
-            "vm_id": vm_id,
-            "started": datetime.now().isoformat(),
-        }
-        return manifest
-
-    gcs.update_manifest(updater)
-    print(f"Claimed run {run_key} on {vm_id}")
-
-
-# ── Hydra config loading ────────────────────────────────────────────────
-
-def load_hydra_config(run_config, extra_overrides=None):
-    extra_overrides = extra_overrides or []
-    with initialize(version_base=None, config_path="../cfgs",
-                    job_name="es_finetuning"):
-        cfg = compose(
-            config_name="config",
-            overrides=[
-                f"run@_global_={run_config}",
-                "wandb_log=false",
-                "wandb_project=es_finetuning",
-            ] + extra_overrides,
-        )
-    return cfg
 
 
 # ── Evaluation function factories ───────────────────────────────────────
@@ -342,20 +192,6 @@ def make_examples_fn(task_sampler, evaluator, n_examples=10):
 
         return examples
     return examples_fn
-
-
-# ── Base LLM parameter detection ────────────────────────────────────────
-
-def get_base_llm_param_names(model):
-    if hasattr(model, "base_model_param_keys"):
-        model_params = dict(model.named_parameters())
-        valid_keys = [k for k in model.base_model_param_keys if k in model_params]
-        if valid_keys:
-            return valid_keys
-    return [
-        name for name, _ in model.named_parameters()
-        if not name.startswith("memory_policy.")
-    ]
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────

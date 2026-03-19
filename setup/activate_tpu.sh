@@ -17,10 +17,18 @@ fi
 
 source "${VENV_DIR}/bin/activate"
 
-export HF_HOME="${REPO_DIR}/.hf_cache"
+# Load .env if present (values already in environment take precedence)
+if [ -f "${REPO_DIR}/.env" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "${REPO_DIR}/.env"
+    set +a
+fi
+
+export HF_HOME="${HF_CACHE_DIR:-${REPO_DIR}/.hf_cache}"
 export PJRT_DEVICE=TPU
-export GCS_BUCKET="statistical-nlp"
-export GCS_PROJECT="statistical-nlp"
+export GCS_BUCKET="${GCS_BUCKET:-statistical-nlp}"
+export GCS_PROJECT="${GCS_PROJECT:-statistical-nlp}"
 export VM_ID="${VM_ID:-$(hostname)}"
 
 # Persist XLA compiled graphs so recompilation is skipped across reboots.

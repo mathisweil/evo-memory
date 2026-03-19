@@ -190,8 +190,8 @@ echo ''
 # ---------------------------------------------------------------------------
 echo '[5/6] Setting up Google Cloud Storage...'
 
-GCS_BUCKET="statistical-nlp"
-GCS_PROJECT="statistical-nlp"
+GCS_BUCKET="${GCS_BUCKET:-statistical-nlp}"
+GCS_PROJECT="${GCS_PROJECT:-statistical-nlp}"
 
 # Install gcloud CLI if not available
 if ! command -v gcloud &>/dev/null; then

@@ -40,7 +40,7 @@ def normalize_zh_answer(s):
     def remove_punc(text):
         cn_punctuation = (
             "！？｡。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》"
-            "「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏.")
+            "「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—''‛""„‟…‧﹏.")
         all_punctuation = set(string.punctuation + cn_punctuation)
         return "".join(ch for ch in text if ch not in all_punctuation)
 
