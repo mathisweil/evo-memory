@@ -3,7 +3,7 @@ defaults:
   - wrapped_llm@_global_: pythia160m
 
 memory_evaluator:
-  _target_: namm.evaluator.MemoryHFEvaluator
+  _target_: namm.evaluation.evaluator.MemoryHFEvaluator
   model: ${pretrained_llm}
   tokenizer: ${tokenizer}
 
