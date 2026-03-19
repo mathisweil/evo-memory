@@ -33,20 +33,18 @@ logging.getLogger("transformers.generation.stopping_criteria").setLevel(logging.
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
-for _p in (REPO_ROOT, SCRIPT_DIR):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 from hydra import compose, initialize
-from run_namm import make_eval_model, make_task_sampler
+from namm.run_utils import make_eval_model, make_task_sampler
 from es_finetuning.device import get_device
 from grad_lora_finetuning import LoRAGradTrainer, LoRATrainerConfig
 from namm.trainer import WandbConfig
-
-# Reuse experiment management from run_es.py
-from run_es import (
+from experiment_utils import (
     get_or_create_experiment, get_or_create_experiment_gcs,
     claim_run_gcs, load_hydra_config, get_base_llm_param_names,
+    EXPERIMENTS_DIR,
 )
 
 EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")

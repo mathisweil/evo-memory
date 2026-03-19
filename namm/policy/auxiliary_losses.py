@@ -1,5 +1,4 @@
 import os
-import pdb
 import copy
 import math
 import numpy as np
@@ -11,16 +10,13 @@ import torch
 from torch import nn
 import torch.utils.checkpoint
 import torch.nn.functional as F
-from torch.cuda.amp import autocast
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
-from transformers import LlamaPreTrainedModel
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
 from .base import MemoryPolicy, ParamMemoryPolicy
 from .base_dynamic import DynamicMemoryPolicy, DynamicParamMemoryPolicy
 
 from omegaconf import OmegaConf, DictConfig
 import hydra
-import numpy as np
 
 
 class MemoryPolicyAuxiliaryLoss(nn.Module, abc.ABC):

@@ -19,7 +19,7 @@ import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
 from namm.llms import MemoryModelWrapper
 
-from namm.evaluator import MemoryHFEvaluator
+from namm.evaluation import MemoryHFEvaluator
 from namm.policy import ParamMemoryPolicy, MemoryPolicyAuxiliaryLoss
 from utils import (
     COLOR, convert_to_dict_of_lists, pop_stats_from_dict_of_lists,

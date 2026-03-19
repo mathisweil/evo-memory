@@ -33,7 +33,7 @@ from utils import CtxCollator
 
 import json
 
-from utils.longbench import build_chat
+from namm.evaluation.longbench import build_chat
 
 
 class MemoryHFEvaluator():

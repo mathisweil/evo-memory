@@ -13,7 +13,7 @@ import copy
 
 import numpy as np
 
-from utils.longbench import get_score
+from namm.evaluation.longbench import get_score
 
 
 def _shortest_answer_words(json_obj):
