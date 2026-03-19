@@ -43,6 +43,8 @@ source setup/activate_tpu.sh    # TPU VM
 
 ### csh / tcsh — UCL GPU machines
 
+> **Note:** `activate.sh` is bash-only and will error in csh. Use `activate.csh` exclusively on UCL machines.
+
 ```csh
 git clone https://github.com/mathisweil/evo-memory.git
 cd evo-memory

@@ -208,7 +208,7 @@ if [ "${MODE}" = tpu ]; then
 else
     echo 'Activate in new shells:'
     echo '  source setup/activate.sh     # bash/zsh'
-    echo '  source setup/activate.csh    # csh/tcsh (UCL GPU machines)'
+    echo '  source setup/activate.csh    # csh/tcsh (UCL) — do NOT use activate.sh in csh'
     echo ''
     echo 'Smoke test:'
     echo '  python scripts/run_es.py --run_name smoke --num_iterations 2 \'
