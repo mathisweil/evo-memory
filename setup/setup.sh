@@ -94,9 +94,14 @@ if [ "${MODE}" = tpu ]; then
     echo ''
 
     echo '[1/4] System dependencies...'
-    sudo apt-get update -qq || echo '  (apt-get update had warnings — continuing)'
-    sudo apt-get install -y -qq libopenblas-dev python3.10-venv >/dev/null 2>&1
-    echo '  Done.'
+    if sudo -n true 2>/dev/null; then
+        sudo apt-get update -qq || echo '  (apt-get update had warnings — continuing)'
+        sudo apt-get install -y -qq libopenblas-dev python3.10-venv >/dev/null 2>&1
+        echo '  Done.'
+    else
+        echo '  No passwordless sudo — skipping apt-get.'
+        echo '  Ensure libopenblas-dev and python3.10-venv are already installed.'
+    fi
     echo ''
 
     echo '[2/4] Python environment (PyTorch + XLA)...'
