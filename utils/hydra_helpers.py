@@ -36,10 +36,14 @@ class LlamaCompatModel:
         if not os.path.isabs(pretrained_model_name_or_path):
             try:
                 from hydra.utils import get_original_cwd
-                pretrained_model_name_or_path = os.path.join(
-                    get_original_cwd(), pretrained_model_name_or_path)
+                base = get_original_cwd()
             except ValueError:
-                pass  # Not running under Hydra, relative path is fine
+                # Running via hydra.initialize() (not @hydra.main) — use CWD
+                base = os.getcwd()
+            candidate = os.path.join(base, pretrained_model_name_or_path)
+            if os.path.isdir(candidate):
+                pretrained_model_name_or_path = candidate
+            # else: treat as HuggingFace repo ID (e.g. "meta-llama/Llama-3.2-1B-Instruct")
 
         config_file = os.path.join(pretrained_model_name_or_path, 'config.json')
         try:
