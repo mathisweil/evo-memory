@@ -32,26 +32,42 @@ class LlamaCompatModel:
     @staticmethod
     def from_pretrained(pretrained_model_name_or_path,
                         max_position_embeddings=None, **kwargs):
+        import json
+        import os
         from transformers import LlamaConfig
 
-        config = AutoConfig.from_pretrained(pretrained_model_name_or_path)
+        # Resolve HF model IDs to a local snapshot dir so we can read
+        # config.json as a raw dict — required to patch rope_scaling *before*
+        # LlamaConfig.__init__ runs its validation (transformers 4.41.x rejects
+        # the llama3 multi-field rope_scaling format).
+        if os.path.isdir(pretrained_model_name_or_path):
+            local_dir = pretrained_model_name_or_path
+        else:
+            from huggingface_hub import snapshot_download
+            local_dir = snapshot_download(
+                pretrained_model_name_or_path, local_files_only=True)
 
-        orig_max = ((config.rope_scaling or {}).get(
+        config_file = os.path.join(local_dir, 'config.json')
+        with open(config_file) as f:
+            cfg = json.load(f)
+
+        orig_max = (cfg.get('rope_scaling') or {}).get(
             'original_max_position_embeddings', 8192)
-            if hasattr(config, 'rope_scaling') else 8192)
 
         if max_position_embeddings is not None:
-            config.max_position_embeddings = max_position_embeddings
+            cfg['max_position_embeddings'] = max_position_embeddings
 
         # Strip rope_scaling only when we stay within the original training
         # range — saves ~400 MB RoPE cache and keeps behaviour identical.
         # For longer contexts, preserve it so _init_rope uses llama3 RoPE.
-        if config.max_position_embeddings <= orig_max:
-            config.rope_scaling = None
+        effective_max = cfg['max_position_embeddings']
+        if effective_max <= orig_max:
+            cfg['rope_scaling'] = None
 
+        config = LlamaConfig(**cfg)
         kwargs.pop('rope_scaling', None)  # prevent conflicting kwarg
         return AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path, config=config, **kwargs)
+            local_dir, config=config, **kwargs)
 
 def initialize_cfg(
         config_path="cfgs",
