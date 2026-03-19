@@ -201,6 +201,31 @@ def main():
         (memory_policy, memory_model, memory_evaluator,
          evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
 
+    # 1b. Swap to Recency (passthrough) policy when NAMM is inactive.
+    # make_eval_model() always instantiates the full NAMM scoring network
+    # from the Hydra config. When namm_active=False, running the full STFT +
+    # scoring pipeline on every generated token during eval is unnecessary
+    # and makes baseline eval ~10-20x slower.
+    if not args.namm_active:
+        from namm.policy.base import Recency
+        recency_policy = Recency(cache_size=args.cache_size)
+        # swap_memory_policy on the evaluator also swaps on its inner model
+        # (memory_model), so one call is sufficient.
+        memory_evaluator.swap_memory_policy(recency_policy)
+        memory_policy = recency_policy
+
+        # The Hydra config (namm_bam_i1_llama32_1b) sets max_memory_length=1024
+        # and batch_size="auto" — tuned for NAMM's small KV cache. Without NAMM
+        # eviction the KV cache grows to the full context length (~6500 tokens),
+        # so auto-detection underestimates memory (calibrated at 1024) and picks
+        # a batch size that OOMs or thrashes during actual generation. Fix both:
+        memory_evaluator.max_memory_length = memory_evaluator.max_conditioning_length
+        if memory_evaluator.batch_size == "auto":
+            memory_evaluator.batch_size = 1
+        print(f"Swapped to Recency policy (namm_active=False, "
+              f"cache_size={args.cache_size}, "
+              f"eval_batch_size={memory_evaluator.batch_size})")
+
     # 2. Load NAMM checkpoint if needed
     if args.namm_checkpoint:
         print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
