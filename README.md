@@ -6,29 +6,46 @@ Fine-tuning LLaMA 3.2-1B-Instruct via evolutionary strategies (ES) or LoRA while
 
 ## Setup
 
-### bash / zsh
+### bash / zsh — GPU (first time)
 
 ```bash
 git clone https://github.com/mathisweil/evo-memory.git
 cd evo-memory
 cp .env.example .env          # edit: LLM_MODEL_PATH, HF_CACHE_DIR, CUDA_VISIBLE_DEVICES
-source setup/activate.sh      # creates venv + installs deps (~2 min first run)
-huggingface-cli login         # required for gated LLaMA 3.2
+bash setup/setup.sh           # venv + deps + HF login + wandb + GCS (~2 min)
 ```
 
-### csh / tcsh (UCL GPU machines)
+Flags: `--gpu N` (pin GPU), `--skip-gcs`, `--skip-wandb`, `--noclaude`
+
+**On a fresh remote machine** (clone + setup in one step):
+```bash
+curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/main/setup/setup_cmd.sh \
+    -o /tmp/setup_cmd.sh
+bash /tmp/setup_cmd.sh                          # default: ~/evo-memory-workspace
+bash /tmp/setup_cmd.sh --dir /my/path           # custom workspace
+bash /tmp/setup_cmd.sh --skip-gcs --noclaude    # skip optional steps
+```
+
+**Subsequent shells:** `source setup/activate.sh`
+
+---
+
+### csh / tcsh — UCL GPU machines
 
 ```csh
 git clone https://github.com/mathisweil/evo-memory.git
 cd evo-memory
+# Add to ~/.cshrc (persists across shells):
 setenv LLM_MODEL_PATH  meta-llama/Llama-3.2-1B-Instruct
 setenv HF_CACHE_DIR    /path/to/hf/cache
 setenv CUDA_VISIBLE_DEVICES 0
 source setup/activate.csh     # creates venv + installs deps (~2 min first run)
-huggingface-cli login
+huggingface-cli login         # one-time: required for gated LLaMA 3.2
 ```
 
-**Subsequent shells:** `source setup/activate.sh` or `source setup/activate.csh`
+`setup.sh` is bash-only; HF/wandb/GCS login must be done manually on csh machines.
+
+**Subsequent shells:** `source setup/activate.csh`
 
 ---
 
@@ -127,10 +144,27 @@ Full list: [`requirements.txt`](requirements.txt). Requires GLIBC >= 2.28 (Ubunt
 
 ## TPU (Google Cloud)
 
+**Bootstrap a new TPU VM** (clone + setup):
 ```bash
-cp .env.example .env   # set GCS_BUCKET, GCS_PROJECT
-bash setup/setup_tpu.sh
-source setup/activate_tpu.sh
+curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/main/setup/setup_tpu_cmd.sh \
+    -o /tmp/setup_tpu_cmd.sh
+bash /tmp/setup_tpu_cmd.sh
+bash /tmp/setup_tpu_cmd.sh --noclaude --skip-wandb   # minimal
+```
+
+**If already cloned:**
+```bash
+cp .env.example .env          # set GCS_BUCKET, GCS_PROJECT
+bash setup/setup_tpu.sh       # venv + PyTorch/XLA + HF login + wandb + GCS
+source setup/activate_tpu.sh  # subsequent shells
+```
+
+Flags: `--skip-gcs`, `--skip-wandb`, `--noclaude`
+
+**Restart a preempted/stopped spot VM:**
+```bash
+bash setup/tpu_restart.sh          # default: v6e-8 in europe-west4-a
+bash setup/tpu_restart.sh --v4     # on-demand v4-8 in us-central2-b
 ```
 
 - First XLA run: ~20 min compilation. Cache synced to/from GCS automatically.
