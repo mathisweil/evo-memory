@@ -4,45 +4,56 @@ Fine-tuning LLaMA 3.2-1B-Instruct via evolutionary strategies (ES) or LoRA while
 
 ---
 
-## Setup
-
-### Quick start
+## Getting Started
 
 ```bash
 git clone https://github.com/mathisweil/evo-memory.git
 cd evo-memory
 cp .env.example .env    # edit: LLM_MODEL_PATH, HF_CACHE_DIR, CUDA_VISIBLE_DEVICES
-bash setup/setup.sh     # auto-detects hardware: TPU → GPU → local (~2 min)
+make setup-local        # or whichever target matches your hardware (~2 min)
 ```
 
-### Environment-to-command reference
+All setup is driven by a single `Makefile`. Run `make help` to see every available target.
 
-| Environment | First-time setup | Subsequent shells |
+### Setup targets
+
+| Target | Hardware | What it does |
 |---|---|---|
-| **Google Cloud TPU** | `bash setup/setup.sh --tpu` | `source setup/activate.sh` |
-| **CUDA GPU** | `bash setup/setup.sh --gpu` | `source setup/activate.sh` |
-| **CUDA GPU (pin device)** | `bash setup/setup.sh --gpu 2` | `source setup/activate.sh` |
-| **UCL CSH cluster** | `bash setup/setup.sh --ucl-csh` | `source setup/activate.csh` |
-| **Local / CPU-only** | `bash setup/setup.sh --local` | `source setup/activate.sh` |
-| **Fresh remote machine** | `bash /tmp/setup_cmd.sh [flags]` | `source setup/activate.sh` |
+| `make setup-local` | CPU or local GPU | Installs venv + all deps from `requirements.txt`. Use this on laptops, workstations, or any machine with optional CUDA. |
+| `make setup-gpu GPU=N` | CUDA GPU (pinned) | Same as `setup-local` but pins `CUDA_VISIBLE_DEVICES` to GPU index `N`. Omit `GPU=` to auto-detect the first device. |
+| `make setup-tpu` | Google Cloud TPU VM | Installs system packages, PyTorch + XLA from the TPU index, syncs the XLA compilation cache from GCS. |
+| `make setup-ucl-gpu` | UCL CSH cluster | Loads the `cuda` environment module, installs deps, generates `activate.csh`. Skips GCS and wandb. |
 
-Hardware flags (override auto-detection): `--tpu`, `--gpu [N]`, `--local`, `--ucl-csh`
-Optional flags: `--skip-gcs`, `--skip-wandb`, `--noclaude`
+### Activation (subsequent shells)
+
+Setup generates thin activation scripts at the repo root. Source the one that matches your shell:
+
+```bash
+source activate.sh          # bash / zsh (auto-detects TPU vs GPU)
+source activate.csh         # csh / tcsh (UCL machines)
+```
+
+### Optional service logins
+
+These are separate targets so you can run them independently or skip the ones you don't need:
+
+| Target | Service | Notes |
+|---|---|---|
+| `make hf-login` | HuggingFace | Required for gated LLaMA 3.2 access. |
+| `make wandb-login` | Weights & Biases | Only needed when `wandb_log=true`. |
+| `make gcs-auth` | Google Cloud Storage | Installs `gcloud` CLI if missing, then authenticates. |
+| `make install-claude` | Claude Code | Installs Node.js via nvm if needed. |
+| `make logins` | All three | Runs `hf-login`, `wandb-login`, and `gcs-auth` together. |
 
 ### Fresh remote machine (clone + setup in one step)
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/main/setup/setup_cmd.sh \
-    -o /tmp/setup_cmd.sh
-bash /tmp/setup_cmd.sh                                    # auto-detect hardware
-bash /tmp/setup_cmd.sh --tpu                              # Google Cloud TPU VM
-bash /tmp/setup_cmd.sh --gpu                              # CUDA GPU VM
-bash /tmp/setup_cmd.sh --dir /my/path --skip-gcs          # custom workspace
-```
+For a brand-new VM with nothing installed, download and run the bootstrap script, then delegate to `make`:
 
-UCL GPU machines (csh shell — `bash` must be invoked explicitly; use backticks for command substitution):
-```csh
-bash /tmp/setup_cmd.sh --dir /cs/student/project_msc/2025/dsml/`whoami` --skip-gcs
+```bash
+git clone https://github.com/mathisweil/evo-memory.git
+cd evo-memory
+make setup-tpu          # or setup-gpu, setup-local
+make logins             # HF + wandb + GCS
 ```
 
 ### csh / tcsh — UCL GPU machines
@@ -52,15 +63,21 @@ bash /tmp/setup_cmd.sh --dir /cs/student/project_msc/2025/dsml/`whoami` --skip-g
 ```csh
 git clone https://github.com/mathisweil/evo-memory.git
 cd evo-memory
+make setup-ucl-gpu
 # Add to ~/.cshrc (persists across shells):
 setenv LLM_MODEL_PATH  meta-llama/Llama-3.2-1B-Instruct
 setenv HF_CACHE_DIR    /path/to/hf/cache
 setenv CUDA_VISIBLE_DEVICES 0
-source setup/activate.csh     # creates venv + installs deps (~2 min first run)
+source activate.csh
 huggingface-cli login         # one-time: required for gated LLaMA 3.2
 ```
 
-`setup.sh` is bash-only; HF/wandb/GCS login must be done manually on csh machines.
+### Housekeeping
+
+| Target | What it removes |
+|---|---|
+| `make clean` | venv, stamp files, XLA cache, generated activation scripts |
+| `make clean-cache` | HF and XLA caches only (keeps venv intact) |
 
 ---
 
@@ -95,7 +112,7 @@ All scripts accept `--config <yaml>` to load defaults from a YAML file; CLI flag
 ### Example commands
 
 ```bash
-# Smoke test (ES, no NAMM)
+# Smoke test (ES, no NAMM) — also available as: make smoke
 python scripts/run_es.py --run_name smoke --num_iterations 2 --population_size 2 --mini_batch_size 2 --no-gcs
 
 # ES + frozen NAMM
@@ -159,16 +176,15 @@ Full list: [`requirements.txt`](requirements.txt). Requires GLIBC >= 2.28 (Ubunt
 
 ## TPU (Google Cloud)
 
-Setup and bootstrap commands are in [Setup](#setup) above — pass `--tpu` to the relevant script.
+Setup and bootstrap commands are in [Getting Started](#getting-started) above — use `make setup-tpu`.
 
 **Restart a preempted/stopped spot VM:**
 ```bash
-bash setup/tpu_restart.sh          # default: v6e-8 in europe-west4-a
-bash setup/tpu_restart.sh --v4     # on-demand v4-8 in us-central2-b
+make tpu-restart-v6e          # spot v6e-8 in europe-west4-a (default)
+make tpu-restart-v4           # on-demand v4-8 in us-central2-b
 ```
 
-- First XLA run: ~20 min compilation. Cache synced to/from GCS automatically.
-- Spot VM preemption: SIGTERM triggers emergency checkpoint upload; re-run with same `--run_name` to resume.
+First XLA run takes ~20 min for compilation. The cache is synced to/from GCS automatically. Spot VM preemption triggers a SIGTERM for emergency checkpoint upload; re-run with the same `--run_name` to resume.
 
 ---
 
