@@ -46,3 +46,5 @@ report.md
 
 # ES smoke test outputs (legacy, now under experiments/)
 es_smoke_test*/
+
+.env
