@@ -303,6 +303,7 @@ class DeepMemoryPolicyComponent(
         
         self._empty_norm_buffers = True
         self._empty_new_norm_buffers = True
+        self._empty_buffers_warned = False
         if output_params.online_output_normalization:
             # online_new contains only for the current iterations
             self._buffers_to_merge_names += [
@@ -771,7 +772,9 @@ class DeepMemoryPolicyComponent(
                         torch.sqrt(variance), 1e-7)
                 
             else:
-                print('WARNING: unable to normalize due to empty buffers')
+                if not self._empty_buffers_warned:
+                    print('WARNING: unable to normalize due to empty buffers')
+                    self._empty_buffers_warned = True
                 
         return reduced_component_output
     
