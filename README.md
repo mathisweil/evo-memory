@@ -11,6 +11,8 @@ Based on the [ES fine-tuning paper](https://arxiv.org/abs/2509.24372) and the
 
 ## Quick Start (any machine with a CUDA 12.1+ GPU)
 
+### bash / zsh
+
 ```bash
 # 1. Clone
 git clone https://github.com/mathisweil/evo-memory.git
@@ -31,6 +33,26 @@ huggingface-cli login
 wandb login
 ```
 
+### csh / tcsh (UCL GPU machines)
+
+```csh
+# 1. Clone
+git clone https://github.com/mathisweil/evo-memory.git
+cd evo-memory
+
+# 2. Set environment variables in your ~/.cshrc (or export before running)
+#    See .env.example for the full list. At minimum:
+setenv LLM_MODEL_PATH  meta-llama/Llama-3.2-1B-Instruct
+setenv HF_CACHE_DIR    /path/to/hf/cache
+setenv CUDA_VISIBLE_DEVICES 0
+
+# 3. Create venv and install dependencies (~2 min on first run)
+source setup/activate.csh
+
+# 4. Log in to HuggingFace
+huggingface-cli login
+```
+
 **Smoke test** — verifies the stack end-to-end in under a minute:
 ```bash
 python scripts/run_es.py \
@@ -43,7 +65,8 @@ python scripts/run_es.py \
 
 **In subsequent shells:**
 ```bash
-source setup/activate.sh
+source setup/activate.sh   # bash/zsh
+source setup/activate.csh  # csh/tcsh
 ```
 
 ---
