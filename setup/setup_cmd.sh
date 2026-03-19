@@ -1,19 +1,26 @@
 #!/usr/bin/env bash
 # =============================================================================
-# GPU VM Bootstrap
+# evo-memory — Bootstrap
 #
 # Clones the repo then runs setup.sh — use this for first-time machine setup.
 #
 # Download and run:
 #   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/main/setup/setup_cmd.sh \
 #       -o /tmp/setup_cmd.sh
-#   bash /tmp/setup_cmd.sh
-#   bash /tmp/setup_cmd.sh --dir ~/my-workspace          # custom directory
-#   bash /tmp/setup_cmd.sh --gpu 2                       # pin GPU
-#   bash /tmp/setup_cmd.sh --branch my-feature           # alternate branch
-#   bash /tmp/setup_cmd.sh --noclaude                    # skip Claude Code
 #
-# UCL GPU machines (dsml MSc):
+#   bash /tmp/setup_cmd.sh                    # auto-detect hardware
+#   bash /tmp/setup_cmd.sh --tpu             # Google Cloud TPU VM
+#   bash /tmp/setup_cmd.sh --gpu             # CUDA GPU VM
+#   bash /tmp/setup_cmd.sh --local           # local / CPU-only
+#
+# Additional options:
+#   --dir PATH     clone into PATH/evo-memory (default: ~/evo-memory-workspace)
+#   --branch NAME  checkout this branch (default: main)
+#   --noclaude     skip Claude Code install
+#   --skip-gcs     skip Google Cloud Storage setup
+#   --skip-wandb   skip Weights & Biases setup
+#
+# UCL GPU machines:
 #   bash /tmp/setup_cmd.sh --dir /cs/student/project_msc/2025/dsml/$(whoami)
 # =============================================================================
 
@@ -23,7 +30,7 @@ REPO_URL="https://github.com/mathisweil/evo-memory.git"
 DEFAULT_BRANCH="main"
 
 # ---------------------------------------------------------------------------
-# Parse arguments — extract --dir and --branch before forwarding rest
+# Parse arguments — extract --dir and --branch; forward everything else
 # ---------------------------------------------------------------------------
 CUSTOM_DIR=""
 BRANCH="${DEFAULT_BRANCH}"
@@ -31,11 +38,11 @@ FORWARD_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --dir)         CUSTOM_DIR="$2"; shift 2 ;;
-        --dir=*)       CUSTOM_DIR="${1#*=}"; shift ;;
-        --branch)      BRANCH="$2"; shift 2 ;;
-        --branch=*)    BRANCH="${1#*=}"; shift ;;
-        *)             FORWARD_ARGS+=("$1"); shift ;;
+        --dir)      CUSTOM_DIR="$2"; shift 2 ;;
+        --dir=*)    CUSTOM_DIR="${1#*=}"; shift ;;
+        --branch)   BRANCH="$2"; shift 2 ;;
+        --branch=*) BRANCH="${1#*=}"; shift ;;
+        *)          FORWARD_ARGS+=("$1"); shift ;;
     esac
 done
 
@@ -43,14 +50,14 @@ WORK_DIR="${CUSTOM_DIR:-${HOME}/evo-memory-workspace}"
 REPO_DIR="${WORK_DIR}/evo-memory"
 
 echo '============================================================'
-echo ' evo-memory — GPU Bootstrap'
+echo ' evo-memory — Bootstrap'
 echo '============================================================'
 echo "Workspace: ${WORK_DIR}"
 echo "Branch:    ${BRANCH}"
 echo ''
 
 # ---------------------------------------------------------------------------
-# Clone or update the repo
+# Clone or update
 # ---------------------------------------------------------------------------
 mkdir -p "${WORK_DIR}"
 

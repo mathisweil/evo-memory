@@ -15,7 +15,7 @@ cp .env.example .env          # edit: LLM_MODEL_PATH, HF_CACHE_DIR, CUDA_VISIBLE
 bash setup/setup.sh           # venv + deps + HF login + wandb + GCS (~2 min)
 ```
 
-Flags: `--gpu N` (pin GPU), `--skip-gcs`, `--skip-wandb`, `--noclaude`
+Flags: `--gpu [N]` (pin GPU), `--local` (CPU-only), `--skip-gcs`, `--skip-wandb`, `--noclaude`
 
 **On a fresh remote machine** (clone + setup in one step):
 ```bash
@@ -146,17 +146,17 @@ Full list: [`requirements.txt`](requirements.txt). Requires GLIBC >= 2.28 (Ubunt
 
 **Bootstrap a new TPU VM** (clone + setup):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/main/setup/setup_tpu_cmd.sh \
-    -o /tmp/setup_tpu_cmd.sh
-bash /tmp/setup_tpu_cmd.sh
-bash /tmp/setup_tpu_cmd.sh --noclaude --skip-wandb   # minimal
+curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/main/setup/setup_cmd.sh \
+    -o /tmp/setup_cmd.sh
+bash /tmp/setup_cmd.sh --tpu
+bash /tmp/setup_cmd.sh --tpu --noclaude --skip-wandb   # minimal
 ```
 
 **If already cloned:**
 ```bash
-cp .env.example .env          # set GCS_BUCKET, GCS_PROJECT
-bash setup/setup_tpu.sh       # venv + PyTorch/XLA + HF login + wandb + GCS
-source setup/activate_tpu.sh  # subsequent shells
+cp .env.example .env           # set GCS_BUCKET, GCS_PROJECT
+bash setup/setup.sh --tpu      # venv + PyTorch/XLA + HF login + wandb + GCS
+source setup/activate_tpu.sh   # subsequent shells
 ```
 
 Flags: `--skip-gcs`, `--skip-wandb`, `--noclaude`
