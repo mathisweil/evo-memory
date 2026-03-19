@@ -136,7 +136,7 @@ dependencies:
     - tcolorpy==0.1.7
     - threadpoolctl==3.6.0
     - tiktoken==0.12.0
-    - tokenizers==0.20.3
+    - tokenizers==0.19.1
     - tomli==2.4.0
     # torch, torchaudio, torchvision installed separately (need PyTorch index for CUDA builds)
     - tqdm==4.67.3
