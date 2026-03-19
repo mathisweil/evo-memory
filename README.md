@@ -28,9 +28,9 @@ bash /tmp/setup_cmd.sh --gpu                              # CUDA GPU VM
 bash /tmp/setup_cmd.sh --dir /my/path --skip-gcs          # custom workspace
 ```
 
-UCL GPU machines:
-```bash
-bash /tmp/setup_cmd.sh --dir /cs/student/project_msc/2025/dsml/$(whoami)
+UCL GPU machines (csh shell — `bash` must be invoked explicitly; use backticks for command substitution):
+```csh
+bash /tmp/setup_cmd.sh --dir /cs/student/project_msc/2025/dsml/`whoami` --skip-gcs
 ```
 
 **Subsequent shells:**

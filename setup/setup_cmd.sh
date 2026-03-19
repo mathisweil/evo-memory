@@ -20,8 +20,8 @@
 #   --skip-gcs     skip Google Cloud Storage setup
 #   --skip-wandb   skip Weights & Biases setup
 #
-# UCL GPU machines:
-#   bash /tmp/setup_cmd.sh --dir /cs/student/project_msc/2025/dsml/$(whoami)
+# UCL GPU machines (csh shell — use backticks for command substitution):
+#   bash /tmp/setup_cmd.sh --dir /cs/student/project_msc/2025/dsml/`whoami` --skip-gcs
 # =============================================================================
 
 set -euo pipefail
