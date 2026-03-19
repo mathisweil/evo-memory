@@ -111,7 +111,7 @@ def parse_args():
     parser.add_argument("--batch_size_eval", type=int, default=None)
 
     # Checkpointing & GCS
-    parser.add_argument("--gcs", action="store_true", default=True)
+    parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--resume_checkpoint", type=str, default=None)
 
     # Extra Hydra overrides

@@ -48,7 +48,7 @@ huggingface-cli login
 
 ## Experiments
 
-All scripts accept `--config <yaml>` to load defaults from a YAML file; CLI flags override the config. Pass `--no-gcs` (ES) or `--gcs false` (LoRA) to disable cloud syncing.
+All scripts accept `--config <yaml>` to load defaults from a YAML file; CLI flags override the config. Pass `--no-gcs` to disable cloud syncing (works for both ES and LoRA).
 
 | Experiment | Script | Config | Required Args | Key Optional Args |
 |---|---|---|---|---|

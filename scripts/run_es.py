@@ -269,7 +269,7 @@ def parse_args():
                         help="Number of Q/A examples to capture")
 
     # GCS and checkpointing
-    parser.add_argument("--gcs", action="store_true", default=True,
+    parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True,
                         help="Enable GCS experiment management and checkpointing")
     parser.add_argument("--checkpoint_every", type=int, default=10,
                         help="Rolling checkpoint every M iterations, keep last 2 (0 = final only)")
