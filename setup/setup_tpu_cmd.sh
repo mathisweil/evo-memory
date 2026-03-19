@@ -1,57 +1,57 @@
 #!/usr/bin/env bash
 # =============================================================================
-# TPU VM Bootstrap: clone repo + run setup_tpu.sh
+# TPU VM Bootstrap
 #
-# Run this on your TPU VM (SSH or VSCode Remote) to get everything set up.
-# Clones the repo, then hands off to setup_tpu.sh for venv + deps.
+# Clones the repo then runs setup_tpu.sh — use this for first-time TPU setup.
 #
-# Usage:
-#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/es-fine-tuning/setup/setup_tpu_cmd.sh -o /tmp/setup_tpu_cmd.sh
+# Download and run:
+#   curl -fsSL https://raw.githubusercontent.com/mathisweil/evo-memory/main/setup/setup_tpu_cmd.sh \
+#       -o /tmp/setup_tpu_cmd.sh
 #   bash /tmp/setup_tpu_cmd.sh
-#   bash /tmp/setup_tpu_cmd.sh --noclaude             # skip Claude Code
-#   bash /tmp/setup_tpu_cmd.sh --dir ~/my-workspace   # custom directory
-#   bash /tmp/setup_tpu_cmd.sh --branch my-feature    # different branch
-#
+#   bash /tmp/setup_tpu_cmd.sh --dir ~/my-workspace    # custom directory
+#   bash /tmp/setup_tpu_cmd.sh --branch my-feature     # alternate branch
+#   bash /tmp/setup_tpu_cmd.sh --noclaude              # skip Claude Code
 # =============================================================================
 
 set -euo pipefail
 
+REPO_URL="https://github.com/mathisweil/evo-memory.git"
+DEFAULT_BRANCH="main"
+
 # ---------------------------------------------------------------------------
-# Parse arguments
+# Parse arguments — extract --dir and --branch before forwarding rest
 # ---------------------------------------------------------------------------
 CUSTOM_DIR=""
-CUSTOM_BRANCH=""
-SETUP_ARGS=()
+BRANCH="${DEFAULT_BRANCH}"
+FORWARD_ARGS=()
 
-for arg in "$@"; do
-    if [ "${prev:-}" = "--dir" ]; then
-        CUSTOM_DIR="$arg"
-    elif [ "${prev:-}" = "--branch" ]; then
-        CUSTOM_BRANCH="$arg"
-    fi
-    prev="$arg"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dir)         CUSTOM_DIR="$2"; shift 2 ;;
+        --dir=*)       CUSTOM_DIR="${1#*=}"; shift ;;
+        --branch)      BRANCH="$2"; shift 2 ;;
+        --branch=*)    BRANCH="${1#*=}"; shift ;;
+        *)             FORWARD_ARGS+=("$1"); shift ;;
+    esac
 done
 
-WORK_DIR="${CUSTOM_DIR:-$HOME/FT-NAMM}"
-BRANCH="${CUSTOM_BRANCH:-es-fine-tuning}"
-REPO_URL="https://github.com/mathisweil/evo-memory.git"
+WORK_DIR="${CUSTOM_DIR:-${HOME}/evo-memory-workspace}"
 REPO_DIR="${WORK_DIR}/evo-memory"
 
 echo '============================================================'
-echo ' TPU VM Bootstrap'
+echo ' evo-memory — TPU Bootstrap'
 echo '============================================================'
-echo ''
 echo "Workspace: ${WORK_DIR}"
 echo "Branch:    ${BRANCH}"
 echo ''
 
 # ---------------------------------------------------------------------------
-# Clone or update repo
+# Clone or update the repo
 # ---------------------------------------------------------------------------
 mkdir -p "${WORK_DIR}"
 
 if [ -d "${REPO_DIR}" ]; then
-    echo 'Repo already exists, pulling latest...'
+    echo 'Repo already exists — pulling latest...'
     cd "${REPO_DIR}"
     git fetch origin
     git checkout "${BRANCH}"
@@ -64,16 +64,6 @@ fi
 echo ''
 
 # ---------------------------------------------------------------------------
-# Forward to setup_tpu.sh (strip --dir and --branch from args)
+# Delegate to setup_tpu.sh (all remaining args forwarded)
 # ---------------------------------------------------------------------------
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --dir) shift 2 ;;
-        --dir=*) shift ;;
-        --branch) shift 2 ;;
-        --branch=*) shift ;;
-        *) SETUP_ARGS+=("$1"); shift ;;
-    esac
-done
-
-exec bash "${REPO_DIR}/setup/setup_tpu.sh" "${SETUP_ARGS[@]+"${SETUP_ARGS[@]}"}"
+exec bash "${REPO_DIR}/setup/setup_tpu.sh" "${FORWARD_ARGS[@]+"${FORWARD_ARGS[@]}"}"
