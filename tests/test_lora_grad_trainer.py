@@ -29,23 +29,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # ---------------------------------------------------------------------------
 
 MODEL_NAME = "meta-llama/Llama-3.2-1B"
-HF_CACHE = "/cs/student/project_msc/2025/csml/gmaralla/.hf_cache"
+HF_CACHE = os.environ.get("HF_CACHE_DIR", None)
 # Local snapshot path — LlamaCompatModel reads config.json from here to patch rope_scaling
-LOCAL_MODEL_PATH = (
-    "/cs/student/project_msc/2025/csml/gmaralla/.hf_cache/hub/"
-    "models--meta-llama--Llama-3.2-1B/snapshots/"
-    "4e20de362430cd3b72f300e6b0f18e50e7166e08"
-)
+# Set LLM_MODEL_PATH env var to a local snapshot directory if available.
+LOCAL_MODEL_PATH = os.environ.get("LLM_MODEL_PATH", MODEL_NAME)
 DEVICE = "cuda"
 LORA_RANK = 8
 LORA_TARGETS = ["q_proj", "v_proj"]
 
-NAMM_CKPT = (
-    "/cs/student/project_msc/2025/csml/gmaralla/NAMM_implementation/"
-    "exp_local/memory_evolution_hf/Llama-3.2-1B/NAMM/attn-spec-norm/bam/"
-    "binary-1024cs/qasper-cma-es-p8-rMeanTrue-shared-8pop-16qs-256fixDel-"
-    "llama32-1b-stage1/1337/ckpt.pt"
-)
+# Set NAMM_CKPT env var to a trained NAMM checkpoint for m4 tests.
+NAMM_CKPT = os.environ.get("NAMM_CKPT", None)
 
 # Module-level skip guard: all tests are no-ops on non-GPU machines.
 pytestmark = pytest.mark.skipif(

@@ -11,7 +11,7 @@ Usage example:
         task_names=['qasper'],
         tokenizer=tokenizer,
         max_seq_len=3500,
-        cache_dir='/cs/student/project_msc/2025/csml/gmaralla/.hf_cache',
+        cache_dir=None,  # set via HF_CACHE_DIR env var or Hydra config
     )
     collate_fn = partial(ntp_pad_collate_fn, pad_token_id=tokenizer.pad_token_id, max_seq_len=3500)
     loader = torch.utils.data.DataLoader(

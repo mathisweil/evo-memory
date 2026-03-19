@@ -31,18 +31,9 @@ SKIP_NO_CUDA = pytest.mark.skipif(
 )
 
 HF_MODEL_ID = "meta-llama/Llama-3.2-1B"
-HF_CACHE = "/cs/student/project_msc/2025/csml/gmaralla/.hf_cache"
-LOCAL_MODEL_PATH = (
-    "/cs/student/project_msc/2025/csml/gmaralla/.hf_cache/hub/"
-    "models--meta-llama--Llama-3.2-1B/snapshots/"
-    "4e20de362430cd3b72f300e6b0f18e50e7166e08"
-)
-NAMM_CKPT = (
-    "/cs/student/project_msc/2025/csml/gmaralla/NAMM_implementation/"
-    "exp_local/memory_evolution_hf/Llama-3.2-1B/NAMM/attn-spec-norm/bam/"
-    "binary-1024cs/qasper-cma-es-p8-rMeanTrue-shared-8pop-16qs-256fixDel-"
-    "llama32-1b-stage1/1337/ckpt.pt"
-)
+HF_CACHE = os.environ.get("HF_CACHE_DIR", None)
+LOCAL_MODEL_PATH = os.environ.get("LLM_MODEL_PATH", HF_MODEL_ID)
+NAMM_CKPT = os.environ.get("NAMM_CKPT", None)
 
 
 def _build_wrapped_llama():

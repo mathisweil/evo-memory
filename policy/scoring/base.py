@@ -17,12 +17,12 @@ from torch.cuda.amp import autocast
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 from transformers import LlamaPreTrainedModel
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
-from .base import MemoryPolicy, ParamMemoryPolicy
-from .base_dynamic import (
-    DynamicMemoryPolicy, DynamicParamMemoryPolicy, 
+from ..base import MemoryPolicy, ParamMemoryPolicy
+from ..base_dynamic import (
+    DynamicMemoryPolicy, DynamicParamMemoryPolicy,
     RecencyParams, AttentionParams, threshold_score_idxs
     )
-from  .base_deep_components import (
+from ..components import (
     ScoringNetwork, TokenEmbedding, SelectionNetwork, wrap_torch_initializer,
     ComponentOutputParams)
 from ops import (

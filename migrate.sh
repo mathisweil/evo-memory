@@ -222,6 +222,8 @@ REPLACEMENTS = [
     ("from policy.deep_selection",            "from policy.selection"),
     ("from policy.base_deep_components",      "from policy.components"),
     # ── policy sub-module renames — relative (within policy/ package) ─────
+    # NOTE: some source files have irregular double-space "from  .foo" — catch both
+    ("from  .base_deep_components",      "from .components"),
     ("from .base_deep_components",       "from .components"),
     ("from .deep_embedding_spectogram",  "from .embedding.spectogram"),
     ("from .deep_embedding_shared",      "from .embedding.shared"),
@@ -254,6 +256,48 @@ for path in sorted(Path(".").rglob("*.py")):
 for f in changed:
     print(f"  updated {f}")
 print(f"\n  {len(changed)} file(s) modified")
+
+# ── Phase 6b: fix parent-relative imports for files moved INTO sub-packages ──
+# Files that moved from policy/ into policy/embedding/ or policy/scoring/ still
+# have single-dot imports (e.g. "from .base import") that now incorrectly resolve
+# within the sub-package instead of the parent.  Fix them to double-dot ("from
+# ..base import").  Only touch files in these two sub-directories.
+SUBPKG_PARENT_REFS = [
+    "from .base import",
+    "from .base_dynamic import",
+    "from .base_dynamic ",
+    "from .components import",
+    "from .shared import SynchronizableBufferStorage",
+]
+subpkg_dirs = [Path("policy/embedding"), Path("policy/scoring")]
+subpkg_changed = []
+for d in subpkg_dirs:
+    for path in sorted(d.glob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        text = path.read_text(encoding="utf-8")
+        updated = text
+        for pat in SUBPKG_PARENT_REFS:
+            updated = updated.replace(pat, pat.replace("from .", "from ..", 1))
+        if updated != text:
+            path.write_text(updated, encoding="utf-8")
+            subpkg_changed.append(str(path))
+
+# Also fix self-referencing "from .embedding.shared" for files already IN
+# policy/embedding/ — they should use "from .shared"
+for path in sorted(Path("policy/embedding").glob("*.py")):
+    if path.name == "__init__.py":
+        continue
+    text = path.read_text(encoding="utf-8")
+    updated = text.replace("from .embedding.shared", "from .shared")
+    if updated != text:
+        path.write_text(updated, encoding="utf-8")
+        if str(path) not in subpkg_changed:
+            subpkg_changed.append(str(path))
+
+for f in subpkg_changed:
+    print(f"  fixed parent refs: {f}")
+print(f"\n  {len(subpkg_changed)} sub-package file(s) patched")
 PYEOF
 fi
 

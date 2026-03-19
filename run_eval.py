@@ -25,7 +25,7 @@ EVAL_WANDB_GROUP = 'Llama-3.2-1B/grad-lora-study'
 EVAL_WANDB_PROJECT = 'memory_evolution_hf'
 EVAL_TASKS = ['qasper', 'narrativeqa', 'passage_retrieval_en']
 EVAL_METRICS = ['qa_f1', 'qa_f1', 'retrieval_f1']   # one per task
-HF_CACHE = '/cs/student/project_msc/2025/csml/gmaralla/.hf_cache'
+HF_CACHE = os.environ.get('HF_CACHE_DIR', None)
 # ─────────────────────────────────────────────────────────────────────────────
 
 VALID_METHODS = ['base', 'm1', 'm1_sft', 'm2', 'm3', 'm4_frozen', 'm4_iterative']

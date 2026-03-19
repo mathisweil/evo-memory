@@ -21,7 +21,7 @@ from .base_dynamic import (
     DynamicMemoryPolicy, DynamicParamMemoryPolicy, 
     RecencyParams, AttentionParams, threshold_score_idxs
     )
-from  .base_deep_components import SelectionNetwork, ComponentOutputParams
+from .components import SelectionNetwork, ComponentOutputParams
 
 
 class DynamicSelection(SelectionNetwork):

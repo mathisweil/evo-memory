@@ -21,7 +21,7 @@ Usage:
         seed=1337,
         max_seq_len=3500,
         task_names=['qasper', 'narrativeqa', 'passage_retrieval_en'],
-        cache_dir='/cs/student/project_msc/2025/csml/gmaralla/.hf_cache',
+        cache_dir=None,  # set via HF_CACHE_DIR env var or Hydra config
         num_epochs=3,
         batch_size=1,
         gradient_accumulation_steps=16,
