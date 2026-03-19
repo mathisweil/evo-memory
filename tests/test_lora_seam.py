@@ -55,9 +55,9 @@ def _build_wrapped_llama():
     with transformers 4.41.x which rejects the llama3 rope_type format.
     Uses Recency(cache_size=None) as the no-eviction passthrough policy.
     """
-    from utils_hydra import LlamaCompatModel
-    from memory_llms.llama import WrappedLlamaForCausalLM
-    from memory_policy import Recency
+    from utils.hydra import LlamaCompatModel
+    from models.llama import WrappedLlamaForCausalLM
+    from policy import Recency
 
     # Load base model in bfloat16 (matches training dtype)
     base = LlamaCompatModel.from_pretrained(

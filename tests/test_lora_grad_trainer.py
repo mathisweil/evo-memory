@@ -65,9 +65,9 @@ def _build_wrapped_llama():
     transformers 4.41.x which only accepts the old {type, factor} format.
     Uses Recency(cache_size=None) as the no-eviction passthrough policy.
     """
-    from utils_hydra import LlamaCompatModel
-    from memory_llms.llama import WrappedLlamaForCausalLM
-    from memory_policy import Recency
+    from utils.hydra import LlamaCompatModel
+    from models.llama import WrappedLlamaForCausalLM
+    from policy import Recency
 
     base = LlamaCompatModel.from_pretrained(
         LOCAL_MODEL_PATH,
@@ -86,7 +86,7 @@ def _build_wrapped_llama():
 
 def _make_trainer_config(tmp_out_dir, gradient_accumulation_steps=1):
     """Return a minimal LoRATrainerConfig for testing."""
-    from lora_grad_trainer import LoRATrainerConfig
+    from training.lora_trainer import LoRATrainerConfig
 
     return LoRATrainerConfig(
         out_dir=tmp_out_dir,
@@ -113,7 +113,7 @@ def _make_trainer_config(tmp_out_dir, gradient_accumulation_steps=1):
 
 def _make_wandb_config():
     """Return a WandbConfig with logging disabled."""
-    from memory_trainer import WandbConfig
+    from training.namm_trainer import WandbConfig
 
     return WandbConfig(
         wandb_log=False,
@@ -141,8 +141,8 @@ def lora_trainer_fixture(tmp_path_factory):
 
     from functools import partial
     from transformers import AutoTokenizer
-    from lora_grad_trainer import LoRAGradTrainer
-    from lora_ntp_dataset import LongBenchNTPDataset, ntp_pad_collate_fn
+    from training.lora_trainer import LoRAGradTrainer
+    from training.datasets.ntp import LongBenchNTPDataset, ntp_pad_collate_fn
 
     tmp_out = str(tmp_path_factory.mktemp("lora_trainer_out"))
 
@@ -349,10 +349,10 @@ def test_checkpoint_resume(lora_trainer_fixture, tmp_path):
       - step_num returned by _load_ckpt matches what was saved
       - LoRA weights match bit-for-bit after load
     """
-    from lora_grad_trainer import LoRAGradTrainer
+    from training.lora_trainer import LoRAGradTrainer
     from functools import partial
     from transformers import AutoTokenizer
-    from lora_ntp_dataset import ntp_pad_collate_fn
+    from training.datasets.ntp import ntp_pad_collate_fn
 
     trainer, batch, lora_params = lora_trainer_fixture
 

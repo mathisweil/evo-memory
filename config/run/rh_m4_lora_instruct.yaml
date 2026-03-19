@@ -1,0 +1,84 @@
+# @package _global_
+#
+# REPLICATION of rhautier's m4 LoRA experiment using giacommo's LoRA trainer.
+# m4: LoRA with NAMM active (frozen eviction policy).
+# Requires a trained NAMM checkpoint — update init_from path.
+# Key differences from giacommo's m4_frozen.yaml:
+#   - Uses instruct model (llama32-1b-instruct)
+#   - Matches rhautier's hyperparameters where possible
+
+defaults:
+  - override /trainer@_global_: lora_grad
+  - override /model/wrapped_llm@_global_: llama32-1b-instruct
+  - override /task@_global_: rh_multi_qa
+  - override /policy/deep_embedding@_global_: attn_spec_norm
+  - override /policy/deep_scoring@_global_: bam
+  - override /policy/deep_selection@_global_: binary
+  - override /evolution@_global_: dummy
+  - _self_
+
+trainer_type: lora_grad
+lora_method: m4_frozen
+
+# Context window: must cover max_seq_len=6600 (rhautier uses 6500 conditioning)
+max_position_id: 8192
+max_conditioning_length: 6500
+
+# Evaluation: cap batch size for long prompts (6500 tokens OOMs at batch=63)
+eval_max_batch_size: 4
+batch_size: 1                          # fixed, not "auto" (auto detection breaks with NAMM pop dims)
+
+# Generation limits for evaluation (rhautier uses 64)
+max_new_tokens: 64
+max_gen_tokens: 64
+
+# NAMM is active and frozen during LoRA training
+lora_namm_active: true
+cache_size: 1024                      # rhautier uses 1024 (giacommo default: 128)
+pop_size: 1                            # frozen NAMM: only 1 param set, not a CMA-ES population
+per_layer: false                       # checkpoint was trained with shared (not per-layer) params
+memory_policy_fixed_delay: 256         # checkpoint: 256 — tokens between cache evictions (must be divisible by hop_length=16)
+
+# NAMM architecture params — must match the checkpoint's config exactly
+# Embedding (spectrogram) params
+embedding_reduction_mode: ema          # checkpoint: ema (giacommo default: null) — CRITICAL for shape
+embedding_ema_coeff: 0.99              # checkpoint: 0.99 (giacommo default: 0.975)
+start_recency_from: 0                  # checkpoint: 0 (giacommo default: 1)
+window_fn:                             # checkpoint: hann_window
+  _target_: utils.hydra.torch.hann_window
+  window_length: ${n_fft}
+  periodic: true
+# Scoring network params
+scoring_attn_num_heads: 1              # checkpoint: 1 (giacommo default: 4)
+scoring_attn_bias: true                # checkpoint: true (giacommo default: false)
+scoring_attn_masking_strategy: backward  # checkpoint: backward (giacommo default: null)
+scoring_reduction_mode: null           # checkpoint: null (giacommo default: ema)
+
+# UPDATE THIS to your trained NAMM checkpoint:
+init_from: exp_local/memory_evolution_hf/Llama-3.2-1B-Instruct/namm-replication/rh-instruct-namm-multi-qa-seed1337/1337/ckpt.pt
+
+# --- rhautier's hyperparameters ---
+lora_lr: 1.0e-4                      # rhautier: 1e-4 for m4 (lower for NAMM stability)
+lora_num_epochs: 3
+lora_max_seq_len: 6600                # match rhautier's seq len
+lora_gradient_accumulation_steps: 16
+lora_alpha: 16                        # rhautier: 16 (giacommo default: rank=8)
+lora_dropout: 0.05                    # rhautier: 0.05 (giacommo default: 0.0)
+eval_interval: 25                     # rhautier: every 25 steps (giacommo default: 40)
+# Multi-task training (matching rhautier's instruct NAMM setup)
+lora_task_names:
+  - qasper
+  - multifieldqa_en
+  - hotpotqa
+  - 2wikimqa
+# 80/10/10 train/val/test split (same as NAMM + m1 for fair comparison)
+lora_train_frac: 0.8
+lora_val_frac: 0.1
+# SFT mode: answer-only loss masking (matches rhautier) + enables train_frac split
+lora_sft_mode: true
+
+# wandb
+wandb_run_name: rh-m4-frozen-cs1024-instruct-seed${seed}
+wandb_group_name: Llama-3.2-1B-Instruct/lora-replication
+wandb_project: memory_evolution_hf
+wandb_log: true

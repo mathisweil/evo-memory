@@ -80,7 +80,7 @@ def load_model_from_ckpt(ckpt_path: str, device: str, method: str, artifact_dir:
     # --- Lazy imports to keep 'python run_eval.py --help' fast and import-safe ---
     import yaml
     from hydra.core.global_hydra import GlobalHydra
-    from utils_hydra import initialize_cfg
+    from utils.hydra import initialize_cfg
     from main import make_eval_model, make_task_sampler
 
     # 1. Read saved trainer config from artifact_dir/config.yaml
