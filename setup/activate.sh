@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# bash/zsh ONLY — csh/tcsh users (UCL): source setup/activate.csh
+#
 # Source this to activate the environment and install deps:
 #   source setup/activate.sh
 #
