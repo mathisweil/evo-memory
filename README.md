@@ -1,181 +1,147 @@
-# evo-memory — NAMM + ES / LoRA Fine-Tuning
+# evo-memory
 
-Fine-tuning LLaMA 3.2-1B-Instruct weights via evolutionary strategies (ES) or
-gradient-based LoRA while [NAMM](https://arxiv.org/abs/2410.13166)'s trained
-eviction policy manages the KV cache.
-
-Based on the [ES fine-tuning paper](https://arxiv.org/abs/2509.24372) and the
-[NAMM paper](https://arxiv.org/abs/2410.13166).
+Fine-tuning LLaMA 3.2-1B-Instruct via evolutionary strategies (ES) or LoRA while [NAMM](https://arxiv.org/abs/2410.13166) manages the KV cache.
 
 ---
 
-## Quick Start (any machine with a CUDA 12.1+ GPU)
+## Setup
 
 ### bash / zsh
 
 ```bash
-# 1. Clone
 git clone https://github.com/mathisweil/evo-memory.git
 cd evo-memory
-
-# 2. Configure environment
-cp .env.example .env
-# Edit .env — set LLM_MODEL_PATH, HF_CACHE_DIR, CUDA_VISIBLE_DEVICES
-# GCS_BUCKET / GCS_PROJECT only needed for TPU or cloud experiments
-
-# 3. Create venv and install dependencies (~2 min on first run)
-source setup/activate.sh
-
-# 4. Log in to HuggingFace (required for gated LLaMA 3.2 model)
-huggingface-cli login
-
-# 5. (Optional) Log in to Weights & Biases
-wandb login
+cp .env.example .env          # edit: LLM_MODEL_PATH, HF_CACHE_DIR, CUDA_VISIBLE_DEVICES
+source setup/activate.sh      # creates venv + installs deps (~2 min first run)
+huggingface-cli login         # required for gated LLaMA 3.2
 ```
 
 ### csh / tcsh (UCL GPU machines)
 
 ```csh
-# 1. Clone
 git clone https://github.com/mathisweil/evo-memory.git
 cd evo-memory
-
-# 2. Set environment variables in your ~/.cshrc (or export before running)
-#    See .env.example for the full list. At minimum:
 setenv LLM_MODEL_PATH  meta-llama/Llama-3.2-1B-Instruct
 setenv HF_CACHE_DIR    /path/to/hf/cache
 setenv CUDA_VISIBLE_DEVICES 0
-
-# 3. Create venv and install dependencies (~2 min on first run)
-source setup/activate.csh
-
-# 4. Log in to HuggingFace
+source setup/activate.csh     # creates venv + installs deps (~2 min first run)
 huggingface-cli login
 ```
 
-**Smoke test** — verifies the stack end-to-end in under a minute:
+**Subsequent shells:** `source setup/activate.sh` or `source setup/activate.csh`
+
+---
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `LLM_MODEL_PATH` | Yes | — | HuggingFace model ID or local path to LLaMA 3.2-1B-Instruct |
+| `HF_CACHE_DIR` | No | `<repo>/.hf_cache` | HuggingFace cache directory |
+| `CUDA_VISIBLE_DEVICES` | No | `0` | GPU index |
+| `NAMM_CKPT` | Eval only | — | Path to a trained NAMM checkpoint |
+| `WANDB_API_KEY` | Optional | — | Only needed when `wandb_log=true` |
+| `GCS_BUCKET` | TPU/cloud | `statistical-nlp` | GCS bucket name |
+| `GCS_PROJECT` | TPU/cloud | `statistical-nlp` | GCS project ID |
+
+---
+
+## Experiments
+
+All scripts accept `--config <yaml>` to load defaults from a YAML file; CLI flags override the config. Pass `--no-gcs` (ES) or `--gcs false` (LoRA) to disable cloud syncing.
+
+| Experiment | Script | Config | Required Args | Key Optional Args |
+|---|---|---|---|---|
+| **Train NAMM** | `scripts/run_namm.py` | `config/config.yaml` (Hydra only) | — | Hydra overrides via CLI: `key=value` |
+| **ES — no NAMM** (baseline) | `scripts/run_es.py` | `scripts/es_default.yaml` | `--run_name` | `--num_iterations`, `--population_size`, `--mini_batch_size`, `--sigma`, `--alpha` |
+| **ES + frozen NAMM** | `scripts/run_es.py` | `scripts/es_default.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--num_iterations` |
+| **LoRA only** (m1) | `scripts/run_lora.py` | `scripts/lora_m1_only.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
+| **LoRA multi-task** (rh-m1) | `scripts/run_lora.py` | `scripts/lora_rh_m1_instruct.yaml` | `--run_name` | `--num_epochs`, `--eval_interval` |
+| **LoRA + frozen NAMM** (rh-m4) | `scripts/run_lora.py` | `scripts/lora_rh_m4_instruct.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
+| **Evaluate checkpoint** | `scripts/run_eval.py` | `scripts/eval_default.yaml` | — | `--es_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--num_samples` |
+
+### Example commands
+
 ```bash
-python scripts/run_es.py \
-    --run_name smoke \
-    --num_iterations 2 \
-    --population_size 2 \
-    --mini_batch_size 2 \
-    --no-gcs
+# Smoke test (ES, no NAMM)
+python scripts/run_es.py --run_name smoke --num_iterations 2 --population_size 2 --mini_batch_size 2 --no-gcs
+
+# ES + frozen NAMM
+python scripts/run_es.py --config scripts/es_default.yaml --run_name es_namm_run \
+    --namm_checkpoint exp_local/pretrained/namm.pt --cache_size 1024
+
+# LoRA only (m1)
+python scripts/run_lora.py --config scripts/lora_m1_only.yaml --run_name m1_run
+
+# LoRA multi-task (rh-m1)
+python scripts/run_lora.py --config scripts/lora_rh_m1_instruct.yaml --run_name rh_m1_run
+
+# LoRA + frozen NAMM (rh-m4)
+python scripts/run_lora.py --config scripts/lora_rh_m4_instruct.yaml --run_name rh_m4_run \
+    --namm_checkpoint exp_local/pretrained/namm.pt
+
+# Evaluate ES checkpoint
+python scripts/run_eval.py \
+    --es_checkpoint experiments/experiment_1/es_namm/my_run/checkpoints/es_checkpoint_final.pt \
+    --namm_checkpoint exp_local/pretrained/namm.pt
+
+# Evaluate baseline (no fine-tuning, no NAMM)
+python scripts/run_eval.py
 ```
 
-**In subsequent shells:**
-```bash
-source setup/activate.sh   # bash/zsh
-source setup/activate.csh  # csh/tcsh
+---
+
+## Output Layout
+
 ```
+experiments/
+└── experiment_N/
+    └── {es_namm,es_only,es_recency,lora_grad,m1_lora_only,rh_m1_lora_instruct,rh_m4_frozen}/
+        └── {run_name}/
+            ├── config.json          # full config snapshot
+            ├── results.json         # final eval scores (Qasper F1 + per-task)
+            ├── examples.json        # captured Q/A examples
+            └── checkpoints/
+                ├── es_checkpoint_iter_*.pt   # rolling (last 2 kept)
+                └── es_checkpoint_final.pt
+```
+
+`run_eval.py` writes `eval_{baseline,es}_{timestamp}.log` and `results.json` into the checkpoint's parent directory (or `--output_dir`).
+
+`run_namm.py` (Hydra) writes to `outputs/{date}/{time}/` relative to the repo root.
+
+---
+
+## Dependencies
+
+```
+torch==2.3.1          # cu121; TPU: torch_xla matching this version
+transformers==4.41.2  # CRITICAL: 4.45+ breaks DynamicCache API
+peft==0.11.1
+numpy<2
+```
+
+Full list: [`requirements.txt`](requirements.txt). Requires GLIBC >= 2.28 (Ubuntu 20.04+).
 
 ---
 
 ## TPU (Google Cloud)
 
 ```bash
-git clone https://github.com/mathisweil/evo-memory.git
-cd evo-memory
-cp .env.example .env   # set GCS_BUCKET and GCS_PROJECT
+cp .env.example .env   # set GCS_BUCKET, GCS_PROJECT
 bash setup/setup_tpu.sh
 source setup/activate_tpu.sh
 ```
 
-The TPU setup additionally installs `torch_xla[tpu]` and `google-cloud-storage`.
-`activate_tpu.sh` downloads the XLA compilation cache from GCS on startup;
-`run_es.py` re-uploads it on exit.
+- First XLA run: ~20 min compilation. Cache synced to/from GCS automatically.
+- Spot VM preemption: SIGTERM triggers emergency checkpoint upload; re-run with same `--run_name` to resume.
 
 ---
 
-## Running Experiments
-
-Three main entry points:
+## Utility Scripts
 
 | Script | Purpose |
 |---|---|
-| `scripts/run_namm.py` | Train NAMM scoring network (CMA-ES) or run eval baselines |
-| `scripts/run_es.py` | ES fine-tune LLM weights (with or without frozen NAMM) |
-| `scripts/run_lora.py` | LoRA gradient fine-tuning |
-| `scripts/run_eval.py` | Evaluate a checkpoint on the full validation set |
-
-Utility scripts:
-
-| Script | Purpose |
-|---|---|
-| `scripts/generate_report.py` | Generate a comparison report from experiment results |
-| `scripts/upload_pretrained.py` | Upload or list pretrained NAMM checkpoints in GCS |
-| `scripts/archive_experiment.py` | Archive completed experiments to GCS |
-
-See [docs/examples.md](docs/examples.md) for copy-paste commands covering smoke tests and full runs for each pipeline.
-
-### Experiment output layout
-
-```
-experiments/experiment_N/{es_namm,es_only,es_recency}/run_name/
-    config.json      # full configuration snapshot
-    results.json     # final eval scores
-    examples.json    # captured Q/A examples from final eval
-    checkpoints/
-        es_checkpoint_final.pt
-        saved/       # permanent saves (--save_every)
-```
-
-`experiments/manifest.json` tracks all experiments locally; GCS mirrors it when `--gcs` is active.
-
----
-
-## Dependencies
-
-Pin these versions exactly — newer versions break at runtime.
-
-```
-torch==2.3.1          # cu121 build; TPU uses torch_xla matching this version
-transformers==4.41.2  # CRITICAL: 4.45+ breaks DynamicCache API used by custom LlamaModel patches
-peft==0.11.1
-numpy<2               # numpy 2.x breaks many downstream packages
-```
-
-Full list: [`requirements.txt`](requirements.txt).
-
-**System requirement:** GLIBC >= 2.28 (Ubuntu 20.04+, RHEL 8/9).
-
-**TPU additional dependencies:**
-```
-torch_xla[tpu]        # matching torch version; from Google's libtpu releases
-google-cloud-storage  # for GCS experiment management and XLA cache syncing
-```
-
----
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and fill in values before running:
-
-| Variable | Required | Description |
-|---|---|---|
-| `LLM_MODEL_PATH` | Yes | HuggingFace model ID or local path to LLaMA 3.2-1B-Instruct |
-| `HF_CACHE_DIR` | No | HuggingFace cache dir (default: `~/.cache/huggingface`) |
-| `CUDA_VISIBLE_DEVICES` | No | GPU index to use (default: `0`) |
-| `NAMM_CKPT` | Eval only | Path to a trained NAMM checkpoint |
-| `WANDB_API_KEY` | Optional | Only needed when `wandb_log=true` |
-| `GCS_BUCKET` | TPU/cloud | GCS bucket name (default: `statistical-nlp`) |
-| `GCS_PROJECT` | TPU/cloud | GCS project ID (default: `statistical-nlp`) |
-
----
-
-## TPU Notes
-
-- **XLA compilation**: First run is slow (~20 min) as XLA compiles graphs.
-- **XLA cache syncing**: `activate_tpu.sh` auto-downloads the XLA cache from GCS on startup; `run_es.py` auto-uploads it on exit.
-- **Spot VM preemption**: SIGTERM triggers an emergency checkpoint upload. Re-running with the same `--run_name` auto-resumes from the latest GCS checkpoint.
-- **Fixed-size tensors**: XLA requires fixed shapes. NAMM pads KV caches to a fixed size on TPU to avoid recompilation.
-
----
-
-## Documentation
-
-- [docs/examples.md](docs/examples.md) — experiment commands and smoke tests
-- [docs/es-ft-namm-guide.md](docs/es-ft-namm-guide.md) — how ES + NAMM interact, parameters, forward pass details
-- [docs/namm-guide.md](docs/namm-guide.md) — NAMM scoring network and CMA-ES training
-- [docs/es-ft-guide.md](docs/es-ft-guide.md) — standalone ES fine-tuning
-- [docs/lora-grad-ft.md](docs/lora-grad-ft.md) — LoRA gradient fine-tuning
+| `scripts/generate_report.py` | Compare results across experiments |
+| `scripts/upload_pretrained.py` | Upload / list pretrained NAMM checkpoints in GCS |
+| `scripts/archive_experiment.py` | Archive completed experiment dirs to GCS |
