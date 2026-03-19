@@ -47,8 +47,6 @@ from experiment_utils import (
     EXPERIMENTS_DIR,
 )
 
-EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
-
 
 # ── CLI ─────────────────────────────────────────────────────────────────
 

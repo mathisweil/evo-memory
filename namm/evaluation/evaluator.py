@@ -114,8 +114,11 @@ class MemoryHFEvaluator():
                                 config.rope_scaling['factor'])
             else:
                 # use model2maxlen specified in longbench
-                model2maxlen = json.load(open(
-                    "data/longbench/model2maxlen.json", "r"))
+                _data_dir = os.path.join(os.path.dirname(os.path.dirname(
+                    os.path.dirname(os.path.abspath(__file__)))),
+                    "data", "longbench")
+                with open(os.path.join(_data_dir, "model2maxlen.json")) as f:
+                    model2maxlen = json.load(f)
 
                 model_suffix = self.model_name.split('/')[-1]
                 if model_suffix in model2maxlen:

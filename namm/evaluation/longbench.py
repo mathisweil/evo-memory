@@ -44,8 +44,6 @@ dataset2metric = {
 
 
 def build_chat(lm, prompt):
-    print('IN PROMPT')
-    print(prompt)
     tokenizer = lm.tokenizer
     model_name = lm.model_name
     if "chatglm3" in model_name:

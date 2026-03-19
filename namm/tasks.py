@@ -8,7 +8,6 @@ import sys
 from typing import Optional, Union
 from datasets import load_dataset
 
-import json
 import copy
 
 import numpy as np
@@ -122,12 +121,14 @@ class TaskSampler():
 
     def init_tasks(self,):
         # LongBench
-        self.lb_task2prompt = json.load(open(
-            "data/longbench/dataset2prompt.json", "r"))
+        _data_dir = os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), "data", "longbench")
+        with open(os.path.join(_data_dir, "dataset2prompt.json")) as f:
+            self.lb_task2prompt = json.load(f)
         self.lb_task2prompt = {'lb/' + t: v
                                for t, v in self.lb_task2prompt.items()}
-        self.lb_task2maxlen = json.load(open(
-            "data/longbench/dataset2maxlen.json", "r"))
+        with open(os.path.join(_data_dir, "dataset2maxlen.json")) as f:
+            self.lb_task2maxlen = json.load(f)
         self.lb_task2maxlen = {'lb/' + t: v
                                for t, v in self.lb_task2maxlen.items()}
         self.lb_taskstopgen = {t: [] for t in self.lb_task2maxlen}
@@ -426,7 +427,7 @@ class TaskSampler():
         build_chat_interface: bool = False,
         performance_per_request: bool = False,
         cache_param_stats_per_task: bool = False,
-        model_kwargs: dict = {},
+        model_kwargs: Optional[dict] = None,
     ):
 
         out_dicts = [{} for _ in range(pop_reps)]
@@ -488,9 +489,10 @@ class TaskSampler():
         build_chat_interface: bool = False,
         performance_per_request: bool = False,
         cache_param_stats_per_task: bool = False,
-        model_kwargs: dict = {},
+        model_kwargs: Optional[dict] = None,
     ):
 
+        model_kwargs = model_kwargs or {}
         stats = [{} for _ in range(pop_reps)]
 
         if resample_requests:
