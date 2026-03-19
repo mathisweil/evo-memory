@@ -5,7 +5,7 @@
 # First time: creates venv and installs everything (~2 min).
 # Subsequent: activates venv and verifies deps are current (~5s).
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 REPO_DIR="$(dirname "${SCRIPT_DIR}")"
 VENV_DIR="${REPO_DIR}/venv"
 

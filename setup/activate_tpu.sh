@@ -5,7 +5,7 @@
 # First time after setup_tpu.sh: just activates venv (~instant).
 # Sets PJRT_DEVICE=TPU so torch_xla uses the TPU backend.
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 REPO_DIR="$(dirname "${SCRIPT_DIR}")"
 VENV_DIR="${REPO_DIR}/venv"
 
