@@ -8,6 +8,7 @@
 #   bash setup/setup.sh --gpu       # CUDA GPU (auto-selects first GPU)
 #   bash setup/setup.sh --gpu 2     # pin to a specific GPU index
 #   bash setup/setup.sh --local     # local / CPU-only machine
+#   bash setup/setup.sh --ucl-csh   # UCL CSH cluster (GPU + skip GCS/wandb)
 #
 # Optional flags (all modes):
 #   --noclaude      skip Claude Code install
@@ -42,11 +43,14 @@ while [[ $# -gt 0 ]]; do
             shift ;;
         --gpu=*)      MODE=gpu; GPU_ID="${1#*=}"; shift ;;
         --local)      MODE=local; shift ;;
+        --ucl-csh)
+            MODE=gpu; SETUP_GCS=false; SETUP_WANDB=false; INSTALL_CLAUDE=false
+            shift ;;
         --noclaude)   INSTALL_CLAUDE=false; shift ;;
         --skip-gcs)   SETUP_GCS=false; shift ;;
         --skip-wandb) SETUP_WANDB=false; shift ;;
         *)
-            echo "Usage: bash setup/setup.sh [--tpu | --gpu [N] | --local]"
+            echo "Usage: bash setup/setup.sh [--tpu | --gpu [N] | --local | --ucl-csh]"
             echo "                           [--noclaude] [--skip-gcs] [--skip-wandb]"
             exit 1
             ;;
@@ -196,22 +200,18 @@ echo "Repo:  ${REPO_DIR}"
 echo "venv:  ${VENV_DIR}"
 echo ''
 
+echo 'Activate in new shells:'
 if [ "${MODE}" = tpu ]; then
-    echo 'Activate in new shells:'
-    echo '  source setup/activate_tpu.sh'
-    echo ''
-    echo 'Smoke test:'
-    echo '  export PJRT_DEVICE=TPU'
-    echo "  python -c \"import torch_xla.core.xla_model as xm; print('TPU:', xm.xla_device())\""
-    echo '  python scripts/run_es.py --run_name tpu_smoke --num_iterations 2 \'
-    echo '    --population_size 2 --mini_batch_size 2 --no-gcs'
+    echo '  source setup/activate.sh          # auto-detects TPU'
 else
-    echo 'Activate in new shells:'
-    echo '  source setup/activate.sh     # bash/zsh'
-    echo '  source setup/activate.csh    # csh/tcsh (UCL) — do NOT use activate.sh in csh'
-    echo ''
-    echo 'Smoke test:'
-    echo '  python scripts/run_es.py --run_name smoke --num_iterations 2 \'
-    echo '    --population_size 2 --mini_batch_size 2 --no-gcs'
+    echo '  source setup/activate.sh          # bash/zsh (auto-detects GPU/local)'
+    echo '  source setup/activate.csh         # csh/tcsh (UCL machines only)'
 fi
+echo ''
+echo 'Smoke test:'
+if [ "${MODE}" = tpu ]; then
+    echo "  python -c \"import torch_xla.core.xla_model as xm; print('TPU:', xm.xla_device())\""
+fi
+echo '  python scripts/run_es.py --run_name smoke --num_iterations 2 \'
+echo '    --population_size 2 --mini_batch_size 2 --no-gcs'
 echo ''
