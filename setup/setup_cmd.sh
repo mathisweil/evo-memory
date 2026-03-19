@@ -27,7 +27,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/mathisweil/evo-memory.git"
-DEFAULT_BRANCH="main"
+DEFAULT_BRANCH="ES-GRAD-restructure"
 
 # ---------------------------------------------------------------------------
 # Parse arguments — extract --dir and --branch; forward everything else
