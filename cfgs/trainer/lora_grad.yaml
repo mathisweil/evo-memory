@@ -7,8 +7,8 @@ trainer_type: lora_grad
 # Method identifier for artifact directory naming (results/{lora_method}/{seed}/)
 lora_method: lora_grad
 
-# HF cache directory (cluster persistent path)
-cache_dir: /cs/student/project_msc/2025/csml/rhautier/.hf_cache
+# HF cache directory — override via HF_CACHE_DIR env var or HF_HOME (standard HuggingFace convention)
+cache_dir: ${oc.env:HF_CACHE_DIR,~/.cache/huggingface}
 
 # LoRA adapter config
 lora_rank: 8

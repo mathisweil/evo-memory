@@ -168,7 +168,7 @@ def main(cfg: DictConfig):
             seed=cfg.seed,
             max_seq_len=cfg.get('lora_max_seq_len', 3500),
             task_names=list(cfg.get('lora_task_names', ['qasper', 'narrativeqa', 'passage_retrieval_en'])),
-            cache_dir=cfg.get('cache_dir', '/cs/student/project_msc/2025/csml/gmaralla/.hf_cache'),
+            cache_dir=cfg.get('cache_dir', os.environ.get('HF_CACHE_DIR', None)),
             num_epochs=cfg.get('lora_num_epochs', 3),
             batch_size=cfg.get('lora_batch_size', 1),
             gradient_accumulation_steps=cfg.get('lora_gradient_accumulation_steps', 16),

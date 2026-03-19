@@ -141,7 +141,9 @@ dependencies:
     # torch, torchaudio, torchvision installed separately (need PyTorch index for CUDA builds)
     - tqdm==4.67.3
     - tqdm-multiprocess==0.0.11
-    - transformers==4.45.2
+    # CRITICAL: must be 4.41.x. 4.45+ breaks DynamicCache API, cache_position
+    # handling, and causal mask construction used by the custom LlamaModel patches.
+    - transformers==4.41.2
     # triton removed — installed automatically with torch
     - typepy==1.3.4
     - typing-extensions==4.15.0
@@ -154,4 +156,3 @@ dependencies:
     - xxhash==3.6.0
     - yarl==1.22.0
     - zstandard==0.25.0
-prefix: /cs/student/project_msc/2025/csml/rhautier/envs/th2

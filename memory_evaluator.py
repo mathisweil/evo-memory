@@ -17,7 +17,6 @@ from utils import (
 
 from tqdm import tqdm
 
-# from lm_eval.api.model import TemplateLM
 from lm_eval.models.utils import (
     clear_torch_cache,
     stop_sequences_criteria,
