@@ -32,28 +32,23 @@ class LlamaCompatModel:
     @staticmethod
     def from_pretrained(pretrained_model_name_or_path,
                         max_position_embeddings=None, **kwargs):
-        import json
-        import os
         from transformers import LlamaConfig
 
-        config_file = os.path.join(pretrained_model_name_or_path, 'config.json')
-        with open(config_file) as f:
-            cfg = json.load(f)
+        config = AutoConfig.from_pretrained(pretrained_model_name_or_path)
 
-        orig_max = (cfg.get('rope_scaling') or {}).get(
+        orig_max = ((config.rope_scaling or {}).get(
             'original_max_position_embeddings', 8192)
+            if hasattr(config, 'rope_scaling') else 8192)
 
         if max_position_embeddings is not None:
-            cfg['max_position_embeddings'] = max_position_embeddings
+            config.max_position_embeddings = max_position_embeddings
 
         # Strip rope_scaling only when we stay within the original training
         # range — saves ~400 MB RoPE cache and keeps behaviour identical.
         # For longer contexts, preserve it so _init_rope uses llama3 RoPE.
-        effective_max = cfg['max_position_embeddings']
-        if effective_max <= orig_max:
-            cfg['rope_scaling'] = None
+        if config.max_position_embeddings <= orig_max:
+            config.rope_scaling = None
 
-        config = LlamaConfig(**cfg)
         kwargs.pop('rope_scaling', None)  # prevent conflicting kwarg
         return AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path, config=config, **kwargs)
