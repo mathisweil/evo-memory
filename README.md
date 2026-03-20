@@ -27,6 +27,7 @@ evo-memory/
 │   ├── run_es.py                 #   ES fine-tuning
 │   ├── run_lora.py               #   LoRA gradient-based fine-tuning
 │   ├── run_namm.py               #   NAMM policy training (Hydra)
+│   ├── run_joint.py              #   joint alternating NAMM + adapter training
 │   ├── run_eval.py               #   evaluation runner
 │   ├── generate_report.py        #   cross-experiment comparison reports
 │   ├── upload_pretrained.py      #   GCS checkpoint management
@@ -36,6 +37,7 @@ evo-memory/
 │   ├── lora_m1_only.yaml         #   m1 condition (LoRA only, no NAMM)
 │   ├── lora_rh_m1_instruct.yaml  #   m1 multi-task variant
 │   ├── lora_rh_m4_instruct.yaml  #   m4 condition (LoRA + frozen NAMM)
+│   ├── joint_default.yaml        #   joint training defaults
 │   └── eval_default.yaml         #   evaluation configuration
 │
 ├── es_finetuning/                # ES optimizer module
@@ -198,6 +200,8 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 | **LoRA only** (m1) | `scripts/run_lora.py` | `scripts/lora_m1_only.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
 | **LoRA multi-task** (rh-m1) | `scripts/run_lora.py` | `scripts/lora_rh_m1_instruct.yaml` | `--run_name` | `--num_epochs`, `--eval_interval` |
 | **LoRA + frozen NAMM** (rh-m4) | `scripts/run_lora.py` | `scripts/lora_rh_m4_instruct.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
+| **Joint NAMM + ES** | `scripts/run_joint.py` | `scripts/joint_default.yaml` | `--run_name`, `--adapter_type es` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--adapter_iterations_per_stage` |
+| **Joint NAMM + LoRA** | `scripts/run_joint.py` | `scripts/joint_default.yaml` | `--run_name`, `--adapter_type lora` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
 | **Evaluate** | `scripts/run_eval.py` | `scripts/eval_default.yaml` | — | `--es_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--num_samples` |
 
 ### Example commands
@@ -228,6 +232,29 @@ python scripts/run_eval.py \
 
 # Evaluate baseline (no fine-tuning, no NAMM)
 python scripts/run_eval.py
+
+# Joint NAMM + ES (alternating)
+python scripts/run_joint.py --config scripts/joint_default.yaml \
+    --run_name joint_es_run --adapter_type es \
+    --num_outer_loops 5 --namm_iterations_per_stage 50 \
+    --adapter_iterations_per_stage 25
+
+# Joint NAMM + LoRA (alternating)
+python scripts/run_joint.py --config scripts/joint_default.yaml \
+    --run_name joint_lora_run --adapter_type lora \
+    --num_outer_loops 5 --namm_iterations_per_stage 50 \
+    --lora_epochs_per_stage 1
+
+# Joint with pre-trained NAMM warm-start
+python scripts/run_joint.py --config scripts/joint_default.yaml \
+    --run_name joint_warm --adapter_type es \
+    --namm_checkpoint exp_local/pretrained/namm.pt
+
+# Joint smoke test
+python scripts/run_joint.py --run_name test --adapter_type es \
+    --num_outer_loops 2 --namm_iterations_per_stage 3 \
+    --adapter_iterations_per_stage 2 --population_size 2 \
+    --mini_batch_size 2 --no-gcs
 ```
 
 ---
@@ -237,14 +264,24 @@ python scripts/run_eval.py
 ```
 experiments/
 └── experiment_N/
-    └── {es_namm,es_only,es_recency,lora_grad,m1_lora_only,rh_m1_lora_instruct,rh_m4_frozen}/
+    ├── {es_namm,es_only,es_recency,lora_grad,m1_lora_only,...}/
+    │   └── {run_name}/
+    │       ├── config.json          # full config snapshot
+    │       ├── results.json         # final eval scores (Qasper F1 + per-task)
+    │       ├── examples.json        # captured Q/A examples
+    │       └── checkpoints/
+    │           ├── es_checkpoint_iter_*.pt   # rolling (last 2 kept)
+    │           └── es_checkpoint_final.pt
+    │
+    └── joint_{es,lora}/                     # joint alternating training
         └── {run_name}/
-            ├── config.json          # full config snapshot
-            ├── results.json         # final eval scores (Qasper F1 + per-task)
-            ├── examples.json        # captured Q/A examples
-            └── checkpoints/
-                ├── es_checkpoint_iter_*.pt   # rolling (last 2 kept)
-                └── es_checkpoint_final.pt
+            ├── config.json                  # joint config snapshot
+            ├── results.json                 # per-loop eval history
+            ├── namm/                        # NAMM checkpoints
+            │   ├── latest.pt                #   latest CMA-ES state
+            │   └── namm_stage_K.pt          #   per-stage snapshots
+            └── adapter/                     # adapter checkpoints
+                └── stage_K/                 #   per-stage ES/LoRA output
 ```
 
 `run_eval.py` writes `eval_{baseline,es}_{timestamp}.log` and `results.json` into the checkpoint's parent directory (or `--output_dir`).
