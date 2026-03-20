@@ -72,9 +72,10 @@ $(STAMPS)/venv: | _require-uv $(STAMPS)
 # Torch is already installed by each setup-* target before this runs.
 $(STAMPS)/project: $(STAMPS)/venv pyproject.toml | $(STAMPS)
 	@echo "Installing project dependencies ..."
-	@python3 -c "import tomllib, pathlib; \
-	    d = tomllib.loads(pathlib.Path('pyproject.toml').read_text()); \
-	    print('\n'.join(d['project']['dependencies']))" \
+	@sed -n '/^dependencies = \[/,/^\]/p' pyproject.toml \
+	    | sed '1d;$$d' \
+	    | sed 's/#.*//; s/^[[:space:]]*"//; s/"[[:space:]]*,*$$//' \
+	    | grep -v '^[[:space:]]*$$' \
 	    > $(STAMPS)/_reqs.txt
 	uv pip install --python $(BIN)/python -r $(STAMPS)/_reqs.txt
 	@touch $@
