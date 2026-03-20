@@ -774,7 +774,16 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
             causal_mask = F.pad(causal_mask, (n_k-n_q, 0))
             attn_weights = attn_weights + causal_mask
         else:
-            causal_mask = attention_mask[:, :, :, -key_states.shape[-2]:]
+            kv_len = key_states.shape[-2]
+            # After NAMM eviction, different layers may have slightly different
+            # KV cache sizes.  The 4D causal_mask from _update_causal_mask is
+            # computed using layer-0's length, so it can be too narrow for
+            # layers that retained more tokens.  Pad with 0 (unmasked) so the
+            # slice always covers the full kv_len.
+            if attention_mask.shape[-1] < kv_len:
+                pad_size = kv_len - attention_mask.shape[-1]
+                attention_mask = F.pad(attention_mask, (pad_size, 0), value=0)
+            causal_mask = attention_mask[:, :, :, -kv_len:]
             attn_weights = attn_weights + causal_mask
 
         # TPU: mask out evicted cache entries so they don't affect attention.
