@@ -59,7 +59,7 @@ Run these individually, or all at once with `make logins`:
 ```
 evo-memory/
 ├── pyproject.toml        # Python metadata + all dependencies (single source of truth)
-├── uv.lock               # deterministic lockfile (committed to git)
+├── requirements.lock      # pinned dependency versions (committed to git)
 ├── Makefile              # orchestration: hardware-specific torch, logins, TPU lifecycle
 ├── activate.sh           # generated — bash/zsh activation
 └── activate.csh          # generated — csh/tcsh activation (UCL)
@@ -86,8 +86,8 @@ huggingface-cli login
 ### Reproducible installs (CI or new collaborators)
 
 ```bash
-make lock          # regenerate uv.lock from pyproject.toml
-git add uv.lock    # commit so others get identical resolution
+make lock                # pin dependency versions
+git add requirements.lock  # commit so others get identical resolution
 ```
 
 ---
