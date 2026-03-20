@@ -345,6 +345,14 @@ def main():
         task_sampler.apply_train_val_test_split(
             train_frac=args.train_split, val_frac=args.val_split)
 
+    # MemoryTrainer expects these attributes on the task_sampler (it reads
+    # training_tasks_subset / test_tasks_subset directly).  TaskSampler
+    # stores them as lb_training_tasks / lb_test_tasks, so we alias them.
+    if not hasattr(task_sampler, 'training_tasks_subset'):
+        task_sampler.training_tasks_subset = task_sampler.lb_training_tasks
+    if not hasattr(task_sampler, 'test_tasks_subset'):
+        task_sampler.test_tasks_subset = task_sampler.lb_test_tasks
+
     # ── 4. Create NAMM trainer (reused across all outer loops) ───────────
 
     print("Creating NAMM trainer...")
