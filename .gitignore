@@ -46,5 +46,10 @@ report.md
 
 # ES smoke test outputs (legacy, now under experiments/)
 es_smoke_test*/
-
 .env
+
+# uv / Makefile generated files
+.venv/
+.make/
+activate.sh
+activate.csh
