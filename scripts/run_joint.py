@@ -131,7 +131,23 @@ def load_namm_checkpoint(path, evolution_algorithm, memory_model,
     """Load a NAMM checkpoint file and apply it to the model."""
     ckpt = torch.load(path, map_location="cpu", weights_only=False)
     evo_state = ckpt['evolution_state']
-    evolution_algorithm.load_state_dict(evo_state)
+
+    # Filter out stored_buffers_to_save.* keys — CMA_ES doesn't expect them.
+    # They belong on the model, not the evolution algorithm.
+    buffers_prefix = 'stored_buffers_to_save.'
+    evo_state_clean = {k: v for k, v in evo_state.items()
+                       if not k.startswith(buffers_prefix)}
+    evolution_algorithm.load_state_dict(evo_state_clean)
+
+    # Load buffers into the model
+    buffers_dict = {
+        k[len(buffers_prefix):]: v.to(device)
+        for k, v in evo_state.items()
+        if k.startswith(buffers_prefix)
+    }
+    if buffers_dict:
+        memory_model.load_buffers_dict(buffers_dict=buffers_dict)
+
     set_namm_params_from_evo(
         evolution_algorithm, memory_model, memory_policy, device)
     print(f"  Loaded NAMM checkpoint from iter {ckpt.get('iter_num', '?')}, "
