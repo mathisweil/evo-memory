@@ -3,6 +3,7 @@ experiments/
 exp_local/
 exp/
 outputs/
+results/
 
 # Weights & Biases
 wandb/
