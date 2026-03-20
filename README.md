@@ -79,12 +79,6 @@ evo-memory/
 | **[uv](https://docs.astral.sh/uv/)** | Fast Rust-based Python package manager (creates venv, installs deps) |
 | **make** | Orchestrates hardware-specific setup, logins, and TPU lifecycle |
 
-Install `uv` if not already present:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
 ### `uv` Setup on UCL GPU Machines
 
 Home directories on UCL GPU machines have strict storage limits. Configure `uv` to use the quota directory for its cache.
