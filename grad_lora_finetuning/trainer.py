@@ -362,17 +362,12 @@ class LoRAGradTrainer:
             context_end = max(context_end, 0)
 
             seq_len = input_ids.shape[1]
-            batch_sz = input_ids.shape[0]
 
             # Phase 1: context tokens under no_grad
             if context_end > 0:
-                ctx_attn_mask = torch.ones(
-                    batch_sz, context_end,
-                    dtype=torch.long, device=self.device)
                 with torch.no_grad():
                     ctx_outputs = self.model(
                         input_ids=input_ids[:, :context_end],
-                        attention_mask=ctx_attn_mask,
                         use_cache=True,
                         apply_memory_policy=True,
                         limit_new_tokens=None,
@@ -387,16 +382,10 @@ class LoRAGradTrainer:
             phase2_input = input_ids[:, context_end:]
             phase2_pos = torch.arange(
                 context_end, seq_len, device=self.device
-            ).unsqueeze(0).expand(batch_sz, -1)
-
-            # Attention mask must cover all tokens seen so far (context + phase2)
-            phase2_attn_mask = torch.ones(
-                batch_sz, seq_len,
-                dtype=torch.long, device=self.device)
+            ).unsqueeze(0).expand(input_ids.shape[0], -1)
 
             outputs = self.model(
                 input_ids=phase2_input,
-                attention_mask=phase2_attn_mask,
                 position_ids=phase2_pos,
                 past_key_values=past_key_values,
                 use_cache=True,
