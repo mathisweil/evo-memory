@@ -1,0 +1,105 @@
+# =============================================================================
+# evo-memory
+#
+# Fine-tuning LLaMA 3.2-1B-Instruct via evolutionary strategies (ES) or LoRA
+# while NAMM manages the KV cache.
+#
+# Install:
+#   make setup-local       # CPU / local GPU
+#   make setup-gpu GPU=2   # pin to CUDA device 2
+#   make setup-tpu         # Google Cloud TPU VM
+#   make setup-ucl-gpu     # UCL CSH cluster
+#
+# Requires: python 3.10+, uv (https://docs.astral.sh/uv/)
+# =============================================================================
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "evo-memory"
+version = "0.1.0"
+description = "Fine-tuning LLaMA 3.2-1B-Instruct via ES or LoRA with NAMM KV-cache management"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Mathis Weil" }]
+
+# ── Shared dependencies ─────────────────────────────────────────────────────
+# Everything EXCEPT PyTorch, which varies by hardware and is installed by the
+# Makefile with the correct index URL.
+# ─────────────────────────────────────────────────────────────────────────────
+dependencies = [
+    # Core ML
+    # CRITICAL: transformers must stay on 4.41.x — 4.45+ breaks DynamicCache
+    # API, cache_position handling, and causal-mask construction used by the
+    # custom LlamaModel patches.
+    "numpy<2",
+    "transformers==4.41.2",
+    "accelerate",
+    "datasets==2.20.0",
+    "peft==0.11.1",
+    "bitsandbytes",
+    "einops",
+    "scipy==1.13.0",
+
+    # Tokenisation
+    "tiktoken",
+    "sentencepiece",
+
+    # Evaluation
+    "lm-eval==0.4.2",
+    "rouge",
+    "rouge-score",
+    "jieba",
+    "fuzzywuzzy",
+    "python-levenshtein",
+    "ftfy",
+    "fugashi==1.3.2",
+
+    # Config / experiment tracking
+    "hydra-core==1.3.2",
+    "wandb==0.16.6",
+    "pandas==2.2.2",
+    "tqdm",
+
+    # Cloud storage
+    "google-cloud-storage",
+]
+
+# ── Platform-specific extras ─────────────────────────────────────────────────
+# These declare WHAT each platform needs. The Makefile handles WHERE to fetch
+# them (CUDA index, Google TPU find-links, or default PyPI).
+# ─────────────────────────────────────────────────────────────────────────────
+[project.optional-dependencies]
+gpu = [
+    "torch==2.3.1",
+    "torchvision==0.18.1",
+    "torchaudio==2.3.1",
+]
+tpu = [
+    "torch==2.3.1",
+    "torch-xla[tpu]",
+]
+cpu = [
+    "torch==2.3.1",
+    "torchvision==0.18.1",
+    "torchaudio==2.3.1",
+]
+dev = [
+    "ruff",
+    "pytest",
+]
+
+# ── Ruff ─────────────────────────────────────────────────────────────────────
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP"]
+
+# ── Pytest ───────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
