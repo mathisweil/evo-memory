@@ -1,0 +1,55 @@
+# Joint alternating NAMM + adapter training default configuration
+# Usage: python scripts/run_joint.py --config scripts/joint_default.yaml --run_name my_run
+# CLI args override values in this file.
+
+# ── Experiment ──────────────────────────────────────────────────────────
+run_name: null          # (required) Name for this run
+experiment: null        # Experiment ID; null = most recent active or create new
+
+# ── Joint training ──────────────────────────────────────────────────────
+adapter_type: es        # "es" or "lora"
+num_outer_loops: 5      # K: number of alternating Stage A → Stage B cycles
+namm_iterations_per_stage: 50   # N: CMA-ES iterations for NAMM per outer loop
+adapter_iterations_per_stage: 25  # M: ES iterations per Stage B (ignored for LoRA)
+lora_epochs_per_stage: 1          # Epochs per Stage B for LoRA (ignored for ES)
+eval_after_each_loop: true        # Run full evaluation after each outer loop
+
+# ── NAMM config ─────────────────────────────────────────────────────────
+run_config: namm_bam_i1_llama32_1b  # Hydra run config (eviction policy + model)
+namm_checkpoint: null   # Path to initial NAMM checkpoint; null = train from scratch
+cache_size: null        # KV cache token budget; null = use run_config default
+namm_eval_interval: 100 # NAMM eval interval within each stage (set high to skip)
+
+# ── ES hyperparameters (adapter_type=es) ────────────────────────────────
+sigma: 0.001            # Noise scale for weight perturbations
+alpha: 0.0005           # Learning rate for ES update
+population_size: 8      # Population members per iteration
+noise_mode: correlated  # "correlated" or "iid"
+initial_seed: 33        # Numpy random seed
+mini_batch_size: 16     # Questions sampled per fitness evaluation
+
+# ── LoRA hyperparameters (adapter_type=lora) ────────────────────────────
+lora_rank: 8
+lora_target_modules: [q_proj, v_proj]
+lora_alpha: null        # null = defaults to rank
+lora_dropout: 0.0
+learning_rate: 2e-4
+weight_decay: 0.01
+max_grad_norm: 1.0
+warmup_ratio: 0.03
+gradient_accumulation_steps: 16
+max_seq_len: 3500
+sft_mode: false
+
+# ── Data ────────────────────────────────────────────────────────────────
+train_split: 0.8
+val_split: 0.1
+split_seed: 42
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+
+# ── Evaluation ──────────────────────────────────────────────────────────
+batch_size: null        # Inference batch size; null = use run_config default
+
+# ── Advanced ────────────────────────────────────────────────────────────
+override: []            # Extra Hydra config overrides
