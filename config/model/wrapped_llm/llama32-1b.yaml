@@ -1,0 +1,29 @@
+defaults:
+  - base
+  - _self_
+
+# LLaMA 3.2-1B-Instruct: 16 layers, 2048 hidden, 32 heads (8 KV via GQA), head_dim=64
+pretrained_llm_name: ${oc.env:LLM_MODEL_PATH,meta-llama/Llama-3.2-1B-Instruct}
+
+# Use LlamaCompatModel to patch rope_scaling (llama3 type not in transformers 4.41.x)
+# max_position_embeddings capped to filter_by_length to save GPU memory (~400MB at 131k)
+pretrained_llm:
+  _target_: utils.hydra_helpers.LlamaCompatModel.from_pretrained
+  pretrained_model_name_or_path: ${pretrained_llm_name}
+  max_position_embeddings: ${filter_by_length}
+
+memory_model:
+  _target_: namm.llms.llama.WrappedLlamaForCausalLM
+  model: ${pretrained_llm}
+  memory_policy: ${memory_policy}
+  max_new_tokens: ${max_new_tokens}
+  memory_policy_fixed_delay: ${memory_policy_fixed_delay}
+  output_attentions_full_precision: ${output_attentions_full_precision}
+
+max_new_tokens: 128
+# Max tokens in conditioning window — tied to filter_by_length
+max_position_id: ${filter_by_length}
+max_conditioning_length: ${max_position_id}
+memory_policy_fixed_delay:
+
+llm_log_name: Llama-3.2-1B-Instruct

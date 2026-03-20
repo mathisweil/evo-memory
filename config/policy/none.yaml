@@ -1,0 +1,8 @@
+memory_policy:
+  _target_: namm.policy.Recency
+  cache_size: ${cache_size}
+
+cache_size: null
+
+
+mp_log_name: dummy

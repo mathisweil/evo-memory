@@ -1,0 +1,29 @@
+# @package _global_
+# Full-cache baseline for ES fine-tuning: no KV-cache eviction.
+# cache_size = max_position_id (6500) so every token is retained.
+# Paired with scripts/run_es.py for ES-only (no NAMM) experiments.
+defaults:
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - override /task@_global_: qasper
+  - override /evolution@_global_: dummy
+  - override /policy@_global_: none
+  - override /typing@_global_: half_attn
+  - override /auxiliary_loss@_global_: none
+  - _self_
+
+# Use the full context window — no eviction
+cache_size: ${max_position_id}
+max_new_tokens: 64
+
+# Auto-detect batch size (same as NAMM ES run)
+batch_size: "auto"
+eval_max_batch_size: 16
+
+eval_only: true
+pop_size: 1
+
+add_bos_token: true
+score_normalization_reference:
+ddp_timeout_limit: '0:3:0'
+
+wandb_log: false
