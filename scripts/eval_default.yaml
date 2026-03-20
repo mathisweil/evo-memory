@@ -1,0 +1,26 @@
+# Evaluation default configuration
+# Usage: python scripts/run_eval.py --config scripts/eval_default.yaml --es_checkpoint path/to/ckpt.pt
+# CLI args override values in this file.
+
+# ── Checkpoints ─────────────────────────────────────────────────────────
+es_checkpoint: null     # Path to ES fine-tuned checkpoint; null = evaluate base model
+namm_checkpoint: null   # Path to NAMM scoring network; "latest" for GCS; null = no NAMM
+
+# ── Model / eviction ───────────────────────────────────────────────────
+run_config: namm_bam_i1_llama32_1b  # Hydra run config name
+cache_size: null        # KV cache token budget; null = use run_config default
+
+# ── Data ────────────────────────────────────────────────────────────────
+filter_by_length: null  # Drop samples longer than this (approx, word-based x1.3); null = mid-crop
+filter_by_tokens: null  # Drop samples exceeding this many tokens (exact, uses tokenizer); null = off
+filter_answers_by_tokens: 64    # Drop samples whose shortest answer exceeds this many tokens
+batch_size: null        # Inference batch size; null = use run_config default
+
+# ── Generation / sampling ───────────────────────────────────────────────
+temperature: 0.0        # Generation temperature (0 = greedy decoding)
+num_samples: 1          # Samples per question; averaged for reported score (prints std when > 1)
+# num_beams: 1          # Hardcoded to 1 in evaluator.py (beam search disabled)
+# max_new_tokens: 64    # Set in Hydra run config (cfgs/run/*.yaml), not a CLI arg
+
+# ── Output ──────────────────────────────────────────────────────────────
+output_dir: null        # Directory for eval log and results.json; null = auto-derive from es_checkpoint

@@ -1,0 +1,55 @@
+# Experiment outputs and checkpoints
+experiments/
+exp_local/
+exp/
+outputs/
+
+# Weights & Biases
+wandb/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / tooling
+.claude/
+.planning/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Hydra outputs
+multirun/
+
+# Virtual environment
+venv/
+
+# HF model cache
+.hf_cache/
+
+# XLA compilation cache (TPU)
+.xla_cache/
+
+# Personal working notes
+notes.md
+report.md
+
+# ES smoke test outputs (legacy, now under experiments/)
+es_smoke_test*/
+.env
+
+# uv / Makefile generated files
+.venv/
+.make/
+activate.sh
+activate.csh

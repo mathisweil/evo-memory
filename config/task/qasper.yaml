@@ -1,0 +1,8 @@
+defaults:
+  - base_sampler
+  - _self_
+
+tasks: ["lb/qasper"]
+metrics: 'perf'
+
+tasks_log_name: qasper

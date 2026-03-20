@@ -1,0 +1,50 @@
+# ES fine-tuning default configuration
+# Usage: python scripts/run_es.py --config scripts/es_default.yaml --run_name my_run
+# CLI args override values in this file.
+
+# ── Experiment ──────────────────────────────────────────────────────────
+run_name: null          # (required) Name for this run, e.g. cache1024_i1000
+experiment: null        # Experiment ID; null = most recent active or create new
+method: null            # es_namm | es_only | es_recency; null = auto-detect from namm_checkpoint
+
+# ── ES hyperparameters ──────────────────────────────────────────────────
+sigma: 0.001            # Noise scale for weight perturbations
+alpha: 0.0005           # Learning rate for ES update
+population_size: 8      # Number of perturbed weight vectors per iteration
+num_iterations: 50      # Total ES training iterations
+noise_mode: correlated  # correlated (shared seed across params) or iid (per-param seed)
+initial_seed: 33        # Numpy random seed for reproducibility
+mini_batch_size: 16     # Questions sampled per fitness evaluation
+
+# ── NAMM ────────────────────────────────────────────────────────────────
+# Model, eviction policy, and scoring network params are in the Hydra configs: cfgs/run/*.yaml
+namm_checkpoint: null   # Path to NAMM scoring network checkpoint; "latest" for GCS; null = no NAMM
+run_config: namm_bam_i1_llama32_1b  # Hydra run config name (determines eviction policy and model)
+cache_size: null        # KV cache token budget; null = use run_config default
+
+# ── Data ────────────────────────────────────────────────────────────────
+filter_by_length: null  # Drop samples longer than this (approx, word-based x1.3); null = mid-crop
+filter_by_tokens: null  # Drop samples exceeding this many tokens (exact, uses tokenizer); null = off
+filter_answers_by_tokens: 64    # Drop samples whose shortest answer exceeds this many tokens
+train_samples: 150      # Number of Qasper samples used for training
+
+# ── Evaluation ──────────────────────────────────────────────────────────
+batch_size: null        # Inference batch size; null = use run_config default (auto or fixed)
+n_examples: 10          # Q/A examples captured during final evaluation
+
+# ── Generation / sampling ───────────────────────────────────────────────
+temperature: 0.0        # Training generation temperature (0 = greedy decoding)
+eval_temperature: 0.0   # Full eval generation temperature (0 = greedy decoding)
+num_samples: 1          # Samples per question during training; averaged for fitness score
+eval_num_samples: 1     # Samples per question during full eval; averaged for reported score
+# num_beams: 1          # Hardcoded to 1 in evaluator.py (beam search disabled)
+# max_new_tokens: 64    # Set in Hydra run config (cfgs/run/*.yaml), not a CLI arg
+
+# ── Checkpointing & GCS ────────────────────────────────────────────────
+gcs: true               # Sync experiments and checkpoints to GCS
+checkpoint_every: 10    # Rolling checkpoint interval (keep last 2); 0 = final only
+save_every: 0           # Permanent save interval (never deleted); 0 = disabled
+resume_checkpoint: null # Path to checkpoint to resume from; null = start fresh
+
+# ── Advanced ────────────────────────────────────────────────────────────
+override: []            # Extra Hydra config overrides, e.g. ["batch_size=4", "wandb_log=false"]
