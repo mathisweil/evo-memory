@@ -65,4 +65,4 @@ override:
   - "scoring_attn_num_heads=1"
   - "scoring_attn_bias=true"
   - "scoring_attn_masking_strategy=backward"
-  - "scoring_reduction_mode="
+  - "scoring_reduction_mode=null"
