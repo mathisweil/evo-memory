@@ -13,10 +13,6 @@
 # Requires: python 3.10+, uv (https://docs.astral.sh/uv/)
 # =============================================================================
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "evo-memory"
 version = "0.1.0"

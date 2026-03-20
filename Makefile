@@ -3,7 +3,7 @@
 #
 # Python deps live in pyproject.toml.  This file handles:
 #   1. Platform-specific PyTorch installation (different index per hardware)
-#   2. Shared project install via uv
+#   2. Shared dependency install from pyproject.toml (non-torch)
 #   3. Service logins (HuggingFace, wandb, GCS)
 #   4. TPU VM lifecycle
 #   5. Activation-script generation
@@ -67,11 +67,16 @@ $(STAMPS)/venv: | _require-uv $(STAMPS)
 	uv venv $(VENV_DIR) --python $(PYTHON_VER)
 	@touch $@
 
-# Install the project in editable mode (all shared deps from pyproject.toml).
-# Torch must already be present — each setup-* target installs it first.
+# Install shared deps from pyproject.toml (the project itself is NOT a
+# pip-installable package — it's scripts + modules on PYTHONPATH).
+# Torch is already installed by each setup-* target before this runs.
 $(STAMPS)/project: $(STAMPS)/venv pyproject.toml | $(STAMPS)
-	@echo "Installing project (editable) ..."
-	uv pip install --python $(BIN)/python -e "."
+	@echo "Installing project dependencies ..."
+	@python3 -c "import tomllib, pathlib; \
+	    d = tomllib.loads(pathlib.Path('pyproject.toml').read_text()); \
+	    print('\n'.join(d['project']['dependencies']))" \
+	    > $(STAMPS)/_reqs.txt
+	uv pip install --python $(BIN)/python -r $(STAMPS)/_reqs.txt
 	@touch $@
 
 # =============================================================================
@@ -286,8 +291,9 @@ smoke:  ## Quick sanity check (ES, no NAMM, 2 iterations)
 # =============================================================================
 
 .PHONY: lock
-lock: _require-uv  ## Regenerate uv.lock from pyproject.toml
-	uv lock
+lock: _require-uv  ## Pin dependency versions to requirements.lock
+	uv pip compile pyproject.toml -o requirements.lock
+	@echo "requirements.lock updated. Commit this file."
 
 # =============================================================================
 #  Cleanup
@@ -416,4 +422,4 @@ help:  ## Show this help
 	@echo "  make setup-ucl-gpu              # UCL CSH cluster"
 	@echo "  make logins                     # HF + wandb + GCS in one step"
 	@echo "  make smoke                      # quick end-to-end test"
-	@echo "  make lock                       # regenerate uv.lock"
+	@echo "  make lock                       # pin dep versions"
