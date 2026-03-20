@@ -6,36 +6,45 @@ Fine-tuning LLaMA 3.2-1B-Instruct via evolutionary strategies (ES) or LoRA while
 
 ## Getting Started
 
+### Prerequisites
+
+**Python 3.10+** and **[uv](https://docs.astral.sh/uv/)** (a fast Rust-based Python package manager):
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Install
+
 ```bash
 git clone https://github.com/mathisweil/evo-memory.git
 cd evo-memory
-cp .env.example .env    # edit: LLM_MODEL_PATH, HF_CACHE_DIR, CUDA_VISIBLE_DEVICES
-make setup-local        # or whichever target matches your hardware (~2 min)
+cp .env.example .env          # edit: LLM_MODEL_PATH, HF_CACHE_DIR, CUDA_VISIBLE_DEVICES
+make setup-local              # or the target that matches your hardware
+make hf-login                 # one-time: required for gated LLaMA 3.2
 ```
 
-All setup is driven by a single `Makefile`. Run `make help` to see every available target.
+Pick the `make` target that matches your hardware:
 
-### Setup targets 
+| Target | When to use |
+|---|---|
+| `make setup-local` | Laptops, workstations, or any machine with optional CUDA. Installs PyTorch from the default PyPI index. |
+| `make setup-gpu` | Dedicated CUDA GPU server. Pulls PyTorch wheels built for CUDA 12.1. Pass `GPU=N` to pin a device (e.g. `make setup-gpu GPU=2`). |
+| `make setup-tpu` | Google Cloud TPU VM. Installs PyTorch + XLA from Google's TPU index, syncs the XLA compilation cache from GCS. |
+| `make setup-ucl-gpu` | UCL CSH cluster. Loads the `cuda` environment module, installs CUDA 12.1 wheels, generates `activate.csh` for tcsh. Skips GCS and wandb. |
 
-| Target | Hardware | What it does |
-|---|---|---|
-| `make setup-local` | CPU or local GPU | Installs venv + all deps from `requirements.txt`. Use this on laptops, workstations, or any machine with optional CUDA. |
-| `make setup-gpu GPU=N` | CUDA GPU (pinned) | Same as `setup-local` but pins `CUDA_VISIBLE_DEVICES` to GPU index `N`. Omit `GPU=` to auto-detect the first device. |
-| `make setup-tpu` | Google Cloud TPU VM | Installs system packages, PyTorch + XLA from the TPU index, syncs the XLA compilation cache from GCS. |
-| `make setup-ucl-gpu` | UCL CSH cluster | Loads the `cuda` environment module, installs deps, generates `activate.csh`. Skips GCS and wandb. |
+Run `make help` to see every available target.
 
-### Activation (subsequent shells)
-
-Setup generates thin activation scripts at the repo root. Source the one that matches your shell:
+### Activate (subsequent shells)
 
 ```bash
-source activate.sh          # bash / zsh (auto-detects TPU vs GPU)
-source activate.csh         # csh / tcsh (UCL machines)
+source activate.sh            # bash / zsh — auto-detects TPU vs GPU
+source activate.csh           # csh / tcsh (UCL machines)
 ```
 
 ### Optional service logins
 
-These are separate targets so you can run them independently or skip the ones you don't need:
+Run these individually, or all at once with `make logins`:
 
 | Target | Service | Notes |
 |---|---|---|
@@ -43,22 +52,24 @@ These are separate targets so you can run them independently or skip the ones yo
 | `make wandb-login` | Weights & Biases | Only needed when `wandb_log=true`. |
 | `make gcs-auth` | Google Cloud Storage | Installs `gcloud` CLI if missing, then authenticates. |
 | `make install-claude` | Claude Code | Installs Node.js via nvm if needed. |
-| `make logins` | All three | Runs `hf-login`, `wandb-login`, and `gcs-auth` together. |
+| `make logins` | All three | Runs `hf-login` + `wandb-login` + `gcs-auth`. |
 
-### Fresh remote machine (clone + setup in one step)
+### Project structure (setup files)
 
-For a brand-new VM with nothing installed, download and run the bootstrap script, then delegate to `make`:
-
-```bash
-git clone https://github.com/mathisweil/evo-memory.git
-cd evo-memory
-make setup-tpu          # or setup-gpu, setup-local
-make logins             # HF + wandb + GCS
 ```
+evo-memory/
+├── pyproject.toml        # Python metadata + all dependencies (single source of truth)
+├── uv.lock               # deterministic lockfile (committed to git)
+├── Makefile              # orchestration: hardware-specific torch, logins, TPU lifecycle
+├── activate.sh           # generated — bash/zsh activation
+└── activate.csh          # generated — csh/tcsh activation (UCL)
+```
+
+`pyproject.toml` declares every dependency. PyTorch is listed under optional extras (`[gpu]`, `[tpu]`, `[cpu]`) because it requires a different index URL per hardware platform. The Makefile handles that routing, then installs the rest of the project via `uv pip install -e "."`.
 
 ### csh / tcsh — UCL GPU machines
 
-> **Note:** `activate.sh` is bash-only and will error in csh. Use `activate.csh` exclusively on UCL machines.
+> `activate.sh` is bash-only and will error in csh. Use `activate.csh` exclusively on UCL machines.
 
 ```csh
 git clone https://github.com/mathisweil/evo-memory.git
@@ -69,15 +80,15 @@ setenv LLM_MODEL_PATH  meta-llama/Llama-3.2-1B-Instruct
 setenv HF_CACHE_DIR    /path/to/hf/cache
 setenv CUDA_VISIBLE_DEVICES 0
 source activate.csh
-huggingface-cli login         # one-time: required for gated LLaMA 3.2
+huggingface-cli login
 ```
 
-### Housekeeping
+### Reproducible installs (CI or new collaborators)
 
-| Target | What it removes |
-|---|---|
-| `make clean` | venv, stamp files, XLA cache, generated activation scripts |
-| `make clean-cache` | HF and XLA caches only (keeps venv intact) |
+```bash
+make lock          # regenerate uv.lock from pyproject.toml
+git add uv.lock    # commit so others get identical resolution
+```
 
 ---
 
@@ -112,7 +123,7 @@ All scripts accept `--config <yaml>` to load defaults from a YAML file; CLI flag
 ### Example commands
 
 ```bash
-# Smoke test (ES, no NAMM) — also available as: make smoke
+# Smoke test (ES, no NAMM) — also: make smoke
 python scripts/run_es.py --run_name smoke --num_iterations 2 --population_size 2 --mini_batch_size 2 --no-gcs
 
 # ES + frozen NAMM
@@ -163,6 +174,8 @@ experiments/
 
 ## Dependencies
 
+All dependencies are declared in `pyproject.toml`. Key version pins:
+
 ```
 torch==2.3.1          # cu121; TPU: torch_xla matching this version
 transformers==4.41.2  # CRITICAL: 4.45+ breaks DynamicCache API
@@ -170,17 +183,17 @@ peft==0.11.1
 numpy<2
 ```
 
-Full list: [`requirements.txt`](requirements.txt). Requires GLIBC >= 2.28 (Ubuntu 20.04+).
+Requires GLIBC >= 2.28 (Ubuntu 20.04+).
 
 ---
 
 ## TPU (Google Cloud)
 
-Setup and bootstrap commands are in [Getting Started](#getting-started) above — use `make setup-tpu`.
+Use `make setup-tpu` for first-time setup (see [Getting Started](#getting-started)).
 
 **Restart a preempted/stopped spot VM:**
 ```bash
-make tpu-restart-v6e          # spot v6e-8 in europe-west4-a (default)
+make tpu-restart-v6e          # spot v6e-8 in europe-west4-a
 make tpu-restart-v4           # on-demand v4-8 in us-central2-b
 ```
 
