@@ -39,6 +39,7 @@ dependencies = [
     "bitsandbytes",
     "einops",
     "scipy==1.13.0",
+    "tensorboard",
 
     # Tokenisation
     "tiktoken",
