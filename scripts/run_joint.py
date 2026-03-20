@@ -52,7 +52,6 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 import hydra
-from omegaconf import OmegaConf, open_dict
 from namm.run_utils import make_eval_model, make_task_sampler
 from namm.trainer import MemoryTrainer, WandbConfig
 from es_finetuning import ESConfig, ESTrainer
@@ -265,7 +264,7 @@ def main():
 
     method = f"joint_{args.adapter_type}"
     experiment_name, manifest = get_or_create_experiment(args.experiment)
-    run_dir = os.path.join(EXPERIMENTS_DIR, experiment_name,
+    run_dir: str = os.path.join(EXPERIMENTS_DIR, experiment_name,
                            method, args.run_name)
 
     if (os.path.exists(run_dir)
