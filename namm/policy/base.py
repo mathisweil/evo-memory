@@ -131,6 +131,17 @@ class MemoryPolicy(
                      **kwargs):
 
         num_all_tokens = past_key_values[0][0].shape[-2]
+
+        # Default to all-ones mask when no attention_mask is provided
+        # (no padding — all KV cache positions are valid).
+        if attention_mask is None:
+            batch_size = past_key_values[0][0].shape[0]
+            attention_mask = torch.ones(
+                batch_size, num_all_tokens,
+                dtype=torch.long,
+                device=past_key_values[0][0].device,
+            )
+
         if not analyze:
             self.update_rotary_offset(
                 num_new_tokens=num_new_tokens,
