@@ -339,8 +339,14 @@ class DeepMP(DynamicParamMemoryPolicy):
                 self.cache_validity_mask[layer_id] = None
 
         if attn_mask is not None:
-            
+
             attn_mask = attn_mask.unsqueeze(-2)[..., -num_all_tokens:]
+        else:
+            # No attention mask provided (no padding) — create all-ones mask
+            # sized to this layer's actual KV cache length.
+            attn_mask = torch.ones(
+                bs, 1, num_all_tokens,
+                dtype=torch.long, device=device)
         if self.requires_position_ids:
             position_ids = self.process_position_ids(
                 position_ids=position_ids, num_all_tokens=num_all_tokens, 
