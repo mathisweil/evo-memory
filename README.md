@@ -15,7 +15,7 @@ make setup-local        # or whichever target matches your hardware (~2 min)
 
 All setup is driven by a single `Makefile`. Run `make help` to see every available target.
 
-### Setup targets
+### Setup targets 
 
 | Target | Hardware | What it does |
 |---|---|---|
