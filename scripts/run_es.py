@@ -27,14 +27,11 @@ Usage:
 
 import argparse
 import atexit
-import json
 
 import yaml
 import logging
 import os
-import socket
 import sys
-from datetime import datetime
 
 import numpy as np
 import torch
@@ -46,7 +43,6 @@ REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from hydra import compose, initialize
 from namm.run_utils import make_eval_model, make_task_sampler
 from es_finetuning import ESConfig, ESTrainer
 from es_finetuning.device import get_device
@@ -58,7 +54,6 @@ from experiment_utils import (
     load_hydra_config,
     get_base_llm_param_names,
     EXPERIMENTS_DIR,
-    MANIFEST_PATH,
 )
 
 def _sync_xla_cache_to_gcs():
