@@ -1,6 +1,9 @@
 defaults:
   - _self_
 
+# Optional path to a saved LoRA adapter directory (e.g. for M3 sequential).
+# When set, the adapter is merged into the base weights before NAMM training.
+adapter_path: null
 
 pretrained_llm:
   _target_: utils.hydra_helpers.AutoModelForCausalLM.from_pretrained

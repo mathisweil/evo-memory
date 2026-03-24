@@ -49,13 +49,16 @@ Evaluates raw Llama-3.2-1B-Instruct on Qasper with no KV cache limit, no evictio
 
 ```bash
 python scripts/run_eval.py \
-    --no-gcs
+    --run_config full_cache_baseline_llama32_1b \
+    --train_split 0.8 \
+    --output_dir experiments/experiment_N/baseline
 ```
 
 | Parameter | Value |
 |-----------|-------|
 | `es_checkpoint` | null — evaluates base model weights |
 | `namm_checkpoint` | null — no eviction, full KV cache |
+| `run_config` | `full_cache_baseline_llama32_1b` — no-eviction policy |
 | `cache_size` | null — no limit |
 | Output | `experiments/experiment_N/baseline/results.json` |
 
@@ -67,15 +70,18 @@ Evaluates the base model with a fixed recency policy: keeps the most recently wr
 
 ```bash
 python scripts/run_eval.py \
-    --run_config namm_recency_llama32_1b \
+    --run_config recency_baseline_llama32_1b \
     --cache_size 1024 \
-    --no-gcs
+    --train_split 0.8 \
+    --output_dir experiments/experiment_N/es_recency/b1_recency \
+    --override "task@_global_=qasper"
 ```
 
 | Parameter | Value |
 |-----------|-------|
-| `run_config` | `namm_recency_llama32_1b` — verify name against `config/run/` |
+| `run_config` | `recency_baseline_llama32_1b` — matches `config/run/recency_baseline_llama32_1b.yaml` |
 | `cache_size` | 1024 |
+| task override | `task@_global_=qasper` — recency config defaults to `lb_3subset_eval`; override to match all other conditions |
 | Output | `experiments/experiment_N/es_recency/b1_recency/results.json` |
 
 ---
@@ -146,20 +152,22 @@ python scripts/run_namm.py \
     run=namm_bam_i1_llama32_1b \
     wandb_run_name=m2_namm_standalone \
     wandb_group_name=main_conditions \
-    seed=42
+    seed=42 \
+    trainer_config.max_iters=299
 ```
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | Config | `config/config.yaml` (Hydra) | |
 | `run` preset | `namm_bam_i1_llama32_1b` | BAM policy, i1 architecture |
-| `pop_size` | 8 | From `es_default.yaml` |
+| `pop_size` | 8 | From preset |
 | `elite_ratio` | 0.5 | Standard CMA-ES setting |
 | `init_sigma` | 0.065 | Already validated in prior runs |
-| `memory_policy_fixed_delay` | 256 | From `lora_rh_m4_instruct.yaml` overrides |
+| `memory_policy_fixed_delay` | 256 | From preset |
 | `max_conditioning_length` | 4086 | ~4k token context |
 | `max_memory_length` | 1024 | 4× compression ratio |
-| `mini_batch_size` | 16 | From `es_default.yaml` |
+| `mini_batch_size` | 16 | From preset |
+| `trainer_config.max_iters` | 299 | MemoryTrainer loops `range(0, max_iters+1)` → 300 generations; preset default is 200 |
 | Generations | 300 | ~13.5 hours on a single GPU |
 | Task | Qasper only | Single-task; no incremental evolution needed |
 | Output | `outputs/{date}/{time}/` (Hydra default) | |
@@ -189,18 +197,18 @@ python scripts/run_namm.py \
     wandb_run_name=m3_namm_on_lora \
     wandb_group_name=main_conditions \
     seed=42 \
-    model.adapter_path=experiments/experiment_N/m1_lora_only/m1_r8/checkpoints/
+    trainer_config.max_iters=299 \
+    adapter_path=experiments/experiment_N/m1_lora_only/m1_r8/checkpoints/
 ```
 
 | Parameter | Value |
 |-----------|-------|
 | Stage 1 config | `scripts/lora_m1_only.yaml` — rank=8, 2 epochs |
 | Stage 2 config | `config/config.yaml` (Hydra) — 300 CMA-ES generations |
-| Stage 2 init | LoRA-adapted weights from Stage 1 + fresh NAMM parameters |
+| Stage 2 init | LoRA-adapted weights from Stage 1 merged into base LLM, then fresh NAMM parameters trained on top |
+| `adapter_path` | Path to Stage 1 LoRA checkpoint dir — handled in `namm/run_utils.py:make_eval_model` |
 | `max_memory_length` | 1024 |
 | Output | `outputs/{date}/{time}/` (Hydra) |
-
-> Verify the `model.adapter_path` override key against `config/model/`. If `run_namm.py` loads the base model from `LLM_MODEL_PATH`, point that env var at the LoRA checkpoint directory instead.
 
 ---
 
@@ -217,8 +225,7 @@ python scripts/run_joint.py \
     --namm_iterations_per_stage 150 \
     --lora_epochs_per_stage 1 \
     --lora_rank 8 \
-    --cache_size 1024 \
-    --no-gcs
+    --cache_size 1024
 ```
 
 | Parameter | Value | Notes |
@@ -268,6 +275,7 @@ Eval-only using the M2 checkpoint at three cache sizes. Plots the accuracy vs. m
 python scripts/run_eval.py \
     --namm_checkpoint <path-to-m2-checkpoint> \
     --cache_size 512 \
+    --train_split 0.8 \
     --output_dir experiments/ablations/a2_cache/m2_cache512
 ```
 
@@ -277,6 +285,7 @@ python scripts/run_eval.py \
 python scripts/run_eval.py \
     --namm_checkpoint <path-to-m2-checkpoint> \
     --cache_size 2048 \
+    --train_split 0.8 \
     --output_dir experiments/ablations/a2_cache/m2_cache2048
 ```
 
@@ -296,9 +305,10 @@ Takes the fully trained M4 checkpoint and evaluates it twice: once with NAMM act
 
 ```bash
 python scripts/run_eval.py \
-    --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_2/ \
+    --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_1/ \
     --namm_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/namm/latest.pt \
     --cache_size 1024 \
+    --train_split 0.8 \
     --output_dir experiments/ablations/a4_modularity/m4_namm_on
 ```
 
@@ -306,15 +316,16 @@ python scripts/run_eval.py \
 
 ```bash
 python scripts/run_eval.py \
-    --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_2/ \
+    --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_1/ \
+    --train_split 0.8 \
     --output_dir experiments/ablations/a4_modularity/m4_namm_off
 # No --namm_checkpoint → full KV cache, no eviction
 ```
 
 | | |
 |---|---|
-| Adapter checkpoint | `joint_lora/m4_joint_lora/adapter/stage_2/` |
-| NAMM checkpoint | `joint_lora/m4_joint_lora/namm/latest.pt` |
+| Adapter checkpoint | `joint_lora/m4_joint_lora/adapter/stage_1/` — stages are 0-indexed; final stage with `--num_outer_loops 2` is `stage_1` |
+| NAMM checkpoint | `joint_lora/m4_joint_lora/namm/latest.pt` — written after each NAMM stage; always reflects the most recent stage |
 | What it answers | RQ4: are jointly-trained NAMM and LoRA co-dependent, or is the LoRA sufficient alone? |
 | Expected finding | M4-NAMM-on > M4-NAMM-off ≈ M1 (LoRA adapts to compressed context; removing NAMM at eval hurts) |
 
@@ -409,14 +420,13 @@ python scripts/run_joint.py \
     --namm_iterations_per_stage 3 \
     --lora_epochs_per_stage 1 \
     --population_size 2 \
-    --mini_batch_size 2 \
-    --no-gcs
+    --mini_batch_size 2
 ```
 
 #### Eval smoke test
 
 ```bash
 python scripts/run_eval.py \
-    --num_samples 10 \
-    --no-gcs
+    --run_config full_cache_baseline_llama32_1b \
+    --num_samples 10
 ```
