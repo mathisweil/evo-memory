@@ -107,6 +107,29 @@ def make_eval_model(cfg, log_prefix='...'):
     memory_model = hydra.utils.instantiate(
         cfg.memory_model, model=pretrained_llm, memory_policy=memory_policy,)
 
+    # Load ES-fine-tuned weights into the model (for M3-ES sequential).
+    # Must happen after memory_model construction because ES checkpoints use
+    # fully-qualified memory_model parameter names (e.g. model.layers.0.*).
+    es_checkpoint_path = getattr(cfg, 'es_checkpoint_path', None)
+    if es_checkpoint_path:
+        print(log_prefix + f'Loading ES checkpoint from {es_checkpoint_path}...')
+        es_state = torch.load(es_checkpoint_path, map_location='cpu',
+                              weights_only=True)
+        is_delta = es_state.pop('__format__', None) == 'delta'
+        model_params = dict(memory_model.named_parameters())
+        loaded = 0
+        for name, val in es_state.items():
+            if name in model_params:
+                target = model_params[name]
+                val = val.to(dtype=target.dtype)
+                if is_delta:
+                    target.data.add_(val)
+                else:
+                    target.data.copy_(val)
+                loaded += 1
+        fmt = 'delta' if is_delta else 'absolute'
+        print(log_prefix + f'ES checkpoint loaded: {loaded} params ({fmt} format).')
+
     print(log_prefix + 'Instantialting evaluation module...')
     memory_evaluator = hydra.utils.instantiate(
         cfg.memory_evaluator, model=memory_model, tokenizer=tokenizer)
