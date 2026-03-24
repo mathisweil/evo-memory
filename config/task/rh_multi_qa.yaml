@@ -1,0 +1,13 @@
+# 3-task QA subset for rhautier's experiments.
+# Matches the task list used in LoRA configs and romain_implementation branch.
+defaults:
+  - base_sampler
+  - _self_
+
+tasks:
+  - "lb/qasper"
+  - "lb/multifieldqa_en"
+  - "lb/2wikimqa"
+metrics: 'perf'
+
+tasks_log_name: rh-multi-qa
