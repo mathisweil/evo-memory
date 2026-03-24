@@ -90,6 +90,15 @@ def make_eval_model(cfg, log_prefix='...'):
     pretrained_llm = hydra.utils.call(cfg.pretrained_llm, _convert_="object")
     tokenizer = hydra.utils.call(cfg.tokenizer)
 
+    adapter_path = getattr(cfg, 'adapter_path', None)
+    if adapter_path:
+        from peft import PeftModel
+        print(log_prefix + f'Loading LoRA adapter from {adapter_path}...')
+        pretrained_llm = PeftModel.from_pretrained(
+            pretrained_llm, adapter_path)
+        pretrained_llm = pretrained_llm.merge_and_unload()
+        print(log_prefix + 'LoRA adapter merged into base weights.')
+
     print(log_prefix + 'Instantialting memory policy...')
     memory_policy = hydra.utils.instantiate(cfg.memory_policy,
                                             _convert_="object")

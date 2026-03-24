@@ -36,6 +36,7 @@ import argparse
 import json
 import logging
 import os
+import shutil
 import sys
 import time
 from datetime import datetime
@@ -535,6 +536,10 @@ def main():
         namm_ckpt_path = os.path.join(namm_dir, f"namm_stage_{k}.pt")
         namm_trainer._save_ckpt(
             iter_num=namm_end_iter, save_path=namm_ckpt_path)
+        # Overwrite latest.pt so A4/eval always has a stable path to the
+        # most recently completed NAMM stage checkpoint.
+        shutil.copy2(namm_ckpt_path,
+                     os.path.join(namm_dir, "latest.pt"))
         print(f"  NAMM checkpoint: {namm_ckpt_path}")
 
         # ── Stage B: Train adapter (NAMM frozen) ────────────────────────

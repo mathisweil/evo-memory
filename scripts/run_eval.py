@@ -101,7 +101,7 @@ def parse_args():
                         help="Generation temperature (0 = greedy)")
     parser.add_argument("--num_samples", type=int, default=1,
                         help="Samples per question (averaged for final score)")
-    parser.add_argument("--train_split", type=float, default=0.9,
+    parser.add_argument("--train_split", type=float, default=0.8,
                         help="Train/test split fraction (must match training)")
     parser.add_argument("--split_seed", type=int, default=42,
                         help="Seed for deterministic train/test split")
