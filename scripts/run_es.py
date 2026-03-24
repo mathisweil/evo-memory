@@ -254,7 +254,7 @@ def parse_args():
     parser.add_argument("--resume_checkpoint", type=str, default=None)
 
     # Data splits
-    parser.add_argument("--train_split", type=float, default=0.9,
+    parser.add_argument("--train_split", type=float, default=0.8,
                         help="Fraction of data for training (rest is held-out eval)")
     parser.add_argument("--split_seed", type=int, default=42,
                         help="Seed for deterministic train/test split")

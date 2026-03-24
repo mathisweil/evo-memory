@@ -1,9 +1,14 @@
 defaults:
   - _self_
 
-# Optional path to a saved LoRA adapter directory (e.g. for M3 sequential).
+# Optional path to a saved LoRA adapter directory (e.g. for M3-LoRA sequential).
 # When set, the adapter is merged into the base weights before NAMM training.
 adapter_path: null
+
+# Optional path to a saved ES checkpoint file (e.g. for M3-ES sequential).
+# When set, ES-fine-tuned weight deltas are applied to the base model before
+# NAMM training. Supports both delta and absolute checkpoint formats.
+es_checkpoint_path: null
 
 pretrained_llm:
   _target_: utils.hydra_helpers.AutoModelForCausalLM.from_pretrained
