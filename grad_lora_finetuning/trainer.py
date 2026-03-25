@@ -421,7 +421,7 @@ class LoRAGradTrainer:
                 self.model.memory_policy_fixed_delay = saved_delay
             hidden_states = outputs.hidden_states[-1]
             shift_hidden = hidden_states[:, :-1, :].contiguous()
-            shift_labels = labels[:, 1:].contiguous().view(-1)
+            shift_labels = labels[:, 1:].contiguous()
 
         # Chunked cross-entropy
         lm_head = self.model.lm_head
@@ -434,7 +434,7 @@ class LoRAGradTrainer:
         for i in range(0, seq_len, chunk_size):
             chunk_h = shift_hidden[:, i:i+chunk_size, :]
             chunk_logits = lm_head(chunk_h).float()
-            chunk_labels = shift_labels[i:i+chunk_size]
+            chunk_labels = shift_labels[:, i:i+chunk_size].contiguous().view(-1)
             total_loss = total_loss + F.cross_entropy(
                 chunk_logits.view(-1, chunk_logits.size(-1)),
                 chunk_labels,
@@ -622,6 +622,9 @@ class LoRAGradTrainer:
                 f, fieldnames=['step', 'loss', 'grad_norm', 'lr']
             )
             writer.writeheader()
+
+        self._val_csv_path = os.path.join(self.artifact_dir, 'val_metrics.csv')
+        self._val_csv_initialized = False
 
         print(f"Artifact contract initialized: {self.artifact_dir}")
 
@@ -862,19 +865,48 @@ class LoRAGradTrainer:
                             try:
                                 with torch.no_grad():
                                     val_scores = self._evaluate_f1(split='val')
+                                    # Evaluate on a train subsample (same size as val) for overfitting detection
+                                    val_n = sum(len(v) for v in self.task_sampler.get_split_indices('val').values())
+                                    train_scores = self._evaluate_f1(split='train', num_samples=val_n)
                                     self._debug_generate(n=3, split='val')
                             except (torch.cuda.OutOfMemoryError, ValueError) as e:
                                 print(f"WARNING: Periodic eval OOM at step {global_step} — skipping. ({e})")
                                 torch.cuda.empty_cache()
                                 val_scores = {}
+                                train_scores = {}
                             self.model.train()
                             for n, p in self.model.model.named_parameters():
                                 if 'lora_' not in n:
                                     p.requires_grad_(False)
 
+                            if train_scores:
+                                score_parts = [f"{k}: {v:.2f}" for k, v in sorted(train_scores.items())]
+                                print(f"  [train step {global_step}] {' | '.join(score_parts)}")
+                                if wcfg.wandb_log and wandb.run is not None:
+                                    train_dict = {f"lora/train_{k.replace('/', '_')}": v
+                                                  for k, v in train_scores.items()}
+                                    wandb.log(train_dict, step=global_step)
+
                             if val_scores:
                                 score_parts = [f"{k}: {v:.2f}" for k, v in sorted(val_scores.items())]
                                 print(f"  [val step {global_step}] {' | '.join(score_parts)}")
+                                # Log eval scores to CSV
+                                if self._val_csv_path is not None:
+                                    row = {'step': global_step}
+                                    row.update({f"train_{k.replace('/', '_')}": round(v, 4)
+                                                for k, v in sorted(train_scores.items())})
+                                    row.update({f"val_{k.replace('/', '_')}": round(v, 4)
+                                                for k, v in sorted(val_scores.items())})
+                                    if not self._val_csv_initialized:
+                                        with open(self._val_csv_path, 'w', newline='') as f:
+                                            writer = csv.DictWriter(f, fieldnames=list(row.keys()))
+                                            writer.writeheader()
+                                            writer.writerow(row)
+                                        self._val_csv_initialized = True
+                                    else:
+                                        with open(self._val_csv_path, 'a', newline='') as f:
+                                            writer = csv.DictWriter(f, fieldnames=list(row.keys()))
+                                            writer.writerow(row)
                                 if wcfg.wandb_log and wandb.run is not None:
                                     val_dict = {f"lora/val_{k.replace('/', '_')}": v
                                                 for k, v in val_scores.items()}
