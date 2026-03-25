@@ -1,0 +1,69 @@
+# @package _global_
+# NAMM CMA-ES training on LLaMA 3.2-1B — NO hard cache cap.
+# BinarySelection threshold=0 is the only eviction mechanism.
+# The network learns *how many* tokens to retain, not just *which* ones
+# within a fixed budget.
+defaults:
+  - base_memory_policy/deep/bam/base_bam
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - override /task@_global_: rh_multi_qa
+  - _self_
+
+run_name_suffix: 'llama32-1b-nocap'
+
+# NO hard cache cap — threshold-only eviction
+cache_size:
+max_new_tokens: 64
+
+scoring_reduction_mode:
+embedding_reduction_mode: ema
+
+# EMA params
+embedding_ema_coeff: 0.99
+embedding_reduction_learned: false
+
+# BAM scoring network params
+scoring_attn_hidden_dim: 32
+scoring_attn_output_dim:
+scoring_attn_num_heads: 1
+scoring_attn_bias: true
+scoring_attn_use_rope: false
+scoring_attn_rope_theta: 50000
+scoring_attn_masking_strategy: backward
+
+# STFT spectrogram params
+n_fft: 32
+hop_length: 16
+window_fn:
+  _target_: utils.hydra_helpers.torch.hann_window
+  window_length: ${n_fft}
+  periodic: true
+window_fn_log_name: hann
+pad_mode: constant
+output_magnitudes: true
+
+pop_size: 8
+# 8 samples per task (x3 tasks = 24 evals/generation) for stronger fitness signal
+samples_batch_size: 4
+# batch_size=1 since without cache cap, KV cache grows to full context (~6500 tokens)
+batch_size: 1
+
+scoring_initializer: 0
+keep_past_epoch_checkpoints_every: 25
+
+max_iters: 200
+
+memory_policy_fixed_delay: 256
+# Must be large enough to hold the full sequence when NAMM retains everything
+max_memory_length: 7000
+
+# Per-prompt reference scores for score normalization
+score_normalization_reference:
+
+train_frac: 0.7
+val_frac: 0.15
+
+device: 'cuda'
+
+wandb_log: true
+add_bos_token: true
