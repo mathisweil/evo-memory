@@ -97,8 +97,8 @@ class LoRATrainerConfig:
     init_from: Optional[str]        # path to ckpt (NAMM ckpt for m4, LoRA ckpt for resume)
     dtype: str                      # 'bfloat16'
     sft_mode: bool = False          # True -> LongBenchSFTDataset; False -> LongBenchNTPDataset
-    train_frac: float = 0.8         # fraction of each task's examples used for training
-    val_frac: float = 0.1           # fraction used for validation (best checkpoint selection)
+    train_frac: float = 0.7         # fraction of each task's examples used for training
+    val_frac: float = 0.15          # fraction used for validation (best checkpoint selection)
     max_conditioning_length: int = 6500  # max prompt tokens for evaluation (skip longer prompts)
 
 
@@ -191,6 +191,7 @@ class LoRAGradTrainer:
                 task_names=cfg.task_names,
                 tokenizer=tokenizer,
                 max_seq_len=cfg.max_seq_len,
+                max_conditioning_length=cfg.max_conditioning_length,
                 seed=cfg.seed,
                 train_frac=cfg.train_frac,
             )

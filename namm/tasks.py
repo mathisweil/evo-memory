@@ -83,6 +83,8 @@ class TaskSampler():
 
         self.lb_training_tasks = training_tasks_subset or tasks
         self.lb_test_tasks = test_tasks_subset or tasks
+        self.training_tasks_subset = self.lb_training_tasks
+        self.test_tasks_subset = self.lb_test_tasks
         self.prefetched_task_tensors = {t: None for t in tasks}
         self.loaded_cached_model_data = False
         self.cached_per_task_stats = {}
