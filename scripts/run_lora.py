@@ -99,8 +99,8 @@ def parse_args():
     # Data filtering
     parser.add_argument("--filter_by_tokens", type=int, default=None)
     parser.add_argument("--filter_answers_by_tokens", type=int, default=64)
-    parser.add_argument("--train_split", type=float, default=0.8)
-    parser.add_argument("--val_split", type=float, default=0.1)
+    parser.add_argument("--train_split", type=float, default=0.7)
+    parser.add_argument("--val_split", type=float, default=0.15)
     parser.add_argument("--split_seed", type=int, default=42)
 
     # Evaluation
@@ -111,6 +111,12 @@ def parse_args():
     # Checkpointing & GCS
     parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--resume_checkpoint", type=str, default=None)
+
+    # Wandb
+    parser.add_argument("--wandb_log", type=bool, default=True)
+    parser.add_argument("--wandb_project", type=str, default="memory_evolution_hf")
+    parser.add_argument("--wandb_run_name", type=str, default=None)
+    parser.add_argument("--wandb_group_name", type=str, default=None)
 
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
@@ -258,10 +264,13 @@ def main():
     task_sampler.filter_answers_by_token_count(
         memory_evaluator.tokenizer, args.filter_answers_by_tokens)
 
-    # 3c. Apply 3-way split for LoRA training
+    # 3c. Apply 3-way split for LoRA training with exact token-based filtering.
+    # This ensures LoRA uses the same eligible set as NAMM training.
     task_sampler.apply_train_val_test_split(
         train_frac=args.train_split,
         val_frac=args.val_split,
+        max_conditioning_length=cfg.get('max_conditioning_length', 6500),
+        tokenizer=memory_evaluator.tokenizer,
     )
 
     # 4. Cast model to bfloat16 and move to device
@@ -308,13 +317,14 @@ def main():
         sft_mode=args.sft_mode,
         train_frac=args.train_split,
         val_frac=args.val_split,
+        max_conditioning_length=cfg.get('max_conditioning_length', 6500),
     )
 
     wandb_cfg = WandbConfig(
-        wandb_log=False,  # Enable via --override wandb_log=true
-        wandb_project="lora_finetuning",
-        wandb_run_name=args.run_name,
-        wandb_group_name=experiment_name,
+        wandb_log=args.wandb_log,
+        wandb_project=args.wandb_project,
+        wandb_run_name=args.wandb_run_name or args.run_name,
+        wandb_group_name=args.wandb_group_name or experiment_name,
     )
 
     # 8. Build tokenizer for trainer

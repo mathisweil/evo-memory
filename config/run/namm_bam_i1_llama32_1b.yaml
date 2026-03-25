@@ -5,7 +5,7 @@
 defaults:
   - base_memory_policy/deep/bam/base_bam
   - override /model/wrapped_llm@_global_: llama32-1b
-  - override /task@_global_: qasper
+  - override /task@_global_: rh_multi_qa
   - _self_
 
 run_name_suffix: 'llama32-1b-stage1'
@@ -48,8 +48,8 @@ pop_size: 8
 samples_batch_size: 16
 # Inference batch size: "auto" detects largest batch size that fits in GPU memory.
 # eval_max_batch_size is the upper bound for auto-detection (binary search start).
-batch_size: "auto"
-eval_max_batch_size: 64
+batch_size: 4
+eval_max_batch_size: 4
 
 scoring_initializer: 0
 keep_past_epoch_checkpoints_every: 25
@@ -63,6 +63,11 @@ max_memory_length: 1024
 
 # No reference scores for 1B model; use raw task scores as fitness
 score_normalization_reference:
+
+train_frac: 0.7
+val_frac: 0.15
+
+device: 'cuda'
 
 wandb_log: true
 add_bos_token: true

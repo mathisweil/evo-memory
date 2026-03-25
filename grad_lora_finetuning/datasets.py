@@ -146,12 +146,14 @@ class LongBenchSFTDataset(Dataset):
         task_names: list,
         tokenizer,
         max_seq_len: int = 3500,
+        max_conditioning_length: int = 6500,
         cache_dir: str = None,
         seed: int = 1337,
         train_frac: float = 0.8,
     ):
         super().__init__()
         self.max_seq_len = max_seq_len
+        self.max_conditioning_length = max_conditioning_length
         self.train_frac = train_frac
 
         with open(_LONGBENCH_PROMPT_PATH) as f:
@@ -182,16 +184,14 @@ class LongBenchSFTDataset(Dataset):
             )
             items = list(dataset)
             n_total_task = len(items)
-            if train_frac < 1.0:
-                n_train = int(len(items) * train_frac)
-                items = items[:n_train]
-                print(f"  {task_name}: using first {n_train}/{n_total_task} examples (train_frac={train_frac})")
-            task_count = 0
+
+            # --- Filter first, then split (matches task_sampler order) ---
+            eligible = []
             task_skipped_long = 0
-            task_prompt_lens = []
-            task_answer_lens = []
+            task_skipped_no_answer = 0
             for item in items:
                 if not item['answers']:
+                    task_skipped_no_answer += 1
                     n_skipped_no_answer += 1
                     continue
                 answer = item['answers'][0]
@@ -212,37 +212,66 @@ class LongBenchSFTDataset(Dataset):
                 )
 
                 label_start = len(prompt_ids)
-                n_answer_tokens = len(full_ids) - label_start
 
-                if len(full_ids) > max_seq_len:
-                    n_skipped_too_long += 1
+                # Filter by PROMPT length to match task_sampler's eligibility.
+                # task_sampler strips BOS and counts with add_special_tokens=False,
+                # so subtract 1 for the BOS that apply_chat_template includes.
+                bos_id = getattr(tokenizer, 'bos_token_id', None)
+                n_prompt_tok = label_start - (1 if bos_id is not None and prompt_ids[0] == bos_id else 0)
+                if n_prompt_tok > max_conditioning_length:
                     task_skipped_long += 1
+                    n_skipped_too_long += 1
                     continue
 
                 if label_start >= len(full_ids):
+                    task_skipped_no_answer += 1
                     n_skipped_no_answer += 1
                     continue
 
-                samples.append({
+                # Truncate answer if prompt + answer exceeds max_seq_len
+                if len(full_ids) > max_seq_len:
+                    full_ids = full_ids[:max_seq_len]
+
+                n_answer_tokens = len(full_ids) - label_start
+
+                eligible.append({
                     'full_ids': torch.tensor(full_ids, dtype=torch.long),
                     'label_start': label_start,
+                    'task_name': task_name,
+                    'n_answer_tokens': n_answer_tokens,
                 })
-                task_count += 1
-                task_prompt_lens.append(label_start)
-                task_answer_lens.append(n_answer_tokens)
+
+            n_eligible = len(eligible)
+
+            # Split AFTER filtering — take first train_frac of eligible samples.
+            if train_frac < 1.0:
+                n_train = int(n_eligible * train_frac)
+                eligible = eligible[:n_train]
+                print(f"  {task_name}: {n_total_task} total, {task_skipped_long} filtered "
+                      f"(prompt>{max_conditioning_length} tok), {task_skipped_no_answer} no answer -> "
+                      f"{n_eligible} eligible -> {n_train} train (first {train_frac:.0%})")
+            else:
+                print(f"  {task_name}: {n_total_task} total, {task_skipped_long} filtered "
+                      f"(prompt>{max_conditioning_length} tok), {task_skipped_no_answer} no answer -> "
+                      f"{n_eligible} eligible (using all)")
+
+            task_prompt_lens = [s['label_start'] for s in eligible]
+            task_answer_lens = [s['n_answer_tokens'] for s in eligible]
 
             if task_prompt_lens:
                 avg_prompt = sum(task_prompt_lens) / len(task_prompt_lens)
                 avg_answer = sum(task_answer_lens) / len(task_answer_lens)
-                print(f"  {task_name}: {task_count} kept, {task_skipped_long} discarded (>{max_seq_len} tokens)")
                 print(f"    prompt tokens:  min={min(task_prompt_lens)}, avg={avg_prompt:.0f}, max={max(task_prompt_lens)}")
                 print(f"    answer tokens:  min={min(task_answer_lens)}, avg={avg_answer:.0f}, max={max(task_answer_lens)}")
-            else:
-                print(f"  {task_name}: 0 kept, {task_skipped_long} discarded")
+
+            # Drop helper keys before adding to samples
+            for s in eligible:
+                del s['n_answer_tokens']
+            samples.extend(eligible)
 
         total = len(samples) + n_skipped_no_answer + n_skipped_too_long
         print(f"\nLongBenchSFTDataset: {len(samples)} samples loaded from {total} total")
-        print(f"  Skipped: {n_skipped_too_long} exceeding max_seq_len={max_seq_len}, "
+        print(f"  Skipped: {n_skipped_too_long} with prompt>{max_conditioning_length} tok, "
               f"{n_skipped_no_answer} no/empty answer")
         if len(samples) > 0:
             all_prompt_lens = [s['label_start'] for s in samples]
@@ -251,6 +280,29 @@ class LongBenchSFTDataset(Dataset):
             print(f"  Overall prompt tokens:  min={min(all_prompt_lens)}, avg={sum(all_prompt_lens)/len(all_prompt_lens):.0f}, max={max(all_prompt_lens)}")
             print(f"  Overall answer tokens:  min={min(all_answer_lens)}, avg={sum(all_answer_lens)/len(all_answer_lens):.0f}, max={max(all_answer_lens)}")
             print(f"  Overall sequence len:   min={min(all_seq_lens)}, avg={sum(all_seq_lens)/len(all_seq_lens):.0f}, max={max(all_seq_lens)}")
+
+        # --- Upsample minority tasks to balance per-task contribution ---
+        task_buckets = {}
+        for s in samples:
+            t = s.get('task_name', '_unknown')
+            task_buckets.setdefault(t, []).append(s)
+
+        if len(task_buckets) > 1:
+            max_count = max(len(v) for v in task_buckets.values())
+            balanced_samples = []
+            rng = random.Random(seed)
+            for t_name, t_samples in sorted(task_buckets.items()):
+                n_orig = len(t_samples)
+                if n_orig < max_count:
+                    n_full_copies = max_count // n_orig
+                    n_remainder = max_count % n_orig
+                    upsampled = t_samples * n_full_copies + rng.sample(t_samples, n_remainder)
+                    print(f"  Upsampling {t_name}: {n_orig} -> {len(upsampled)} (x{max_count / n_orig:.1f})")
+                    balanced_samples.extend(upsampled)
+                else:
+                    balanced_samples.extend(t_samples)
+            samples = balanced_samples
+            print(f"  Balanced dataset: {len(samples)} total samples ({max_count} per task x {len(task_buckets)} tasks)")
 
         random.Random(seed).shuffle(samples)
         self.samples = samples

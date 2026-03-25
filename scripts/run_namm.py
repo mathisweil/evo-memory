@@ -47,6 +47,19 @@ def main(cfg: DictConfig):
 
         task_sampler = make_task_sampler(cfg=cfg, log_prefix=log_prefix)
 
+        # Apply 3-way train/val/test split with exact tokenizer-based filtering.
+        # This ensures NAMM and LoRA use identical eligible sets and split indices.
+        tokenizer = hydra.utils.call(cfg.tokenizer)
+        train_frac = cfg.get('train_frac', 0.7)
+        val_frac = cfg.get('val_frac', 0.15)
+        max_cond = cfg.get('max_conditioning_length', 6500)
+        task_sampler.apply_train_val_test_split(
+            train_frac=train_frac,
+            val_frac=val_frac,
+            max_conditioning_length=max_cond,
+            tokenizer=tokenizer,
+        )
+
         trainer = hydra.utils.instantiate(
             cfg.trainer,
             evaluation_model=memory_evaluator,
