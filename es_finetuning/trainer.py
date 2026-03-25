@@ -310,7 +310,7 @@ class ESTrainer:
         print(f"Training complete in {total_time:.1f}s ({total_time / 3600:.1f}h)")
 
         # Final checkpoint
-        self._save_checkpoint(checkpoint_dir)
+        self._save_checkpoint(checkpoint_dir, config_path)
         if self.gcs_client and self.experiment_name:
             final_path = os.path.join(checkpoint_dir, "es_checkpoint_final.pt")
             self.gcs_client.upload_checkpoint(
@@ -388,7 +388,7 @@ class ESTrainer:
             print(f"  Permanent save iter {iteration}: {local_path} "
                   f"({size_mb:.1f} MB)")
 
-    def _save_checkpoint(self, checkpoint_dir):
+    def _save_checkpoint(self, checkpoint_dir, config_path=None):
         """Save delta checkpoint (current - initial weights)."""
         path = os.path.join(checkpoint_dir, "es_checkpoint_final.pt")
 
@@ -401,6 +401,22 @@ class ESTrainer:
         torch.save(state, path)
         size_mb = os.path.getsize(path) / 1024**2
         print(f"  Checkpoint saved: {path} ({size_mb:.1f} MB)")
+
+        try:
+            import wandb
+            if wandb.run is not None:
+                print("  Uploading final checkpoint and config as wandb artifact...")
+                artifact = wandb.Artifact(
+                    name=f"es_checkpoint_{self.run_name}",
+                    type="model",
+                    description="Final ES fine-tuned delta weights"
+                )
+                artifact.add_file(path)
+                if config_path and os.path.exists(config_path):
+                    artifact.add_file(config_path)
+                wandb.log_artifact(artifact)
+        except ImportError:
+            pass
 
     def _save_periodic_checkpoint(self, checkpoint_dir, iteration,
                                   history, training_start):
