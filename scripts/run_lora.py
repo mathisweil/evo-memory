@@ -112,6 +112,12 @@ def parse_args():
     parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--resume_checkpoint", type=str, default=None)
 
+    # Wandb
+    parser.add_argument("--wandb_log", type=bool, default=True)
+    parser.add_argument("--wandb_project", type=str, default="memory_evolution_hf")
+    parser.add_argument("--wandb_run_name", type=str, default=None)
+    parser.add_argument("--wandb_group_name", type=str, default=None)
+
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
@@ -315,10 +321,10 @@ def main():
     )
 
     wandb_cfg = WandbConfig(
-        wandb_log=False,  # Enable via --override wandb_log=true
-        wandb_project="lora_finetuning",
-        wandb_run_name=args.run_name,
-        wandb_group_name=experiment_name,
+        wandb_log=args.wandb_log,
+        wandb_project=args.wandb_project,
+        wandb_run_name=args.wandb_run_name or args.run_name,
+        wandb_group_name=args.wandb_group_name or experiment_name,
     )
 
     # 8. Build tokenizer for trainer
