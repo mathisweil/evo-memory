@@ -20,10 +20,10 @@ learning_rate: 1e-4
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
-num_epochs: 2
+num_epochs: 150
 batch_size: 1
 gradient_accumulation_steps: 16
-max_seq_len: 6600
+max_seq_len: 7000
 sft_mode: true
 
 # ── NAMM ────────────────────────────────────────────────────────────────
@@ -35,12 +35,12 @@ cache_size: 1024
 # ── Data ────────────────────────────────────────────────────────────────
 filter_by_tokens: null
 filter_answers_by_tokens: 64
-train_split: 0.8
-val_split: 0.1
+train_split: 0.7
+val_split: 0.15
 split_seed: 42
 
 # ── Evaluation ──────────────────────────────────────────────────────────
-eval_interval: 25
+eval_interval: 100
 log_interval: 10
 batch_size_eval: 4
 
@@ -53,7 +53,7 @@ resume_checkpoint: null
 # NAMM architecture overrides must match the checkpoint's config exactly.
 # Task list matches rhautier's multi-task setup.
 override:
-  - "task_sampler.tasks=[lb/qasper,lb/multifieldqa_en,lb/hotpotqa,lb/2wikimqa]"
+  - "task_sampler.tasks=[lb/qasper,lb/multifieldqa_en,lb/2wikimqa]"
   - "max_position_id=8192"
   - "max_conditioning_length=6500"
   - "max_new_tokens=64"

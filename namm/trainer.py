@@ -372,7 +372,8 @@ class MemoryTrainer():
 
     def sample_and_synchronize_task_idxs(
             self, train=True, split=False, sampled_requests=None,
-            task_batch_size=None, reshuffle=False, num_splits=None):
+            task_batch_size=None, reshuffle=False, num_splits=None,
+            data_split=None):
 
         if self.master_process:
 
@@ -380,9 +381,11 @@ class MemoryTrainer():
                 train=train,
                 sampled_requests_per_task=sampled_requests,
                 task_batch_size=task_batch_size,
+                split=data_split,
             )
             latest_sampled_task_idxs = (
-                self.task_sampler.get_latest_sampled_idxs(train=train))
+                self.task_sampler.get_latest_sampled_idxs(
+                    train=train, split=data_split))
 
         else:
             latest_sampled_task_idxs = None
@@ -696,10 +699,7 @@ class MemoryTrainer():
         if self.model.memory_policy_has_buffers_to_merge():
             self.model.load_buffers_dict(buffers_dict=buffers)
 
-        if self.same_test_train_tasks:
-            splits = ['train']
-        else:
-            splits = ['train', 'val']
+        splits = ['train', 'val']
         for split in splits:
             train = split == 'train'
 
@@ -726,6 +726,7 @@ class MemoryTrainer():
                     train=train,
                     sampled_requests=self.eval_samples_batch_size,
                     reshuffle=True,
+                    data_split=split,
                     **idx_sampling_kwargs,
                 )
                 score_dicts = self.task_sampler.evaluate(
@@ -735,6 +736,7 @@ class MemoryTrainer():
                     resample_requests=False,
                     performance_per_request=True,
                     cache_param_stats_per_task=cache_eval_stats_per_task,
+                    split=split,
                     **evaluation_kwargs,
 
 
@@ -745,7 +747,7 @@ class MemoryTrainer():
                     train=train,
                     evolved_model=True,
                     cache_param_stats_per_task=cache_eval_stats_per_task,
-
+                    split=split,
 
 
                     sampled_requests_per_task=self.eval_samples_batch_size,
@@ -826,14 +828,6 @@ class MemoryTrainer():
                         tensor=aux_loss, dst=0, mean=True)
                 if self.master_process:
                     out[split + '_aux_loss'] = aux_loss.item()
-
-        if self.same_test_train_tasks:
-            split = 'val'
-            val_out = {}
-            for k, v in out.items():
-                task_name = k.removeprefix('train_')
-                val_out[split + '_' + task_name] = v
-            out.update(val_out)
 
         if self.master_process and (self.eval_candidate_samples is not None):
             out.update(candidate_out)

@@ -9,7 +9,7 @@
 defaults:
   - base_memory_policy/deep/bam/base_bam
   - override /model/wrapped_llm@_global_: llama32-1b
-  - override /task@_global_: lb_3subset_eval
+  - override /task@_global_: rh_multi_qa
   - _self_
 
 run_name_suffix: 'llama32-1b-eval'
@@ -56,6 +56,9 @@ scratch: false
 eval_only: true
 # Extended timeout for 3-task evaluation
 ddp_timeout_limit: '0:3:0'
+
+train_frac: 0.7
+val_frac: 0.15
 
 score_normalization_reference:
 add_bos_token: true
