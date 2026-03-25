@@ -343,14 +343,16 @@ class TaskSampler():
                                         for k, ps in self.lb_prompts_per_task.items()}
         self._build_split()
 
-    def resample_requests(self, train: bool,
+    def resample_requests(self, train: bool = True,
                           sampled_requests_per_task: Optional[int] = None,
                           task_batch_size: Optional[int] = None,
+                          split: Optional[str] = None,
                           ) -> None:
         self.resample_requests_lb(
             train=train,
             sampled_requests_per_task=sampled_requests_per_task,
-            task_batch_size=task_batch_size)
+            task_batch_size=task_batch_size,
+            split=split)
 
     def set_requests_per_task(self, requests_dict):
         self.latest_lb_tasks_names = []
@@ -370,11 +372,16 @@ class TaskSampler():
         out_dict.update(self.latest_sampled_idxs_per_lb_task)
         return out_dict
 
-    def resample_requests_lb(self, train: bool,
+    def resample_requests_lb(self, train: bool = True,
                              sampled_requests_per_task: Optional[int] = None,
                              task_batch_size: Optional[int] = None,
+                             split: Optional[str] = None,
                              ) -> None:
-        if train:
+        # Resolve split: explicit split parameter takes precedence over train bool
+        if split is None:
+            split = 'train' if train else 'test'
+
+        if split in ('train', 'val'):
             tasks_subset = self.lb_training_tasks
         else:
             tasks_subset = self.lb_test_tasks
@@ -398,8 +405,10 @@ class TaskSampler():
         for task_n in tasks_names:
             # Use split indices if available
             if self._train_idxs_per_task is not None:
-                if train:
+                if split == 'train':
                     eligible = self._train_idxs_per_task[task_n]
+                elif split == 'val' and self._val_idxs_per_task is not None:
+                    eligible = self._val_idxs_per_task[task_n]
                 else:
                     eligible = self._test_idxs_per_task[task_n]
             else:
@@ -417,8 +426,8 @@ class TaskSampler():
     def evaluate(
         self,
         lm,
-        train: bool,
-        evolved_model: bool,
+        train: bool = True,
+        evolved_model: bool = False,
         pop_reps: int = 1,
         pop_idxs: Optional[np.array] = None,
         resample_requests: bool = True,
@@ -430,10 +439,14 @@ class TaskSampler():
         performance_per_request: bool = False,
         cache_param_stats_per_task: bool = False,
         model_kwargs: Optional[dict] = None,
+        split: Optional[str] = None,
     ):
+        # Resolve split: explicit split parameter takes precedence over train bool
+        if split is None:
+            split = 'train' if train else 'test'
 
         out_dicts = [{} for _ in range(pop_reps)]
-        if train:
+        if split in ('train', 'val'):
             tasks_subset = self.lb_training_tasks
         else:
             tasks_subset = self.lb_test_tasks
@@ -448,16 +461,21 @@ class TaskSampler():
                 limit=limit, build_chat_interface=build_chat_interface,
                 performance_per_request=performance_per_request,
                 cache_param_stats_per_task=cache_param_stats_per_task,
-                model_kwargs=model_kwargs)
+                model_kwargs=model_kwargs,
+                split=split)
 
             out_dicts = merge_list_of_dicts(out_dicts, lb_dicts)
             out_dicts = merge_list_of_dicts(out_dicts, lb_stats)
 
         return out_dicts
 
-    def get_latest_sampled_idxs(self, train=True):
+    def get_latest_sampled_idxs(self, train=True, split=None):
         lb_tasks_names = self.latest_lb_tasks_names
-        if train:
+        # Resolve split: explicit split parameter takes precedence over train bool
+        if split is None:
+            split = 'train' if train else 'test'
+
+        if split in ('train', 'val'):
             tasks_subset = self.lb_training_tasks
         else:
             tasks_subset = self.lb_test_tasks
@@ -492,7 +510,12 @@ class TaskSampler():
         performance_per_request: bool = False,
         cache_param_stats_per_task: bool = False,
         model_kwargs: Optional[dict] = None,
+        split: Optional[str] = None,
     ):
+
+        # Resolve split: explicit split parameter takes precedence over train bool
+        if split is None:
+            split = 'train' if train else 'test'
 
         model_kwargs = model_kwargs or {}
         stats = [{} for _ in range(pop_reps)]
@@ -525,8 +548,10 @@ class TaskSampler():
 
             # Get eligible indices for this split
             if self._train_idxs_per_task is not None:
-                if train:
+                if split == 'train':
                     eligible = self._train_idxs_per_task[task_n]
+                elif split == 'val' and self._val_idxs_per_task is not None:
+                    eligible = self._val_idxs_per_task[task_n]
                 else:
                     eligible = self._test_idxs_per_task[task_n]
             else:
