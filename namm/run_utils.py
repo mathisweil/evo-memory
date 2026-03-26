@@ -61,6 +61,7 @@ def wandb_init(cfg):
     # wandb has a 128-size character limit on the group name
     wandb.init(
         project=cfg.wandb_config.wandb_project,
+        entity=getattr(cfg.wandb_config, 'wandb_entity', None),
         group=cfg.wandb_config.wandb_group_name[:127],
         name=cfg.wandb_config.wandb_run_name[:127],
         config=config_dict,

@@ -46,6 +46,10 @@ eval_interval: 25
 log_interval: 5
 batch_size_eval: 4
 
+# ── Wandb ─────────────────────────────────────────────────────────────
+wandb_entity: SNLP_NAMM
+wandb_project: Experiments
+
 # ── Checkpointing & GCS ────────────────────────────────────────────────
 gcs: true
 checkpoint_every: 0
