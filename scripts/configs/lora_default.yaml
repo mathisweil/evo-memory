@@ -1,0 +1,49 @@
+# LoRA gradient fine-tuning default configuration
+# Usage: python scripts/run_lora.py --config scripts/configs/lora_default.yaml --run_name my_run
+# CLI args override values in this file.
+
+# ── Experiment ──────────────────────────────────────────────────────────
+run_name: null          # (required) Name for this run
+experiment: null        # Experiment ID; null = most recent active or create new
+method: lora_grad       # Training method identifier
+
+# ── LoRA hyperparameters ────────────────────────────────────────────────
+lora_rank: 8
+lora_target_modules: [q_proj, v_proj]
+lora_alpha: null         # null = defaults to rank
+lora_dropout: 0.0
+learning_rate: 2e-4
+weight_decay: 0.01
+max_grad_norm: 1.0
+warmup_ratio: 0.03
+num_epochs: 2
+batch_size: 1
+gradient_accumulation_steps: 16
+max_seq_len: 3500
+sft_mode: false
+
+# ── NAMM ────────────────────────────────────────────────────────────────
+namm_active: false
+namm_checkpoint: null
+run_config: namm_bam_i1_llama32_1b
+cache_size: null
+
+# ── Data (shared with ES for fair comparison) ───────────────────────────
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+train_split: 0.8
+val_split: 0.1           # LoRA needs val for early stopping
+split_seed: 42
+
+# ── Evaluation ──────────────────────────────────────────────────────────
+eval_interval: 40
+log_interval: 10
+batch_size_eval: null     # inference batch size for F1 eval
+
+# ── Checkpointing & GCS ────────────────────────────────────────────────
+gcs: true
+checkpoint_every: 0       # LoRA saves at eval_interval, not rolling
+resume_checkpoint: null
+
+# ── Advanced ────────────────────────────────────────────────────────────
+override: []            # Extra Hydra config overrides

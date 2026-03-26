@@ -24,29 +24,14 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, REPO_ROOT)
 
-EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
+from experiment_utils import (
+    load_manifest, save_manifest, normalize_name, EXPERIMENTS_DIR
+)
+
 MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
 
 # Files/dirs to keep locally after archival
 KEEP_LOCAL = {"report.json", "plots"}
-
-
-def load_manifest():
-    if os.path.exists(MANIFEST_PATH):
-        with open(MANIFEST_PATH) as f:
-            return json.load(f)
-    return {"experiments": {}}
-
-
-def save_manifest(manifest):
-    with open(MANIFEST_PATH, "w") as f:
-        json.dump(manifest, f, indent=2)
-
-
-def normalize_name(name):
-    if name.isdigit():
-        return f"experiment_{name}"
-    return name
 
 
 def upload_directory(bucket, local_dir, gcs_prefix):

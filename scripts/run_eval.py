@@ -19,7 +19,6 @@ import sys
 
 import numpy as np
 import torch
-import yaml
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
@@ -29,6 +28,7 @@ if REPO_ROOT not in sys.path:
 from hydra import compose, initialize
 from namm.run_utils import make_eval_model, make_task_sampler
 from es_finetuning.device import get_device
+from experiment_utils import load_config_defaults
 
 
 class Tee:
@@ -63,22 +63,10 @@ def get_output_dir(args):
     return None
 
 
-def _load_config_defaults(parser):
-    """Load defaults from a YAML config file specified by --config."""
-    pre_parser = argparse.ArgumentParser(add_help=False)
-    pre_parser.add_argument("--config", type=str, default=None)
-    pre_args, _ = pre_parser.parse_known_args()
-    if pre_args.config:
-        with open(pre_args.config) as f:
-            cfg = yaml.safe_load(f)
-        parser.set_defaults(**{k: v for k, v in cfg.items()
-                               if v is not None})
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate ES fine-tuned model")
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/eval_default.yaml)")
+                        help="YAML config file (see scripts/configs/eval_default.yaml)")
     parser.add_argument("--es_checkpoint", type=str, default=None,
                         help="Path to ES fine-tuned checkpoint (omit for baseline)")
     parser.add_argument("--namm_checkpoint", type=str, default=None,
@@ -105,7 +93,7 @@ def parse_args():
                         help="Train/test split fraction (must match training)")
     parser.add_argument("--split_seed", type=int, default=42,
                         help="Seed for deterministic train/test split")
-    _load_config_defaults(parser)
+    load_config_defaults(parser)
     return parser.parse_args()
 
 

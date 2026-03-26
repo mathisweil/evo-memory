@@ -106,7 +106,7 @@ Standard gradient-based LoRA fine-tuning on Qasper with full KV cache during tra
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/lora_m1_only.yaml \
+    --config scripts/configs/lora_m1_only.yaml \
     --run_name m1_r4 \
     --lora_rank 4 \
     --lora_alpha 8
@@ -116,7 +116,7 @@ python scripts/run_lora.py \
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/lora_m1_only.yaml \
+    --config scripts/configs/lora_m1_only.yaml \
     --run_name m1_r8
 # lora_rank=8, lora_alpha=null (defaults to rank=8) — from config
 ```
@@ -125,7 +125,7 @@ python scripts/run_lora.py \
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/lora_m1_only.yaml \
+    --config scripts/configs/lora_m1_only.yaml \
     --run_name m1_r16 \
     --lora_rank 16 \
     --lora_alpha 32
@@ -133,7 +133,7 @@ python scripts/run_lora.py \
 
 | Parameter | Value |
 |-----------|-------|
-| Config | `scripts/lora_m1_only.yaml` |
+| Config | `scripts/configs/lora_m1_only.yaml` |
 | `method` | `m1_lora_only` |
 | `learning_rate` | 2e-4 |
 | `num_epochs` | 2 — FAIR-01 anchor |
@@ -155,13 +155,13 @@ ES fine-tuning of all base LLM weights on Qasper with full KV cache during train
 
 ```bash
 python scripts/run_es.py \
-    --config scripts/es_m1_only.yaml \
+    --config scripts/configs/es_m1_only.yaml \
     --run_name m1_es
 ```
 
 | Parameter | Value |
 |-----------|-------|
-| Config | `scripts/es_m1_only.yaml` |
+| Config | `scripts/configs/es_m1_only.yaml` |
 | `method` | `es_only` — auto-detected from null `namm_checkpoint` |
 | `run_config` | `full_cache_es_llama32_1b` — no eviction, Qasper task |
 | `sigma` | 0.001 |
@@ -218,7 +218,7 @@ Two-stage sequential pipeline. Stage 1 fine-tunes with LoRA (identical to M1-r8 
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/lora_m1_only.yaml \
+    --config scripts/configs/lora_m1_only.yaml \
     --run_name m3_stage1_lora
 # Identical to M1-r8 — skip if checkpoint already exists
 ```
@@ -237,7 +237,7 @@ python scripts/run_namm.py \
 
 | Parameter | Value |
 |-----------|-------|
-| Stage 1 config | `scripts/lora_m1_only.yaml` — rank=8, 2 epochs |
+| Stage 1 config | `scripts/configs/lora_m1_only.yaml` — rank=8, 2 epochs |
 | Stage 2 config | `config/config.yaml` (Hydra) — 300 CMA-ES generations |
 | Stage 2 init | LoRA-adapted weights from Stage 1 merged into base LLM, then fresh NAMM parameters trained on top |
 | `adapter_path` | Path to Stage 1 LoRA checkpoint dir — handled in `namm/run_utils.py:make_eval_model` |
@@ -254,7 +254,7 @@ ES analogue of M3. Stage 1 fine-tunes all base LLM weights with ES (reuse M1-ES 
 
 ```bash
 python scripts/run_es.py \
-    --config scripts/es_m1_only.yaml \
+    --config scripts/configs/es_m1_only.yaml \
     --run_name m3_es_stage1
 # Identical to M1-ES — skip if checkpoint already exists
 ```
@@ -273,7 +273,7 @@ python scripts/run_namm.py \
 
 | Parameter | Value |
 |-----------|-------|
-| Stage 1 config | `scripts/es_m1_only.yaml` — 300 ES iterations, full KV cache |
+| Stage 1 config | `scripts/configs/es_m1_only.yaml` — 300 ES iterations, full KV cache |
 | Stage 2 config | `config/config.yaml` (Hydra) — 300 CMA-ES generations |
 | Stage 2 init | ES-fine-tuned weights applied to base LLM, then fresh NAMM parameters trained on top |
 | `es_checkpoint_path` | Path to final ES checkpoint — loaded in `namm/run_utils.py:make_eval_model` |
@@ -288,7 +288,7 @@ NAMM and LoRA are co-trained in alternating stages: Stage A evolves the NAMM for
 
 ```bash
 python scripts/run_joint.py \
-    --config scripts/joint_default.yaml \
+    --config scripts/configs/joint_default.yaml \
     --run_name m4_joint_lora \
     --adapter_type lora \
     --num_outer_loops 2 \
@@ -300,7 +300,7 @@ python scripts/run_joint.py \
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Config | `scripts/joint_default.yaml` | |
+| Config | `scripts/configs/joint_default.yaml` | |
 | `adapter_type` | `lora` | Overrides config default of `es` |
 | `num_outer_loops` | 2 | |
 | `namm_iterations_per_stage` | 150 | 2 × 150 = 300 total — matches M2 (FAIR-01) |
@@ -323,7 +323,7 @@ ES analogue of M4-LoRA. Stage A trains NAMM via CMA-ES; Stage B perturbs all bas
 
 ```bash
 python scripts/run_joint.py \
-    --config scripts/joint_default.yaml \
+    --config scripts/configs/joint_default.yaml \
     --run_name m4_joint_es \
     --adapter_type es \
     --num_outer_loops 2 \
@@ -441,14 +441,14 @@ LoRA is fine-tuned while the frozen M2 NAMM is active during training. This is t
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/lora_rh_m4_instruct.yaml \
+    --config scripts/configs/lora_rh_m4_instruct.yaml \
     --run_name a5_lora_frozen_namm \
     --namm_checkpoint <path-to-m2-checkpoint>
 ```
 
 | Parameter | Value |
 |-----------|-------|
-| Config | `scripts/lora_rh_m4_instruct.yaml` |
+| Config | `scripts/configs/lora_rh_m4_instruct.yaml` |
 | `method` | `rh_m4_frozen` |
 | `namm_active` | true + NAMM checkpoint (required) |
 | `learning_rate` | 1e-4 (lower than M1 for NAMM stability — from config) |
@@ -468,7 +468,7 @@ ES analogue of A5-LoRA. All base LLM weights are optimised via ES while the froz
 
 ```bash
 python scripts/run_es.py \
-    --config scripts/es_m1_only.yaml \
+    --config scripts/configs/es_m1_only.yaml \
     --run_name a5_es_frozen_namm \
     --namm_checkpoint <path-to-m2-checkpoint> \
     --run_config namm_bam_i1_llama32_1b \
@@ -478,7 +478,7 @@ python scripts/run_es.py \
 
 | Parameter | Value |
 |-----------|-------|
-| Config | `scripts/es_m1_only.yaml` (overrides `run_config` and `cache_size` via CLI) |
+| Config | `scripts/configs/es_m1_only.yaml` (overrides `run_config` and `cache_size` via CLI) |
 | `method` | `es_namm` — explicit; prevents auto-detection confusion |
 | `run_config` | `namm_bam_i1_llama32_1b` — loads NAMM architecture for eviction |
 | `namm_checkpoint` | M2 final checkpoint — NAMM is frozen, only LLM weights evolve |
@@ -548,7 +548,7 @@ Run these before committing to any full experiment to confirm the pipeline works
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/lora_m1_only.yaml \
+    --config scripts/configs/lora_m1_only.yaml \
     --run_name smoke_m1 \
     --num_epochs 1 \
     --eval_interval 5 \
@@ -559,7 +559,7 @@ python scripts/run_lora.py \
 
 ```bash
 python scripts/run_es.py \
-    --config scripts/es_m1_only.yaml \
+    --config scripts/configs/es_m1_only.yaml \
     --run_name smoke_es \
     --num_iterations 2 \
     --population_size 2 \

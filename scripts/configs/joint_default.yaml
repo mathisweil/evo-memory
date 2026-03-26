@@ -1,5 +1,5 @@
 # Joint alternating NAMM + adapter training default configuration
-# Usage: python scripts/run_joint.py --config scripts/joint_default.yaml --run_name my_run
+# Usage: python scripts/run_joint.py --config scripts/configs/joint_default.yaml --run_name my_run
 # CLI args override values in this file.
 
 # ── Experiment ──────────────────────────────────────────────────────────

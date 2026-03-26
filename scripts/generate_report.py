@@ -23,21 +23,11 @@ import numpy as np
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
-EXPERIMENTS_DIR = os.path.join(REPO_ROOT, "experiments")
+sys.path.insert(0, REPO_ROOT)
+
+from experiment_utils import load_manifest, normalize_name, EXPERIMENTS_DIR
+
 MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
-
-
-def load_manifest():
-    if os.path.exists(MANIFEST_PATH):
-        with open(MANIFEST_PATH) as f:
-            return json.load(f)
-    return {"experiments": {}}
-
-
-def normalize_name(name):
-    if name.isdigit():
-        return f"experiment_{name}"
-    return name
 
 
 def collect_runs(experiment_dir):
