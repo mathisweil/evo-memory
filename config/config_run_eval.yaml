@@ -19,7 +19,8 @@ out_dir: '${out_folder}/${wandb_project}/${wandb_group_name}/${wandb_run_name}/$
 
 # wandb logging
 wandb_log: true # enabled by default
-wandb_project: memory_evolution_hf
+wandb_entity: SNLP_NAMM
+wandb_project: Experiments
 wandb_run_name: default_configs_test
 wandb_group_name: tests
 

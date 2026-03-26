@@ -77,7 +77,7 @@ always_save_checkpoint: true
 wandb_log: true #false # NOTE
 
 log_misc: false
-wandb_project: memory_evolution_hf
+wandb_project: Experiments
 
 wandb_run_name: ${tasks_log_name}-${evolution_algorithm_log_name}-shared-${pop_size}pop-${samples_batch_size}qs-${memory_policy_fixed_delay}fixDel-${run_name_suffix}
 wandb_group_name: ${llm_log_name}/${mp_log_name}

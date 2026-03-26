@@ -91,7 +91,7 @@ def load_run_cfgs_trainer(
     run_file_path_location: str,
     hydra_overrides_from_dict: dict = dict(
         wandb_log="false",
-        wandb_project="scratch",
+        wandb_project="Experiments",
     ),
     task_sampler_kwargs: dict = dict(
         tasks=["lb/passage_retrieval_en"],

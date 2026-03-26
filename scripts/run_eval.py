@@ -141,7 +141,7 @@ def main():
     overrides = [
         f"run@_global_={args.run_config}",
         "wandb_log=false",
-        "wandb_project=es_eval",
+        "wandb_project=Experiments",
     ]
     if args.batch_size is not None:
         overrides.append(f"batch_size={args.batch_size}")

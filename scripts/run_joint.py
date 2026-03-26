@@ -384,7 +384,8 @@ def main():
 
     namm_wandb_config = WandbConfig(
         wandb_log=False,
-        wandb_project="joint_training",
+        wandb_project="Experiments",
+        wandb_entity="SNLP_NAMM",
         wandb_run_name=args.run_name,
         wandb_group_name=experiment_name,
     )
@@ -686,7 +687,8 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
 
     lora_wandb_config = WandbConfig(
         wandb_log=False,
-        wandb_project="joint_training",
+        wandb_project="Experiments",
+        wandb_entity="SNLP_NAMM",
         wandb_run_name=f"{args.run_name}_lora_stage{stage_idx}",
         wandb_group_name=experiment_name,
     )

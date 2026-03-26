@@ -166,7 +166,7 @@ def load_hydra_config(run_config, extra_overrides=None):
             overrides=[
                 f"run@_global_={run_config}",
                 "wandb_log=false",
-                "wandb_project=es_finetuning",
+                "wandb_project=Experiments",
             ] + extra_overrides,
         )
     return cfg

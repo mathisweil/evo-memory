@@ -32,6 +32,7 @@ class WandbConfig:
     wandb_project: str
     wandb_run_name: str
     wandb_group_name: str
+    wandb_entity: Optional[str] = None
 
 
 @dataclass

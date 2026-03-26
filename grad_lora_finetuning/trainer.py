@@ -767,6 +767,7 @@ class LoRAGradTrainer:
         if wcfg.wandb_log:
             wandb.init(
                 project=wcfg.wandb_project,
+                entity=wcfg.wandb_entity,
                 group=wcfg.wandb_group_name,
                 name=wcfg.wandb_run_name,
                 config=cfg_dict,

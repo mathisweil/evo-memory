@@ -28,6 +28,6 @@ ddp_timeout_limit: '0:3:0'
 
 # wandb — same project/group as NAMM eval so all methods appear together
 wandb_log: true
-wandb_project: memory_evolution_hf
+wandb_project: Experiments
 wandb_group_name: Llama-3.2-1B/eval-comparison
 wandb_run_name: recency-cs${cache_size}-llama32-1b
