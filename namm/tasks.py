@@ -183,6 +183,29 @@ class TaskSampler():
         self.latest_sampled_idxs_per_lb_task = None
         self.latest_lb_tasks_names = None
 
+    def apply_chat_template_to_prompts(self, tokenizer):
+        """Wrap all eval prompts in the model's chat template.
+
+        This ensures evaluation prompts match the format used during SFT
+        training (which applies the chat template via apply_chat_template).
+        The BOS token is stripped from the resulting string because the
+        evaluator's tok_batch_encode adds it via add_special_tokens=True.
+        """
+        bos = getattr(tokenizer, 'bos_token', None) or ''
+        for task in self.lb_prompts_per_task:
+            wrapped = []
+            for prompt in self.lb_prompts_per_task[task]:
+                messages = [{"role": "user", "content": prompt}]
+                text = tokenizer.apply_chat_template(
+                    messages, add_generation_prompt=True, tokenize=False,
+                )
+                # Strip BOS to avoid double-add (evaluator adds it separately)
+                if bos and text.startswith(bos):
+                    text = text[len(bos):]
+                wrapped.append(text)
+            self.lb_prompts_per_task[task] = wrapped
+        print(f"Applied chat template to eval prompts for {len(self.lb_prompts_per_task)} tasks")
+
     def _build_split(self):
         """Build deterministic train/test index split for each task."""
         if self.train_split is None or self.train_split >= 1.0:

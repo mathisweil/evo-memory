@@ -273,6 +273,10 @@ def main():
         tokenizer=memory_evaluator.tokenizer,
     )
 
+    # 3d. Wrap eval prompts in chat template to match SFT training format
+    if args.sft_mode:
+        task_sampler.apply_chat_template_to_prompts(memory_evaluator.tokenizer)
+
     # 4. Cast model to bfloat16 and move to device
     memory_model.to(dtype=torch.bfloat16, device=device)
 
