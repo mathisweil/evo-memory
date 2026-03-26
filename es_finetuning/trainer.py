@@ -16,10 +16,11 @@ from typing import Optional
 
 import numpy as np
 import torch
+import wandb
 
 from .config import ESConfig
 from .noise import apply_es_update, perturb_weights, restore_weights
-from .utils import force_memory_cleanup, setup_tensorboard
+from .utils import force_memory_cleanup
 
 
 def _save_results_json(path, config_dict, history, baseline_eval,
@@ -159,9 +160,9 @@ class ESTrainer:
         else:
             np.random.seed(cfg.initial_seed)
 
-        # Setup logging — use log_dir directly (caller sets up hierarchy)
+        # Setup directories
         log_dir = cfg.log_dir
-        writer = setup_tensorboard(log_dir)
+        os.makedirs(log_dir, exist_ok=True)
         checkpoint_dir = os.path.join(log_dir, "checkpoints")
         os.makedirs(checkpoint_dir, exist_ok=True)
 
@@ -178,6 +179,17 @@ class ESTrainer:
             self.gcs_client.upload_run_file(
                 config_path, self.experiment_name, self.method, self.run_name,
                 "config.json")
+
+        # Init wandb
+        if cfg.wandb_log:
+            wandb.init(
+                project=cfg.wandb_project,
+                entity=cfg.wandb_entity,
+                name=cfg.wandb_run_name or self.run_name,
+                group=cfg.wandb_group_name,
+                config=config_dict,
+                resume="allow",
+            )
 
         print(f"ES Training: pop={cfg.population_size}, iter={cfg.num_iterations}, "
               f"sigma={cfg.sigma}, alpha={cfg.alpha}, mode={cfg.noise_mode}")
@@ -203,6 +215,12 @@ class ESTrainer:
             print(f"Baseline eval complete in {eval_time:.1f}s")
             for k, v in baseline_eval.get("scores", {}).items():
                 print(f"  {_clean_task_name(k)}: {v:.2f}")
+            if cfg.wandb_log and wandb.run is not None:
+                wandb.log(
+                    {f"eval/baseline_{_clean_task_name(k)}": v
+                     for k, v in baseline_eval.get("scores", {}).items()},
+                    step=0,
+                )
 
         # Training loop
         if resumed_history:
@@ -262,14 +280,20 @@ class ESTrainer:
             history["max"].append(round(max_r, 6))
             history["time"].append(round(iter_time, 1))
 
-            writer.add_scalar("reward/mean", mean_r, iteration)
-            writer.add_scalar("reward/min", min_r, iteration)
-            writer.add_scalar("reward/max", max_r, iteration)
-            writer.add_scalar("time/iteration_sec", iter_time, iteration)
-
-            if torch.cuda.is_available():
-                mem_mb = torch.cuda.memory_allocated() / 1024**2
-                writer.add_scalar("device/memory_mb", mem_mb, iteration)
+            if cfg.wandb_log and wandb.run is not None:
+                log_dict = {
+                    "reward/mean": mean_r,
+                    "reward/min": min_r,
+                    "reward/max": max_r,
+                    "reward/std": rewards_arr.std().item(),
+                    "reward/range": (max_r - min_r),
+                    "time/iteration_sec": iter_time,
+                }
+                if torch.cuda.is_available():
+                    log_dict["device/memory_mb"] = (
+                        torch.cuda.memory_allocated() / 1024**2
+                    )
+                wandb.log(log_dict, step=iteration)
 
             print(f"[{iteration + 1}/{cfg.num_iterations}] "
                   f"mean={mean_r:.4f} min={min_r:.4f} max={max_r:.4f} "
@@ -284,7 +308,8 @@ class ESTrainer:
                     checkpoint_dir, iteration + 1, history, training_start)
                 self._update_run_status("preempted", iteration + 1)
                 print("Emergency checkpoint saved. Exiting.")
-                writer.close()
+                if cfg.wandb_log and wandb.run is not None:
+                    wandb.finish(exit_code=1)
                 preempted = True
                 break
 
@@ -316,7 +341,6 @@ class ESTrainer:
             self.gcs_client.upload_checkpoint(
                 final_path, self.experiment_name, self.method,
                 self.run_name, "es_checkpoint_final.pt")
-        writer.close()
 
         # Full evaluation on fine-tuned weights
         full_eval_result = None
@@ -329,6 +353,12 @@ class ESTrainer:
             print(f"Full eval complete in {eval_time:.1f}s")
             for k, v in full_eval_result.get("scores", {}).items():
                 print(f"  {_clean_task_name(k)}: {v:.2f}")
+            if cfg.wandb_log and wandb.run is not None:
+                wandb.log(
+                    {f"eval/final_{_clean_task_name(k)}": v
+                     for k, v in full_eval_result.get("scores", {}).items()},
+                    step=cfg.num_iterations,
+                )
 
         # Save results
         results_path = os.path.join(log_dir, "results.json")
@@ -351,6 +381,9 @@ class ESTrainer:
                 log_dir, self.experiment_name, self.method, self.run_name)
             self._update_run_status("completed")
             print("  GCS upload complete.")
+
+        if cfg.wandb_log and wandb.run is not None:
+            wandb.finish()
 
         print("Done.")
 
@@ -402,21 +435,18 @@ class ESTrainer:
         size_mb = os.path.getsize(path) / 1024**2
         print(f"  Checkpoint saved: {path} ({size_mb:.1f} MB)")
 
-        try:
-            import wandb
-            if wandb.run is not None:
-                print("  Uploading final checkpoint and config as wandb artifact...")
-                artifact = wandb.Artifact(
-                    name=f"es_checkpoint_{self.run_name}",
-                    type="model",
-                    description="Final ES fine-tuned delta weights"
-                )
-                artifact.add_file(path)
-                if config_path and os.path.exists(config_path):
-                    artifact.add_file(config_path)
-                wandb.log_artifact(artifact)
-        except ImportError:
-            pass
+        if self.config.wandb_log and wandb.run is not None:
+            print("  Uploading final checkpoint and config as wandb artifact...")
+            artifact = wandb.Artifact(
+                name=f"run-{wandb.run.id}-es-final",
+                type="model",
+                description="Final ES fine-tuned delta weights",
+                metadata={"num_iterations": self.config.num_iterations},
+            )
+            artifact.add_file(path)
+            if config_path and os.path.exists(config_path):
+                artifact.add_file(config_path)
+            wandb.log_artifact(artifact, aliases=["final"])
 
     def _save_periodic_checkpoint(self, checkpoint_dir, iteration,
                                   history, training_start):
@@ -459,13 +489,6 @@ class ESTrainer:
                 self.gcs_client.cleanup_old_checkpoints(
                     self.experiment_name, self.method, self.run_name,
                     keep=2)
-                # Upload TensorBoard events too
-                log_dir = self.config.log_dir
-                for f in glob.glob(
-                        os.path.join(log_dir, "events.out.tfevents.*")):
-                    self.gcs_client.upload_run_file(
-                        f, self.experiment_name, self.method,
-                        self.run_name, os.path.basename(f))
                 print(f"  Checkpoint iter {iteration} saved to GCS "
                       f"({size_mb:.1f} MB)")
             except Exception as e:
