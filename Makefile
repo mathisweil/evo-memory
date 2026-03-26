@@ -34,7 +34,13 @@ GCS_BUCKET  ?= statistical-nlp
 GCS_PROJECT ?= statistical-nlp
 HF_CACHE    := $(REPO_DIR)/.hf_cache
 XLA_CACHE   := $(REPO_DIR)/.xla_cache
+UV_CACHE    := $(REPO_DIR)/.uv_cache
+PIP_CACHE   := $(REPO_DIR)/.pip_cache
 PYTHON_VER  ?= 3.10
+
+# Keep uv/pip caches inside the repo dir (avoids filling home-dir quota).
+export UV_CACHE_DIR  := $(UV_CACHE)
+export PIP_CACHE_DIR := $(PIP_CACHE)
 
 # ── PyTorch version pins (single source — used by every target) ──────────────
 TORCH       := torch==2.3.1
@@ -302,13 +308,13 @@ lock: _require-uv  ## Pin dependency versions to requirements.lock
 
 .PHONY: clean
 clean:  ## Remove venv, caches, stamps, and generated scripts
-	rm -rf $(VENV_DIR) $(STAMPS) $(XLA_CACHE)
+	rm -rf $(VENV_DIR) $(STAMPS) $(XLA_CACHE) $(UV_CACHE) $(PIP_CACHE)
 	rm -f  $(REPO_DIR)/activate.sh $(REPO_DIR)/activate.csh
 	@echo "Cleaned. Re-run your setup-* target to rebuild."
 
 .PHONY: clean-cache
 clean-cache:  ## Remove HF + XLA caches only (keeps venv)
-	rm -rf $(HF_CACHE) $(XLA_CACHE)
+	rm -rf $(HF_CACHE) $(XLA_CACHE) $(UV_CACHE) $(PIP_CACHE)
 	@echo "Caches removed."
 
 # =============================================================================
