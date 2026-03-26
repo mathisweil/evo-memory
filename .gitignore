@@ -52,5 +52,7 @@ es_smoke_test*/
 # uv / Makefile generated files
 .venv/
 .make/
+.uv_cache/
+.pip_cache/
 activate.sh
 activate.csh
