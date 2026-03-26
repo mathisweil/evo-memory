@@ -40,8 +40,8 @@ val_split: 0.15
 split_seed: 42
 
 # ── Evaluation ──────────────────────────────────────────────────────────
-eval_interval: 100
-log_interval: 10
+eval_interval: 25
+log_interval: 5
 batch_size_eval: 4
 
 # ── Checkpointing & GCS ────────────────────────────────────────────────
