@@ -107,6 +107,8 @@ def parse_args():
     parser.add_argument("--eval_interval", type=int, default=40)
     parser.add_argument("--log_interval", type=int, default=10)
     parser.add_argument("--batch_size_eval", type=int, default=None)
+    parser.add_argument("--early_stopping_patience", type=int, default=0,
+                        help="Stop after N evals with no val F1 improvement (0 = disabled)")
 
     # Checkpointing & GCS
     parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True)
@@ -323,6 +325,7 @@ def main():
         train_frac=args.train_split,
         val_frac=args.val_split,
         max_conditioning_length=cfg.get('max_conditioning_length', 6500),
+        early_stopping_patience=args.early_stopping_patience,
     )
 
     wandb_cfg = WandbConfig(
@@ -348,6 +351,10 @@ def main():
         trainer_config=lora_cfg,
         wandb_config=wandb_cfg,
         device=device,
+        gcs_client=gcs,
+        experiment_name=experiment_name,
+        method=args.method,
+        run_name=args.run_name,
     )
 
     print(f"Trainer: lora_grad [{type(trainer).__name__}]")
