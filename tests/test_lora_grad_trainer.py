@@ -309,7 +309,7 @@ def test_checkpoint_resume(lora_trainer_fixture, tmp_path):
     opt_state_after_step = trainer.optimizer.state_dict()
     assert len(opt_state_after_step["state"]) > 0
 
-    ckpt_path = trainer._save_ckpt(step_num=1)
+    ckpt_path = trainer._save_checkpoint(step_num=1)
     assert os.path.exists(ckpt_path)
 
     # Build a fresh trainer and load checkpoint
