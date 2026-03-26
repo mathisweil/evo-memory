@@ -100,6 +100,7 @@ class LoRATrainerConfig:
     train_frac: float = 0.7         # fraction of each task's examples used for training
     val_frac: float = 0.15          # fraction used for validation (best checkpoint selection)
     max_conditioning_length: int = 6500  # max prompt tokens for evaluation (skip longer prompts)
+    early_stopping_patience: int = 0  # stop after N evals with no val F1 improvement (0 = disabled)
 
 
 # ---------------------------------------------------------------------------
@@ -129,6 +130,10 @@ class LoRAGradTrainer:
         trainer_config: LoRATrainerConfig = None,
         wandb_config: WandbConfig = None,
         device: str = 'cuda',
+        gcs_client=None,
+        experiment_name: str = None,
+        method: str = None,
+        run_name: str = None,
     ):
         self.model = model
         self.tokenizer = tokenizer
@@ -141,6 +146,10 @@ class LoRAGradTrainer:
         self.artifact_dir = None
         self._metrics_csv_path = None
         self._wandb_id_path = None
+        self.gcs_client = gcs_client
+        self.experiment_name = experiment_name
+        self.method = method
+        self.run_name = run_name
 
         cfg = self.trainer_config
 
@@ -516,14 +525,21 @@ class LoRAGradTrainer:
         return ckpt_path
 
     def _save_best_ckpt(self, step_num: int, val_score: float) -> str:
-        """Save best checkpoint based on validation score."""
+        """Save best checkpoint based on validation score.
+
+        Returns the checkpoint path if a new best was saved, None otherwise.
+        Sets self._early_stop = True when patience is exceeded.
+        """
         if not hasattr(self, '_best_val_score'):
             self._best_val_score = -1.0
             self._best_step = 0
+            self._evals_without_improvement = 0
+            self._early_stop = False
 
         if val_score > self._best_val_score:
             self._best_val_score = val_score
             self._best_step = step_num
+            self._evals_without_improvement = 0
 
             if self.artifact_dir is not None:
                 ckpt_dir = self.artifact_dir
@@ -552,7 +568,13 @@ class LoRAGradTrainer:
             print(f"  *** New best val F1={val_score:.2f} at step {step_num} -> saved {ckpt_path}")
             return ckpt_path
         else:
-            print(f"  Val F1={val_score:.2f} (best={self._best_val_score:.2f} at step {self._best_step})")
+            self._evals_without_improvement += 1
+            patience = self.trainer_config.early_stopping_patience
+            print(f"  Val F1={val_score:.2f} (best={self._best_val_score:.2f} at step {self._best_step})"
+                  f"{f' [{self._evals_without_improvement}/{patience}]' if patience > 0 else ''}")
+            if patience > 0 and self._evals_without_improvement >= patience:
+                print(f"  Early stopping triggered: no improvement for {patience} evals.")
+                self._early_stop = True
             return None
 
     def _load_ckpt(self, load_path: str) -> int:
@@ -645,6 +667,26 @@ class LoRAGradTrainer:
         if wandb.run is not None and self._wandb_id_path is not None:
             with open(self._wandb_id_path, 'w') as f:
                 f.write(wandb.run.id)
+
+    def _update_run_status(self, status):
+        """Update run status in GCS manifest."""
+        if not self.gcs_client or not self.experiment_name:
+            return
+        from datetime import datetime
+        run_key = f"{self.method}/{self.run_name}"
+
+        def updater(manifest):
+            exp = manifest["experiments"].get(self.experiment_name, {})
+            runs = exp.setdefault("runs", {})
+            run_info = runs.setdefault(run_key, {})
+            run_info["status"] = status
+            run_info[status] = datetime.now().isoformat()
+            return manifest
+
+        try:
+            self.gcs_client.update_manifest(updater)
+        except Exception as e:
+            print(f"  WARNING: Failed to update manifest: {e}")
 
     # -----------------------------------------------------------------------
     # F1 evaluation
@@ -915,12 +957,20 @@ class LoRAGradTrainer:
 
                                 avg_f1 = val_scores.get('lb/avg_f1', 0.0)
                                 self._save_best_ckpt(global_step, avg_f1)
+                                if getattr(self, '_early_stop', False):
+                                    break
 
                     accum_loss = 0.0
                     accum_batches = 0
 
+                if getattr(self, '_early_stop', False):
+                    break
+
             avg_epoch_loss = epoch_loss / max(epoch_steps, 1)
             print(f"Epoch {epoch}: avg_loss={avg_epoch_loss:.4f}")
+
+            if getattr(self, '_early_stop', False):
+                break
 
         # --- Final checkpoint ---
         print(f"\nTraining complete. Total gradient steps: {global_step}")
@@ -950,6 +1000,28 @@ class LoRAGradTrainer:
                 final_dict = {f"lora/test_{k.replace('/', '_')}": v
                               for k, v in final_scores.items()}
                 wandb.log(final_dict, step=global_step)
+
+        # --- Upload artifacts to GCS ---
+        if self.gcs_client and self.experiment_name:
+            print("Uploading artifacts to GCS...")
+            # Upload best checkpoint
+            best_dir = self.artifact_dir if self.artifact_dir else cfg.out_dir
+            best_path = os.path.join(best_dir, 'best_ckpt.pt')
+            if os.path.exists(best_path):
+                self.gcs_client.upload_checkpoint(
+                    best_path, self.experiment_name, self.method,
+                    self.run_name, "best_ckpt.pt")
+            # Upload run artifacts (config, metrics, etc.)
+            if self.artifact_dir and os.path.isdir(self.artifact_dir):
+                for fname in os.listdir(self.artifact_dir):
+                    fpath = os.path.join(self.artifact_dir, fname)
+                    if os.path.isfile(fpath) and fname != 'best_ckpt.pt':
+                        self.gcs_client.upload_run_file(
+                            fpath, self.experiment_name, self.method,
+                            self.run_name, fname)
+            # Mark run as completed in manifest
+            self._update_run_status("completed")
+            print("  GCS upload complete.")
 
         if wcfg.wandb_log and wandb.run is not None:
             wandb.finish()
