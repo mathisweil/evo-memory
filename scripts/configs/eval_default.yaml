@@ -1,5 +1,5 @@
 # Evaluation default configuration
-# Usage: python scripts/run_eval.py --config scripts/eval_default.yaml --es_checkpoint path/to/ckpt.pt
+# Usage: python scripts/run_eval.py --config scripts/configs/eval_default.yaml --es_checkpoint path/to/ckpt.pt
 # CLI args override values in this file.
 
 # ── Checkpoints ─────────────────────────────────────────────────────────

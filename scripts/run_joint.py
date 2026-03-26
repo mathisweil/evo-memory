@@ -13,15 +13,15 @@ Experiments are organized as:
 
 Usage:
     # ES adapter path:
-    python scripts/run_joint.py --config scripts/joint_default.yaml \
+    python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
         --run_name joint_es_test --adapter_type es
 
     # LoRA adapter path:
-    python scripts/run_joint.py --config scripts/joint_default.yaml \
+    python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
         --run_name joint_lora_test --adapter_type lora
 
     # With pre-trained NAMM checkpoint:
-    python scripts/run_joint.py --config scripts/joint_default.yaml \
+    python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
         --run_name joint_es_warm --adapter_type es \
         --namm_checkpoint exp_local/pretrained/namm.pt
 
@@ -43,7 +43,6 @@ from datetime import datetime
 
 import numpy as np
 import torch
-import yaml
 
 logging.getLogger("transformers.generation.stopping_criteria").setLevel(logging.ERROR)
 
@@ -60,48 +59,14 @@ from es_finetuning.device import get_device
 from grad_lora_finetuning import LoRAGradTrainer, LoRATrainerConfig
 from experiment_utils import (
     get_or_create_experiment,
+    load_config_defaults,
     load_hydra_config,
     get_base_llm_param_names,
+    make_resample_fn,
+    make_evaluate_fn,
+    make_full_eval_fn,
     EXPERIMENTS_DIR,
 )
-
-
-# ── Evaluation function factories (shared with run_es.py) ───────────────
-
-def make_resample_fn(task_sampler, mini_batch_size, train=True):
-    """Return a callable that resamples the task mini-batch."""
-    def resample_fn():
-        task_sampler.resample_requests(
-            train=train, sampled_requests_per_task=mini_batch_size)
-    return resample_fn
-
-
-def make_evaluate_fn(task_sampler, evaluator, mini_batch_size, train=True):
-    """Return a callable(model) -> float for ES fitness evaluation."""
-    def evaluate_fn(model):
-        score_dicts = task_sampler.evaluate(
-            lm=evaluator, train=train, evolved_model=False,
-            pop_reps=1, resample_requests=False,
-            sampled_requests_per_task=mini_batch_size)
-        return score_dicts[0].get("lb/qasper", 0.0) / 100.0
-    return evaluate_fn
-
-
-def make_full_eval_fn(task_sampler, evaluator):
-    """Return a callable(model) -> dict for full test-set evaluation."""
-    def full_eval_fn(model):
-        score_dicts = task_sampler.evaluate(
-            lm=evaluator, train=False, evolved_model=False,
-            pop_reps=1, resample_requests=True,
-            sampled_requests_per_task=None)
-        scores = score_dicts[0] if score_dicts else {}
-        if task_sampler._test_idxs_per_task is not None:
-            num_samples = sum(
-                len(v) for v in task_sampler._test_idxs_per_task.values())
-        else:
-            num_samples = sum(task_sampler.num_prompts_per_lb_task.values())
-        return {"scores": scores, "num_samples": num_samples}
-    return full_eval_fn
 
 
 # ── NAMM ↔ model helpers ────────────────────────────────────────────────
@@ -181,24 +146,12 @@ def unfreeze_lora_params(model):
 
 # ── CLI ──────────────────────────────────────────────────────────────────
 
-def _load_config_defaults(parser):
-    """Load defaults from a YAML config file specified by --config."""
-    pre_parser = argparse.ArgumentParser(add_help=False)
-    pre_parser.add_argument("--config", type=str, default=None)
-    pre_args, _ = pre_parser.parse_known_args()
-    if pre_args.config:
-        with open(pre_args.config) as f:
-            cfg = yaml.safe_load(f)
-        parser.set_defaults(**{k: v for k, v in cfg.items()
-                               if v is not None})
-
-
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Joint alternating NAMM + adapter training")
 
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/joint_default.yaml)")
+                        help="YAML config file (see scripts/configs/joint_default.yaml)")
 
     # Experiment hierarchy
     parser.add_argument("--run_name", type=str, default=None,
@@ -267,7 +220,7 @@ def parse_args():
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
-    _load_config_defaults(parser)
+    load_config_defaults(parser)
     args = parser.parse_args()
     if not args.run_name:
         parser.error("--run_name is required (via CLI or config file)")

@@ -4,6 +4,7 @@ Loads the model with record_eval_stats enabled and runs a small batch to
 see how many tokens are actually retained per layer vs the cache_size budget.
 """
 
+import argparse
 import os
 import sys
 import numpy as np
@@ -25,7 +26,6 @@ def main():
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
 
-    import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--cache_size", type=int, default=3072)
     ap.add_argument("--es_checkpoint", type=str, default="")

@@ -1,5 +1,5 @@
 # ES fine-tuning default configuration
-# Usage: python scripts/run_es.py --config scripts/es_default.yaml --run_name my_run
+# Usage: python scripts/run_es.py --config scripts/configs/es_default.yaml --run_name my_run
 # CLI args override values in this file.
 
 # ── Experiment ──────────────────────────────────────────────────────────

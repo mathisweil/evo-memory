@@ -1,3 +1,5 @@
+"""Run NAMM eviction-policy training via Hydra (DDP-compatible)."""
+
 import os
 import torch
 from torch.distributed import destroy_process_group
