@@ -2,49 +2,56 @@
 datasets.py — NTP and SFT training datasets for LoRA gradient fine-tuning on LongBench.
 
 Provides:
-  - LongBenchNTPDataset: yields variable-length 1D input_ids tensors from LongBench 'context' fields.
-  - ntp_pad_collate_fn: right-pads a batch to batch-max length, masks padding positions with -100 in labels.
-  - LongBenchSFTDataset: yields dicts with 'input_ids' (full prompt+answer tensor) and
-    'label_start' (first answer token index).
-  - sft_pad_collate_fn: right-pads a batch, masks context+question positions with -100 in
-    labels, asserts at least one non-masked label token exists.
+  - NTPDataset: tokenises LongBench 'context' fields for next-token prediction.
+  - SFTDataset: builds prompt+answer sequences with answer-only loss masking.
+  - pad_collate_fn: unified right-padding collate for both dataset types.
+    Uses length-based padding masks to avoid masking real tokens when
+    pad_token_id == eos_token_id (e.g. Llama fallback padding).
 """
 
 import json
 import os
 import random
-import torch
-from torch.utils.data import Dataset
-from torch.nn.utils.rnn import pad_sequence
-from datasets import load_dataset
+from typing import Optional
 
-# Path to LongBench prompt templates (matches tpu branch data directory layout)
+import torch
+from datasets import load_dataset
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import Dataset
+
 _LONGBENCH_PROMPT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     'data', 'longbench', 'dataset2prompt.json'
 )
 
 
+def _load_longbench_task(task_name: str, cache_dir: Optional[str]):
+    """Load one LongBench HF test split, stripping the 'lb/' prefix."""
+    return load_dataset(
+        'THUDM/LongBench',
+        task_name.removeprefix('lb/'),
+        split='test',
+        trust_remote_code=True,
+        cache_dir=cache_dir,
+    )
+
+
 # ---------------------------------------------------------------------------
 # NTP Dataset
 # ---------------------------------------------------------------------------
 
-class LongBenchNTPDataset(Dataset):
-    """Teacher-forced NTP dataset built from LongBench context fields.
+class NTPDataset(Dataset):
+    """Next-token-prediction dataset built from LongBench context fields.
 
-    Loads the 'test' split of one or more LongBench tasks, tokenises each
-    document's 'context' field, and left-truncates to at most max_seq_len
-    tokens.  Samples are returned as variable-length 1D LongTensors; batching
-    and padding are handled by ntp_pad_collate_fn.
+    Tokenises each document's 'context' field and left-truncates to
+    max_seq_len tokens.  Use pad_collate_fn for batching.
 
     Args:
-        task_names  : List of LongBench task names, e.g. ['qasper', 'narrativeqa',
-                      'passage_retrieval_en'].
-        tokenizer   : HuggingFace tokenizer with .encode() and .pad_token_id.
-        max_seq_len : Maximum token sequence length after left-truncation.
-                      Default 3500 leaves headroom within the 4096-token RoPE window.
-        cache_dir   : HF datasets cache directory (optional, defaults to HF default).
-        seed        : Random seed for one-time shuffle of self.samples.
+        task_names  : LongBench task names (with or without 'lb/' prefix).
+        tokenizer   : HuggingFace tokenizer.
+        max_seq_len : Max tokens after left-truncation. Default 3500.
+        cache_dir   : Optional HF datasets cache directory.
+        seed        : Seed for one-time shuffle of samples.
     """
 
     def __init__(
@@ -52,7 +59,7 @@ class LongBenchNTPDataset(Dataset):
         task_names: list,
         tokenizer,
         max_seq_len: int = 3500,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         seed: int = 1337,
     ):
         super().__init__()
@@ -60,249 +67,11 @@ class LongBenchNTPDataset(Dataset):
 
         samples = []
         for task_name in task_names:
-            # Strip 'lb/' prefix added by TaskSampler (HF expects bare name)
-            hf_name = task_name.removeprefix('lb/')
-            dataset = load_dataset(
-                'THUDM/LongBench',
-                hf_name,
-                split='test',
-                trust_remote_code=True,
-                cache_dir=cache_dir,
-            )
-            for item in dataset:
+            for item in _load_longbench_task(task_name, cache_dir):
                 ids = tokenizer.encode(item['context'], add_special_tokens=True)
-                # Left-truncate: keep the last max_seq_len tokens so the model
-                # sees the most recent (answer-relevant) content.
                 if len(ids) > max_seq_len:
-                    ids = ids[-max_seq_len:]
+                    ids = ids[-max_seq_len:]  # left-truncate: keep most recent context
                 samples.append(torch.tensor(ids, dtype=torch.long))
-
-        # One-time shuffle with a fixed seed for reproducibility.
-        random.Random(seed).shuffle(samples)
-        self.samples = samples
-
-    def __len__(self) -> int:
-        return len(self.samples)
-
-    def __getitem__(self, idx) -> torch.Tensor:
-        """Return a variable-length 1D LongTensor of token ids."""
-        return self.samples[idx]
-
-
-def ntp_pad_collate_fn(batch: list, pad_token_id: int, max_seq_len: int) -> dict:
-    """Collate a list of variable-length 1D tensors into a padded batch.
-
-    Right-pads each sequence to the length of the longest sequence in the
-    batch (never exceeding max_seq_len).  Padding positions are masked
-    with -100 in labels so that cross-entropy loss ignores them.
-
-    Args:
-        batch        : List of 1D LongTensors (variable length, all <= max_seq_len).
-        pad_token_id : Token ID used for right-padding (from tokenizer.pad_token_id).
-        max_seq_len  : Safety cap applied after pad_sequence.
-
-    Returns:
-        dict with keys:
-          'input_ids' : LongTensor of shape [batch_size, seq_len]
-          'labels'    : LongTensor of shape [batch_size, seq_len], -100 at pad positions
-    """
-    input_ids = pad_sequence(batch, batch_first=True, padding_value=pad_token_id)
-    input_ids = input_ids[:, :max_seq_len]
-
-    labels = input_ids.clone()
-    labels[input_ids == pad_token_id] = -100
-
-    return {'input_ids': input_ids, 'labels': labels}
-
-
-# ---------------------------------------------------------------------------
-# SFT Dataset
-# ---------------------------------------------------------------------------
-
-class LongBenchSFTDataset(Dataset):
-    """Supervised fine-tuning dataset built from LongBench task splits.
-
-    Loads per-task prompt templates from data/longbench/dataset2prompt.json
-    (same templates TaskSampler uses for evaluation).  Each item's prompt
-    is wrapped in apply_chat_template for the instruct model, and the first
-    gold answer becomes the assistant response.
-
-    The 'label_start' index marks the boundary between the masked prompt and
-    the supervised answer tokens; answer-only loss masking is applied by
-    sft_pad_collate_fn.
-
-    Args:
-        task_names  : List of LongBench task names.
-        tokenizer   : HuggingFace tokenizer with apply_chat_template support.
-        max_seq_len : Maximum total token sequence length.  Samples exceeding this
-                      are discarded (not truncated).
-        cache_dir   : HF datasets cache directory (optional).
-        seed        : Random seed for one-time shuffle.
-        train_frac  : Fraction of each task's examples to use for training (default 0.8).
-    """
-
-    def __init__(
-        self,
-        task_names: list,
-        tokenizer,
-        max_seq_len: int = 3500,
-        max_conditioning_length: int = 6500,
-        cache_dir: str = None,
-        seed: int = 1337,
-        train_frac: float = 0.8,
-    ):
-        super().__init__()
-        self.max_seq_len = max_seq_len
-        self.max_conditioning_length = max_conditioning_length
-        self.train_frac = train_frac
-
-        with open(_LONGBENCH_PROMPT_PATH) as f:
-            all_templates = json.load(f)
-
-        # Strip 'lb/' prefix added by TaskSampler (HF expects bare name)
-        bare_names = [t.removeprefix('lb/') for t in task_names]
-
-        for task in bare_names:
-            if task not in all_templates:
-                raise ValueError(
-                    f"Task '{task}' not found in {_LONGBENCH_PROMPT_PATH}. "
-                    f"Available: {list(all_templates.keys())}"
-                )
-
-        samples = []
-        n_skipped_no_answer = 0
-        n_skipped_too_long = 0
-
-        for task_name in bare_names:
-            task_template = all_templates[task_name]
-            dataset = load_dataset(
-                'THUDM/LongBench',
-                task_name,
-                split='test',
-                trust_remote_code=True,
-                cache_dir=cache_dir,
-            )
-            items = list(dataset)
-            n_total_task = len(items)
-
-            # --- Filter first, then split (matches task_sampler order) ---
-            eligible = []
-            task_skipped_long = 0
-            task_skipped_no_answer = 0
-            for item in items:
-                if not item['answers']:
-                    task_skipped_no_answer += 1
-                    n_skipped_no_answer += 1
-                    continue
-                answer = item['answers'][0]
-
-                user_content = task_template.format(**item)
-                messages_prompt = [{"role": "user", "content": user_content}]
-                messages_full = messages_prompt + [{"role": "assistant", "content": answer}]
-
-                prompt_ids = tokenizer.apply_chat_template(
-                    messages_prompt,
-                    add_generation_prompt=True,
-                    tokenize=True,
-                )
-                full_ids = tokenizer.apply_chat_template(
-                    messages_full,
-                    add_generation_prompt=False,
-                    tokenize=True,
-                )
-
-                label_start = len(prompt_ids)
-
-                # Filter by PROMPT length to match task_sampler's eligibility.
-                # task_sampler strips BOS and counts with add_special_tokens=False,
-                # so subtract 1 for the BOS that apply_chat_template includes.
-                bos_id = getattr(tokenizer, 'bos_token_id', None)
-                n_prompt_tok = label_start - (1 if bos_id is not None and prompt_ids[0] == bos_id else 0)
-                if n_prompt_tok > max_conditioning_length:
-                    task_skipped_long += 1
-                    n_skipped_too_long += 1
-                    continue
-
-                if label_start >= len(full_ids):
-                    task_skipped_no_answer += 1
-                    n_skipped_no_answer += 1
-                    continue
-
-                # Truncate answer if prompt + answer exceeds max_seq_len
-                if len(full_ids) > max_seq_len:
-                    full_ids = full_ids[:max_seq_len]
-
-                n_answer_tokens = len(full_ids) - label_start
-
-                eligible.append({
-                    'full_ids': torch.tensor(full_ids, dtype=torch.long),
-                    'label_start': label_start,
-                    'task_name': task_name,
-                    'n_answer_tokens': n_answer_tokens,
-                })
-
-            n_eligible = len(eligible)
-
-            # Split AFTER filtering — take first train_frac of eligible samples.
-            if train_frac < 1.0:
-                n_train = int(n_eligible * train_frac)
-                eligible = eligible[:n_train]
-                print(f"  {task_name}: {n_total_task} total, {task_skipped_long} filtered "
-                      f"(prompt>{max_conditioning_length} tok), {task_skipped_no_answer} no answer -> "
-                      f"{n_eligible} eligible -> {n_train} train (first {train_frac:.0%})")
-            else:
-                print(f"  {task_name}: {n_total_task} total, {task_skipped_long} filtered "
-                      f"(prompt>{max_conditioning_length} tok), {task_skipped_no_answer} no answer -> "
-                      f"{n_eligible} eligible (using all)")
-
-            task_prompt_lens = [s['label_start'] for s in eligible]
-            task_answer_lens = [s['n_answer_tokens'] for s in eligible]
-
-            if task_prompt_lens:
-                avg_prompt = sum(task_prompt_lens) / len(task_prompt_lens)
-                avg_answer = sum(task_answer_lens) / len(task_answer_lens)
-                print(f"    prompt tokens:  min={min(task_prompt_lens)}, avg={avg_prompt:.0f}, max={max(task_prompt_lens)}")
-                print(f"    answer tokens:  min={min(task_answer_lens)}, avg={avg_answer:.0f}, max={max(task_answer_lens)}")
-
-            # Drop helper keys before adding to samples
-            for s in eligible:
-                del s['n_answer_tokens']
-            samples.extend(eligible)
-
-        total = len(samples) + n_skipped_no_answer + n_skipped_too_long
-        print(f"\nLongBenchSFTDataset: {len(samples)} samples loaded from {total} total")
-        print(f"  Skipped: {n_skipped_too_long} with prompt>{max_conditioning_length} tok, "
-              f"{n_skipped_no_answer} no/empty answer")
-        if len(samples) > 0:
-            all_prompt_lens = [s['label_start'] for s in samples]
-            all_answer_lens = [len(s['full_ids']) - s['label_start'] for s in samples]
-            all_seq_lens = [len(s['full_ids']) for s in samples]
-            print(f"  Overall prompt tokens:  min={min(all_prompt_lens)}, avg={sum(all_prompt_lens)/len(all_prompt_lens):.0f}, max={max(all_prompt_lens)}")
-            print(f"  Overall answer tokens:  min={min(all_answer_lens)}, avg={sum(all_answer_lens)/len(all_answer_lens):.0f}, max={max(all_answer_lens)}")
-            print(f"  Overall sequence len:   min={min(all_seq_lens)}, avg={sum(all_seq_lens)/len(all_seq_lens):.0f}, max={max(all_seq_lens)}")
-
-        # --- Upsample minority tasks to balance per-task contribution ---
-        task_buckets = {}
-        for s in samples:
-            t = s.get('task_name', '_unknown')
-            task_buckets.setdefault(t, []).append(s)
-
-        if len(task_buckets) > 1:
-            max_count = max(len(v) for v in task_buckets.values())
-            balanced_samples = []
-            rng = random.Random(seed)
-            for t_name, t_samples in sorted(task_buckets.items()):
-                n_orig = len(t_samples)
-                if n_orig < max_count:
-                    n_full_copies = max_count // n_orig
-                    n_remainder = max_count % n_orig
-                    upsampled = t_samples * n_full_copies + rng.sample(t_samples, n_remainder)
-                    print(f"  Upsampling {t_name}: {n_orig} -> {len(upsampled)} (x{max_count / n_orig:.1f})")
-                    balanced_samples.extend(upsampled)
-                else:
-                    balanced_samples.extend(t_samples)
-            samples = balanced_samples
-            print(f"  Balanced dataset: {len(samples)} total samples ({max_count} per task x {len(task_buckets)} tasks)")
 
         random.Random(seed).shuffle(samples)
         self.samples = samples
@@ -311,49 +80,250 @@ class LongBenchSFTDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx) -> dict:
-        """Return a dict with 'input_ids' (1D LongTensor) and 'label_start' (int)."""
-        item = self.samples[idx]
-        return {'input_ids': item['full_ids'], 'label_start': item['label_start']}
+        """Return {'input_ids': 1D LongTensor}."""
+        return {'input_ids': self.samples[idx]}
 
 
-def sft_pad_collate_fn(batch: list, pad_token_id: int, max_seq_len: int) -> dict:
-    """Collate a list of SFT samples into a padded batch with answer-only labels.
+# ---------------------------------------------------------------------------
+# SFT Dataset
+# ---------------------------------------------------------------------------
 
-    Right-pads each sequence to the length of the longest sequence in the batch.
-    Context and question tokens are masked with -100 in labels; only the answer
-    tokens (label_start onward) are supervised. Padding positions are also masked.
+class SFTDataset(Dataset):
+    """Supervised fine-tuning dataset from LongBench prompt+answer pairs.
+
+    Applies apply_chat_template to each item, records label_start (the index
+    of the first answer token), and truncates answer tokens when the full
+    sequence exceeds max_seq_len.
+
+    Filtering: items are dropped if the prompt exceeds max_conditioning_length
+    tokens (matching TaskSampler's eligibility criteria) or if no answer exists.
+
+    Split: eligible items are shuffled with seed before taking the first
+    train_frac, giving a deterministic split that aligns with TaskSampler's
+    seeded random split and prevents train/val leakage.
+
+    When multiple task_names have unequal eligible counts, minority tasks are
+    upsampled to the count of the largest task.
 
     Args:
-        batch        : List of dicts with keys 'input_ids' (1D LongTensor) and
-                       'label_start' (int, first answer token index).
+        task_names              : LongBench task names.
+        tokenizer               : HuggingFace tokenizer with apply_chat_template.
+        max_seq_len             : Max total sequence length; answer tokens are truncated.
+        max_conditioning_length : Max prompt tokens; longer prompts are discarded.
+        cache_dir               : Optional HF datasets cache directory.
+        seed                    : Seed for split shuffle, upsampling, and final shuffle.
+        train_frac              : Fraction of eligible samples used for training.
+    """
+
+    def __init__(
+        self,
+        task_names: list,
+        tokenizer,
+        max_seq_len: int = 3500,
+        max_conditioning_length: int = 6500,
+        cache_dir: Optional[str] = None,
+        seed: int = 1337,
+        train_frac: float = 0.8,
+    ):
+        super().__init__()
+
+        with open(_LONGBENCH_PROMPT_PATH) as f:
+            all_templates = json.load(f)
+
+        bare_names = [t.removeprefix('lb/') for t in task_names]
+        missing = [t for t in bare_names if t not in all_templates]
+        if missing:
+            raise ValueError(
+                f"Tasks {missing} not found in {_LONGBENCH_PROMPT_PATH}. "
+                f"Available: {list(all_templates.keys())}"
+            )
+
+        bos_id = getattr(tokenizer, 'bos_token_id', None)
+        samples: list[dict] = []
+        n_skipped_no_answer = 0
+        n_skipped_too_long = 0
+
+        for task_name in bare_names:
+            task_template = all_templates[task_name]
+            items = list(_load_longbench_task(task_name, cache_dir))
+            n_total = len(items)
+            task_skip_long = 0
+            task_skip_no_ans = 0
+            eligible: list[dict] = []
+
+            for item in items:
+                if not item['answers']:
+                    task_skip_no_ans += 1
+                    n_skipped_no_answer += 1
+                    continue
+                answer = item['answers'][0]
+
+                user_content = task_template.format(**item)
+                prompt_ids = tokenizer.apply_chat_template(
+                    [{"role": "user", "content": user_content}],
+                    add_generation_prompt=True,
+                    tokenize=True,
+                )
+                full_ids = tokenizer.apply_chat_template(
+                    [{"role": "user", "content": user_content},
+                     {"role": "assistant", "content": answer}],
+                    add_generation_prompt=False,
+                    tokenize=True,
+                )
+
+                label_start = len(prompt_ids)
+
+                # Exclude BOS from prompt-length check to match TaskSampler's
+                # add_special_tokens=False token counting.
+                n_prompt_tok = label_start - (
+                    1 if bos_id is not None and prompt_ids[0] == bos_id else 0
+                )
+                if n_prompt_tok > max_conditioning_length:
+                    task_skip_long += 1
+                    n_skipped_too_long += 1
+                    continue
+
+                if label_start >= len(full_ids):
+                    task_skip_no_ans += 1
+                    n_skipped_no_answer += 1
+                    continue
+
+                if len(full_ids) > max_seq_len:
+                    full_ids = full_ids[:max_seq_len]
+
+                eligible.append({
+                    'input_ids': torch.tensor(full_ids, dtype=torch.long),
+                    'label_start': label_start,
+                    'task_name': task_name,
+                })
+
+            n_eligible = len(eligible)
+
+            # Deterministic seeded shuffle before split — aligns with TaskSampler's
+            # seeded random split to prevent train/val leakage.
+            random.Random(seed).shuffle(eligible)
+            n_train = int(n_eligible * train_frac) if train_frac < 1.0 else n_eligible
+            eligible = eligible[:n_train]
+
+            prompt_lens = [s['label_start'] for s in eligible]
+            answer_lens = [len(s['input_ids']) - s['label_start'] for s in eligible]
+            print(
+                f"  {task_name}: {n_total} total, "
+                f"{task_skip_long} filtered (prompt>{max_conditioning_length} tok), "
+                f"{task_skip_no_ans} no answer -> "
+                f"{n_eligible} eligible -> {n_train} train"
+            )
+            if prompt_lens:
+                avg_p = sum(prompt_lens) / len(prompt_lens)
+                avg_a = sum(answer_lens) / len(answer_lens)
+                print(f"    prompt tokens:  min={min(prompt_lens)}, avg={avg_p:.0f}, max={max(prompt_lens)}")
+                print(f"    answer tokens:  min={min(answer_lens)}, avg={avg_a:.0f}, max={max(answer_lens)}")
+
+            samples.extend(eligible)
+
+        print(
+            f"\nSFTDataset: {len(samples)} training samples "
+            f"({n_skipped_too_long} prompt-too-long, {n_skipped_no_answer} no-answer skipped)"
+        )
+        if samples:
+            all_seq_lens = [len(s['input_ids']) for s in samples]
+            avg_seq = sum(all_seq_lens) / len(all_seq_lens)
+            print(f"  Sequence length: min={min(all_seq_lens)}, avg={avg_seq:.0f}, max={max(all_seq_lens)}")
+
+        # Upsample minority tasks to balance per-task contribution.
+        task_buckets: dict[str, list] = {}
+        for s in samples:
+            task_buckets.setdefault(s['task_name'], []).append(s)
+
+        if len(task_buckets) > 1:
+            max_count = max(len(v) for v in task_buckets.values())
+            rng = random.Random(seed)
+            balanced: list = []
+            for t_name, t_samples in sorted(task_buckets.items()):
+                n_orig = len(t_samples)
+                if n_orig < max_count:
+                    n_full = max_count // n_orig
+                    n_rem = max_count % n_orig
+                    upsampled = t_samples * n_full + rng.sample(t_samples, n_rem)
+                    print(f"  Upsampling {t_name}: {n_orig} -> {len(upsampled)} (x{max_count/n_orig:.1f})")
+                    balanced.extend(upsampled)
+                else:
+                    balanced.extend(t_samples)
+            samples = balanced
+            print(f"  Balanced: {len(samples)} total ({max_count} per task x {len(task_buckets)} tasks)")
+
+        random.Random(seed).shuffle(samples)
+        self.samples = samples
+
+    def __len__(self) -> int:
+        return len(self.samples)
+
+    def __getitem__(self, idx) -> dict:
+        """Return {'input_ids': 1D LongTensor, 'label_start': int}."""
+        s = self.samples[idx]
+        return {'input_ids': s['input_ids'], 'label_start': s['label_start']}
+
+
+# ---------------------------------------------------------------------------
+# Unified collate function
+# ---------------------------------------------------------------------------
+
+def pad_collate_fn(batch: list, pad_token_id: int, max_seq_len: int) -> dict:
+    """Collate NTP or SFT samples into a padded batch.
+
+    Detects mode from batch contents:
+    - NTP (no 'label_start'): all non-padding positions are supervised.
+    - SFT (has 'label_start'): only tokens from label_start onward are supervised.
+
+    Uses a length-based padding mask rather than ``input_ids == pad_token_id``
+    to avoid masking real tokens when pad_token_id reuses a vocab token (e.g.
+    Llama's EOS fallback for pad_token_id).
+
+    Args:
+        batch        : List of dicts with 'input_ids' (1D LongTensor) and,
+                       for SFT mode, 'label_start' (int).
         pad_token_id : Token ID used for right-padding.
-        max_seq_len  : Safety cap applied after pad_sequence.
+        max_seq_len  : Hard cap on output sequence length.
 
     Returns:
-        dict with keys:
-          'input_ids'    : LongTensor [batch_size, seq_len]
-          'labels'       : LongTensor [batch_size, seq_len]; -100 at context/question and padding
-          'label_starts' : LongTensor [batch_size], per-sample answer boundary
-    """
-    input_ids_list = [x['input_ids'] for x in batch]
-    label_starts = [x['label_start'] for x in batch]
+        dict with:
+          'input_ids'    : LongTensor [B, T]
+          'labels'       : LongTensor [B, T]; -100 at masked positions
+          'label_starts' : LongTensor [B] (SFT mode only)
 
-    input_ids = pad_sequence(input_ids_list, batch_first=True, padding_value=pad_token_id)
+    Raises:
+        ValueError: (SFT mode) If all labels are -100 after masking.
+    """
+    is_sft = 'label_start' in batch[0]
+    seqs = [x['input_ids'] for x in batch]
+
+    # Record original lengths before padding/truncation for the mask.
+    orig_lens = torch.tensor([min(len(s), max_seq_len) for s in seqs])
+
+    input_ids = pad_sequence(seqs, batch_first=True, padding_value=pad_token_id)
     input_ids = input_ids[:, :max_seq_len]
 
-    labels = torch.full_like(input_ids, -100)
+    # Length-based padding mask: True at positions that are padding.
+    # Safe when pad_token_id == eos_token_id or any other real vocab token.
+    T = input_ids.size(1)
+    padding_mask = torch.arange(T).unsqueeze(0) >= orig_lens.unsqueeze(1)  # [B, T]
 
-    for i, ls in enumerate(label_starts):
-        labels[i, ls:] = input_ids[i, ls:]
-
-    labels[input_ids == pad_token_id] = -100
-
-    assert (labels != -100).any(), (
-        "sft_pad_collate_fn: all labels are -100 — check label_start boundary."
-    )
-
-    return {
-        'input_ids': input_ids,
-        'labels': labels,
-        'label_starts': torch.tensor(label_starts, dtype=torch.long),
-    }
+    if is_sft:
+        label_starts = [x['label_start'] for x in batch]
+        labels = torch.full_like(input_ids, -100)
+        for i, ls in enumerate(label_starts):
+            labels[i, ls:] = input_ids[i, ls:]
+        labels[padding_mask] = -100
+        if not (labels != -100).any():
+            raise ValueError(
+                "pad_collate_fn: all labels are -100 — label_start may be >= sequence length."
+            )
+        return {
+            'input_ids': input_ids,
+            'labels': labels,
+            'label_starts': torch.tensor(label_starts, dtype=torch.long),
+        }
+    else:
+        labels = input_ids.clone()
+        labels[padding_mask] = -100
+        return {'input_ids': input_ids, 'labels': labels}

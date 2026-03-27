@@ -6,7 +6,7 @@
 #   - rhautier's hyperparameters (lr=3e-4, lora_alpha=16, dropout=0.05)
 #
 # Usage:
-#   python scripts/run_lora.py --config scripts/lora_rh_m1_instruct.yaml --run_name rh_m1_test
+#   python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct.yaml --run_name rh_m1_test
 
 # ── Experiment ──────────────────────────────────────────────────────────
 run_name: null

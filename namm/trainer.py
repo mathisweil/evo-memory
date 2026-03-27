@@ -1,14 +1,11 @@
 from dataclasses import dataclass, asdict
 from collections import OrderedDict
 from typing import Optional, Any, Dict, List, Union
-import math
 import json
-import copy
 import random
 import numpy as np
 import time
 import os
-from contextlib import nullcontext
 import wandb
 import torch.distributed as dist
 from utils import aggregate_score_dict
@@ -118,6 +115,8 @@ class MemoryTrainer():
         self.evolution_algorithm = self.evolution_algorithm.to(device=device)
 
         self.raw_evolution_algorithm = self.evolution_algorithm
+
+        self.trainer_config = trainer_config
 
         self.out_dir = trainer_config.out_dir
         self.max_iters = trainer_config.max_iters
@@ -956,7 +955,8 @@ class MemoryTrainer():
                 if iter_num > self.start_iter:
                     if self.master_process:
                         self._save_ckpt(
-                            iter_num=iter_num, save_path=self.ckpt_path)
+                            iter_num=iter_num, save_path=self.ckpt_path,
+                            log_artifact=True)
                 self.early_stop_counter = self.early_stop_counter.zero_()
             elif self.early_stop_patience > 0:
                 self.early_stop_counter = self.early_stop_counter.add_(1)
@@ -1047,8 +1047,19 @@ class MemoryTrainer():
         self.update_and_synchronize_evolution(fitness=fitness)
         return all_scores, all_score_dicts
 
-    def _save_ckpt(self, iter_num, save_path=None):
-        if save_path == None:
+    def _save_ckpt(self, iter_num, save_path=None, log_artifact: bool = False):
+        """Save evolution checkpoint and optionally upload a wandb artifact.
+
+        Args:
+            iter_num: Current iteration number, stored in the checkpoint.
+            save_path: Explicit path for the checkpoint file. Defaults to
+                ``self.ckpt_path`` when ``None``.
+            log_artifact: When ``True`` and wandb is active, writes a
+                ``config.json`` alongside the checkpoint and uploads both as a
+                wandb artifact.  Should only be ``True`` for best-val saves to
+                avoid flooding the artifact store.
+        """
+        if save_path is None:
             ckpt_path = self.ckpt_path
             rng_ckpt_path = self.rng_ckpt_path
         else:
@@ -1074,6 +1085,21 @@ class MemoryTrainer():
         torch.save(checkpoint, ckpt_path)
         print(f"saving checkpoint to {rng_ckpt_path}")
         torch.save(rng_checkpoint, rng_ckpt_path)
+
+        if log_artifact and self.wandb_log and wandb.run is not None:
+            config_path = os.path.join(ckpt_dir, 'config.json')
+            with open(config_path, 'w') as f:
+                json.dump(asdict(self.trainer_config), f, indent=2)
+
+            artifact = wandb.Artifact(
+                name=f"run-{wandb.run.id}-best-ckpt",
+                type="model",
+                metadata={"iter_num": iter_num, "best_val_perf": self.best_val_perf},
+            )
+            artifact.add_file(ckpt_path)
+            artifact.add_file(config_path)
+            wandb.log_artifact(artifact, aliases=["best", f"iter-{iter_num}"])
+            print(f"Uploaded wandb artifact: {artifact.name} (iter {iter_num})")
 
     def _load_ckpt(self, load_randomness, load_path=None):
         if load_path == None:

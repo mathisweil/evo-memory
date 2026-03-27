@@ -28,7 +28,6 @@ Usage:
 import argparse
 import atexit
 
-import yaml
 import logging
 import os
 import sys
@@ -51,10 +50,15 @@ from experiment_utils import (
     get_or_create_experiment,
     get_or_create_experiment_gcs,
     claim_run_gcs,
+    load_config_defaults,
     load_hydra_config,
     get_base_llm_param_names,
+    make_resample_fn,
+    make_evaluate_fn,
+    make_full_eval_fn,
     EXPERIMENTS_DIR,
 )
+
 
 def _sync_xla_cache_to_gcs():
     """Upload local XLA compilation cache to GCS for persistence across VMs."""
@@ -73,77 +77,19 @@ def _sync_xla_cache_to_gcs():
 atexit.register(_sync_xla_cache_to_gcs)
 
 
-# ── Evaluation function factories ───────────────────────────────────────
+# ── ES-specific evaluation helper ───────────────────────────────────────
 
-def make_resample_fn(task_sampler, mini_batch_size, train=True):
-    def resample_fn():
-        task_sampler.resample_requests(
-            train=train,
-            sampled_requests_per_task=mini_batch_size,
-        )
-    return resample_fn
+def make_examples_fn(task_sampler, evaluator, n_examples: int = 10):
+    """Create a function that captures Q/A examples with model predictions.
 
+    Args:
+        task_sampler: TaskSampler instance.
+        evaluator: MemoryHFEvaluator instance.
+        n_examples: Maximum number of examples to capture.
 
-def _gen_model_kwargs(temperature):
-    """Build model_kwargs dict for generation temperature."""
-    if temperature > 0:
-        return {"temperature": temperature, "do_sample": True}
-    return {}
-
-
-def make_evaluate_fn(task_sampler, evaluator, mini_batch_size, train=True,
-                     temperature=0.0, num_samples=1):
-    gen_kwargs = _gen_model_kwargs(temperature)
-
-    def evaluate_fn(model):
-        scores = []
-        for _ in range(num_samples):
-            score_dicts = task_sampler.evaluate(
-                lm=evaluator,
-                train=train,
-                evolved_model=False,
-                pop_reps=1,
-                resample_requests=False,
-                sampled_requests_per_task=mini_batch_size,
-                model_kwargs=gen_kwargs,
-            )
-            scores.append(score_dicts[0].get("lb/qasper", 0.0) / 100.0)
-        return sum(scores) / len(scores)
-    return evaluate_fn
-
-
-def make_full_eval_fn(task_sampler, evaluator,
-                      temperature=0.0, num_samples=1):
-    gen_kwargs = _gen_model_kwargs(temperature)
-
-    def full_eval_fn(model):
-        all_score_dicts = []
-        for _ in range(num_samples):
-            score_dicts = task_sampler.evaluate(
-                lm=evaluator,
-                train=False,
-                evolved_model=False,
-                pop_reps=1,
-                resample_requests=True,
-                sampled_requests_per_task=None,
-                model_kwargs=gen_kwargs,
-            )
-            all_score_dicts.append(score_dicts[0])
-        # Average across samples
-        avg_scores = {}
-        for k in all_score_dicts[0]:
-            avg_scores[k] = sum(d[k] for d in all_score_dicts) / len(all_score_dicts)
-        if task_sampler._test_idxs_per_task is not None:
-            num_data_samples = sum(
-                len(v) for v in task_sampler._test_idxs_per_task.values())
-        else:
-            num_data_samples = sum(task_sampler.num_prompts_per_lb_task.values())
-        return {"scores": avg_scores, "num_samples": num_data_samples}
-    return full_eval_fn
-
-
-def make_examples_fn(task_sampler, evaluator, n_examples=10):
-    """Create a function that captures Q/A examples with model predictions."""
+    Returns:
+        Callable(model) -> list[dict] of example records.
+    """
     def examples_fn(model):
         task_name = task_sampler.lb_test_tasks[0]  # e.g. "lb/qasper"
         task_short = task_name.split("/")[1]  # e.g. "qasper"
@@ -166,7 +112,6 @@ def make_examples_fn(task_sampler, evaluator, n_examples=10):
             pop_reps=1,
         )
 
-        # Per-sample F1 scores
         answers_list = [j["answers"] for j in jsons_subset]
         all_classes = jsons_subset[0].get("all_classes")
         per_sample_scores = get_all_scores(
@@ -191,27 +136,14 @@ def make_examples_fn(task_sampler, evaluator, n_examples=10):
 
 # ── CLI ─────────────────────────────────────────────────────────────────
 
-def _load_config_defaults(parser):
-    """Load defaults from a YAML config file specified by --config."""
-    # Pre-parse just --config without erroring on other args
-    pre_parser = argparse.ArgumentParser(add_help=False)
-    pre_parser.add_argument("--config", type=str, default=None)
-    pre_args, _ = pre_parser.parse_known_args()
-    if pre_args.config:
-        with open(pre_args.config) as f:
-            cfg = yaml.safe_load(f)
-        # Set defaults from config file; CLI args will override
-        parser.set_defaults(**{k: v for k, v in cfg.items()
-                               if v is not None})
-
-
 def parse_args():
+    """Parse CLI arguments, with YAML config file providing defaults."""
     parser = argparse.ArgumentParser(
         description="ES fine-tuning of base LLM weights with NAMM evaluation")
 
     # Config file (defaults that CLI args override)
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/es_default.yaml)")
+                        help="YAML config file (see scripts/configs/es_default.yaml)")
 
     # Experiment hierarchy
     parser.add_argument("--run_name", type=str, default=None,
@@ -284,7 +216,7 @@ def parse_args():
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
-    _load_config_defaults(parser)
+    load_config_defaults(parser)
     args = parser.parse_args()
     if not args.run_name:
         parser.error("--run_name is required (via CLI or config file)")

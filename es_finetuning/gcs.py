@@ -282,9 +282,6 @@ class GCSClient:
             local_path = os.path.join(log_dir, filename)
             if os.path.exists(local_path):
                 self.upload_file(local_path, f"{prefix}/{filename}")
-        # TensorBoard events
-        for f in glob.glob(os.path.join(log_dir, "events.out.tfevents.*")):
-            self.upload_file(f, f"{prefix}/{os.path.basename(f)}")
 
     # ── Report collection from GCS ────────────────────────────────────
 
