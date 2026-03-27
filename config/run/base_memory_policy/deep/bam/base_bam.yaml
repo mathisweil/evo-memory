@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /model/wrapped_llm@_global_: llama3-8b-rope-x4NTK
+  - override /model/wrapped_llm@_global_: llama32-1b
   - override /task@_global_: passage_retrieval_en
   - override /evolution@_global_: cma_es
   - override /policy@_global_: deep
