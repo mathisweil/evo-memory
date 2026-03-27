@@ -1,10 +1,16 @@
 """Run NAMM eviction-policy training via Hydra (DDP-compatible)."""
 
 import os
+import sys
 import torch
 from torch.distributed import destroy_process_group
 from omegaconf import DictConfig
 import hydra
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 from namm.run_utils import (
     ddp_setup,
