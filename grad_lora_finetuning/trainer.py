@@ -880,7 +880,7 @@ class LoRAGradTrainer:
                     if global_step % cfg.log_interval == 0:
                         elapsed = time.time() - t_start
                         print(
-                            f"  epoch {epoch} step {global_step} "
+                            f"  epoch {epoch + 1} step {global_step} "
                             f"loss={avg_loss:.4f} | "
                             f"grad_norm {grad_norm:.4f} | lr {current_lr:.2e} | "
                             f"elapsed {elapsed:.1f}s"
@@ -958,7 +958,7 @@ class LoRAGradTrainer:
                     accum_batches = 0
 
             avg_epoch_loss = epoch_loss / max(epoch_steps, 1)
-            print(f"Epoch {epoch}: avg_loss={avg_epoch_loss:.4f}")
+            print(f"Epoch {epoch + 1}: avg_loss={avg_epoch_loss:.4f}")
 
         # --- Final checkpoint ---
         print(f"\nTraining complete. Total gradient steps: {global_step}")
