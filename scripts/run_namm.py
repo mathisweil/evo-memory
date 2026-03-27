@@ -47,6 +47,35 @@ def main(cfg: DictConfig):
         (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
             auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
 
+        # ── Threshold-only eviction mode ─────────────────────────────────────
+        # When threshold_only=True, NAMM evicts purely by score threshold
+        # (s_i < 0) with no hard top-k cap, matching the original NAMM paper.
+        # Two caps must both be lifted:
+        #   1. selection_criteria.cache_size → drives the topk cut inside NAMM
+        #   2. memory_evaluator.max_memory_length → physical KV buffer truncation
+        #      that re-applies independently after NAMM eviction
+        if cfg.get('threshold_only', False):
+            if not hasattr(memory_policy, 'selection_criteria'):
+                raise ValueError(
+                    "threshold_only=True requested but memory_policy has no "
+                    "selection_criteria attribute. Check your policy config "
+                    "(requires a deep policy such as policy/deep.yaml)."
+                )
+            memory_policy.selection_criteria.cache_size = None
+            memory_evaluator.max_memory_length = (
+                memory_evaluator.max_conditioning_length)
+            if master_process:
+                print(
+                    "[threshold_only=True] selection_criteria.cache_size=None "
+                    "— eviction driven purely by score threshold (s_i < 0), "
+                    "no hard top-k cap."
+                )
+                print(
+                    f"[threshold_only=True] evaluator.max_memory_length set to "
+                    f"{memory_evaluator.max_conditioning_length} (max_conditioning"
+                    f"_length) to remove secondary KV buffer truncation."
+                )
+
         task_sampler = make_task_sampler(cfg=cfg, log_prefix=log_prefix)
 
         # Apply 3-way train/val/test split with exact tokenizer-based filtering.
