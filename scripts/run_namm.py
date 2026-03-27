@@ -89,7 +89,12 @@ def main(cfg: DictConfig):
         tokenizer = hydra.utils.call(cfg.tokenizer)
         train_frac = cfg.get('train_frac', 0.7)
         val_frac = cfg.get('val_frac', 0.15)
-        max_cond = cfg.get('max_conditioning_length', 6500)
+        # split_max_conditioning_length controls which prompts are eligible for
+        # splitting; it is intentionally separate from max_conditioning_length
+        # (which sets the model's KV buffer size) so that reducing buffer size
+        # for memory reasons does not silently empty the training split.
+        max_cond = cfg.get('split_max_conditioning_length',
+                           cfg.get('max_conditioning_length', 6500))
         task_sampler.apply_train_val_test_split(
             train_frac=train_frac,
             val_frac=val_frac,
