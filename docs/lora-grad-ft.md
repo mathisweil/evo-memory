@@ -201,18 +201,18 @@ Pre-split filtering:
 
 ### How datasets consume data
 
-**NTP mode** (`LongBenchNTPDataset`):
+**NTP mode** (`NTPDataset`):
 - Loads `context` field from LongBench HuggingFace dataset
 - Tokenises and left-truncates to `max_seq_len` (3500)
 - All tokens supervised (standard next-token prediction)
-- `ntp_pad_collate_fn` right-pads to batch-max length, masks padding with -100
+- `pad_collate_fn` right-pads to batch-max length, masks padding with -100
 
-**SFT mode** (`LongBenchSFTDataset`):
+**SFT mode** (`SFTDataset`):
 - Loads per-task prompt templates from `data/longbench/dataset2prompt.json`
 - Wraps prompt in `apply_chat_template`, appends gold answer
 - Records `label_start` boundary between prompt and answer
 - Samples exceeding `max_seq_len` are discarded (not truncated)
-- `sft_pad_collate_fn` masks prompt + padding positions with -100, supervises answer tokens only
+- `pad_collate_fn` masks prompt + padding positions with -100, supervises answer tokens only
 
 ### Evaluation via TaskSampler
 
@@ -281,7 +281,7 @@ F1 evaluation uses the same generation-based pipeline as ES:
 - `scripts/run_lora.py` -- entry point and argument parser
 - `scripts/lora_default.yaml` -- default configuration
 - `grad_lora_finetuning/trainer.py` -- LoRAGradTrainer class (training loop, eval, checkpointing)
-- `grad_lora_finetuning/datasets.py` -- LongBenchNTPDataset, LongBenchSFTDataset, collate functions
+- `grad_lora_finetuning/datasets.py` -- NTPDataset, SFTDataset, pad_collate_fn
 - `namm/llms/llama.py` -- `apply_lora_adapters()` method (PEFT injection, float32 casting)
 - `namm/tasks.py` -- TaskSampler with train/val/test split support
 - `es_finetuning/device.py` -- device abstraction (TPU > CUDA > CPU)

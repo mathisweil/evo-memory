@@ -12,7 +12,6 @@ import os
 import sys
 import time
 from dataclasses import asdict
-from typing import Optional
 
 import numpy as np
 import torch

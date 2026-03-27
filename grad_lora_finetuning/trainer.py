@@ -46,6 +46,7 @@ import os
 import shutil
 import time
 import warnings
+import yaml
 from dataclasses import dataclass, field
 from functools import partial
 from typing import List, Optional
@@ -57,7 +58,7 @@ import wandb
 from torch.utils.data import DataLoader
 from transformers import get_cosine_schedule_with_warmup
 
-from grad_lora_finetuning.datasets import LongBenchNTPDataset, ntp_pad_collate_fn
+from grad_lora_finetuning.datasets import NTPDataset, SFTDataset, pad_collate_fn
 from namm.trainer import WandbConfig
 
 
@@ -99,7 +100,7 @@ class LoRATrainerConfig:
     always_save_checkpoint: bool
     init_from: Optional[str]        # path to ckpt (NAMM ckpt for m4, LoRA ckpt for resume)
     dtype: str                      # 'bfloat16'
-    sft_mode: bool = False          # True -> LongBenchSFTDataset; False -> LongBenchNTPDataset
+    sft_mode: bool = False          # True -> SFTDataset; False -> NTPDataset
     train_frac: float = 0.7         # fraction of each task's examples used for training
     val_frac: float = 0.15          # fraction used for validation (best checkpoint selection)
     max_conditioning_length: int = 6500  # max prompt tokens for evaluation (skip longer prompts)
@@ -189,8 +190,7 @@ class LoRAGradTrainer:
                 print("LoRAGradTrainer: pad_token_id set to EOS (finetune_right_pad_id not found)")
 
         if cfg.sft_mode:
-            from grad_lora_finetuning.datasets import LongBenchSFTDataset, sft_pad_collate_fn
-            dataset = LongBenchSFTDataset(
+            dataset = SFTDataset(
                 task_names=cfg.task_names,
                 tokenizer=tokenizer,
                 max_seq_len=cfg.max_seq_len,
@@ -198,24 +198,19 @@ class LoRAGradTrainer:
                 seed=cfg.seed,
                 train_frac=cfg.train_frac,
             )
-            collate_fn = partial(
-                sft_pad_collate_fn,
-                pad_token_id=tokenizer.pad_token_id,
-                max_seq_len=cfg.max_seq_len,
-            )
-            print("LoRAGradTrainer: SFT mode — using LongBenchSFTDataset with answer-only loss masking.")
+            print("LoRAGradTrainer: SFT mode — using SFTDataset with answer-only loss masking.")
         else:
-            dataset = LongBenchNTPDataset(
+            dataset = NTPDataset(
                 task_names=cfg.task_names,
                 tokenizer=tokenizer,
                 max_seq_len=cfg.max_seq_len,
                 seed=cfg.seed,
             )
-            collate_fn = partial(
-                ntp_pad_collate_fn,
-                pad_token_id=tokenizer.pad_token_id,
-                max_seq_len=cfg.max_seq_len,
-            )
+        collate_fn = partial(
+            pad_collate_fn,
+            pad_token_id=tokenizer.pad_token_id,
+            max_seq_len=cfg.max_seq_len,
+        )
         self.dataloader = DataLoader(
             dataset,
             batch_size=cfg.batch_size,
@@ -319,6 +314,20 @@ class LoRAGradTrainer:
         print(f"{'='*60}\n")
 
     # -----------------------------------------------------------------------
+    # Helpers
+    # -----------------------------------------------------------------------
+
+    def _freeze_base_weights(self):
+        """Ensure all non-LoRA parameters have requires_grad=False.
+
+        Called after model.train() (which re-enables grad for all params) to
+        restore the LoRA-only training constraint.
+        """
+        for n, p in self.model.model.named_parameters():
+            if 'lora_' not in n:
+                p.requires_grad_(False)
+
+    # -----------------------------------------------------------------------
     # Training step helpers
     # -----------------------------------------------------------------------
 
@@ -326,7 +335,7 @@ class LoRAGradTrainer:
         """Run one forward + backward pass.
 
         Args:
-            batch: dict with 'input_ids' and 'labels' (from ntp_pad_collate_fn)
+            batch: dict with 'input_ids' and 'labels' (from pad_collate_fn)
             past_key_values: None for NAMM-active mode (reset between docs)
 
         Returns:
@@ -776,7 +785,6 @@ class LoRAGradTrainer:
         wcfg = self.wandb_config
 
         # --- Artifact contract ---
-        import yaml
         cfg_dict = dataclasses.asdict(cfg)
         cfg_dict['lora_rank'] = self.model._lora_rank
         cfg_dict['lora_target_modules'] = list(self.model._lora_target_modules)
@@ -821,11 +829,7 @@ class LoRAGradTrainer:
 
         # --- Set model to training mode ---
         self.model.train()
-
-        # Re-freeze base weights after model.train()
-        for n, p in self.model.model.named_parameters():
-            if 'lora_' not in n:
-                p.requires_grad_(False)
+        self._freeze_base_weights()
 
         # --- Training loop ---
         global_step = self._resume_step
@@ -909,9 +913,7 @@ class LoRAGradTrainer:
                                 val_scores = {}
                                 train_scores = {}
                             self.model.train()
-                            for n, p in self.model.model.named_parameters():
-                                if 'lora_' not in n:
-                                    p.requires_grad_(False)
+                            self._freeze_base_weights()
 
                             if train_scores:
                                 score_parts = [f"{k}: {v:.2f}" for k, v in sorted(train_scores.items())]

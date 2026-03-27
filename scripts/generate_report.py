@@ -369,7 +369,7 @@ def generate_report_gcs(experiment_name, gcs):
     print_summary(summary)
 
     # Save report and plots locally
-    experiment_dir = os.path.join(EXPERIMENTS_DIR, experiment_name)
+    experiment_dir: str = os.path.join(EXPERIMENTS_DIR, experiment_name)
     os.makedirs(experiment_dir, exist_ok=True)
     generate_plots(experiment_dir, runs)
 
