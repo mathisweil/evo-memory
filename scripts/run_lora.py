@@ -6,10 +6,10 @@ around the training loop so autograd flows through LoRA A/B matrices.
 
 Usage:
     # LoRA-only (m1 condition):
-    python scripts/run_lora.py --config scripts/lora_default.yaml --run_name m1_test
+    python scripts/run_lora.py --config scripts/configs/lora_default.yaml --run_name m1_test
 
     # LoRA + frozen NAMM (m4-frozen condition):
-    python scripts/run_lora.py --config scripts/lora_default.yaml \
+    python scripts/run_lora.py --config scripts/configs/lora_default.yaml \
         --namm_active --namm_checkpoint path/to/namm.pt --run_name m4_test
 
     # Quick smoke test:
@@ -18,16 +18,12 @@ Usage:
 """
 
 import argparse
-import atexit
-import json
 import logging
 import os
 import sys
-from datetime import datetime
 
 import numpy as np
 import torch
-import yaml
 
 logging.getLogger("transformers.generation.stopping_criteria").setLevel(logging.ERROR)
 
@@ -36,30 +32,18 @@ REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from hydra import compose, initialize
 from namm.run_utils import make_eval_model, make_task_sampler
 from es_finetuning.device import get_device
 from grad_lora_finetuning import LoRAGradTrainer, LoRATrainerConfig
 from namm.trainer import WandbConfig
 from experiment_utils import (
     get_or_create_experiment, get_or_create_experiment_gcs,
-    claim_run_gcs, load_hydra_config, get_base_llm_param_names,
+    claim_run_gcs, load_config_defaults, load_hydra_config,
     EXPERIMENTS_DIR,
 )
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────
-
-def _load_config_defaults(parser):
-    """Load defaults from a YAML config file specified by --config."""
-    pre_parser = argparse.ArgumentParser(add_help=False)
-    pre_parser.add_argument("--config", type=str, default=None)
-    pre_args, _ = pre_parser.parse_known_args()
-    if pre_args.config:
-        with open(pre_args.config) as f:
-            cfg = yaml.safe_load(f)
-        parser.set_defaults(**{k: v for k, v in cfg.items()
-                               if v is not None})
 
 
 def parse_args():
@@ -67,7 +51,7 @@ def parse_args():
         description="LoRA gradient fine-tuning of base LLM weights with optional NAMM")
 
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/lora_default.yaml)")
+                        help="YAML config file (see scripts/configs/lora_default.yaml)")
 
     # Experiment hierarchy
     parser.add_argument("--run_name", type=str, default=None,
@@ -124,7 +108,7 @@ def parse_args():
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
-    _load_config_defaults(parser)
+    load_config_defaults(parser)
     args = parser.parse_args()
     if not args.run_name:
         parser.error("--run_name is required (via CLI or config file)")

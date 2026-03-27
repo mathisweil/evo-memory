@@ -4,7 +4,7 @@
 # num_epochs, gradient_accumulation_steps, and task set.
 #
 # Usage:
-#   python scripts/run_lora.py --config scripts/lora_m1_only.yaml --run_name m1_test
+#   python scripts/run_lora.py --config scripts/configs/lora_m1_only.yaml --run_name m1_test
 
 # ── Experiment ──────────────────────────────────────────────────────────
 run_name: null

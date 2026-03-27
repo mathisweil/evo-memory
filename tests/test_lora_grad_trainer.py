@@ -115,7 +115,7 @@ def lora_trainer_fixture(tmp_path_factory):
     from functools import partial
     from transformers import AutoTokenizer
     from grad_lora_finetuning.trainer import LoRAGradTrainer
-    from grad_lora_finetuning.datasets import LongBenchNTPDataset, ntp_pad_collate_fn
+    from grad_lora_finetuning.datasets import NTPDataset, pad_collate_fn
 
     tmp_out = str(tmp_path_factory.mktemp("lora_trainer_out"))
 
@@ -129,7 +129,7 @@ def lora_trainer_fixture(tmp_path_factory):
     lora_params = [p for p in model.parameters() if p.requires_grad]
     assert len(lora_params) > 0
 
-    dataset = LongBenchNTPDataset(
+    dataset = NTPDataset(
         task_names=["qasper"],
         tokenizer=tokenizer,
         max_seq_len=512,
@@ -139,7 +139,7 @@ def lora_trainer_fixture(tmp_path_factory):
 
     first_item = dataset[0]
     collate_fn = partial(
-        ntp_pad_collate_fn,
+        pad_collate_fn,
         pad_token_id=tokenizer.pad_token_id,
         max_seq_len=512,
     )
@@ -309,7 +309,7 @@ def test_checkpoint_resume(lora_trainer_fixture, tmp_path):
     opt_state_after_step = trainer.optimizer.state_dict()
     assert len(opt_state_after_step["state"]) > 0
 
-    ckpt_path = trainer._save_ckpt(step_num=1)
+    ckpt_path = trainer._save_checkpoint(step_num=1)
     assert os.path.exists(ckpt_path)
 
     # Build a fresh trainer and load checkpoint

@@ -4,7 +4,7 @@
 # see FAIR-01 note in experiment_specification.md. ES results are reported separately.
 #
 # Usage:
-#   python scripts/run_es.py --config scripts/es_m1_only.yaml --run_name m1_es
+#   python scripts/run_es.py --config scripts/configs/es_m1_only.yaml --run_name m1_es
 
 # ── Experiment ──────────────────────────────────────────────────────────
 run_name: null

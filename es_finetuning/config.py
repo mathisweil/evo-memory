@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -19,3 +20,10 @@ class ESConfig:
     eval_temperature: float = 0.0  # Generation temperature for full eval (0 = greedy)
     num_samples: int = 1  # Number of generation samples per question during training (averaged)
     eval_num_samples: int = 1  # Number of generation samples per question during full eval (averaged)
+
+    # Wandb logging
+    wandb_log: bool = False
+    wandb_project: str = "Experiments"
+    wandb_entity: Optional[str] = "SNLP_NAMM"
+    wandb_run_name: Optional[str] = None
+    wandb_group_name: Optional[str] = None

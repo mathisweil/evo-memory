@@ -3,7 +3,7 @@
 # Requires a trained NAMM checkpoint — set --namm_checkpoint.
 #
 # Usage:
-#   python scripts/run_lora.py --config scripts/lora_rh_m4_instruct.yaml \
+#   python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct.yaml \
 #       --run_name rh_m4_test --namm_checkpoint path/to/namm_ckpt.pt
 
 # ── Experiment ──────────────────────────────────────────────────────────

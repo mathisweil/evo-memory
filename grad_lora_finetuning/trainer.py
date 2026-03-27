@@ -41,8 +41,12 @@ Usage:
 """
 
 import csv
+import dataclasses
 import os
+import shutil
 import time
+import warnings
+import yaml
 from dataclasses import dataclass, field
 from functools import partial
 from typing import List, Optional
@@ -54,7 +58,7 @@ import wandb
 from torch.utils.data import DataLoader
 from transformers import get_cosine_schedule_with_warmup
 
-from grad_lora_finetuning.datasets import LongBenchNTPDataset, ntp_pad_collate_fn
+from grad_lora_finetuning.datasets import NTPDataset, SFTDataset, pad_collate_fn
 from namm.trainer import WandbConfig
 
 
@@ -96,7 +100,7 @@ class LoRATrainerConfig:
     always_save_checkpoint: bool
     init_from: Optional[str]        # path to ckpt (NAMM ckpt for m4, LoRA ckpt for resume)
     dtype: str                      # 'bfloat16'
-    sft_mode: bool = False          # True -> LongBenchSFTDataset; False -> LongBenchNTPDataset
+    sft_mode: bool = False          # True -> SFTDataset; False -> NTPDataset
     train_frac: float = 0.7         # fraction of each task's examples used for training
     val_frac: float = 0.15          # fraction used for validation (best checkpoint selection)
     max_conditioning_length: int = 6500  # max prompt tokens for evaluation (skip longer prompts)
@@ -195,8 +199,7 @@ class LoRAGradTrainer:
                 print("LoRAGradTrainer: pad_token_id set to EOS (finetune_right_pad_id not found)")
 
         if cfg.sft_mode:
-            from grad_lora_finetuning.datasets import LongBenchSFTDataset, sft_pad_collate_fn
-            dataset = LongBenchSFTDataset(
+            dataset = SFTDataset(
                 task_names=cfg.task_names,
                 tokenizer=tokenizer,
                 max_seq_len=cfg.max_seq_len,
@@ -204,24 +207,19 @@ class LoRAGradTrainer:
                 seed=cfg.seed,
                 train_frac=cfg.train_frac,
             )
-            collate_fn = partial(
-                sft_pad_collate_fn,
-                pad_token_id=tokenizer.pad_token_id,
-                max_seq_len=cfg.max_seq_len,
-            )
-            print("LoRAGradTrainer: SFT mode — using LongBenchSFTDataset with answer-only loss masking.")
+            print("LoRAGradTrainer: SFT mode — using SFTDataset with answer-only loss masking.")
         else:
-            dataset = LongBenchNTPDataset(
+            dataset = NTPDataset(
                 task_names=cfg.task_names,
                 tokenizer=tokenizer,
                 max_seq_len=cfg.max_seq_len,
                 seed=cfg.seed,
             )
-            collate_fn = partial(
-                ntp_pad_collate_fn,
-                pad_token_id=tokenizer.pad_token_id,
-                max_seq_len=cfg.max_seq_len,
-            )
+        collate_fn = partial(
+            pad_collate_fn,
+            pad_token_id=tokenizer.pad_token_id,
+            max_seq_len=cfg.max_seq_len,
+        )
         self.dataloader = DataLoader(
             dataset,
             batch_size=cfg.batch_size,
@@ -325,6 +323,20 @@ class LoRAGradTrainer:
         print(f"{'='*60}\n")
 
     # -----------------------------------------------------------------------
+    # Helpers
+    # -----------------------------------------------------------------------
+
+    def _freeze_base_weights(self):
+        """Ensure all non-LoRA parameters have requires_grad=False.
+
+        Called after model.train() (which re-enables grad for all params) to
+        restore the LoRA-only training constraint.
+        """
+        for n, p in self.model.model.named_parameters():
+            if 'lora_' not in n:
+                p.requires_grad_(False)
+
+    # -----------------------------------------------------------------------
     # Training step helpers
     # -----------------------------------------------------------------------
 
@@ -332,7 +344,7 @@ class LoRAGradTrainer:
         """Run one forward + backward pass.
 
         Args:
-            batch: dict with 'input_ids' and 'labels' (from ntp_pad_collate_fn)
+            batch: dict with 'input_ids' and 'labels' (from pad_collate_fn)
             past_key_values: None for NAMM-active mode (reset between docs)
 
         Returns:
@@ -408,7 +420,7 @@ class LoRAGradTrainer:
             hidden_states = outputs.hidden_states[-1]
             phase2_labels = labels[:, context_end:]
             shift_hidden = hidden_states[:, :-1, :].contiguous()
-            shift_labels = phase2_labels[:, 1:].contiguous().view(-1)
+            shift_labels = phase2_labels[:, 1:].contiguous()
         else:
             # Single forward pass for non-NAMM mode.
             # Temporarily disable memory_policy_fixed_delay to prevent the
@@ -470,7 +482,6 @@ class LoRAGradTrainer:
                         )
                 if self._last_retention_dict and all(
                         v >= 1.0 for v in self._last_retention_dict.values()):
-                    import warnings
                     warnings.warn(
                         "ANLYS-01 WARNING: all retention/layer_i values are >= 1.0. "
                         "NAMM may not be evicting tokens.",
@@ -494,16 +505,13 @@ class LoRAGradTrainer:
     # Checkpoint I/O
     # -----------------------------------------------------------------------
 
-    def _save_ckpt(self, step_num: int) -> str:
-        """Save LoRA weights, optimizer state, and scheduler state."""
-        if self.artifact_dir is not None:
-            ckpt_dir = self.artifact_dir
-        else:
-            ckpt_dir = self.trainer_config.out_dir
-
+    def _save_checkpoint(self, step_num: int, val_score: float = None, is_final: bool = False) -> str:
+        """Saves the latest checkpoint, tracks 'best' model, and handles WandB artifacts."""
+        ckpt_dir = self.artifact_dir if self.artifact_dir is not None else self.trainer_config.out_dir
         os.makedirs(ckpt_dir, exist_ok=True)
         ckpt_path = os.path.join(ckpt_dir, 'ckpt.pt')
 
+        # 1. Build and save the state dictionary once
         checkpoint = {
             'lora_state_dict': {
                 n: p.data.clone()
@@ -520,62 +528,66 @@ class LoRAGradTrainer:
             'trainer_type': 'lora_grad',
         }
 
-        torch.save(checkpoint, ckpt_path)
-        print(f"Saved LoRA checkpoint to {ckpt_path} (step {step_num})")
-        return ckpt_path
+        is_best = False
+        if val_score is not None:
+            if not hasattr(self, '_best_val_score'):
+                self._best_val_score = -1.0
+                self._best_step = 0
+                self._evals_without_improvement = 0
+                self._early_stop = False
 
-    def _save_best_ckpt(self, step_num: int, val_score: float) -> str:
-        """Save best checkpoint based on validation score.
-
-        Returns the checkpoint path if a new best was saved, None otherwise.
-        Sets self._early_stop = True when patience is exceeded.
-        """
-        if not hasattr(self, '_best_val_score'):
-            self._best_val_score = -1.0
-            self._best_step = 0
-            self._evals_without_improvement = 0
-            self._early_stop = False
-
-        if val_score > self._best_val_score:
-            self._best_val_score = val_score
-            self._best_step = step_num
-            self._evals_without_improvement = 0
-
-            if self.artifact_dir is not None:
-                ckpt_dir = self.artifact_dir
+            if val_score > self._best_val_score:
+                self._best_val_score = val_score
+                self._best_step = step_num
+                self._evals_without_improvement = 0
+                is_best = True
             else:
-                ckpt_dir = self.trainer_config.out_dir
-            os.makedirs(ckpt_dir, exist_ok=True)
-            ckpt_path = os.path.join(ckpt_dir, 'best_ckpt.pt')
+                self._evals_without_improvement += 1
+                patience = self.trainer_config.early_stopping_patience
+                print(f"  Val F1={val_score:.2f} (best={self._best_val_score:.2f} at step {self._best_step})"
+                      f"{f' [{self._evals_without_improvement}/{patience}]' if patience > 0 else ''}")
+                if patience > 0 and self._evals_without_improvement >= patience:
+                    print(f"  Early stopping triggered: no improvement for {patience} evals.")
+                    self._early_stop = True
 
-            checkpoint = {
-                'lora_state_dict': {
-                    n: p.data.clone()
-                    for n, p in self.model.model.named_parameters()
-                    if p.requires_grad
-                },
-                'lora_config': {
-                    'rank': self.model._lora_rank,
-                    'target_modules': list(self.model._lora_target_modules),
-                },
-                'optimizer_state_dict': self.optimizer.state_dict(),
-                'scheduler_state_dict': self.scheduler.state_dict(),
-                'step_num': step_num,
-                'val_score': val_score,
-                'trainer_type': 'lora_grad',
-            }
-            torch.save(checkpoint, ckpt_path)
-            print(f"  *** New best val F1={val_score:.2f} at step {step_num} -> saved {ckpt_path}")
-            return ckpt_path
-        else:
-            self._evals_without_improvement += 1
-            patience = self.trainer_config.early_stopping_patience
-            print(f"  Val F1={val_score:.2f} (best={self._best_val_score:.2f} at step {self._best_step})"
-                  f"{f' [{self._evals_without_improvement}/{patience}]' if patience > 0 else ''}")
-            if patience > 0 and self._evals_without_improvement >= patience:
-                print(f"  Early stopping triggered: no improvement for {patience} evals.")
-                self._early_stop = True
-            return None
+        # Always persist best tracking state so any resumed checkpoint can restore it.
+        if hasattr(self, '_best_val_score'):
+            checkpoint['best_val_score'] = self._best_val_score
+            checkpoint['best_step'] = self._best_step
+
+        torch.save(checkpoint, ckpt_path)
+        print(f"Saved latest checkpoint to {ckpt_path} (step {step_num})")
+
+        # 2. Fast file copy for new best models
+        if is_best:
+            best_path = os.path.join(ckpt_dir, 'best_ckpt.pt')
+            shutil.copy2(ckpt_path, best_path)
+            print(f"  *** New best val F1={val_score:.2f} at step {step_num} -> copied to {best_path}")
+
+            if self.wandb_config and self.wandb_config.wandb_log and wandb.run is not None:
+                artifact = wandb.Artifact(
+                    name=f"run-{wandb.run.id}-best-ckpt",
+                    type="model",
+                    metadata={"step": step_num, "val_score": val_score}
+                )
+                artifact.add_file(best_path)
+                config_path = os.path.join(ckpt_dir, 'config.yaml')
+                if os.path.exists(config_path):
+                    artifact.add_file(config_path)
+                wandb.log_artifact(artifact, aliases=["best", f"step-{step_num}"])
+
+        # 3. Upload entire artifact directory at the end of training
+        if is_final and self.wandb_config and self.wandb_config.wandb_log and wandb.run is not None:
+            run_artifact = wandb.Artifact(
+                name=f"run-{wandb.run.id}-final-results",
+                type="model",
+                description="Contains final weights, best weights, config, and metrics."
+            )
+            run_artifact.add_dir(ckpt_dir)
+            wandb.log_artifact(run_artifact, aliases=["final"])
+            print(f"Uploaded final wandb artifact directory: {run_artifact.name}")
+
+        return ckpt_path
 
     def _load_ckpt(self, load_path: str) -> int:
         """Load checkpoint — handles both LoRA checkpoints and NAMM checkpoints."""
@@ -622,7 +634,25 @@ class LoRAGradTrainer:
             self.scheduler.load_state_dict(ckpt['scheduler_state_dict'])
             print("Restored optimizer + scheduler state (TRAIN-05)")
 
-        return ckpt.get('step_num', 0)
+        # --- Best Score Tracking Resume ---
+        step_num = ckpt.get('step_num', 0)
+        if 'best_val_score' in ckpt:
+            self._best_val_score = ckpt['best_val_score']
+            self._best_step = ckpt.get('best_step', step_num)
+            print(
+                f"Restored best validation score tracking: "
+                f"F1={self._best_val_score:.2f} at step {self._best_step}"
+            )
+        elif 'val_score' in ckpt:
+            # Backward compat: old checkpoints only wrote val_score when is_best.
+            self._best_val_score = ckpt['val_score']
+            self._best_step = step_num
+            print(
+                f"Restored best validation score tracking (legacy key): "
+                f"F1={self._best_val_score:.2f} at step {self._best_step}"
+            )
+
+        return step_num
 
     # -----------------------------------------------------------------------
     # Artifact contract (ARTIFACT-01)
@@ -731,7 +761,7 @@ class LoRAGradTrainer:
         total_samples = 0
         for k, v in scores.items():
             if k.startswith('lb/'):
-                n_samples = len(all_split_idxs.get(k, []))
+                n_samples = len(all_split_idxs.get(k[len('lb/'):], []))
                 weighted_sum += v * max(n_samples, 1)
                 total_samples += max(n_samples, 1)
         if total_samples > 0:
@@ -793,8 +823,6 @@ class LoRAGradTrainer:
         wcfg = self.wandb_config
 
         # --- Artifact contract ---
-        import dataclasses
-        import yaml
         cfg_dict = dataclasses.asdict(cfg)
         cfg_dict['lora_rank'] = self.model._lora_rank
         cfg_dict['lora_target_modules'] = list(self.model._lora_target_modules)
@@ -839,11 +867,7 @@ class LoRAGradTrainer:
 
         # --- Set model to training mode ---
         self.model.train()
-
-        # Re-freeze base weights after model.train()
-        for n, p in self.model.model.named_parameters():
-            if 'lora_' not in n:
-                p.requires_grad_(False)
+        self._freeze_base_weights()
 
         # --- Training loop ---
         global_step = self._resume_step
@@ -853,11 +877,21 @@ class LoRAGradTrainer:
         accum_batches = 0
         t_start = time.time()
 
-        for epoch in range(cfg.num_epochs):
+        # Calculate resume epoch and batches to skip
+        steps_per_epoch = len(self.dataloader) // cfg.gradient_accumulation_steps
+        start_epoch = global_step // max(1, steps_per_epoch)
+        skip_batches = (global_step % max(1, steps_per_epoch)) * cfg.gradient_accumulation_steps
+
+        for epoch in range(start_epoch, cfg.num_epochs):
             print(f"\n=== Epoch {epoch + 1}/{cfg.num_epochs} ===")
             epoch_loss = 0.0
             epoch_steps = 0
+
             for batch_idx, batch in enumerate(self.dataloader):
+                # Fast-forward dataloader to the exact resume batch
+                if epoch == start_epoch and batch_idx < skip_batches:
+                    continue
+
                 step_loss, _ = self._train_step(batch)
                 accum_loss += step_loss
                 accum_batches += 1
@@ -884,7 +918,7 @@ class LoRAGradTrainer:
                     if global_step % cfg.log_interval == 0:
                         elapsed = time.time() - t_start
                         print(
-                            f"  epoch {epoch} step {global_step} "
+                            f"  epoch {epoch + 1} step {global_step} "
                             f"loss={avg_loss:.4f} | "
                             f"grad_norm {grad_norm:.4f} | lr {current_lr:.2e} | "
                             f"elapsed {elapsed:.1f}s"
@@ -899,8 +933,7 @@ class LoRAGradTrainer:
                         )
 
                     if global_step % cfg.eval_interval == 0:
-                        if cfg.always_save_checkpoint:
-                            self._save_ckpt(global_step)
+                        avg_f1 = None
 
                         if self.task_sampler is not None:
                             self.model.eval()
@@ -918,9 +951,7 @@ class LoRAGradTrainer:
                                 val_scores = {}
                                 train_scores = {}
                             self.model.train()
-                            for n, p in self.model.model.named_parameters():
-                                if 'lora_' not in n:
-                                    p.requires_grad_(False)
+                            self._freeze_base_weights()
 
                             if train_scores:
                                 score_parts = [f"{k}: {v:.2f}" for k, v in sorted(train_scores.items())]
@@ -956,9 +987,12 @@ class LoRAGradTrainer:
                                     wandb.log(val_dict, step=global_step)
 
                                 avg_f1 = val_scores.get('lb/avg_f1', 0.0)
-                                self._save_best_ckpt(global_step, avg_f1)
-                                if getattr(self, '_early_stop', False):
-                                    break
+
+                        # Single call handles saving the latest checkpoint and copying to 'best' if applicable
+                        if cfg.always_save_checkpoint or avg_f1 is not None:
+                            self._save_checkpoint(global_step, val_score=avg_f1)
+                            if getattr(self, '_early_stop', False):
+                                break
 
                     accum_loss = 0.0
                     accum_batches = 0
@@ -967,14 +1001,14 @@ class LoRAGradTrainer:
                     break
 
             avg_epoch_loss = epoch_loss / max(epoch_steps, 1)
-            print(f"Epoch {epoch}: avg_loss={avg_epoch_loss:.4f}")
+            print(f"Epoch {epoch + 1}: avg_loss={avg_epoch_loss:.4f}")
 
             if getattr(self, '_early_stop', False):
                 break
 
         # --- Final checkpoint ---
         print(f"\nTraining complete. Total gradient steps: {global_step}")
-        self._save_ckpt(global_step)
+        self._save_checkpoint(global_step, is_final=True)
 
         # --- Load best checkpoint for final test evaluation ---
         if hasattr(self, '_best_val_score') and self._best_val_score > 0:
