@@ -1,8 +1,3 @@
-# m1-ES condition: ES-only fine-tuning on Qasper, no NAMM eviction, full KV cache.
-# Mirrors lora_m1_only.yaml but uses evolutionary strategies instead of gradient descent.
-# Token budget anchor note: ES and gradient methods are not compute-equivalent —
-# see FAIR-01 note in experiment_specification.md. ES results are reported separately.
-#
 # Usage:
 #   python scripts/run_es.py --config scripts/configs/es_m1_only.yaml --run_name m1_es
 

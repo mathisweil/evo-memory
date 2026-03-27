@@ -1,8 +1,3 @@
-# m1 condition: LoRA-only finetuning on QASPER, no NAMM eviction, full KV cache.
-# Ported from cfgs/run/m1_lora_only.yaml (eda3f19).
-# Token budget anchor for FAIR-01: all other conditions must use the same
-# num_epochs, gradient_accumulation_steps, and task set.
-#
 # Usage:
 #   python scripts/run_lora.py --config scripts/configs/lora_m1_only.yaml --run_name m1_test
 
@@ -21,8 +16,8 @@ weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
 num_epochs: 2
-batch_size: 1
-gradient_accumulation_steps: 16
+batch_size: 8
+gradient_accumulation_steps: 2
 max_seq_len: 3500
 sft_mode: false
 
@@ -40,7 +35,7 @@ val_split: 0.1
 split_seed: 42
 
 # ── Evaluation ──────────────────────────────────────────────────────────
-eval_interval: 40
+eval_interval: 300
 log_interval: 10
 batch_size_eval: null
 

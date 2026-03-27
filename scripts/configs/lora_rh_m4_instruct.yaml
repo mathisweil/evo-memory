@@ -1,7 +1,3 @@
-# Replication of rhautier's m4 LoRA experiment: LoRA with frozen NAMM.
-# Ported from cfgs/run/rh_m4_lora_instruct.yaml (eda3f19).
-# Requires a trained NAMM checkpoint — set --namm_checkpoint.
-#
 # Usage:
 #   python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct.yaml \
 #       --run_name rh_m4_test --namm_checkpoint path/to/namm_ckpt.pt
