@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - deep_embedding@_global_: joint_recency_attn_spec
+  - deep_embedding@_global_: attn_spec_norm
   - deep_scoring@_global_: mlp
   - deep_selection@_global_: dynamic
 
