@@ -39,6 +39,7 @@ split_seed: 42
 eval_interval: 25
 log_interval: 5
 batch_size_eval: 4
+early_stopping_patience: 5  # stop after 5 evals (~125 steps) with no val F1 improvement
 
 # ── Wandb ─────────────────────────────────────────────────────────────
 wandb_entity: SNLP_NAMM
