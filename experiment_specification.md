@@ -210,7 +210,7 @@ python scripts/run_namm.py \
 
 > **Threshold-only variant:** append `threshold_only=true` to run M2 with the original NAMM paper's eviction rule (score threshold only, no hard top-k cap). The cache size will vary dynamically per step.
 > ```bash
-> python scripts/run_namm.py run=namm_bam_i1_llama32_1b threshold_only=true \
+> python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b' threshold_only=true \
 >     wandb_run_name=m2_namm_threshold trainer_config.max_iters=299
 > ```
 > All M3 and A5 variants can use the same `threshold_only=true` override with their respective `run_namm.py` commands.
