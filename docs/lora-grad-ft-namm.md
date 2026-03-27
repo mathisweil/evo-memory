@@ -245,7 +245,7 @@ experiments/experiment_N/lora_grad/run_name/
 - `scripts/run_lora.py` -- entry point and argument parser
 - `scripts/lora_default.yaml` -- default configuration
 - `grad_lora_finetuning/trainer.py` -- LoRAGradTrainer (two-phase forward, chunked loss, eval, checkpointing)
-- `grad_lora_finetuning/datasets.py` -- LongBenchNTPDataset, LongBenchSFTDataset
+- `grad_lora_finetuning/datasets.py` -- NTPDataset, SFTDataset, pad_collate_fn
 - `namm/llms/llama.py` -- `apply_lora_adapters()`, `forward()` with `skip_lm_head` and `apply_memory_policy`
 - `namm/tasks.py` -- TaskSampler with train/val/test split
 - `es_finetuning/device.py` -- device abstraction (TPU > CUDA > CPU)

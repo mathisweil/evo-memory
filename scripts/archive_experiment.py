@@ -15,7 +15,6 @@ Usage:
 """
 
 import argparse
-import json
 import os
 import shutil
 import sys
@@ -40,7 +39,7 @@ def upload_directory(bucket, local_dir, gcs_prefix):
     total_bytes = 0
     for root, dirs, files in os.walk(local_dir):
         for fname in files:
-            local_path = os.path.join(root, fname)
+            local_path: str = os.path.join(root, fname)
             rel_path = os.path.relpath(local_path, local_dir)
             blob_name = f"{gcs_prefix}/{rel_path}"
             blob = bucket.blob(blob_name)

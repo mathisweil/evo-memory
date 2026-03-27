@@ -18,12 +18,9 @@ Usage:
 """
 
 import argparse
-import atexit
-import json
 import logging
 import os
 import sys
-from datetime import datetime
 
 import numpy as np
 import torch
@@ -35,7 +32,6 @@ REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from hydra import compose, initialize
 from namm.run_utils import make_eval_model, make_task_sampler
 from es_finetuning.device import get_device
 from grad_lora_finetuning import LoRAGradTrainer, LoRATrainerConfig
@@ -43,7 +39,7 @@ from namm.trainer import WandbConfig
 from experiment_utils import (
     get_or_create_experiment, get_or_create_experiment_gcs,
     claim_run_gcs, load_config_defaults, load_hydra_config,
-    get_base_llm_param_names, EXPERIMENTS_DIR,
+    EXPERIMENTS_DIR,
 )
 
 
