@@ -209,6 +209,25 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 | **Joint NAMM + LoRA** | `scripts/run_joint.py` | `scripts/configs/joint_default.yaml` | `--run_name`, `--adapter_type lora` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
 | **Evaluate** | `scripts/run_eval.py` | `scripts/configs/eval_default.yaml` | — | `--es_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--num_samples` |
 
+### NAMM eviction modes
+
+`run_namm.py` supports two eviction modes, selectable via a Hydra override:
+
+| Mode | Flag | Behaviour |
+|---|---|---|
+| **Top-k (default)** | `threshold_only=false` | Keeps the `cache_size` highest-scoring tokens — hard budget enforced every step. |
+| **Threshold-only** | `threshold_only=true` | Evicts all tokens with score `s_i < 0`; no hard cap. Cache size varies per step, matching the original NAMM paper (Cetin et al., ICLR 2025). |
+
+```bash
+# Top-k mode (default, cache_size=1024)
+python scripts/run_namm.py run=namm_bam_i1_llama32_1b
+
+# Threshold-only mode — eviction driven purely by learned score threshold
+python scripts/run_namm.py run=namm_bam_i1_llama32_1b threshold_only=true
+```
+
+In threshold mode, `max_memory_length` (internal buffer sizing) is unchanged; only the top-k cutoff and the evaluator's physical KV truncation are lifted. Use `scripts/check_eviction_stats.py --cache_size 0` to diagnose token retention for a threshold-mode checkpoint.
+
 ### Example commands
 
 ```bash
