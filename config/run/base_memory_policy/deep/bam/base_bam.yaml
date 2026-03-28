@@ -72,7 +72,7 @@ scoring_mlp_bias: true
 cache_size:
 
 
-always_save_checkpoint: true
+always_save_checkpoint: false
 
 wandb_log: true #false # NOTE
 
