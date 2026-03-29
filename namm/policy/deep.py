@@ -49,19 +49,23 @@ def stat_fn_list(list_of_lists, index=None,
         to_return['min'] = np.min(flat_list)
     return to_return
 
-def stat_fn_tensor(input_tensor, index=None, 
+def stat_fn_tensor(input_tensor, index=None,
             stats_to_return=['mean', 'std', 'above_mean', 'max', 'min']):
     to_return = {st: None for st in stats_to_return}
-    input_tensor = input_tensor.float()
+    input_tensor = input_tensor.float().flatten()
+    if input_tensor.numel() == 0:
+        return to_return
     if 'mean' in stats_to_return:
         to_return['mean'] = mean = torch.mean(input_tensor).item()
     if 'std' in stats_to_return:
-        to_return['std'] = std = torch.std(input_tensor).item()
+        # torch.std returns NaN for single-element tensors; clamp to 0.0
+        std_val = torch.std(input_tensor).item()
+        to_return['std'] = std = 0.0 if (std_val != std_val) else std_val
     if 'above_mean' in stats_to_return:
-        to_return['above_mean'] = above_mean = torch.mean(
+        to_return['above_mean'] = torch.mean(
             (input_tensor > mean).float()).item()
     if 'max' in stats_to_return:
-        to_return['max'] = max_v = torch.max(input_tensor).item()
+        to_return['max'] = torch.max(input_tensor).item()
     if 'min' in stats_to_return:
         to_return['min'] = torch.min(input_tensor).item()
     return to_return

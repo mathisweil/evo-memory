@@ -178,11 +178,10 @@ class BinarySelection(SelectionNetwork):
                 temp = parameters
             else:
                 temp = self.initial_temp
-            
-            probabilities = F.sigmoid(masked_full_scores/temp)
+            masked_full_scores = torch.where(
+                attn_mask.bool(), token_scores, min_value)
+            probabilities = F.sigmoid(masked_full_scores / temp)
             random_samples = torch.rand_like(probabilities)
-            
-            
             token_scores = (probabilities >= random_samples).to(
                 probabilities.dtype) - 0.5
 
