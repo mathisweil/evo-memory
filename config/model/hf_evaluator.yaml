@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - wrapped_llm@_global_: pythia160m
+  - wrapped_llm@_global_: llama32-1b
 
 memory_evaluator:
   _target_: namm.evaluation.evaluator.MemoryHFEvaluator

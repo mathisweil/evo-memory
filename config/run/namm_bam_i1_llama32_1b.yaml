@@ -52,6 +52,7 @@ batch_size: 4
 eval_max_batch_size: 4
 
 scoring_initializer: 0
+always_save_checkpoint: true
 keep_past_epoch_checkpoints_every: 25
 
 # 200 iterations with 16 samples/step (matched to Romain's config)

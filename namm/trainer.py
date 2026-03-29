@@ -68,6 +68,7 @@ class TrainerConfig:
     record_per_task_eval_stats: bool
 
     always_save_checkpoint: bool
+    save_checkpoint_every: Optional[int]
     keep_past_epoch_checkpoints_every: Optional[int]
     use_amp: Optional[bool]
     init_from: str
@@ -250,6 +251,7 @@ class MemoryTrainer():
             trainer_config.record_per_task_eval_stats)
 
         self.always_save_checkpoint = trainer_config.always_save_checkpoint
+        self.save_checkpoint_every = trainer_config.save_checkpoint_every
         self.keep_past_epoch_checkpoints_every = (
             trainer_config.keep_past_epoch_checkpoints_every)
         self.keep_all_checkpoints = False
@@ -1263,7 +1265,13 @@ class MemoryTrainer():
                         wandb.log(wandb_log_dict)
 
             if self.master_process:
-                if self.always_save_checkpoint and iter_num > self.start_iter:
+                should_save = (
+                    self.always_save_checkpoint
+                    and iter_num > self.start_iter
+                    and (self.save_checkpoint_every is None
+                         or iter_num % self.save_checkpoint_every == 0)
+                )
+                if should_save:
                     self._save_ckpt(iter_num=iter_num,
                                     save_path=self.latest_ckpt_path)
                     if self.keep_all_checkpoints:

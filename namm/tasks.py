@@ -636,6 +636,9 @@ class TaskSampler():
             all_classes = None
 
             jsons = sampled_task_jsons[task_n]
+            if len(prompts) == 0:
+                print(f"  [tasks] skipping {task_n}: no eligible prompts in this split")
+                continue
 
             task_kwargs = dict(
                 max_gen_tokens=self.lb_task2maxlen[task_n],

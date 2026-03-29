@@ -2,6 +2,11 @@
 
 Loads the model with record_eval_stats enabled and runs a small batch to
 see how many tokens are actually retained per layer vs the cache_size budget.
+
+Threshold-only mode (--cache_size 0): sets selection_criteria.cache_size=None
+and uses the score threshold as the sole eviction criterion, equivalent to
+training with `threshold_only=true` in run_namm.py. Diagnostic results from
+--cache_size 0 are therefore directly comparable to threshold-mode training runs.
 """
 
 import argparse
