@@ -81,6 +81,19 @@ def main(cfg: DictConfig):
                     f"{memory_evaluator.max_conditioning_length} (max_conditioning"
                     f"_length) to remove secondary KV buffer truncation."
                 )
+            # Warn if the scoring network is initialised at 0 — in threshold mode
+            # scores must stay > 0 to retain tokens, but scoring_initializer=0
+            # places CMA-ES right at the decision boundary.  A positive shift
+            # (e.g. scoring_initializer=2) gives a stable starting point.
+            scoring_init = cfg.get('scoring_initializer', None)
+            if master_process and (scoring_init is None or scoring_init == 0):
+                print(
+                    "[threshold_only=True] WARNING: scoring_initializer=0 "
+                    "(default). In threshold mode all tokens start at score≈0 "
+                    "and can collapse below threshold immediately. Consider "
+                    "adding scoring_initializer=2 to your run config or CLI "
+                    "to start CMA-ES in a non-degenerate state."
+                )
 
         task_sampler = make_task_sampler(cfg=cfg, log_prefix=log_prefix)
 
