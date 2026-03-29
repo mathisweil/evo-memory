@@ -159,6 +159,7 @@ class StatelessAttention(StatelessGeneralizedModule):
         )
 
         self._init_rope()
+        self._init_causal_mask()
 
         self.setup_operations(
             operations=[self.linear_op, self.linear_op],
@@ -195,6 +196,28 @@ class StatelessAttention(StatelessGeneralizedModule):
             max_position_embeddings=self.max_position_id,
             base=self.rope_theta,
         )
+
+    def _init_causal_mask(self):
+        """Pre-compute the causal mask up to max_position_id.
+
+        Avoids re-allocating an [N, N] boolean tensor on every forward
+        call.  The full mask is stored as a buffer and sliced at runtime.
+        """
+        if not self.apply_causal_mask:
+            return
+        max_len = self.max_position_id
+        full_mask = torch.ones(
+            (max_len, max_len), dtype=torch.bool)
+        if self.backward_causal_mask:
+            full_mask = torch.tril(full_mask, diagonal=-1)
+        else:
+            full_mask = torch.triu(full_mask, diagonal=1)
+        self.register_buffer(
+            '_causal_mask', full_mask, persistent=False)
+
+    def _get_causal_mask(self, num_tokens: int) -> torch.Tensor:
+        """Return the pre-computed causal mask sliced to num_tokens."""
+        return self._causal_mask[:num_tokens, :num_tokens]
 
     def forward(
         self,
@@ -248,17 +271,8 @@ class StatelessAttention(StatelessGeneralizedModule):
         if self.apply_causal_mask or attn_mask is not None:
             min_dtype = torch.finfo(inputs.dtype).min
             if self.apply_causal_mask:
-                causal_mask = torch.ones(
-                    (num_tokens, num_tokens),
-                    device=key_states.device,
-                    dtype=torch.bool,
-                )
-                if self.backward_causal_mask:
-                    # one for all lower diagonal tokens to be masked
-                    causal_mask = torch.tril(causal_mask, diagonal=-1)
-                else:
-                    # one for all upper diagonal tokens to be masked
-                    causal_mask = torch.triu(causal_mask, diagonal=1)
+                # Use pre-computed mask, sliced to current size
+                causal_mask = self._get_causal_mask(num_tokens)
             if attn_mask is not None:
                 # In case num tokens < size of the attention mask
                 inv_attn_mask = torch.logical_not(attn_mask[..., -num_tokens:])
@@ -273,9 +287,10 @@ class StatelessAttention(StatelessGeneralizedModule):
             else:
                 causal_mask = None
 
-        # Expand causal_mask to match flattened (pop×batch) query batch dimension.
-        # attn_mask arrives as [batch, seq, seq] but qkv was flattened to
-        # [pop*batch, seq, ...], so we need [pop*batch, 1, seq, seq] here.
+        # Expand causal_mask to match flattened (pop x batch) query batch
+        # dimension.  attn_mask arrives as [batch, seq, seq] but qkv was
+        # flattened to [pop*batch, seq, ...], so we need
+        # [pop*batch, 1, seq, seq] here.
         if causal_mask is not None:
             # Normalise to 4D: [batch, 1, seq, seq]
             if causal_mask.dim() == 2:
@@ -365,17 +380,8 @@ class MonoHeadStatelessAttention(StatelessAttention):
                 query_states, key_states, cos, sin)
 
         if self.apply_causal_mask:
-            causal_mask = torch.ones(
-                (num_tokens, num_tokens),
-                device=key_states.device,
-                dtype=torch.bool,
-            )
-            if self.backward_causal_mask:
-                # one for all lower diagonal tokens to be masked
-                causal_mask = torch.tril(causal_mask, diagonal=-1)
-            else:
-                # one for all upper diagonal tokens to be masked
-                causal_mask = torch.triu(causal_mask, diagonal=1)
+            # Use pre-computed mask, sliced to current size
+            causal_mask = self._get_causal_mask(num_tokens)
         if attn_mask is not None:
             # In case num tokens < size of the attention mask
             inv_attn_mask = torch.logical_not(attn_mask[..., -num_tokens:])
@@ -388,12 +394,14 @@ class MonoHeadStatelessAttention(StatelessAttention):
             min_dtype = torch.finfo(inputs.dtype).min
             causal_mask = causal_mask*min_dtype
         elif self.apply_causal_mask:
+            min_dtype = torch.finfo(inputs.dtype).min
             causal_mask = causal_mask*min_dtype
         else:
             causal_mask = None
 
-        # Expand causal_mask to match flattened (pop×batch) query batch dimension.
-        # query is 3D here [total_batch, seq, head_dim], so keep mask 3D.
+        # Expand causal_mask to match flattened (pop x batch) query batch
+        # dimension.  query is 3D here [total_batch, seq, head_dim], so
+        # keep mask 3D.
         if causal_mask is not None and len(batch_dims) > 1:
             if causal_mask.shape[0] != query_states.shape[0] and causal_mask.shape[0] > 1:
                 repeats = query_states.shape[0] // causal_mask.shape[0]
