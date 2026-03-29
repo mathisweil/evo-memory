@@ -199,7 +199,7 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 
 | Experiment | Script | Config | Required Args | Key Optional Args |
 |---|---|---|---|---|
-| **Train NAMM** | `scripts/run_namm.py` | `config/config.yaml` (Hydra) | — | Hydra overrides: `key=value` |
+| **Train NAMM** | `scripts/run_namm.py` | `config/config.yaml` (Hydra) | `'run@_global_=<preset>'` | `threshold_only`, `scoring_initializer`, `save_checkpoint_every`, `trainer_config.max_iters` |
 | **ES — no NAMM** | `scripts/run_es.py` | `scripts/configs/es_default.yaml` | `--run_name` | `--num_iterations`, `--population_size`, `--sigma`, `--alpha` |
 | **ES + frozen NAMM** | `scripts/run_es.py` | `scripts/configs/es_default.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--num_iterations` |
 | **LoRA only** (m1) | `scripts/run_lora.py` | `scripts/configs/lora_m1_only.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
@@ -220,13 +220,39 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 
 ```bash
 # Top-k mode (default, cache_size=1024)
-python scripts/run_namm.py run=namm_bam_i1_llama32_1b
+python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b'
 
 # Threshold-only mode — eviction driven purely by learned score threshold
-python scripts/run_namm.py run=namm_bam_i1_llama32_1b threshold_only=true
+python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b' \
+    threshold_only=true scoring_initializer=2
 ```
 
+> **`run@_global_=` syntax required.** The run config is mounted at `@_global_` scope in `config.yaml`, so the override key must match. Plain `run=` raises a Hydra error.
+
+> **`scoring_initializer=2` required for threshold mode.** With the default `scoring_initializer=0` the CMA-ES mean starts at the eviction boundary (score=0). A small perturbation collapses all scores below zero and evicts every token. Starting at 2 gives CMA-ES room to learn selective eviction before the threshold is first reached.
+
 In threshold mode, `max_memory_length` (internal buffer sizing) is unchanged; only the top-k cutoff and the evaluator's physical KV truncation are lifted. Use `scripts/check_eviction_stats.py --cache_size 0` to diagnose token retention for a threshold-mode checkpoint.
+
+#### Checkpoint frequency
+
+By default NAMM saves `latest.pt` on every iteration. To save only every N steps:
+
+```bash
+python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b' \
+    save_checkpoint_every=10
+```
+
+Set `save_checkpoint_every:` (null) in a run config to restore the save-every-step default.
+
+#### Data split vs. buffer size
+
+`max_conditioning_length` sets the model's KV buffer size. A separate key `split_max_conditioning_length` controls which prompts are eligible for the train/val/test split. If only `max_conditioning_length` is overridden, the split filter uses that same value, which can silently empty the training set for long-context tasks. Override independently when needed:
+
+```bash
+# Reduce buffer size without filtering out long training examples
+python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b' \
+    max_conditioning_length=2048 split_max_conditioning_length=6500
+```
 
 ### Example commands
 
