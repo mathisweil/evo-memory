@@ -37,6 +37,12 @@ deterministic_behavior: false
 backend: 'nccl' # 'nccl', 'gloo', etc.
 ddp_timeout_limit: '0:6:0' # days:hours:minutes
 
+# Eviction mode — set to true to train with threshold-only eviction (NAMM
+# paper's original rule: evict all tokens with score < 0, no hard top-k cap).
+# When false (default), selection_criteria.cache_size enforces a fixed budget.
+# Override at launch: python scripts/run_namm.py threshold_only=true
+threshold_only: false
+
 hydra:
   run:
     dir: ${out_dir}/

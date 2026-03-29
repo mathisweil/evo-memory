@@ -183,7 +183,7 @@ Trains the NAMM eviction policy via CMA-ES on a frozen Llama-3.2-1B-Instruct. LL
 
 ```bash
 python scripts/run_namm.py \
-    run=namm_bam_i1_llama32_1b \
+    'run@_global_=namm_bam_i1_llama32_1b' \
     wandb_run_name=m2_namm_standalone \
     wandb_group_name=main_conditions \
     seed=42 \
@@ -202,11 +202,24 @@ python scripts/run_namm.py \
 | `max_memory_length` | 1024 | 4× compression ratio |
 | `mini_batch_size` | 16 | From preset |
 | `trainer_config.max_iters` | 299 | MemoryTrainer loops `range(0, max_iters+1)` → 300 generations; preset default is 200 |
+| `save_checkpoint_every` | null (save every iter) | Set to N (e.g. `save_checkpoint_every=10`) to write `latest.pt` only every N iterations and reduce I/O overhead |
+| `split_max_conditioning_length` | 6500 (default) | Filters which prompts are eligible before splitting. Independent of `max_conditioning_length` (KV buffer size) — override separately if reducing buffer size for memory reasons |
 | Generations | 300 | ~13.5 hours on a single GPU |
 | Task | Qasper only | Single-task; no incremental evolution needed |
 | Output | `outputs/{date}/{time}/` (Hydra default) | |
 
 > 300 flat generations on a single task is sufficient. Sakana used incremental evolution across three tasks to handle multi-task LongBench complexity — that does not apply here. If training curves are still improving at generation 300, extend to 400, but do not plan for it upfront.
+
+> **Threshold-only variant:** append `threshold_only=true scoring_initializer=2` to run M2 with the original NAMM paper's eviction rule (score threshold only, no hard top-k cap). The cache size will vary dynamically per step.
+> ```bash
+> python scripts/run_namm.py \
+>     'run@_global_=namm_bam_i1_llama32_1b' \
+>     threshold_only=true \
+>     scoring_initializer=2 \
+>     wandb_run_name=m2_namm_threshold \
+>     trainer_config.max_iters=299
+> ```
+> `scoring_initializer=2` is required: with the default value of 0 the CMA-ES mean starts at the eviction boundary (score=0) and collapses to all-evict immediately. Starting at 2 places every token above threshold so CMA-ES can learn selective eviction. All M3 and A5 variants must include both flags with their respective `run_namm.py` commands.
 
 ---
 
@@ -227,7 +240,7 @@ python scripts/run_lora.py \
 
 ```bash
 python scripts/run_namm.py \
-    run=namm_bam_i1_llama32_1b \
+    'run@_global_=namm_bam_i1_llama32_1b' \
     wandb_run_name=m3_namm_on_lora \
     wandb_group_name=main_conditions \
     seed=42 \
@@ -263,7 +276,7 @@ python scripts/run_es.py \
 
 ```bash
 python scripts/run_namm.py \
-    run=namm_bam_i1_llama32_1b \
+    'run@_global_=namm_bam_i1_llama32_1b' \
     wandb_run_name=m3_namm_on_es \
     wandb_group_name=es_conditions \
     seed=42 \

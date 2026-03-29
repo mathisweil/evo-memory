@@ -40,6 +40,7 @@ trainer_config:
   record_per_task_eval_stats: ${record_per_task_eval_stats}
 
   always_save_checkpoint: ${always_save_checkpoint}
+  save_checkpoint_every: ${save_checkpoint_every}
   keep_past_epoch_checkpoints_every: ${keep_past_epoch_checkpoints_every}
   use_amp: ${use_amp}
   init_from: ${init_from}
@@ -74,6 +75,7 @@ eval_candidate_samples:
 eval_candidate_temp:
 
 always_save_checkpoint: true
+save_checkpoint_every:        # null = save every iter; set to N to save only every N iters
 keep_past_epoch_checkpoints_every:
 scratch: true
 record_advanced_eval_stats: true
