@@ -56,3 +56,6 @@ es_smoke_test*/
 .pip_cache/
 activate.sh
 activate.csh
+
+namm_efficiency_audit_report.md
+namm_efficiency_benchmark_report.md
