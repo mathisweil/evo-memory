@@ -223,8 +223,10 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b'
 
 # Threshold-only mode — eviction driven purely by learned score threshold
-python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b' \
-    threshold_only=true scoring_initializer=2
+python scripts/run_namm.py \
+    'run@_global_=namm_bam_i1_llama32_1b' \
+    threshold_only=true \
+    scoring_initializer=2
 ```
 
 > **`run@_global_=` syntax required.** The run config is mounted at `@_global_` scope in `config.yaml`, so the override key must match. Plain `run=` raises a Hydra error.
@@ -238,7 +240,8 @@ In threshold mode, `max_memory_length` (internal buffer sizing) is unchanged; on
 By default NAMM saves `latest.pt` on every iteration. To save only every N steps:
 
 ```bash
-python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b' \
+python scripts/run_namm.py \
+    'run@_global_=namm_bam_i1_llama32_1b' \
     save_checkpoint_every=10
 ```
 
@@ -250,8 +253,10 @@ Set `save_checkpoint_every:` (null) in a run config to restore the save-every-st
 
 ```bash
 # Reduce buffer size without filtering out long training examples
-python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b' \
-    max_conditioning_length=2048 split_max_conditioning_length=6500
+python scripts/run_namm.py \
+    'run@_global_=namm_bam_i1_llama32_1b' \
+    max_conditioning_length=2048 \
+    split_max_conditioning_length=6500
 ```
 
 ### Example commands
