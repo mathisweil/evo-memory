@@ -1,12 +1,15 @@
+# LoRA-only training on 5-task QA dataset (>4096 tokens).
+# Dropped multifieldqa_en (too few long prompts).
+#
 # Usage:
-#   python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct.yaml --run_name rh_m1_test
+#   python scripts/run_lora.py --config scripts/lora_rh_m1_instruct_5t.yaml --run_name rh_m1_5t
 
 # ── Experiment ──────────────────────────────────────────────────────────
 run_name: null
 experiment: null
-method: rh_m1_lora_instruct
+method: rh_m1_lora_instruct_5t
 
-# ── LoRA hyperparameters (rhautier's) ──────────────────────────────────
+# ── LoRA hyperparameters ──────────────────────────────────────────────
 lora_rank: 8
 lora_target_modules: [q_proj, v_proj]
 lora_alpha: 16
@@ -24,7 +27,7 @@ sft_mode: true
 # ── NAMM ────────────────────────────────────────────────────────────────
 namm_active: false
 namm_checkpoint: null
-run_config: namm_bam_i1_llama32_1b
+run_config: namm_bam_i1_llama32_1b_5t
 cache_size: null
 
 # ── Data ────────────────────────────────────────────────────────────────
@@ -35,14 +38,9 @@ val_split: 0.15
 split_seed: 42
 
 # ── Evaluation ──────────────────────────────────────────────────────────
-eval_interval: 25
+eval_interval: 2
 log_interval: 5
 batch_size_eval: 4
-early_stopping_patience: 5  # stop after 5 evals (~125 steps) with no val F1 improvement
-
-# ── Wandb ─────────────────────────────────────────────────────────────
-wandb_entity: SNLP_NAMM
-wandb_project: Experiments
 
 # ── Checkpointing & GCS ────────────────────────────────────────────────
 gcs: true
@@ -51,9 +49,9 @@ resume_checkpoint: null
 
 # ── Advanced ────────────────────────────────────────────────────────────
 override:
-  - "task_sampler.tasks=[lb/qasper,lb/multifieldqa_en,lb/2wikimqa,lb/qasper_e,lb/hotpotqa_e,lb/2wikimqa_e]"
+  - "task_sampler.tasks=[lb/qasper,lb/2wikimqa,lb/qasper_e,lb/hotpotqa_e,lb/2wikimqa_e]"
   - "max_position_id=8192"
-  - "min_conditioning_length=100"
   - "max_conditioning_length=6500"
+  - "min_conditioning_length=4096"
   - "max_new_tokens=64"
   - "max_gen_tokens=64"

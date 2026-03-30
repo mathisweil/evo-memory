@@ -110,6 +110,9 @@ class SFTDataset(Dataset):
         tokenizer               : HuggingFace tokenizer with apply_chat_template.
         max_seq_len             : Max total sequence length; answer tokens are truncated.
         max_conditioning_length : Max prompt tokens; longer prompts are discarded.
+        min_conditioning_length : Min prompt tokens; shorter prompts are discarded.
+        max_answer_tokens       : Max answer tokens; items whose shortest answer exceeds
+                                  this are discarded.
         cache_dir               : Optional HF datasets cache directory.
         seed                    : Seed for split shuffle, upsampling, and final shuffle.
         train_frac              : Fraction of eligible samples used for training.
@@ -121,11 +124,15 @@ class SFTDataset(Dataset):
         tokenizer,
         max_seq_len: int = 3500,
         max_conditioning_length: int = 6500,
+        min_conditioning_length: int = None,
+        max_answer_tokens: int = None,
         cache_dir: Optional[str] = None,
         seed: int = 1337,
         train_frac: float = 0.8,
     ):
         super().__init__()
+        self.min_conditioning_length = min_conditioning_length
+        self.max_answer_tokens = max_answer_tokens
 
         with open(_LONGBENCH_PROMPT_PATH) as f:
             all_templates = json.load(f)
@@ -142,6 +149,7 @@ class SFTDataset(Dataset):
         samples: list[dict] = []
         n_skipped_no_answer = 0
         n_skipped_too_long = 0
+        n_skipped_answer_long = 0
 
         for task_name in bare_names:
             task_template = all_templates[task_name]
@@ -156,7 +164,21 @@ class SFTDataset(Dataset):
                     task_skip_no_ans += 1
                     n_skipped_no_answer += 1
                     continue
-                answer = item['answers'][0]
+
+                answers = item['answers']
+                if isinstance(answers, str):
+                    answers = [answers]
+                if max_answer_tokens is not None:
+                    answer_lens = [(a, len(tokenizer.encode(a, add_special_tokens=False)))
+                                   for a in answers]
+                    shortest_len = min(l for _, l in answer_lens)
+                    if shortest_len > max_answer_tokens:
+                        n_skipped_answer_long += 1
+                        continue
+                    # Pick shortest answer that fits
+                    answer = min(answer_lens, key=lambda x: x[1])[0]
+                else:
+                    answer = answers[0]
 
                 user_content = task_template.format(**item)
                 prompt_ids = tokenizer.apply_chat_template(
@@ -179,6 +201,10 @@ class SFTDataset(Dataset):
                     1 if bos_id is not None and prompt_ids[0] == bos_id else 0
                 )
                 if n_prompt_tok > max_conditioning_length:
+                    task_skip_long += 1
+                    n_skipped_too_long += 1
+                    continue
+                if min_conditioning_length is not None and n_prompt_tok < min_conditioning_length:
                     task_skip_long += 1
                     n_skipped_too_long += 1
                     continue
@@ -205,11 +231,13 @@ class SFTDataset(Dataset):
             n_train = int(n_eligible * train_frac) if train_frac < 1.0 else n_eligible
             eligible = eligible[:n_train]
 
+            lo = min_conditioning_length or 0
+            filter_desc = f"(prompt outside [{lo}-{max_conditioning_length}] tok)"
             prompt_lens = [s['label_start'] for s in eligible]
             answer_lens = [len(s['input_ids']) - s['label_start'] for s in eligible]
             print(
                 f"  {task_name}: {n_total} total, "
-                f"{task_skip_long} filtered (prompt>{max_conditioning_length} tok), "
+                f"{task_skip_long} filtered {filter_desc}, "
                 f"{task_skip_no_ans} no answer -> "
                 f"{n_eligible} eligible -> {n_train} train"
             )
@@ -223,7 +251,9 @@ class SFTDataset(Dataset):
 
         print(
             f"\nSFTDataset: {len(samples)} training samples "
-            f"({n_skipped_too_long} prompt-too-long, {n_skipped_no_answer} no-answer skipped)"
+            f"({n_skipped_too_long} prompt-out-of-range, "
+            f"{n_skipped_answer_long} answer>{max_answer_tokens} tok, "
+            f"{n_skipped_no_answer} no-answer skipped)"
         )
         if samples:
             all_seq_lens = [len(s['input_ids']) for s in samples]
