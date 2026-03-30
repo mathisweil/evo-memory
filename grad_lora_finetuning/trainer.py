@@ -105,6 +105,8 @@ class LoRATrainerConfig:
     val_frac: float = 0.15          # fraction used for validation (best checkpoint selection)
     max_conditioning_length: int = 6500  # max prompt tokens for evaluation (skip longer prompts)
     early_stopping_patience: int = 0  # stop after N evals with no val F1 improvement (0 = disabled)
+    min_conditioning_length: int = None  # min prompt tokens (skip shorter prompts)
+    max_answer_tokens: int = None        # max answer tokens (skip samples with longer answers)
 
 
 # ---------------------------------------------------------------------------
@@ -204,6 +206,8 @@ class LoRAGradTrainer:
                 tokenizer=tokenizer,
                 max_seq_len=cfg.max_seq_len,
                 max_conditioning_length=cfg.max_conditioning_length,
+                min_conditioning_length=cfg.min_conditioning_length,
+                max_answer_tokens=cfg.max_answer_tokens,
                 seed=cfg.seed,
                 train_frac=cfg.train_frac,
             )

@@ -257,6 +257,7 @@ def main():
         train_frac=args.train_split,
         val_frac=args.val_split,
         max_conditioning_length=cfg.get('max_conditioning_length', 6500),
+        min_conditioning_length=cfg.get('min_conditioning_length', None),
         tokenizer=memory_evaluator.tokenizer,
     )
 
@@ -309,6 +310,8 @@ def main():
         train_frac=args.train_split,
         val_frac=args.val_split,
         max_conditioning_length=cfg.get('max_conditioning_length', 6500),
+        min_conditioning_length=cfg.get('min_conditioning_length', None),
+        max_answer_tokens=args.filter_answers_by_tokens,
         early_stopping_patience=args.early_stopping_patience,
     )
 

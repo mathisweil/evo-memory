@@ -19,5 +19,8 @@
     "passage_retrieval_en": 32,
     "passage_retrieval_zh": 32,
     "lcc": 64,
-    "repobench-p": 64
+    "repobench-p": 64,
+    "qasper_e": 128,
+    "hotpotqa_e": 32,
+    "2wikimqa_e": 32
 }

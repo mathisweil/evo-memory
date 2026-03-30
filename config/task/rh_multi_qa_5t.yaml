@@ -1,4 +1,4 @@
-# 6-task QA subset for rhautier's experiments.
+# 5-task QA subset (dropped multifieldqa_en due to low >4096 sample count).
 # Base tasks + _e (extended) variants for data augmentation.
 defaults:
   - base_sampler
@@ -6,11 +6,10 @@ defaults:
 
 tasks:
   - "lb/qasper"
-  - "lb/multifieldqa_en"
   - "lb/2wikimqa"
   - "lb/qasper_e"
   - "lb/hotpotqa_e"
   - "lb/2wikimqa_e"
 metrics: 'perf'
 
-tasks_log_name: rh-multi-qa
+tasks_log_name: rh-multi-qa-5t

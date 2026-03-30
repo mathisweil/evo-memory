@@ -38,6 +38,10 @@ dataset2metric = {
     "passage_retrieval_zh": retrieval_zh_score,
     "lcc": code_sim_score,
     "repobench-p": code_sim_score,
+    # _e variants use the same metrics as their base tasks
+    "qasper_e": qa_f1_score,
+    "hotpotqa_e": qa_f1_score,
+    "2wikimqa_e": qa_f1_score,
 }
 
 # This is the customized building prompt for chat models
