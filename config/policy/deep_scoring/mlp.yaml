@@ -13,6 +13,7 @@ mlp_scoring:
   initializer: ${scoring_initializer}
   residual: ${residual}
   residual_first: ${residual_first}
+  compile_scoring: ${compile_scoring}
   
 
 scoring_output_params:
@@ -53,5 +54,8 @@ residual: true
 residual_first: true
 # --
 
+
+# torch.compile for the scoring network forward pass
+compile_scoring: false
 
 scoring_mp_log_name: mlp
