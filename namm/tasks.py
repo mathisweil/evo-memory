@@ -233,11 +233,12 @@ class TaskSampler():
 
     def apply_train_val_test_split(self, train_frac=0.8, val_frac=0.1,
                                     max_conditioning_length=None,
+                                    min_conditioning_length=None,
                                     tokenizer=None):
         """Partition each task's prompts into deterministic train/val/test sets.
 
-        When max_conditioning_length and tokenizer are provided, prompts
-        exceeding that token length are filtered out BEFORE splitting so that
+        When max/min_conditioning_length and tokenizer are provided, prompts
+        outside that token range are filtered out BEFORE splitting so that
         each partition has proportional representation of usable prompts.
 
         After calling this method:
@@ -253,12 +254,22 @@ class TaskSampler():
             prompts = self.lb_prompts_per_task[task_n]
             all_idxs = np.arange(len(prompts))
 
-            # Filter out prompts that exceed max_conditioning_length
-            if max_conditioning_length is not None and tokenizer is not None:
+            # Filter prompts by token length bounds.
+            # Count tokens using apply_chat_template (minus BOS) to match
+            # LongBenchSFTDataset's counting — ensures identical splits.
+            if tokenizer is not None and (max_conditioning_length is not None
+                                          or min_conditioning_length is not None):
+                lo = min_conditioning_length or 0
+                hi = max_conditioning_length or float('inf')
+                bos_id = getattr(tokenizer, 'bos_token_id', None)
                 eligible = []
                 for idx in all_idxs:
-                    n_tok = len(tokenizer.encode(prompts[idx], add_special_tokens=False))
-                    if n_tok <= max_conditioning_length:
+                    messages = [{"role": "user", "content": prompts[idx]}]
+                    tok_ids = tokenizer.apply_chat_template(
+                        messages, add_generation_prompt=True, tokenize=True)
+                    n_tok = len(tok_ids) - (
+                        1 if bos_id is not None and tok_ids[0] == bos_id else 0)
+                    if lo <= n_tok <= hi:
                         eligible.append(idx)
                 n_dropped = len(all_idxs) - len(eligible)
                 eligible = np.array(eligible)
@@ -275,8 +286,9 @@ class TaskSampler():
             self._val_idxs_per_task[task_n] = eligible[n_train:n_train + n_val]
             self._test_idxs_per_task[task_n] = eligible[n_train + n_val:]
 
+            filter_desc = f"[{lo}-{hi}] tok" if tokenizer else ""
             print(f"  {task_n}: {len(all_idxs)} total, {n_dropped} filtered "
-                  f"(>{max_conditioning_length} tok) -> "
+                  f"{filter_desc} -> "
                   f"{n_train} train / {n_val} val / {n_test} test")
 
     def get_split_indices(self, split='val'):
@@ -348,7 +360,6 @@ class TaskSampler():
                 if isinstance(answers, str):
                     answers = [answers]
                 if not answers:
-                    keep.append(i)
                     continue
                 shortest = min(
                     len(tokenizer.encode(a, add_special_tokens=False))
