@@ -343,9 +343,11 @@ class MemoryHFEvaluator():
                 :, -left_truncate_len:
             ]
 
-        # Pad to the nearest bucket boundary so XLA/TPU compiles fewer graphs.
+        # Round up to nearest chunk size so split processing produces
+        # evenly-sized chunks (avoids STFT stride assertion failures).
         seq_len = encoding["input_ids"].shape[1]
-        bucket_len = self._bucket_seq_len(seq_len)
+        chunk = getattr(self.model, 'max_new_tokens', None) or 256
+        bucket_len = ((seq_len + chunk - 1) // chunk) * chunk
         if bucket_len > seq_len:
             pad_size = bucket_len - seq_len
             pad_id = self.tokenizer.pad_token_id or 0
