@@ -11,6 +11,7 @@ generalized_scoring_net:
   residual: ${residual}
   mult: ${mult}
   mult_nonlinearity: ${mult_nonlinearity}
+  compile_scoring: ${compile_scoring}
   
 mlp_layer:
   _target_: namm.modules.StatelessGeneralizedMLP
@@ -92,5 +93,8 @@ mult_nonlinearity:
 
 # --
 
+
+# torch.compile for the scoring network forward pass
+compile_scoring: false
 
 scoring_mp_log_name: bam-no-mult

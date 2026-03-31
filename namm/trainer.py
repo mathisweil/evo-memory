@@ -113,6 +113,9 @@ class MemoryTrainer():
 
         self.model = self.model.move_model_to(dtype=self.ptdtype).to(
             device=device)
+        # Cast NAMM params to model dtype once in set_params() rather than
+        # per-op in GeneralizedLinear.forward().
+        self.model.set_memory_dtype(self.ptdtype)
         self.evolution_algorithm = self.evolution_algorithm.to(device=device)
 
         self.raw_evolution_algorithm = self.evolution_algorithm

@@ -53,6 +53,11 @@ class MemoryModelWrapper(abc.ABC):
     def set_memory_params(self, params) -> None:
         self.memory_policy.set_params(params=params)
 
+    def set_memory_dtype(self, dtype):
+        """Set target dtype so CMA-ES float32 params are cast once in
+        set_params() instead of per-op in GeneralizedLinear.forward()."""
+        self.memory_policy._model_dtype = dtype
+
     def get_memory_params(self,):
         return self.memory_policy.get_layer_params()
 
