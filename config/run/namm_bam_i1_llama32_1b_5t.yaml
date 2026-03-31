@@ -61,7 +61,7 @@ always_save_checkpoint: true
 keep_past_epoch_checkpoints_every: 25
 
 max_iters: 200
-eval_interval: 2
+eval_interval: 10
 
 memory_policy_fixed_delay: 256
 max_memory_length: 1024
