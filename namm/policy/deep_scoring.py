@@ -48,8 +48,8 @@ class MLPScoring(ScoringNetwork):
        embeddings.'''
     def __init__(
             self,
-            per_layer: bool, 
-            per_head: bool, 
+            per_layer: bool,
+            per_head: bool,
             shared: bool,
             output_params: ComponentOutputParams,
             hidden_features: Optional[int],
@@ -60,9 +60,10 @@ class MLPScoring(ScoringNetwork):
             residual: bool = True,
             residual_first: bool = False,
             dtype: Optional[Union[str, torch.dtype]] = None,
-            
+            compile_scoring: bool = False,
+
             ):
-        
+
         ScoringNetwork.__init__(
             self,
             per_layer=per_layer,
@@ -73,13 +74,14 @@ class MLPScoring(ScoringNetwork):
             initializer=initializer,
             dtype=dtype,
             )
-        
+
         self.hidden_features = hidden_features
         self.hidden_depth = hidden_depth
         self.bias = bias
         self.non_linearity = non_linearity
         self.residual = residual
         self.residual_first = residual_first
+        self._compile_scoring = compile_scoring
 
     def register_embedding(self, embedding_module: TokenEmbedding):
         ScoringNetwork.register_embedding(
@@ -99,6 +101,12 @@ class MLPScoring(ScoringNetwork):
             residual_first=self.residual_first,
         )
         self.mlp_base_parameters = self.mlp.total_base_parameter_dims
+        if self._compile_scoring:
+            self.mlp.forward = torch.compile(
+                self.mlp.forward,
+                mode='reduce-overhead',
+                dynamic=True,
+            )
     
     def get_tokens_score(
         self,
@@ -263,25 +271,25 @@ class GeneralizedScoring(ScoringNetwork):
        arbitrary stateless generalized modules.'''
     def __init__(
             self,
-            per_layer: bool, 
-            per_head: bool, 
+            per_layer: bool,
+            per_head: bool,
             shared: bool,
             output_params: ComponentOutputParams,
-            
+
             stateless_modules_list: List[
-                Union[DictConfig, 
+                Union[DictConfig,
                       StatelessGeneralizedModule]],
-            
+
             initializer: numbers.Number = 0,
-            
-            
+
+
             residual: Union[bool, List[bool]] = True,
 
-            
-            
-            
+
+
             mult: Union[bool, List[bool]] = False,
             mult_nonlinearity: Optional[Union[str, Callable]] = None,
+            compile_scoring: bool = False,
             ):
         ScoringNetwork.__init__(
             self,
@@ -291,8 +299,8 @@ class GeneralizedScoring(ScoringNetwork):
             output_params=output_params,
             buffer_names=['past_scores'],
             initializer=initializer,
-            )                                 
-        
+            )
+        self._compile_scoring = compile_scoring
         self.stateless_modules_list: List[StatelessGeneralizedModule] = []
 
         for stateless_module in stateless_modules_list:
@@ -393,8 +401,16 @@ class GeneralizedScoring(ScoringNetwork):
 
         self.registered_stateless_modules = nn.ModuleList(
             self.stateless_modules_list)
-        
+
         self.total_base_parameters = sum(self.parameter_dim_per_submodule)
+
+        if self._compile_scoring:
+            for mod in self.stateless_modules_list:
+                mod.forward = torch.compile(
+                    mod.forward,
+                    mode='reduce-overhead',
+                    dynamic=True,
+                )
         
         
         

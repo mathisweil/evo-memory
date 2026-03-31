@@ -41,6 +41,10 @@ class MemoryPolicy(
         self.auxiliary_loss = None
         self.auxiliary_loss_callback = False
         self._is_in_training_mode = False
+        # Target dtype for forward-pass computation (e.g. bfloat16).
+        # When set, CMA-ES float32 params are cast once in set_params()
+        # instead of per-op in GeneralizedLinear.forward().
+        self._model_dtype = None
         if not hasattr(self, '_has_buffers_to_merge'):
             SynchronizableBufferStorage.__init__(
                 self=self, buffers_to_merge=[], sub_buffer_storages=[])
@@ -118,7 +122,10 @@ class MemoryPolicy(
     def get_rotary_offset(self, layer_id=0):
         return self.rotary_offset[layer_id].to(dtype=torch.long)
 
-    @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+    # Removed @custom_fwd(cast_inputs=torch.float32): the STFT path
+    # already casts to float32 internally (deep_embedding_spectogram.py),
+    # and forcing float32 on the entire KV cache is an unnecessary dtype
+    # round-trip on every NAMM call.
     def update_cache(self,
                      past_key_values,
                      num_new_tokens,
@@ -265,7 +272,8 @@ class MemoryPolicy(
         self.empty_buffers = False
         self.buffered_tokens += num_new_tokens
 
-    @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+    # Removed @custom_fwd(cast_inputs=torch.float32): buffer_cache only
+    # stores attention weights and position IDs — no float32 needed.
     def buffer_cache(self,
                      past_key_values,
                      num_new_tokens,
@@ -728,6 +736,13 @@ class ParamMemoryPolicy(MemoryPolicy):
                                       self.base_param_size)
         self.pop_params.data.copy_(reshaped_params)
         self.pop_shared_params.data.copy_(pop_shared_params)
+        # Cast params to model dtype once here instead of per-op in
+        # GeneralizedLinear.forward(). CMA-ES produces float32 params but
+        # the model typically runs in bfloat16.
+        if self._model_dtype is not None:
+            self.pop_params.data = self.pop_params.data.to(self._model_dtype)
+            self.pop_shared_params.data = self.pop_shared_params.data.to(
+                self._model_dtype)
 
     def get_layer_params(self, layer_id):
 
