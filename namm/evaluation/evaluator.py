@@ -11,7 +11,7 @@ import torch.nn.functional as F
 # Fixed sequence-length buckets for XLA/TPU compilation caching.
 # Each unique length triggers a separate XLA graph compilation (~2-5 min).
 # Padding to bucket boundaries limits total compilations to len(SEQ_LEN_BUCKETS).
-SEQ_LEN_BUCKETS = [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
+SEQ_LEN_BUCKETS = [512, 1024, 2048, 4096, 5120, 6144, 7168, 8192, 16384, 32768, 65536, 131072]
 from accelerate import (
     find_executable_batch_size,
 )
