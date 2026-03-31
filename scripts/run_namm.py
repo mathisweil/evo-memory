@@ -97,9 +97,12 @@ def main(cfg: DictConfig):
 
         task_sampler = make_task_sampler(cfg=cfg, log_prefix=log_prefix)
 
-        # Apply 3-way train/val/test split with exact tokenizer-based filtering.
+        # Apply answer-length filter + 3-way split with exact tokenizer-based filtering.
         # This ensures NAMM and LoRA use identical eligible sets and split indices.
         tokenizer = hydra.utils.call(cfg.tokenizer)
+        max_answer_tok = cfg.get('max_new_tokens', 64)
+        task_sampler.filter_answers_by_token_count(tokenizer, max_answer_tok)
+
         train_frac = cfg.get('train_frac', 0.7)
         val_frac = cfg.get('val_frac', 0.15)
         # split_max_conditioning_length controls which prompts are eligible for
@@ -108,10 +111,12 @@ def main(cfg: DictConfig):
         # for memory reasons does not silently empty the training split.
         max_cond = cfg.get('split_max_conditioning_length',
                            cfg.get('max_conditioning_length', 6500))
+        min_cond = cfg.get('min_conditioning_length', None)
         task_sampler.apply_train_val_test_split(
             train_frac=train_frac,
             val_frac=val_frac,
             max_conditioning_length=max_cond,
+            min_conditioning_length=min_cond,
             tokenizer=tokenizer,
         )
 
