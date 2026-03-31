@@ -11,6 +11,7 @@ pretrained_llm:
   _target_: utils.hydra_helpers.LlamaCompatModel.from_pretrained
   pretrained_model_name_or_path: ${pretrained_llm_name}
   max_position_embeddings: ${filter_by_length}
+  torch_dtype: bfloat16
 
 memory_model:
   _target_: namm.llms.llama.WrappedLlamaForCausalLM
