@@ -655,6 +655,11 @@ class MemoryHFEvaluator():
         chunks = list(re_ords.get_batched(
             n=batch_size, batch_fn=batch_fn, reorder=True,))
 
+        chunk_sizes = [len(c[0]) for c in chunks]
+        print(f"[evaluate_lb] batch_size={batch_size}, "
+              f"num_samples={len(dataset_samples)}, num_chunks={len(chunks)}, "
+              f"actual_chunk_sizes={set(chunk_sizes)}")
+
         # set the max length in tokens of inputs ("context_enc")
         if self.max_conditioning_length is not None:
             max_prompt_conditioning = (self.max_conditioning_length -

@@ -643,6 +643,8 @@ class LoRAGradTrainer:
         if 'best_val_score' in ckpt:
             self._best_val_score = ckpt['best_val_score']
             self._best_step = ckpt.get('best_step', step_num)
+            self._evals_without_improvement = 0
+            self._early_stop = False
             print(
                 f"Restored best validation score tracking: "
                 f"F1={self._best_val_score:.2f} at step {self._best_step}"
@@ -651,6 +653,8 @@ class LoRAGradTrainer:
             # Backward compat: old checkpoints only wrote val_score when is_best.
             self._best_val_score = ckpt['val_score']
             self._best_step = step_num
+            self._evals_without_improvement = 0
+            self._early_stop = False
             print(
                 f"Restored best validation score tracking (legacy key): "
                 f"F1={self._best_val_score:.2f} at step {self._best_step}"
