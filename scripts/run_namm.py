@@ -100,7 +100,7 @@ def main(cfg: DictConfig):
         # Apply answer-length filter + 3-way split with exact tokenizer-based filtering.
         # This ensures NAMM and LoRA use identical eligible sets and split indices.
         tokenizer = hydra.utils.call(cfg.tokenizer)
-        max_answer_tok = cfg.get('max_new_tokens', 64)
+        max_answer_tok = cfg.get('max_answer_tokens', cfg.get('max_new_tokens', 64))
         task_sampler.filter_answers_by_token_count(tokenizer, max_answer_tok)
 
         train_frac = cfg.get('train_frac', 0.7)

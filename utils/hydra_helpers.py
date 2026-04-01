@@ -67,6 +67,10 @@ class LlamaCompatModel:
 
         config = LlamaConfig(**cfg)
         kwargs.pop('rope_scaling', None)  # prevent conflicting kwarg
+        # Hydra passes torch_dtype as a string; convert to actual torch dtype.
+        if 'torch_dtype' in kwargs and isinstance(kwargs['torch_dtype'], str):
+            import torch as _torch
+            kwargs['torch_dtype'] = getattr(_torch, kwargs['torch_dtype'])
         return AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path, config=config, **kwargs)
 

@@ -153,9 +153,15 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                  ):
         self.config: LlamaConfig = copy.deepcopy(model.config)
 
+        # Preserve the source model's dtype (e.g. bfloat16) so that the
+        # new LlamaMemoryModel is created in the same dtype instead of
+        # defaulting to float32.
+        _src_dtype = next(model.parameters()).dtype
+
         LlamaPreTrainedModel.__init__(self, self.config)
 
-        self.model = LlamaMemoryModel(self.config)
+        with torch.autocast(device_type='cpu', enabled=False):
+            self.model = LlamaMemoryModel(self.config).to(dtype=_src_dtype)
         self.memory_policy = memory_policy
         self.max_new_tokens = max_new_tokens
 
@@ -172,8 +178,9 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
     
         self.vocab_size = self.config.vocab_size
         self.lm_head = nn.Linear(
-            self.config.hidden_size, self.config.vocab_size, bias=False)
-        
+            self.config.hidden_size, self.config.vocab_size, bias=False,
+            dtype=_src_dtype)
+
         if override_attn:
             self.load_partial_state_dict(checkpoint)
 
