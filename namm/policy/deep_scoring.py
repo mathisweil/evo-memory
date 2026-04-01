@@ -102,12 +102,15 @@ class MLPScoring(ScoringNetwork):
         )
         self.mlp_base_parameters = self.mlp.total_base_parameter_dims
         if self._compile_scoring:
+            # Use default mode (not reduce-overhead) because the scoring
+            # network reloads parameters every call and has variable
+            # sequence lengths, which cause CUDA graph capture failures
+            # and recompilation storms with reduce-overhead.
             self.mlp.forward = torch.compile(
                 self.mlp.forward,
-                mode='reduce-overhead',
                 dynamic=True,
             )
-    
+
     def get_tokens_score(
         self,
         layer_id,
@@ -405,12 +408,17 @@ class GeneralizedScoring(ScoringNetwork):
         self.total_base_parameters = sum(self.parameter_dim_per_submodule)
 
         if self._compile_scoring:
+            # Only compile MLP modules, not attention. The attention
+            # module already dispatches to FlashAttention via SDPA, so
+            # compile adds little value. Worse, variable sequence lengths
+            # (cache shrinks after eviction) cause dynamo to hit the
+            # cache_size_limit with recompilations on every new shape.
             for mod in self.stateless_modules_list:
-                mod.forward = torch.compile(
-                    mod.forward,
-                    mode='reduce-overhead',
-                    dynamic=True,
-                )
+                if isinstance(mod, StatelessGeneralizedMLP):
+                    mod.forward = torch.compile(
+                        mod.forward,
+                        dynamic=True,
+                    )
         
         
         
