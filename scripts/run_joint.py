@@ -255,22 +255,50 @@ def main():
     device = get_device()
     device_str = str(device)
 
+    total_namm = args.num_outer_loops * args.namm_iterations_per_stage
+    print()
     print("=" * 60)
-    print(f"Joint Training: NAMM + {args.adapter_type.upper()}")
-    print("=" * 60)
-    print(f"Experiment: {experiment_name}")
-    print(f"Run: {args.run_name}")
-    print(f"Output: {run_dir}")
-    print(f"Outer loops (K): {args.num_outer_loops}")
-    print(f"NAMM iters/stage (N): {args.namm_iterations_per_stage}")
+    print(f"FAIR-01 Training Summary  [Joint NAMM + "
+          f"{args.adapter_type.upper()}]")
+    print("-" * 60)
+    print(f"  experiment        : {experiment_name}")
+    print(f"  run_name          : {args.run_name}")
+    print(f"  output            : {run_dir}")
+    print("  -- Compute --")
+    print(f"  outer_loops (K)   : {args.num_outer_loops}")
+    print(f"  namm_iters/stage  : {args.namm_iterations_per_stage}")
+    print(f"  total_namm_iters  : {total_namm}")
     if args.adapter_type == "es":
-        print(f"ES iters/stage (M): {args.adapter_iterations_per_stage}")
-        print(f"ES config: sigma={args.sigma}, alpha={args.alpha}, "
-              f"pop={args.population_size}, mode={args.noise_mode}")
+        total_es = (args.num_outer_loops
+                    * args.adapter_iterations_per_stage)
+        print(f"  es_iters/stage    : "
+              f"{args.adapter_iterations_per_stage}")
+        print(f"  total_es_iters    : {total_es}")
+        print(f"  sigma             : {args.sigma}")
+        print(f"  alpha             : {args.alpha}")
+        print(f"  population_size   : {args.population_size}")
+        print(f"  noise_mode        : {args.noise_mode}")
+        print(f"  mini_batch_size   : {args.mini_batch_size}")
     else:
-        print(f"LoRA epochs/stage: {args.lora_epochs_per_stage}")
-        print(f"LoRA config: rank={args.lora_rank}, "
-              f"targets={args.lora_target_modules}, lr={args.learning_rate}")
+        total_epochs = (args.num_outer_loops
+                        * args.lora_epochs_per_stage)
+        eff_batch = args.gradient_accumulation_steps  # batch_size=1
+        print(f"  lora_epochs/stage : {args.lora_epochs_per_stage}")
+        print(f"  total_lora_epochs : {total_epochs}")
+        print(f"  lora_rank         : {args.lora_rank}")
+        print(f"  lora_targets      : {args.lora_target_modules}")
+        print(f"  learning_rate     : {args.learning_rate}")
+        print(f"  grad_accum_steps  : "
+              f"{args.gradient_accumulation_steps}")
+        print(f"  effective_batch   : {eff_batch}")
+        print(f"  max_seq_len       : {args.max_seq_len}")
+    print("  -- Data --")
+    print(f"  train_split       : {args.train_split}")
+    print(f"  val_split         : {args.val_split}")
+    print(f"  split_seed        : {args.split_seed}")
+    print("  -- Memory --")
+    print(f"  cache_size        : {args.cache_size}")
+    print("=" * 60)
     print()
 
     # ── 1. Load Hydra config and model ───────────────────────────────────

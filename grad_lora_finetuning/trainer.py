@@ -873,6 +873,46 @@ class LoRAGradTrainer:
                 print(f"WARNING: Baseline eval OOM — skipping. ({e})")
                 torch.cuda.empty_cache()
 
+        # --- Training summary (FAIR-01) ---
+        eff_batch = cfg.batch_size * cfg.gradient_accumulation_steps
+        steps_per_ep = len(self.dataloader) // cfg.gradient_accumulation_steps
+        total_steps = cfg.num_epochs * steps_per_ep
+        n_train = len(self.dataloader.dataset)
+        print()
+        print("=" * 60)
+        print("FAIR-01 Training Summary  [LoRA]")
+        print("-" * 60)
+        print(f"  method            : {self.method}")
+        print(f"  run_name          : {self.run_name}")
+        print(f"  device            : {self.device}")
+        print(f"  dtype             : {cfg.dtype}")
+        print(f"  seed              : {cfg.seed}")
+        print("  -- Compute --")
+        print(f"  num_epochs        : {cfg.num_epochs}")
+        print(f"  batch_size        : {cfg.batch_size}")
+        print(f"  grad_accum_steps  : {cfg.gradient_accumulation_steps}")
+        print(f"  effective_batch   : {eff_batch}")
+        print(f"  max_seq_len       : {cfg.max_seq_len}")
+        print(f"  steps_per_epoch   : {steps_per_ep}")
+        print(f"  total_opt_steps   : {total_steps}")
+        print(f"  learning_rate     : {cfg.learning_rate}")
+        print(f"  weight_decay      : {cfg.weight_decay}")
+        print(f"  max_grad_norm     : {cfg.max_grad_norm}")
+        print(f"  warmup_ratio      : {cfg.warmup_ratio}")
+        print(f"  lora_rank         : {self.model._lora_rank}")
+        print(f"  lora_targets      : {self.model._lora_target_modules}")
+        print("  -- Data --")
+        print(f"  task_names        : {cfg.task_names}")
+        print(f"  train_samples     : {n_train}")
+        print(f"  train_frac        : {cfg.train_frac}")
+        print(f"  val_frac          : {cfg.val_frac}")
+        print("  -- Model --")
+        print(f"  namm_active       : {cfg.namm_active}")
+        print(f"  eval_interval     : {cfg.eval_interval}")
+        print(f"  log_interval      : {cfg.log_interval}")
+        print("=" * 60)
+        print()
+
         # --- Set model to training mode ---
         self.model.train()
         self._freeze_base_weights()
@@ -883,6 +923,8 @@ class LoRAGradTrainer:
         epoch_steps = 0
         accum_loss = 0.0
         accum_batches = 0
+        step_tokens = 0
+        step_start = time.time()
         t_start = time.time()
 
         # Calculate resume epoch and batches to skip
@@ -903,12 +945,15 @@ class LoRAGradTrainer:
                 step_loss, _ = self._train_step(batch)
                 accum_loss += step_loss
                 accum_batches += 1
+                step_tokens += batch['input_ids'].numel()
 
                 if accum_batches == cfg.gradient_accumulation_steps:
                     grad_norm = self._optimizer_step()
                     global_step += 1
                     avg_loss = accum_loss / cfg.gradient_accumulation_steps
                     current_lr = self.scheduler.get_last_lr()[0]
+                    step_elapsed = time.time() - step_start
+                    tokens_per_sec = step_tokens / step_elapsed
                     epoch_loss += avg_loss
                     epoch_steps += 1
 
@@ -919,6 +964,7 @@ class LoRAGradTrainer:
                             'lora/global_step': global_step,
                             'lora/grad_norm': grad_norm,
                             'lora/lr': current_lr,
+                            'lora/tokens_per_sec': tokens_per_sec,
                         }, step=global_step)
                         if self._last_retention_dict:
                             wandb.log(self._last_retention_dict, step=global_step)
@@ -1004,6 +1050,8 @@ class LoRAGradTrainer:
 
                     accum_loss = 0.0
                     accum_batches = 0
+                    step_tokens = 0
+                    step_start = time.time()
 
                 if getattr(self, '_early_stop', False):
                     break

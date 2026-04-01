@@ -190,18 +190,42 @@ class ESTrainer:
                 resume="allow",
             )
 
-        print(f"ES Training: pop={cfg.population_size}, iter={cfg.num_iterations}, "
-              f"sigma={cfg.sigma}, alpha={cfg.alpha}, mode={cfg.noise_mode}")
-        print(f"Optimizing {len(self.param_names)} parameters")
-        print(f"Logging to {log_dir}")
+        total_evals = cfg.population_size * cfg.num_iterations
+        meta = self.metadata or {}
+        print()
+        print("=" * 60)
+        print("FAIR-01 Training Summary  [ES]")
+        print("-" * 60)
+        print(f"  method            : {self.method}")
+        print(f"  run_name          : {self.run_name}")
+        print(f"  device            : {next(self.model.parameters()).device}")
+        print("  -- Compute --")
+        print(f"  population_size   : {cfg.population_size}")
+        print(f"  num_iterations    : {cfg.num_iterations}")
+        print(f"  total_evaluations : {total_evals}")
+        print(f"  sigma             : {cfg.sigma}")
+        print(f"  alpha             : {cfg.alpha}")
+        print(f"  noise_mode        : {cfg.noise_mode}")
+        print(f"  mini_batch_size   : {cfg.mini_batch_size}")
+        print(f"  num_parameters    : {len(self.param_names)}")
+        print("  -- Data --")
+        print(f"  train_split       : {meta.get('train_split', 'N/A')}")
+        print(f"  split_seed        : {meta.get('split_seed', 'N/A')}")
+        print("  -- Decoding --")
+        print(f"  temperature       : {cfg.temperature}")
+        print(f"  eval_temperature  : {cfg.eval_temperature}")
+        print(f"  num_samples       : {cfg.num_samples}")
+        print(f"  eval_num_samples  : {cfg.eval_num_samples}")
+        print("  -- Logging --")
+        print(f"  log_dir           : {log_dir}")
         if cfg.checkpoint_every > 0:
-            print(f"Rolling checkpoints every {cfg.checkpoint_every} iterations (keep last 2)")
+            print(f"  checkpoint_every  : {cfg.checkpoint_every}")
         if cfg.save_every > 0:
-            print(f"Permanent saves every {cfg.save_every} iterations")
+            print(f"  save_every        : {cfg.save_every}")
         if self.gcs_client:
-            print(f"GCS sync enabled: gs://{self.gcs_client.bucket_name}/")
-        if self.preemption_handler:
-            print("Preemption handler active (SIGTERM)")
+            print(f"  gcs               : gs://{self.gcs_client.bucket_name}/")
+        print("=" * 60)
+        print()
 
         # Baseline full eval (skip if resuming)
         baseline_eval = None
@@ -287,6 +311,7 @@ class ESTrainer:
                     "reward/std": rewards_arr.std().item(),
                     "reward/range": (max_r - min_r),
                     "time/iteration_sec": iter_time,
+                    "time/evals_per_sec": cfg.population_size / iter_time,
                 }
                 if torch.cuda.is_available():
                     log_dict["device/memory_mb"] = (
