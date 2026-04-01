@@ -12,7 +12,13 @@ run_name_suffix: 'llama32-1b-5t'
 
 # KV cache budget
 cache_size: 1024
-max_new_tokens: 64
+# max_new_tokens controls the chunk size for split processing during
+# prefill (NOT generation length — that's max_gen_tokens in evaluator).
+# 256 = memory_policy_fixed_delay → policy fires every chunk, zero buffering.
+# Was 64 (128 forward passes per 8192-padded prompt); now 32 passes.
+max_new_tokens: 256
+# Answer filter threshold (decoupled from max_new_tokens).
+max_answer_tokens: 64
 
 # Token length filtering: only prompts in [4096, 6500]
 max_conditioning_length: 6500
@@ -46,14 +52,16 @@ pad_mode: constant
 output_magnitudes: true
 
 pop_size: 8
-samples_batch_size: 16
+samples_batch_size: 8
 batch_size: 4
 eval_max_batch_size: 4
 
 scoring_initializer: 0
+always_save_checkpoint: true
 keep_past_epoch_checkpoints_every: 25
 
 max_iters: 200
+eval_interval: 10
 
 memory_policy_fixed_delay: 256
 max_memory_length: 1024

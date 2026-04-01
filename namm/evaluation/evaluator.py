@@ -11,7 +11,7 @@ import torch.nn.functional as F
 # Fixed sequence-length buckets for XLA/TPU compilation caching.
 # Each unique length triggers a separate XLA graph compilation (~2-5 min).
 # Padding to bucket boundaries limits total compilations to len(SEQ_LEN_BUCKETS).
-SEQ_LEN_BUCKETS = [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
+SEQ_LEN_BUCKETS = [512, 1024, 2048, 4096, 5120, 6144, 7168, 8192, 16384, 32768, 65536, 131072]
 from accelerate import (
     find_executable_batch_size,
 )
@@ -343,9 +343,11 @@ class MemoryHFEvaluator():
                 :, -left_truncate_len:
             ]
 
-        # Pad to the nearest bucket boundary so XLA/TPU compiles fewer graphs.
+        # Round up to nearest chunk size so split processing produces
+        # evenly-sized chunks (avoids STFT stride assertion failures).
         seq_len = encoding["input_ids"].shape[1]
-        bucket_len = self._bucket_seq_len(seq_len)
+        chunk = getattr(self.model, 'max_new_tokens', None) or 256
+        bucket_len = ((seq_len + chunk - 1) // chunk) * chunk
         if bucket_len > seq_len:
             pad_size = bucket_len - seq_len
             pad_id = self.tokenizer.pad_token_id or 0
@@ -654,6 +656,11 @@ class MemoryHFEvaluator():
 
         chunks = list(re_ords.get_batched(
             n=batch_size, batch_fn=batch_fn, reorder=True,))
+
+        chunk_sizes = [len(c[0]) for c in chunks]
+        print(f"[evaluate_lb] batch_size={batch_size}, "
+              f"num_samples={len(dataset_samples)}, num_chunks={len(chunks)}, "
+              f"actual_chunk_sizes={set(chunk_sizes)}")
 
         # set the max length in tokens of inputs ("context_enc")
         if self.max_conditioning_length is not None:
