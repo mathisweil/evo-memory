@@ -1182,6 +1182,33 @@ class MemoryTrainer():
             start_iter = self.start_iter
             max_iters = self.max_iters
 
+        if self.master_process:
+            total_evals = self.pop_size * max_iters
+            tasks = self.task_sampler.training_tasks_subset
+            print()
+            print("=" * 60)
+            print("FAIR-01 Training Summary  [NAMM / CMA-ES]")
+            print("-" * 60)
+            print(f"  device              : {self.device}")
+            print(f"  dtype               : {self.trainer_config.dtype}")
+            print("  -- Compute --")
+            print(f"  max_iters           : {max_iters}")
+            print(f"  pop_size            : {self.pop_size}")
+            print(f"  total_evaluations   : {total_evals}")
+            print(f"  pop_accum_steps     : {self.pop_accumulation_steps}")
+            print(f"  samples_batch_size  : {self.samples_batch_size}")
+            print(f"  task_batch_size     : {self.task_batch_size}")
+            print("  -- Data --")
+            print(f"  training_tasks      : {tasks}")
+            print("  -- Model --")
+            em = self.evaluation_model
+            print(f"  max_memory_length   : {em.max_memory_length}")
+            print(f"  max_cond_length     : {em.max_conditioning_length}")
+            print(f"  eval_interval       : {self.eval_interval}")
+            print(f"  log_interval        : {self.log_interval}")
+            print("=" * 60)
+            print()
+
         for iter_num in range(start_iter, max_iters+1):
 
             if self.model.memory_policy_has_buffers_to_merge:
@@ -1260,6 +1287,7 @@ class MemoryTrainer():
                         evo_stats = self.evolution_algorithm.get_stats()
                         wandb_log_dict = {
                             "iter": iter_num,
+                            "time/evals_per_sec": self.pop_size / dt,
                             **log_dict,
                             **log_dict_scores,
                             **memory_policy_stats,
