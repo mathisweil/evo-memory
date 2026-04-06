@@ -221,8 +221,16 @@ def main():
         ckpt = torch.load(args.namm_checkpoint, map_location="cpu",
                           weights_only=False)
         evo_state = ckpt['evolution_state']
-        best_member = evo_state['best_member']
-        params = best_member.unsqueeze(0).to(device)
+
+        # Use CMA-ES mean when prefer_mean_to_best=true (matches training eval)
+        prefer_mean = cfg.get('prefer_mean_to_best', True)
+        if prefer_mean and 'mean' in evo_state:
+            params_vec = evo_state['mean']
+            param_source = "mean"
+        else:
+            params_vec = evo_state['best_member']
+            param_source = "best_member"
+        params = params_vec.unsqueeze(0).to(device)
         memory_model.set_memory_params(params)
 
         buffers_prefix = 'stored_buffers_to_save.'
@@ -236,7 +244,9 @@ def main():
 
         batch_idxs = np.zeros([1])
         memory_policy.set_params_batch_idxs(batch_idxs)
-        print(f"  Loaded NAMM best_member ({best_member.shape[0]} params)")
+        print(f"  Loaded NAMM {param_source} ({params_vec.shape[0]} params, "
+              f"iter={ckpt.get('iter_num', '?')}, "
+              f"best_val={ckpt.get('best_val_loss', '?')})")
 
     # 3. Create task sampler
     print("Creating task sampler...")
