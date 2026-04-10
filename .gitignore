@@ -1,5 +1,6 @@
 # Experiment outputs and checkpoints
 experiments/
+experiment_artifacts/
 exp_local/
 exp/
 outputs/
