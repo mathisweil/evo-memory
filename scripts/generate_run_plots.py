@@ -32,36 +32,36 @@ TASKS = ["qasper", "2wikimqa", "qasper_e", "hotpotqa_e", "2wikimqa_e"]
 
 LORA_RUNS = {
     # M1 — LoRA only (3 segments, concatenated)
-    "M1_lora_r8": {
+    "M1": {
         "ids": ["kz6vqo2o", "x9a4smmf", "qfoxxi2m"],
         "title": "M1 — LoRA r=8 (no NAMM, full context)",
     },
     # M3 — LoRA + frozen NAMM
-    "M3_cs1024": {
+    "M3/cs1024": {
         "ids": ["ovosogkj"],
         "title": "M3 — LoRA + frozen NAMM (cache=1024)",
     },
-    "M3_cs2048": {
+    "M3/cs2048": {
         "ids": ["m4knrhmr"],
         "title": "M3 — LoRA + frozen NAMM (cache=2048)",
     },
-    "M3_cs3072": {
+    "M3/cs3072": {
         "ids": ["4sgkswa6"],
         "title": "M3 — LoRA + frozen NAMM (cache=3072)",
     },
 }
 
 NAMM_RUNS = {
-    "M2_cs1024": {
-        "id": "lenhmfb1",
+    "M2/cs1024": {
+        "ids": ["lenhmfb1"],
         "title": "M2 — Standalone NAMM (cache=1024)",
     },
-    "M2_cs2048": {
-        "id": "ccflnsds",
+    "M2/cs2048": {
+        "ids": ["y5fdw0f9", "ccflnsds"],
         "title": "M2 — Standalone NAMM (cache=2048)",
     },
-    "M2_cs3072": {
-        "id": "quc95irz",
+    "M2/cs3072": {
+        "ids": ["quc95irz"],
         "title": "M2 — Standalone NAMM (cache=3072)",
     },
 }
@@ -99,10 +99,9 @@ def fetch_lora_history(run_ids):
     return df
 
 
-def fetch_namm_history(run_id):
-    """Fetch history from a NAMM CMA-ES run."""
+def fetch_namm_history(run_ids):
+    """Fetch and concatenate history from one or more NAMM CMA-ES run segments."""
     api = wandb.Api()
-    r = api.run(f"{ENTITY}/{PROJECT}/{run_id}")
     keys = (
         ["iter"]
         + [f"val_lb/{t}" for t in TASKS]
@@ -112,8 +111,15 @@ def fetch_namm_history(run_id):
         + ["mem_stats/layer_id_0/dynamic_cache_sizes", "mem_stats/layer_id_0/final_dynamic_cache_sizes"]
         + ["evo_stats/step_size"]
     )
-    h = r.history(keys=keys, pandas=True, samples=10000)
-    return h
+    frames = []
+    for rid in run_ids:
+        r = api.run(f"{ENTITY}/{PROJECT}/{rid}")
+        h = r.history(keys=keys, pandas=True, samples=10000)
+        if len(frames) > 0 and len(h) > 0:
+            prev_max = frames[-1]["iter"].max()
+            h = h[h["iter"] > prev_max]
+        frames.append(h)
+    return pd.concat(frames, ignore_index=True)
 
 
 def plot_lora_f1(df, split, title, out_path):
@@ -252,9 +258,9 @@ def main():
         out_dir = os.path.join(RESULTS_DIR, label)
         os.makedirs(out_dir, exist_ok=True)
         print(f"\n=== {label}: {info['title']} ===")
-        print(f"  Fetching history from {info['id']}...")
+        print(f"  Fetching history from {info['ids']}...")
 
-        df = fetch_namm_history(info["id"])
+        df = fetch_namm_history(info["ids"])
         print(f"  Got {len(df)} rows")
 
         plot_namm_f1(df, "val", info["title"], os.path.join(out_dir, "val_f1.png"))
