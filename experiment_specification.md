@@ -372,10 +372,10 @@ These are pure NAMM eviction policy training runs. The long auto-generated names
 | Cache | WandB run name | WandB ID | State | Iters | GCS checkpoint |
 |-------|----------------|----------|-------|-------|----------------|
 | 1024 | `rh-multi-qa-5t-cma-es-p8-rMeanTrue-shared-8pop-8qs-256fixDel-llama32-1b-5t-cs1024` | `lenhmfb1` | finished | 200 | `gs://statistical-nlp/NAMM_checkpoints/pretrained/namm-5t-cs1024-llama32-1b/` |
-| 2048 | `rh-multi-qa-5t-cma-es-p8-rMeanTrue-shared-8pop-8qs-256fixDel-llama32-1b-5t-cs2048` | `ccflnsds` | finished | 200 | `gs://statistical-nlp/NAMM_checkpoints/pretrained/namm-5t-cs2048-llama32-1b/` |
+| 2048 | `rh-multi-qa-5t-cma-es-p8-rMeanTrue-shared-8pop-8qs-256fixDel-llama32-1b-5t-cs2048` | `y5fdw0f9` → `ccflnsds` | finished | 200 | `gs://statistical-nlp/NAMM_checkpoints/pretrained/namm-5t-cs2048-llama32-1b/` |
 | 3072 | `rh-multi-qa-5t-cma-es-p8-rMeanTrue-shared-8pop-8qs-256fixDel-llama32-1b-5t-cs3072` | `quc95irz` | finished | 200 | **not uploaded** |
 
-Earlier duplicate runs also exist at these names with different IDs (crashed/failed); the IDs above are the definitive finished runs.
+The cs2048 run was split across two wandb segments: `y5fdw0f9` (iters 0–30, failed on `scaup-l`) was resumed with `scratch=false` as `ccflnsds` (iters 30–200, on `mandarin-l`). Earlier duplicate runs also exist at these names with different IDs (crashed/failed); the IDs above are the definitive finished runs.
 
 #### M2 best validation metrics
 
