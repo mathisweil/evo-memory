@@ -1,9 +1,9 @@
 # evo-memory — Experiment Specification
 
 **Model:** Llama-3.2-1B-Instruct  
-**Benchmark:** Qasper (token-level F1)  
+**Benchmark:** 5-task LongBench QA subset (token-level F1)  
 **Hardware:** Single NVIDIA GPU  
-**No pretrained NAMM checkpoint used** — all NAMM training is from scratch on Qasper.
+**No pretrained NAMM checkpoint used** — all NAMM training is from scratch.
 
 ---
 
@@ -11,15 +11,12 @@
 
 All conditions in the main results table must satisfy every constraint below. Any violation invalidates the comparison.
 
-- **Compute equivalence** — all methods see the same number of training tokens from Qasper
-- **Data equivalence** — identical splits across all runs (`train_split=0.8`, `val_split=0.1`, `split_seed=42`)
+- **Data equivalence** — identical 5-task subset, splits, and filtering across all runs (`train_frac=0.7`, `val_frac=0.15`, `split_seed=42`; `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64`)
 - **Model equivalence** — all conditions start from the same base Llama-3.2-1B-Instruct weights, no pretrained adapters
 - **Memory equivalence** — all conditions evaluated with `cache_size=1024` at test time
 - **Decoding equivalence** — greedy decoding (`temperature=0.0`) for all final evaluations
 
-> **Compute anchor (gradient conditions):** M1 trains for 2 epochs with `gradient_accumulation_steps=16`. M4-LoRA joint must match this: use `--num_outer_loops 2 --lora_epochs_per_stage 1`. M2 standalone NAMM uses 300 CMA-ES generations; M3 must also use 300.
->
-> **ES compute note:** ES and gradient-based conditions are **not compute-equivalent** and must not be directly compared in the main FAIR-01 table. ES is gradient-free but requires many forward passes per weight update (population_size=8 × mini_batch_size=16 = 128 evaluations per iteration; 300 iterations ≈ 38,400 forward passes, versus ~1,600 gradient steps for M1-LoRA). ES variants are reported in a separate section with their own comparisons. Data and model equivalence constraints (splits, seeds, base weights) still apply to all ES conditions.
+> **Compute anchor (gradient conditions):** M1 trains for 150 epochs with effective batch size 16. M2 standalone NAMM uses 200 CMA-ES generations.
 
 ---
 
@@ -30,16 +27,11 @@ All conditions in the main results table must satisfy every constraint below. An
 | 1 | B0 — baseline eval | none |
 | 2 | B1 — recency eviction eval | none |
 | 3 | M1-LoRA — rank sweep (r=4, 8, 16) | none |
-| 4 | M1-ES — ES-only fine-tuning | none |
-| 5 | M2 — standalone NAMM training | none |
-| 6 | M3-LoRA — sequential: M1-r8 → NAMM | M1-r8 checkpoint |
-| 7 | M3-ES — sequential: M1-ES → NAMM | M1-ES checkpoint |
-| 8 | M4-LoRA — joint LoRA + NAMM | none |
-| 9 | M4-ES — joint ES + NAMM | none |
-| 10 | A2 — cache size sweep | M2 checkpoint |
-| 11 | A4 — NAMM disabled at eval | M4-LoRA checkpoint |
-| 12 | A5-LoRA — LoRA with frozen NAMM at train-time | M2 checkpoint |
-| 13 | A5-ES — ES with frozen NAMM at train-time | M2 checkpoint |
+| 4 | M2 — standalone NAMM training | none |
+| 5 | M3-LoRA — LoRA with frozen NAMM at train-time | M2 checkpoint |
+| 6 | M4-LoRA — joint LoRA + NAMM | none |
+| 7 | A1 — LoRA rank sweep analysis | M1-r4, M1-r8, M1-r16 |
+| 8 | A4 — NAMM disabled at eval | M4-LoRA checkpoint |
 
 ---
 
@@ -51,12 +43,11 @@ These require no training. Run first to establish reference scores.
 
 ### B0 · Base model, full KV cache
 
-Evaluates raw Llama-3.2-1B-Instruct on Qasper with no KV cache limit, no eviction, no fine-tuning. This is the absolute performance floor.
+Evaluates raw Llama-3.2-1B-Instruct on the 5-task QA subset with no KV cache limit, no eviction, no fine-tuning. This is the absolute performance floor.
 
 ```bash
 python scripts/run_eval.py \
     --run_config full_cache_baseline_llama32_1b \
-    --train_split 0.8 \
     --output_dir experiments/experiment_N/baseline
 ```
 
@@ -66,6 +57,8 @@ python scripts/run_eval.py \
 | `namm_checkpoint` | null — no eviction, full KV cache |
 | `run_config` | `full_cache_baseline_llama32_1b` — no-eviction policy |
 | `cache_size` | null — no limit |
+| Tasks | 5-task QA subset (override task config to `rh_multi_qa_5t`) |
+| Splits | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` |
 | Output | `experiments/experiment_N/baseline/results.json` |
 
 ---
@@ -78,35 +71,35 @@ Evaluates the base model with a fixed recency policy: keeps the most recently wr
 python scripts/run_eval.py \
     --run_config recency_baseline_llama32_1b \
     --cache_size 1024 \
-    --train_split 0.8 \
     --output_dir experiments/experiment_N/es_recency/b1_recency \
-    --override "task@_global_=qasper"
+    --override "task@_global_=rh_multi_qa_5t"
 ```
 
 | Parameter | Value |
 |-----------|-------|
 | `run_config` | `recency_baseline_llama32_1b` — matches `config/run/recency_baseline_llama32_1b.yaml` |
 | `cache_size` | 1024 |
-| task override | `task@_global_=qasper` — recency config defaults to `lb_3subset_eval`; override to match all other conditions |
+| Tasks | 5-task QA subset (override task config to `rh_multi_qa_5t`) |
+| Splits | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` |
 | Output | `experiments/experiment_N/es_recency/b1_recency/results.json` |
 
 ---
 
 ## 3 · Tier 2 — Four Main Conditions
 
-These fill the primary results table. All four must be evaluated with `cache_size=1024` and greedy decoding for a fair comparison.
+These fill the primary results table. All four use the same 5-task QA dataset with 70/15/15 splits and must be evaluated with `cache_size=1024` and greedy decoding for a fair comparison.
 
 ---
 
-### M1 · LoRA only — gradient fine-tuning, no NAMM
+### M1 · LoRA only — SFT fine-tuning, no NAMM
 
-Standard gradient-based LoRA fine-tuning on Qasper with full KV cache during training. Run three times across the rank sweep. **r=8 is the main table entry**; r=4 and r=16 feed ablation A1.
+Supervised fine-tuning (SFT) with LoRA on the 5-task QA subset with full KV cache during training. Uses chat-template formatted prompts with answer-only loss. Run three times across the rank sweep. **r=8 is the main table entry**; r=4 and r=16 feed ablation A1.
 
 #### M1-r4
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_m1_only.yaml \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
     --run_name m1_r4 \
     --lora_rank 4 \
     --lora_alpha 8
@@ -116,16 +109,15 @@ python scripts/run_lora.py \
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_m1_only.yaml \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
     --run_name m1_r8
-# lora_rank=8, lora_alpha=null (defaults to rank=8) — from config
 ```
 
 #### M1-r16
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_m1_only.yaml \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
     --run_name m1_r16 \
     --lora_rank 16 \
     --lora_alpha 32
@@ -133,171 +125,119 @@ python scripts/run_lora.py \
 
 | Parameter | Value |
 |-----------|-------|
-| Config | `scripts/configs/lora_m1_only.yaml` |
-| `method` | `m1_lora_only` |
-| `learning_rate` | 2e-4 |
-| `num_epochs` | 2 — FAIR-01 anchor |
-| `gradient_accumulation_steps` | 16 |
-| `batch_size` | 1 |
-| `max_seq_len` | 3500 |
+| Config | `scripts/configs/lora_rh_m1_instruct_5t.yaml` |
+| `method` | `rh_m1_lora_instruct_5t` |
+| `sft_mode` | true — supervised fine-tuning with chat template |
+| `learning_rate` | 5e-5 |
+| `num_epochs` | 150 |
+| `batch_size` | 4 |
+| `gradient_accumulation_steps` | 4 (effective batch = 16) |
+| `max_seq_len` | 7000 |
 | `namm_active` | false — full KV cache during training |
-| `eval_interval` | 40 steps |
+| `eval_interval` | 2 steps |
+| `lora_rank` | 8 |
+| `lora_alpha` | 16 |
+| `lora_dropout` | 0.1 |
 | `lora_target_modules` | `[q_proj, v_proj]` |
-| Output | `experiments/experiment_N/m1_lora_only/{m1_r4,m1_r8,m1_r16}/results.json` |
-
-> `lora_alpha=null` defaults to `alpha=rank`. Override explicitly when sweeping ranks: r=4 → alpha=8, r=8 → alpha=null, r=16 → alpha=32.
-
----
-
-### M1-ES · ES only — evolutionary fine-tuning, no NAMM
-
-ES fine-tuning of all base LLM weights on Qasper with full KV cache during training. No LoRA adapters — ES perturbs the full weight space. **Not compute-equivalent to M1-LoRA** (see FAIR-01 ES note); reported in the ES variants section of the results.
-
-```bash
-python scripts/run_es.py \
-    --config scripts/configs/es_m1_only.yaml \
-    --run_name m1_es
-```
-
-| Parameter | Value |
-|-----------|-------|
-| Config | `scripts/configs/es_m1_only.yaml` |
-| `method` | `es_only` — auto-detected from null `namm_checkpoint` |
-| `run_config` | `full_cache_es_llama32_1b` — no eviction, Qasper task |
-| `sigma` | 0.001 |
-| `alpha` | 0.0005 |
-| `population_size` | 8 |
-| `num_iterations` | 300 — matches M2 NAMM generation count |
-| `mini_batch_size` | 16 |
-| `train_split` | 0.8, `split_seed=42` |
-| `namm_checkpoint` | null — full KV cache, no eviction |
-| Output | `experiments/experiment_N/es_only/m1_es/` |
-
-> Eval at end: pass the final ES checkpoint to `run_eval.py` with `--run_config full_cache_baseline_llama32_1b` (no NAMM) or `--namm_checkpoint <m2>` (with NAMM) to compare against LoRA conditions.
+| `warmup_ratio` | 0.03 |
+| `weight_decay` | 0.01 |
+| `max_grad_norm` | 1.0 |
+| Tasks | 5-task QA: qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e |
+| Splits | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (306 train / 64 val / 69 test) |
+| Filtering | `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64` |
+| `seed` | 42 |
+| Output | `experiments/experiment_N/m1_lora_only/{m1_r4,m1_r8,m1_r16}/` |
 
 ---
 
-### M2 · Standalone NAMM — frozen LLM, trained from scratch on Qasper
+### M2 · Standalone NAMM — frozen LLM, trained from scratch
 
-Trains the NAMM eviction policy via CMA-ES on a frozen Llama-3.2-1B-Instruct. LLM weights do not change. **No pretrained checkpoint is used** — training starts from random NAMM parameters. This is the learned-eviction-only baseline and the source checkpoint for M3 and A5.
+Trains the NAMM eviction policy via CMA-ES on a frozen Llama-3.2-1B-Instruct using the 5-task QA subset. LLM weights do not change. **No pretrained checkpoint is used** — training starts from random NAMM parameters. This is the learned-eviction-only baseline and the source checkpoint for M3.
 
 ```bash
 python scripts/run_namm.py \
-    'run@_global_=namm_bam_i1_llama32_1b' \
+    'run@_global_=namm_bam_i1_llama32_1b_5t' \
     wandb_run_name=m2_namm_standalone \
     wandb_group_name=main_conditions \
-    seed=42 \
-    trainer_config.max_iters=299
+    seed=1337
 ```
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | Config | `config/config.yaml` (Hydra) | |
-| `run` preset | `namm_bam_i1_llama32_1b` | BAM policy, i1 architecture |
+| `run` preset | `namm_bam_i1_llama32_1b_5t` | BAM policy, i1 architecture, 5-task |
 | `pop_size` | 8 | From preset |
 | `elite_ratio` | 0.5 | Standard CMA-ES setting |
 | `init_sigma` | 0.065 | Already validated in prior runs |
 | `memory_policy_fixed_delay` | 256 | From preset |
-| `max_conditioning_length` | 4086 | ~4k token context |
-| `max_memory_length` | 1024 | 4× compression ratio |
-| `mini_batch_size` | 16 | From preset |
-| `trainer_config.max_iters` | 299 | MemoryTrainer loops `range(0, max_iters+1)` → 300 generations; preset default is 200 |
-| `save_checkpoint_every` | null (save every iter) | Set to N (e.g. `save_checkpoint_every=10`) to write `latest.pt` only every N iterations and reduce I/O overhead |
-| `split_max_conditioning_length` | 6500 (default) | Filters which prompts are eligible before splitting. Independent of `max_conditioning_length` (KV buffer size) — override separately if reducing buffer size for memory reasons |
-| Generations | 300 | ~13.5 hours on a single GPU |
-| Task | Qasper only | Single-task; no incremental evolution needed |
+| `min_conditioning_length` | 4096 | Filters out short prompts |
+| `max_conditioning_length` | 6500 | Filters which prompts are eligible |
+| `max_memory_length` | 1024 | KV cache budget (4× compression ratio) |
+| `max_answer_tokens` | 64 | |
+| `samples_batch_size` | 8 | Prompts per task per step |
+| `batch_size` | 4 | Sequences per GPU forward pass |
+| `max_iters` | 200 | Preset default; 200 generations |
+| `eval_interval` | 5 | |
+| `max_new_tokens` | 256 | Chunk size for generation |
+| `save_checkpoint_every` | null (save every iter) | Set to N to reduce I/O |
+| Tasks | 5-task QA: qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e | |
+| Splits | `train_frac=0.7`, `val_frac=0.15` (306 train / 64 val / 69 test) | |
+| `seed` | 1337 | |
 | Output | `outputs/{date}/{time}/` (Hydra default) | |
 
-> 300 flat generations on a single task is sufficient. Sakana used incremental evolution across three tasks to handle multi-task LongBench complexity — that does not apply here. If training curves are still improving at generation 300, extend to 400, but do not plan for it upfront.
+> If training curves are still improving at generation 200, extend to 300+, but do not plan for it upfront.
 
 > **Threshold-only variant:** append `threshold_only=true scoring_initializer=2` to run M2 with the original NAMM paper's eviction rule (score threshold only, no hard top-k cap). The cache size will vary dynamically per step.
 > ```bash
 > python scripts/run_namm.py \
->     'run@_global_=namm_bam_i1_llama32_1b' \
+>     'run@_global_=namm_bam_i1_llama32_1b_5t' \
 >     threshold_only=true \
 >     scoring_initializer=2 \
->     wandb_run_name=m2_namm_threshold \
->     trainer_config.max_iters=299
+>     wandb_run_name=m2_namm_threshold
 > ```
-> `scoring_initializer=2` is required: with the default value of 0 the CMA-ES mean starts at the eviction boundary (score=0) and collapses to all-evict immediately. Starting at 2 places every token above threshold so CMA-ES can learn selective eviction. All M3 and A5 variants must include both flags with their respective `run_namm.py` commands.
+> `scoring_initializer=2` is required: with the default value of 0 the CMA-ES mean starts at the eviction boundary (score=0) and collapses to all-evict immediately. Starting at 2 places every token above threshold so CMA-ES can learn selective eviction.
 
 ---
 
-### M3 · Sequential — LoRA fine-tuning, then NAMM on top
+### M3 · LoRA with frozen NAMM at train-time
 
-Two-stage sequential pipeline. Stage 1 fine-tunes with LoRA (identical to M1-r8 — reuse that checkpoint if already complete). Stage 2 trains the NAMM policy on the frozen LoRA-adapted model.
-
-#### Stage 1 — LoRA (reuse M1-r8 if already run)
+LoRA is fine-tuned (SFT) while the frozen M2 NAMM is active during training. This is the intermediate condition between M1 (no NAMM) and M4 (joint). Isolates whether NAMM eviction during gradient steps helps independently of co-optimisation. Requires M2 to be complete.
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_m1_only.yaml \
-    --run_name m3_stage1_lora
-# Identical to M1-r8 — skip if checkpoint already exists
-```
-
-#### Stage 2 — NAMM on LoRA-adapted model
-
-```bash
-python scripts/run_namm.py \
-    'run@_global_=namm_bam_i1_llama32_1b' \
-    wandb_run_name=m3_namm_on_lora \
-    wandb_group_name=main_conditions \
-    seed=42 \
-    trainer_config.max_iters=299 \
-    adapter_path=experiments/experiment_N/m1_lora_only/m1_r8/checkpoints/
+    --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+    --run_name m3_lora_frozen_namm \
+    --namm_checkpoint <path-to-m2-checkpoint>
 ```
 
 | Parameter | Value |
 |-----------|-------|
-| Stage 1 config | `scripts/configs/lora_m1_only.yaml` — rank=8, 2 epochs |
-| Stage 2 config | `config/config.yaml` (Hydra) — 300 CMA-ES generations |
-| Stage 2 init | LoRA-adapted weights from Stage 1 merged into base LLM, then fresh NAMM parameters trained on top |
-| `adapter_path` | Path to Stage 1 LoRA checkpoint dir — handled in `namm/run_utils.py:make_eval_model` |
-| `max_memory_length` | 1024 |
-| Output | `outputs/{date}/{time}/` (Hydra) |
-
----
-
-### M3-ES · Sequential — ES fine-tuning, then NAMM on top
-
-ES analogue of M3. Stage 1 fine-tunes all base LLM weights with ES (reuse M1-ES checkpoint if available). Stage 2 trains the NAMM policy on the frozen ES-adapted model. ES weights are loaded into the model via the `es_checkpoint_path` Hydra override.
-
-#### Stage 1 — ES (reuse M1-ES if already run)
-
-```bash
-python scripts/run_es.py \
-    --config scripts/configs/es_m1_only.yaml \
-    --run_name m3_es_stage1
-# Identical to M1-ES — skip if checkpoint already exists
-```
-
-#### Stage 2 — NAMM on ES-adapted model
-
-```bash
-python scripts/run_namm.py \
-    'run@_global_=namm_bam_i1_llama32_1b' \
-    wandb_run_name=m3_namm_on_es \
-    wandb_group_name=es_conditions \
-    seed=42 \
-    trainer_config.max_iters=299 \
-    es_checkpoint_path=experiments/experiment_N/es_only/m1_es/checkpoints/es_checkpoint_final.pt
-```
-
-| Parameter | Value |
-|-----------|-------|
-| Stage 1 config | `scripts/configs/es_m1_only.yaml` — 300 ES iterations, full KV cache |
-| Stage 2 config | `config/config.yaml` (Hydra) — 300 CMA-ES generations |
-| Stage 2 init | ES-fine-tuned weights applied to base LLM, then fresh NAMM parameters trained on top |
-| `es_checkpoint_path` | Path to final ES checkpoint — loaded in `namm/run_utils.py:make_eval_model` |
-| `max_memory_length` | 1024 |
-| Output | `outputs/{date}/{time}/` (Hydra) |
+| Config | `scripts/configs/lora_rh_m4_instruct_5t.yaml` |
+| `method` | `rh_m4_frozen_5t` |
+| `sft_mode` | true — supervised fine-tuning with chat template |
+| `namm_active` | true + NAMM checkpoint (required) |
+| `learning_rate` | 1e-4 |
+| `num_epochs` | 150 |
+| `batch_size` | 1 |
+| `gradient_accumulation_steps` | 16 (effective batch = 16) |
+| `max_seq_len` | 7000 |
+| `lora_rank` | 8 |
+| `lora_alpha` | 16 |
+| `lora_dropout` | 0.05 |
+| `lora_target_modules` | `[q_proj, v_proj]` |
+| `eval_interval` | 2 steps |
+| `cache_size` | 1024 |
+| Tasks | 5-task QA: qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e |
+| Splits | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (306 train / 64 val / 69 test) |
+| Filtering | `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64` |
+| `seed` | 42 |
+| What it answers | Does training LoRA under compressed context help, even without co-optimising the NAMM? |
 
 ---
 
 ### M4-LoRA · Joint — simultaneous alternating NAMM + LoRA (primary gradient contribution)
 
-NAMM and LoRA are co-trained in alternating stages: Stage A evolves the NAMM for N CMA-ES iterations; Stage B gradient-updates the LoRA for E epochs. Repeated for K outer loops. **Cold-start only** — no pretrained NAMM checkpoint.
+NAMM and LoRA are co-trained in alternating stages: Stage A evolves the NAMM for N CMA-ES iterations; Stage B gradient-updates the LoRA for E epochs. Repeated for K outer loops. **Cold-start only** — no pretrained NAMM checkpoint. Must use the same 5-task dataset, splits, and filtering as M1–M3.
 
 ```bash
 python scripts/run_joint.py \
@@ -305,8 +245,8 @@ python scripts/run_joint.py \
     --run_name m4_joint_lora \
     --adapter_type lora \
     --num_outer_loops 2 \
-    --namm_iterations_per_stage 150 \
-    --lora_epochs_per_stage 1 \
+    --namm_iterations_per_stage 100 \
+    --lora_epochs_per_stage 75 \
     --lora_rank 8 \
     --cache_size 1024
 ```
@@ -316,51 +256,21 @@ python scripts/run_joint.py \
 | Config | `scripts/configs/joint_default.yaml` | |
 | `adapter_type` | `lora` | Overrides config default of `es` |
 | `num_outer_loops` | 2 | |
-| `namm_iterations_per_stage` | 150 | 2 × 150 = 300 total — matches M2 (FAIR-01) |
-| `lora_epochs_per_stage` | 1 | 2 × 1 = 2 total epochs — matches M1 (FAIR-01) |
+| `namm_iterations_per_stage` | 100 | 2 × 100 = 200 total — matches M2 |
+| `lora_epochs_per_stage` | 75 | 2 × 75 = 150 total epochs — matches M1 |
 | `lora_rank` | 8 | Matches M1-r8 |
-| `lora_alpha` | null → defaults to rank | Override to 16 if explicit control is needed |
-| `learning_rate` | 2e-4 | From `joint_default.yaml` |
+| `lora_alpha` | 16 | Matches M1 |
+| `learning_rate` | 5e-5 | Matches M1 |
+| `sft_mode` | true | Matches M1 |
 | `cache_size` | 1024 | NAMM evicts during training |
 | `namm_checkpoint` | null — cold-start | No pretrained checkpoint |
 | `eval_after_each_loop` | true | Per-loop F1 saved in `results.json` |
+| Tasks | 5-task QA: qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e | |
+| Splits | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` | |
+| Filtering | `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64` | |
 | Output | `experiments/experiment_N/joint_lora/m4_joint_lora/` | |
 
-> The default `joint_default.yaml` has `num_outer_loops=5` and `namm_iterations_per_stage=50` (250 total NAMM iters, 5 LoRA epochs). **Override both** as shown above to satisfy FAIR-01.
-
----
-
-### M4-ES · Joint — simultaneous alternating NAMM + ES (primary ES contribution)
-
-ES analogue of M4-LoRA. Stage A trains NAMM via CMA-ES; Stage B perturbs all base LLM weights via ES (no LoRA). Alternates for K outer loops. `run_joint.py` already supports this via `--adapter_type es`.
-
-```bash
-python scripts/run_joint.py \
-    --config scripts/configs/joint_default.yaml \
-    --run_name m4_joint_es \
-    --adapter_type es \
-    --num_outer_loops 2 \
-    --namm_iterations_per_stage 150 \
-    --adapter_iterations_per_stage 150 \
-    --population_size 8 \
-    --mini_batch_size 16 \
-    --cache_size 1024
-```
-
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| `adapter_type` | `es` | ES weight perturbation instead of LoRA gradient steps |
-| `num_outer_loops` | 2 | |
-| `namm_iterations_per_stage` | 150 | 2 × 150 = 300 total NAMM iters — matches M2 |
-| `adapter_iterations_per_stage` | 150 | 2 × 150 = 300 total ES iters — matches M1-ES |
-| `population_size` | 8 | |
-| `mini_batch_size` | 16 | |
-| `cache_size` | 1024 | NAMM evicts during training |
-| `namm_checkpoint` | null — cold-start | |
-| `eval_after_each_loop` | true | |
-| Output | `experiments/experiment_N/joint_es/m4_joint_es/` | |
-
-> A4 modularity test for M4-ES: pass `experiments/experiment_N/joint_es/m4_joint_es/adapter/stage_1/checkpoints/es_checkpoint_final.pt` as `--es_checkpoint` and `namm/latest.pt` as `--namm_checkpoint` to `run_eval.py`.
+> The default `joint_default.yaml` may need overrides to match the M1/M2 hyperparameters above. Ensure the LoRA stages use SFT mode with the same learning rate and batch size as M1.
 
 ---
 
@@ -377,40 +287,8 @@ No additional runs needed — results come from M1-r4, M1-r8, and M1-r16. Report
 | | |
 |---|---|
 | Source runs | M1-r4, M1-r8, M1-r16 |
-| Metric | Qasper token-level F1 on test split |
+| Metric | 5-task avg F1 on test split |
 | What it answers | Effect of adapter expressivity; justifies rank selection |
-
----
-
-### A2 · Cache size sweep (512, 1024, 2048 tokens)
-
-Eval-only using the M2 checkpoint at three cache sizes. Plots the accuracy vs. memory Pareto curve. The 1024 result comes directly from M2 training — only 512 and 2048 require new eval runs.
-
-#### M2 at cache_size=512
-
-```bash
-python scripts/run_eval.py \
-    --namm_checkpoint <path-to-m2-checkpoint> \
-    --cache_size 512 \
-    --train_split 0.8 \
-    --output_dir experiments/ablations/a2_cache/m2_cache512
-```
-
-#### M2 at cache_size=2048
-
-```bash
-python scripts/run_eval.py \
-    --namm_checkpoint <path-to-m2-checkpoint> \
-    --cache_size 2048 \
-    --train_split 0.8 \
-    --output_dir experiments/ablations/a2_cache/m2_cache2048
-```
-
-| | |
-|---|---|
-| Checkpoint | M2 final NAMM checkpoint from `outputs/{date}/{time}/` |
-| Cache sizes tested | 512, 1024 (from training), 2048 |
-| What it answers | Memory-accuracy tradeoff; replicates NAMM paper Fig. 5 at 1B scale |
 
 ---
 
@@ -425,7 +303,6 @@ python scripts/run_eval.py \
     --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_1/ \
     --namm_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/namm/latest.pt \
     --cache_size 1024 \
-    --train_split 0.8 \
     --output_dir experiments/ablations/a4_modularity/m4_namm_on
 ```
 
@@ -434,7 +311,6 @@ python scripts/run_eval.py \
 ```bash
 python scripts/run_eval.py \
     --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_1/ \
-    --train_split 0.8 \
     --output_dir experiments/ablations/a4_modularity/m4_namm_off
 # No --namm_checkpoint → full KV cache, no eviction
 ```
@@ -445,62 +321,6 @@ python scripts/run_eval.py \
 | NAMM checkpoint | `joint_lora/m4_joint_lora/namm/latest.pt` — written after each NAMM stage; always reflects the most recent stage |
 | What it answers | RQ4: are jointly-trained NAMM and LoRA co-dependent, or is the LoRA sufficient alone? |
 | Expected finding | M4-NAMM-on > M4-NAMM-off ≈ M1 (LoRA adapts to compressed context; removing NAMM at eval hurts) |
-
----
-
-### A5 · LoRA with frozen NAMM at train-time
-
-LoRA is fine-tuned while the frozen M2 NAMM is active during training. This is the intermediate condition between M1 (no NAMM) and M4 (joint). Isolates whether NAMM eviction during gradient steps helps independently of co-optimisation. Requires M2 to be complete.
-
-```bash
-python scripts/run_lora.py \
-    --config scripts/configs/lora_rh_m4_instruct.yaml \
-    --run_name a5_lora_frozen_namm \
-    --namm_checkpoint <path-to-m2-checkpoint>
-```
-
-| Parameter | Value |
-|-----------|-------|
-| Config | `scripts/configs/lora_rh_m4_instruct.yaml` |
-| `method` | `rh_m4_frozen` |
-| `namm_active` | true + NAMM checkpoint (required) |
-| `learning_rate` | 1e-4 (lower than M1 for NAMM stability — from config) |
-| `lora_alpha` | 16, `dropout=0.05` |
-| `cache_size` | 1024 |
-| Training tasks | qasper + multifieldqa_en + hotpotqa + 2wikimqa (from config override) |
-| `max_seq_len` | 6600 |
-| What it answers | Does training LoRA under compressed context help, even without co-optimising the NAMM? |
-
-> **Confound warning:** A5-LoRA uses multi-task training (4 tasks, `max_seq_len=6600`) while M1-LoRA uses single-task Qasper (`max_seq_len=3500`). Either restrict A5-LoRA to Qasper-only for a clean ablation, or report it as a separate multi-task result. Evaluate on the Qasper test set regardless so scores are comparable.
-
----
-
-### A5-ES · ES with frozen NAMM at train-time
-
-ES analogue of A5-LoRA. All base LLM weights are optimised via ES while the frozen M2 NAMM evicts tokens at `cache_size=1024` during fitness evaluation. Isolates whether training under compressed context helps ES independently of co-optimisation.
-
-```bash
-python scripts/run_es.py \
-    --config scripts/configs/es_m1_only.yaml \
-    --run_name a5_es_frozen_namm \
-    --namm_checkpoint <path-to-m2-checkpoint> \
-    --run_config namm_bam_i1_llama32_1b \
-    --cache_size 1024 \
-    --method es_namm
-```
-
-| Parameter | Value |
-|-----------|-------|
-| Config | `scripts/configs/es_m1_only.yaml` (overrides `run_config` and `cache_size` via CLI) |
-| `method` | `es_namm` — explicit; prevents auto-detection confusion |
-| `run_config` | `namm_bam_i1_llama32_1b` — loads NAMM architecture for eviction |
-| `namm_checkpoint` | M2 final checkpoint — NAMM is frozen, only LLM weights evolve |
-| `cache_size` | 1024 |
-| `num_iterations` | 300 — from config |
-| `train_split` | 0.8, `split_seed=42` — from config |
-| Task | Qasper only (from `namm_bam_i1_llama32_1b`) |
-| Output | `experiments/experiment_N/es_namm/a5_es_frozen_namm/` |
-| What it answers | Does ES fine-tuning under compressed context help, even without co-optimising the NAMM? |
 
 ---
 
@@ -520,9 +340,9 @@ python scripts/generate_report.py \
 {
   "f1": 0.XXX,
   "exact_match": 0.XXX,
-  "num_samples": 200,
+  "num_samples": 69,
   "cache_size": 1024,
-  "method": "m1_lora_only"
+  "method": "rh_m1_lora_instruct_5t"
 }
 ```
 
@@ -536,24 +356,92 @@ Joint runs produce a list of entries (one per outer loop), giving per-loop learn
 | B1  Base model + recency | `b1_recency` | — | 1024 |
 | M1-LoRA  LoRA only (r=8) | `m1_r8` | — | 1024 |
 | M2  Standalone NAMM | `m2_namm_standalone` | — | 1024 |
-| M3-LoRA  Sequential (LoRA → NAMM) | `m3_namm_on_lora` | — | 1024 |
+| M3-LoRA  LoRA + frozen NAMM | `m3_lora_frozen_namm` | — | 1024 |
 | M4-LoRA  Joint LoRA + NAMM | `m4_joint_lora` | — | 1024 |
-
-### ES variants table (reported separately — not FAIR-01 comparable to gradient table)
-
-| Condition | Run name | F1 (test) | Cache |
-|-----------|----------|-----------|-------|
-| B0  Base model, full cache | `baseline_eval` | — | full |
-| B1  Base model + recency | `b1_recency` | — | 1024 |
-| M1-ES  ES only | `m1_es` | — | full |
-| M1-ES + M2 NAMM  ES weights + frozen NAMM eval | `m1_es` (eval w/ NAMM) | — | 1024 |
-| M2  Standalone NAMM | `m2_namm_standalone` | — | 1024 |
-| M3-ES  Sequential (ES → NAMM) | `m3_namm_on_es` | — | 1024 |
-| M4-ES  Joint ES + NAMM | `m4_joint_es` | — | 1024 |
 
 ---
 
-## 6 · Smoke Tests
+## 6 · Completed Runs & Checkpoints
+
+All runs below use the 5-task LongBench QA subset (qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e) on LLaMA 3.2-1B-Instruct. WandB entity: `SNLP_NAMM`, project: `memory_evolution_hf`.
+
+### M2 — Standalone NAMM (CMA-ES, no LoRA)
+
+These are pure NAMM eviction policy training runs. The long auto-generated names encode hyperparameters: `p8` = pop_size 8, `8qs` = samples_batch_size 8, `256fixDel` = fixed_delay 256.
+
+| Cache | WandB run name | WandB ID | State | Iters | GCS checkpoint |
+|-------|----------------|----------|-------|-------|----------------|
+| 1024 | `rh-multi-qa-5t-cma-es-p8-rMeanTrue-shared-8pop-8qs-256fixDel-llama32-1b-5t-cs1024` | `lenhmfb1` | finished | 200 | `gs://statistical-nlp/NAMM_checkpoints/pretrained/namm-5t-cs1024-llama32-1b/` |
+| 2048 | `rh-multi-qa-5t-cma-es-p8-rMeanTrue-shared-8pop-8qs-256fixDel-llama32-1b-5t-cs2048` | `ccflnsds` | finished | 200 | `gs://statistical-nlp/NAMM_checkpoints/pretrained/namm-5t-cs2048-llama32-1b/` |
+| 3072 | `rh-multi-qa-5t-cma-es-p8-rMeanTrue-shared-8pop-8qs-256fixDel-llama32-1b-5t-cs3072` | `quc95irz` | finished | 200 | **not uploaded** |
+
+Earlier duplicate runs also exist at these names with different IDs (crashed/failed); the IDs above are the definitive finished runs.
+
+#### M2 best validation metrics
+
+| Cache | Best iter | Val mean F1 | Val tasks_aggregate |
+|-------|-----------|-------------|---------------------|
+| 1024 | 105 | 27.90 | 0.00279 |
+| 2048 | 40 | 27.67 | 0.00277 |
+| 3072 | — | — | — |
+
+### M1 — LoRA only (no NAMM, full context)
+
+Single logical training run split across 3 WandB segments due to crashes/resumes. Best checkpoint is from the final segment (`qfoxxi2m`).
+
+| Segment | WandB run name | WandB ID | State | Epochs | Steps | Best val avg F1 |
+|---------|----------------|----------|-------|--------|-------|-----------------|
+| 1 | `rh_m1_5t_v2` | `kz6vqo2o` | crashed | 5 | 125 | 39.15 |
+| 2 | `rh_m1_5t_resume` | `x9a4smmf` | failed | 10 | 250 | 40.60 |
+| 3 | `rh_m1_5t_resume` | `qfoxxi2m` | killed | 28 | 684 | **45.48** (step 336) |
+
+**GCS checkpoint:** `gs://statistical-nlp/NAMM_checkpoints/pretrained/lora-m1-5t-llama32-1b/` (best_ckpt.pt at step 336)
+
+### M3 — LoRA with frozen NAMM at train-time
+
+These runs train LoRA adapters while the frozen M2 NAMM actively evicts KV cache tokens. Named `rh_m4_5t_cs*` in WandB (historical naming from the `rh_m4_frozen` method config).
+
+| Cache | WandB run name | WandB ID | State | Epochs | Steps | Best val avg F1 | GCS checkpoint |
+|-------|----------------|----------|-------|--------|-------|-----------------|----------------|
+| 1024 | `rh_m4_5t_cs1024` | `ovosogkj` | crashed | 25 | 609 | **45.59** (step 340) | `gs://statistical-nlp/NAMM_checkpoints/pretrained/lora-m4-frozen-5t-cs1024-llama32-1b/` |
+| 2048 | `rh_m4_5t_cs2048` | `m4knrhmr` | crashed | 15 | 371 | **44.86** (step 244) | `gs://statistical-nlp/NAMM_checkpoints/pretrained/lora-m4-frozen-5t-cs2048-llama32-1b/` |
+| 3072 | `rh_m4_5t_cs3072` | `4sgkswa6` | finished | 4 | 117 | 33.37 | **not uploaded** |
+
+The cs1024 and cs2048 runs crashed before completing all 150 epochs but best checkpoints were saved before crash. The cs3072 run finished but at only epoch 4 — may need rerunning with more epochs.
+
+> **Naming note:** WandB names `rh_m4_5t_cs*` refer to M3 (frozen NAMM), not M4 (joint). The `rh_m4` prefix comes from the `rh_m4_frozen` method in the LoRA config. The NAMM checkpoint used by each M3 run is the corresponding M2 run at the same cache size.
+
+### M4 — Joint LoRA + NAMM
+
+**Not yet started.** No runs matching the M4 joint training protocol exist in WandB.
+
+### B0, B1 — Baselines
+
+**Not yet run** as formal tracked experiments. Baseline F1 values are available from the `lora/baseline_lb_avg_f1` metric logged at the start of LoRA runs, but dedicated eval runs with `results.json` output have not been created.
+
+### A1 — LoRA rank sweep
+
+**Not yet run.** Only r=8 has been trained (M1). r=4 and r=16 still needed.
+
+### A4 — NAMM disabled at eval
+
+**Not yet run.** Requires M4 to be complete first.
+
+### Completion summary
+
+| Step | Experiment | Status |
+|------|------------|--------|
+| 1 | B0 — baseline eval | **not started** |
+| 2 | B1 — recency eviction eval | **not started** |
+| 3 | M1-LoRA — rank sweep | **partial** (r=8 done; r=4, r=16 not started) |
+| 4 | M2 — standalone NAMM | **done** (cs1024, cs2048, cs3072 all finished; cs3072 GCS upload pending) |
+| 5 | M3-LoRA — LoRA + frozen NAMM | **done** (cs1024, cs2048 best ckpts saved; cs3072 may need more epochs) |
+| 6 | M4-LoRA — joint LoRA + NAMM | **not started** |
+| 7 | A4 — NAMM disabled at eval | **not started** (blocked on M4) |
+
+---
+
+## 7 · Smoke Tests
 
 Run these before committing to any full experiment to confirm the pipeline works end-to-end.
 
@@ -561,22 +449,10 @@ Run these before committing to any full experiment to confirm the pipeline works
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_m1_only.yaml \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
     --run_name smoke_m1 \
     --num_epochs 1 \
     --eval_interval 5 \
-    --no-gcs
-```
-
-#### M1-ES smoke test
-
-```bash
-python scripts/run_es.py \
-    --config scripts/configs/es_m1_only.yaml \
-    --run_name smoke_es \
-    --num_iterations 2 \
-    --population_size 2 \
-    --mini_batch_size 2 \
     --no-gcs
 ```
 
@@ -589,19 +465,6 @@ python scripts/run_joint.py \
     --num_outer_loops 2 \
     --namm_iterations_per_stage 3 \
     --lora_epochs_per_stage 1 \
-    --population_size 2 \
-    --mini_batch_size 2
-```
-
-#### M4-ES joint smoke test
-
-```bash
-python scripts/run_joint.py \
-    --run_name smoke_joint_es \
-    --adapter_type es \
-    --num_outer_loops 2 \
-    --namm_iterations_per_stage 3 \
-    --adapter_iterations_per_stage 3 \
     --population_size 2 \
     --mini_batch_size 2
 ```
