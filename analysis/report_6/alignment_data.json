@@ -1,0 +1,4543 @@
+{
+  "cache_size": 1024,
+  "conditions": {
+    "M1": {
+      "samples": [
+        {
+          "task": "lb/2wikimqa",
+          "idx": 91,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.003358754738573778,
+              "total_regret": 0.009904597885906696,
+              "mean_regret": 0.0005826234119012952,
+              "num_tokens": 1024,
+              "num_retained": 1007,
+              "num_evicted": 17
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1646971671375438,
+              "total_regret": 0.09534135460853577,
+              "mean_regret": 0.0006231461302377284,
+              "num_tokens": 1024,
+              "num_retained": 871,
+              "num_evicted": 153
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2508453883842357,
+              "total_regret": 0.01201007328927517,
+              "mean_regret": 0.00035323743941262364,
+              "num_tokens": 1024,
+              "num_retained": 990,
+              "num_evicted": 34
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2890674285637651,
+              "total_regret": 0.03487327694892883,
+              "mean_regret": 0.000726526603102684,
+              "num_tokens": 1024,
+              "num_retained": 976,
+              "num_evicted": 48
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.23803549236463772,
+              "total_regret": 0.055846475064754486,
+              "mean_regret": 0.0011397239286452532,
+              "num_tokens": 1024,
+              "num_retained": 975,
+              "num_evicted": 49
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.2195244327122523,
+              "total_regret": 0.08419544249773026,
+              "mean_regret": 0.0008095715893432498,
+              "num_tokens": 1024,
+              "num_retained": 920,
+              "num_evicted": 104
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.1708236736463772,
+              "total_regret": 0.07640835642814636,
+              "mean_regret": 0.0005162726738490164,
+              "num_tokens": 1024,
+              "num_retained": 876,
+              "num_evicted": 148
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.19366663909949214,
+              "total_regret": 0.08271156251430511,
+              "mean_regret": 0.001234500901773572,
+              "num_tokens": 1024,
+              "num_retained": 957,
+              "num_evicted": 67
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.1318837283634933,
+              "total_regret": 0.117720827460289,
+              "mean_regret": 0.0006884259055368602,
+              "num_tokens": 1024,
+              "num_retained": 853,
+              "num_evicted": 171
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.2073154861955511,
+              "total_regret": 0.15877604484558105,
+              "mean_regret": 0.0009740861714817584,
+              "num_tokens": 1024,
+              "num_retained": 861,
+              "num_evicted": 163
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12079819263643514,
+              "total_regret": 0.08987116813659668,
+              "mean_regret": 0.000774751475546509,
+              "num_tokens": 1024,
+              "num_retained": 908,
+              "num_evicted": 116
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.11226991095057577,
+              "total_regret": 0.053549885749816895,
+              "mean_regret": 0.0008238443988375366,
+              "num_tokens": 1024,
+              "num_retained": 959,
+              "num_evicted": 65
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.19907814623417494,
+              "total_regret": 0.033341020345687866,
+              "mean_regret": 0.0005051670013926923,
+              "num_tokens": 1024,
+              "num_retained": 958,
+              "num_evicted": 66
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.15950619970715332,
+              "total_regret": 0.03752338886260986,
+              "mean_regret": 0.0006052159587852657,
+              "num_tokens": 1024,
+              "num_retained": 962,
+              "num_evicted": 62
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.11417307417209067,
+              "total_regret": 0.09012740850448608,
+              "mean_regret": 0.0007573731709271669,
+              "num_tokens": 1024,
+              "num_retained": 905,
+              "num_evicted": 119
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.08596213164294399,
+              "total_regret": 0.028205636888742447,
+              "mean_regret": 0.00028205636772327125,
+              "num_tokens": 1024,
+              "num_retained": 924,
+              "num_evicted": 100
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa",
+          "idx": 92,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.0289362684178528,
+              "total_regret": 0.009362069889903069,
+              "mean_regret": 0.0005507100140675902,
+              "num_tokens": 1024,
+              "num_retained": 1007,
+              "num_evicted": 17
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1430095419676704,
+              "total_regret": 0.0822073370218277,
+              "mean_regret": 0.0005592335946857929,
+              "num_tokens": 1024,
+              "num_retained": 877,
+              "num_evicted": 147
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2491336791896144,
+              "total_regret": 0.007644242607057095,
+              "mean_regret": 0.00027300865622237325,
+              "num_tokens": 1024,
+              "num_retained": 996,
+              "num_evicted": 28
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2812553755990272,
+              "total_regret": 0.03376198559999466,
+              "mean_regret": 0.0005534751689992845,
+              "num_tokens": 1024,
+              "num_retained": 963,
+              "num_evicted": 61
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.24418004792218007,
+              "total_regret": 0.05450918525457382,
+              "mean_regret": 0.0008791803847998381,
+              "num_tokens": 1024,
+              "num_retained": 962,
+              "num_evicted": 62
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.19557245100493525,
+              "total_regret": 0.10085662454366684,
+              "mean_regret": 0.00083352584624663,
+              "num_tokens": 1024,
+              "num_retained": 903,
+              "num_evicted": 121
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.20080478640655175,
+              "total_regret": 0.08022628724575043,
+              "mean_regret": 0.00048039693501777947,
+              "num_tokens": 1024,
+              "num_retained": 857,
+              "num_evicted": 167
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.19672066107574562,
+              "total_regret": 0.09219665080308914,
+              "mean_regret": 0.0012805090518668294,
+              "num_tokens": 1024,
+              "num_retained": 952,
+              "num_evicted": 72
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.18180832469065158,
+              "total_regret": 0.13936953246593475,
+              "mean_regret": 0.000729683437384665,
+              "num_tokens": 1024,
+              "num_retained": 833,
+              "num_evicted": 191
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.2127479145805021,
+              "total_regret": 0.13225433230400085,
+              "mean_regret": 0.0008996893302537501,
+              "num_tokens": 1024,
+              "num_retained": 877,
+              "num_evicted": 147
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.17619708220084399,
+              "total_regret": 0.09360332787036896,
+              "mean_regret": 0.0008210818050429225,
+              "num_tokens": 1024,
+              "num_retained": 910,
+              "num_evicted": 114
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.1826968743294471,
+              "total_regret": 0.05910172313451767,
+              "mean_regret": 0.0006793301436118782,
+              "num_tokens": 1024,
+              "num_retained": 937,
+              "num_evicted": 87
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.21194781704843796,
+              "total_regret": 0.044635746628046036,
+              "mean_regret": 0.0005579468561336398,
+              "num_tokens": 1024,
+              "num_retained": 944,
+              "num_evicted": 80
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.15590907973320933,
+              "total_regret": 0.05698833614587784,
+              "mean_regret": 0.0005998772103339434,
+              "num_tokens": 1024,
+              "num_retained": 929,
+              "num_evicted": 95
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.0880815593484014,
+              "total_regret": 0.08698650449514389,
+              "mean_regret": 0.0007980413502082229,
+              "num_tokens": 1024,
+              "num_retained": 915,
+              "num_evicted": 109
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.12113181505257134,
+              "total_regret": 0.043399177491664886,
+              "mean_regret": 0.00036165982601232827,
+              "num_tokens": 1024,
+              "num_retained": 904,
+              "num_evicted": 120
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa",
+          "idx": 93,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.01801286120449181,
+              "total_regret": 0.006605891510844231,
+              "mean_regret": 0.00025407274370081723,
+              "num_tokens": 1024,
+              "num_retained": 998,
+              "num_evicted": 26
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.12406670213146413,
+              "total_regret": 0.07412157952785492,
+              "mean_regret": 0.0005573051166720688,
+              "num_tokens": 1024,
+              "num_retained": 891,
+              "num_evicted": 133
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.20408163310921962,
+              "total_regret": 0.013652484863996506,
+              "mean_regret": 0.0002353876770939678,
+              "num_tokens": 1024,
+              "num_retained": 966,
+              "num_evicted": 58
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.250118374937415,
+              "total_regret": 0.04397083818912506,
+              "mean_regret": 0.0005862778634764254,
+              "num_tokens": 1024,
+              "num_retained": 949,
+              "num_evicted": 75
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.19083621298548029,
+              "total_regret": 0.07038747519254684,
+              "mean_regret": 0.0009141230257228017,
+              "num_tokens": 1024,
+              "num_retained": 947,
+              "num_evicted": 77
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.08964198063443245,
+              "total_regret": 0.076393723487854,
+              "mean_regret": 0.0006585665978491306,
+              "num_tokens": 1024,
+              "num_retained": 908,
+              "num_evicted": 116
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.08521997487661825,
+              "total_regret": 0.055609699338674545,
+              "mean_regret": 0.000391617591958493,
+              "num_tokens": 1024,
+              "num_retained": 882,
+              "num_evicted": 142
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.06924809786495958,
+              "total_regret": 0.06989747285842896,
+              "mean_regret": 0.0008629317744635046,
+              "num_tokens": 1024,
+              "num_retained": 943,
+              "num_evicted": 81
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.0305289321221658,
+              "total_regret": 0.11992213129997253,
+              "mean_regret": 0.000560383778065443,
+              "num_tokens": 1024,
+              "num_retained": 810,
+              "num_evicted": 214
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.06675428930334025,
+              "total_regret": 0.10302457213401794,
+              "mean_regret": 0.0007008474203757942,
+              "num_tokens": 1024,
+              "num_retained": 877,
+              "num_evicted": 147
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.04578921840354767,
+              "total_regret": 0.08319538831710815,
+              "mean_regret": 0.000681929406709969,
+              "num_tokens": 1024,
+              "num_retained": 902,
+              "num_evicted": 122
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.06333829169944924,
+              "total_regret": 0.05193350836634636,
+              "mean_regret": 0.0005706978845410049,
+              "num_tokens": 1024,
+              "num_retained": 933,
+              "num_evicted": 91
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.08920461250983476,
+              "total_regret": 0.018807346001267433,
+              "mean_regret": 0.000272570236120373,
+              "num_tokens": 1024,
+              "num_retained": 955,
+              "num_evicted": 69
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.07555104919176023,
+              "total_regret": 0.03716098889708519,
+              "mean_regret": 0.00036432340857572854,
+              "num_tokens": 1024,
+              "num_retained": 922,
+              "num_evicted": 102
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.07064129443530505,
+              "total_regret": 0.10473654419183731,
+              "mean_regret": 0.0005786549299955368,
+              "num_tokens": 1024,
+              "num_retained": 843,
+              "num_evicted": 181
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.08837910601888276,
+              "total_regret": 0.025875169783830643,
+              "mean_regret": 0.00019455014262348413,
+              "num_tokens": 1024,
+              "num_retained": 891,
+              "num_evicted": 133
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa_e",
+          "idx": 102,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": 0.023772463521922606,
+              "total_regret": 0.012254883535206318,
+              "mean_regret": 0.00032249692594632506,
+              "num_tokens": 1024,
+              "num_retained": 986,
+              "num_evicted": 38
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.2079087355160575,
+              "total_regret": 0.10434474050998688,
+              "mean_regret": 0.000564025598578155,
+              "num_tokens": 1024,
+              "num_retained": 839,
+              "num_evicted": 185
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2512322862277376,
+              "total_regret": 0.015013109892606735,
+              "mean_regret": 0.0003194278688170016,
+              "num_tokens": 1024,
+              "num_retained": 977,
+              "num_evicted": 47
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2733473441635076,
+              "total_regret": 0.03680790588259697,
+              "mean_regret": 0.0005576955154538155,
+              "num_tokens": 1024,
+              "num_retained": 958,
+              "num_evicted": 66
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.21493304529361273,
+              "total_regret": 0.06959549337625504,
+              "mean_regret": 0.000809249933809042,
+              "num_tokens": 1024,
+              "num_retained": 938,
+              "num_evicted": 86
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.1522336787425792,
+              "total_regret": 0.05251997709274292,
+              "mean_regret": 0.00047315293340943754,
+              "num_tokens": 1024,
+              "num_retained": 913,
+              "num_evicted": 111
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.16290702560617978,
+              "total_regret": 0.05539075285196304,
+              "mean_regret": 0.0004361476458143443,
+              "num_tokens": 1024,
+              "num_retained": 897,
+              "num_evicted": 127
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.15665150472069236,
+              "total_regret": 0.06702151894569397,
+              "mean_regret": 0.000985610531643033,
+              "num_tokens": 1024,
+              "num_retained": 956,
+              "num_evicted": 68
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.07613834176739862,
+              "total_regret": 0.10975851118564606,
+              "mean_regret": 0.0006131760310381651,
+              "num_tokens": 1024,
+              "num_retained": 845,
+              "num_evicted": 179
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.1149483562513411,
+              "total_regret": 0.11334335803985596,
+              "mean_regret": 0.0006787027232348919,
+              "num_tokens": 1024,
+              "num_retained": 857,
+              "num_evicted": 167
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12113960464201415,
+              "total_regret": 0.08577623963356018,
+              "mean_regret": 0.0005718416068702936,
+              "num_tokens": 1024,
+              "num_retained": 874,
+              "num_evicted": 150
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.13550864789714612,
+              "total_regret": 0.060666944831609726,
+              "mean_regret": 0.0005185208865441382,
+              "num_tokens": 1024,
+              "num_retained": 907,
+              "num_evicted": 117
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.18655847668264072,
+              "total_regret": 0.03025941364467144,
+              "mean_regret": 0.0004516330373007804,
+              "num_tokens": 1024,
+              "num_retained": 957,
+              "num_evicted": 67
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.142022063425363,
+              "total_regret": 0.042242903262376785,
+              "mean_regret": 0.0005632386892102659,
+              "num_tokens": 1024,
+              "num_retained": 949,
+              "num_evicted": 75
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.11971609908089549,
+              "total_regret": 0.0783158540725708,
+              "mean_regret": 0.000686981191392988,
+              "num_tokens": 1024,
+              "num_retained": 910,
+              "num_evicted": 114
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.14765599295472426,
+              "total_regret": 0.032606340944767,
+              "mean_regret": 0.00034322464489378035,
+              "num_tokens": 1024,
+              "num_retained": 929,
+              "num_evicted": 95
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa_e",
+          "idx": 103,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.05021947196194836,
+              "total_regret": 0.01244923286139965,
+              "mean_regret": 0.0002829371078405529,
+              "num_tokens": 1024,
+              "num_retained": 980,
+              "num_evicted": 44
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1433514345361562,
+              "total_regret": 0.10967323184013367,
+              "mean_regret": 0.0005653259577229619,
+              "num_tokens": 1024,
+              "num_retained": 830,
+              "num_evicted": 194
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2048921639188899,
+              "total_regret": 0.005643964745104313,
+              "mean_regret": 0.0002970507775899023,
+              "num_tokens": 1024,
+              "num_retained": 1005,
+              "num_evicted": 19
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.23528896359344822,
+              "total_regret": 0.03341328352689743,
+              "mean_regret": 0.0005861979443579912,
+              "num_tokens": 1024,
+              "num_retained": 967,
+              "num_evicted": 57
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.18290821024962448,
+              "total_regret": 0.05984102934598923,
+              "mean_regret": 0.0008428313885815442,
+              "num_tokens": 1024,
+              "num_retained": 953,
+              "num_evicted": 71
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.1635573054502539,
+              "total_regret": 0.08710246533155441,
+              "mean_regret": 0.0008624006295576692,
+              "num_tokens": 1024,
+              "num_retained": 923,
+              "num_evicted": 101
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.09103597069236821,
+              "total_regret": 0.051413197070360184,
+              "mean_regret": 0.0004214196524117142,
+              "num_tokens": 1024,
+              "num_retained": 902,
+              "num_evicted": 122
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.09805633538373505,
+              "total_regret": 0.07504294812679291,
+              "mean_regret": 0.001056942972354591,
+              "num_tokens": 1024,
+              "num_retained": 953,
+              "num_evicted": 71
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.07280997425076888,
+              "total_regret": 0.14336037635803223,
+              "mean_regret": 0.0006315435166470706,
+              "num_tokens": 1024,
+              "num_retained": 797,
+              "num_evicted": 227
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.12348282937558114,
+              "total_regret": 0.1501927524805069,
+              "mean_regret": 0.0007662895368412137,
+              "num_tokens": 1024,
+              "num_retained": 828,
+              "num_evicted": 196
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12413234925970959,
+              "total_regret": 0.09286907315254211,
+              "mean_regret": 0.0007199153187684715,
+              "num_tokens": 1024,
+              "num_retained": 895,
+              "num_evicted": 129
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.11841343832701523,
+              "total_regret": 0.043882887810468674,
+              "mean_regret": 0.0005626011407002807,
+              "num_tokens": 1024,
+              "num_retained": 946,
+              "num_evicted": 78
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.09846108111007795,
+              "total_regret": 0.04018746688961983,
+              "mean_regret": 0.0003721061802934855,
+              "num_tokens": 1024,
+              "num_retained": 916,
+              "num_evicted": 108
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.013661900525713467,
+              "total_regret": 0.0433616079390049,
+              "mean_regret": 0.0003583603829611093,
+              "num_tokens": 1024,
+              "num_retained": 903,
+              "num_evicted": 121
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.022591832218725412,
+              "total_regret": 0.0793783962726593,
+              "mean_regret": 0.0005794043536297977,
+              "num_tokens": 1024,
+              "num_retained": 887,
+              "num_evicted": 137
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.05749443441098633,
+              "total_regret": 0.0410672165453434,
+              "mean_regret": 0.00028322217985987663,
+              "num_tokens": 1024,
+              "num_retained": 879,
+              "num_evicted": 145
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa_e",
+          "idx": 105,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.0012799290108003718,
+              "total_regret": 0.0051903678104281425,
+              "mean_regret": 0.0002883537672460079,
+              "num_tokens": 1024,
+              "num_retained": 1006,
+              "num_evicted": 18
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.10095762776267792,
+              "total_regret": 0.09884586930274963,
+              "mean_regret": 0.0005814462783746421,
+              "num_tokens": 1024,
+              "num_retained": 854,
+              "num_evicted": 170
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.23333234613046275,
+              "total_regret": 0.00917023979127407,
+              "mean_regret": 0.0002865699934773147,
+              "num_tokens": 1024,
+              "num_retained": 992,
+              "num_evicted": 32
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2579519861776697,
+              "total_regret": 0.022724196314811707,
+              "mean_regret": 0.0006141674821265042,
+              "num_tokens": 1024,
+              "num_retained": 987,
+              "num_evicted": 37
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.20804466776339314,
+              "total_regret": 0.07159091532230377,
+              "mean_regret": 0.0008838384528644383,
+              "num_tokens": 1024,
+              "num_retained": 943,
+              "num_evicted": 81
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.13917257125742077,
+              "total_regret": 0.06678034365177155,
+              "mean_regret": 0.0006483528413809836,
+              "num_tokens": 1024,
+              "num_retained": 921,
+              "num_evicted": 103
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.11147424406337172,
+              "total_regret": 0.043846987187862396,
+              "mean_regret": 0.00038802644121460617,
+              "num_tokens": 1024,
+              "num_retained": 911,
+              "num_evicted": 113
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.1814162971175166,
+              "total_regret": 0.1038113385438919,
+              "mean_regret": 0.001166419591754675,
+              "num_tokens": 1024,
+              "num_retained": 935,
+              "num_evicted": 89
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.06729599545812173,
+              "total_regret": 0.15745972096920013,
+              "mean_regret": 0.0006906128255650401,
+              "num_tokens": 1024,
+              "num_retained": 796,
+              "num_evicted": 228
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.12134051346470207,
+              "total_regret": 0.1864107847213745,
+              "mean_regret": 0.0008710784604772925,
+              "num_tokens": 1024,
+              "num_retained": 810,
+              "num_evicted": 214
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.17173740254631284,
+              "total_regret": 0.10490424931049347,
+              "mean_regret": 0.0005732472636736929,
+              "num_tokens": 1024,
+              "num_retained": 841,
+              "num_evicted": 183
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.16565390082969744,
+              "total_regret": 0.06792216747999191,
+              "mean_regret": 0.0006792217027395964,
+              "num_tokens": 1024,
+              "num_retained": 924,
+              "num_evicted": 100
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.1310599988377083,
+              "total_regret": 0.05243544280529022,
+              "mean_regret": 0.0003616237372625619,
+              "num_tokens": 1024,
+              "num_retained": 879,
+              "num_evicted": 145
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.11005409126671911,
+              "total_regret": 0.045002441853284836,
+              "mean_regret": 0.0004891569842584431,
+              "num_tokens": 1024,
+              "num_retained": 932,
+              "num_evicted": 92
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.08317630847221227,
+              "total_regret": 0.08599324524402618,
+              "mean_regret": 0.0006824860465712845,
+              "num_tokens": 1024,
+              "num_retained": 898,
+              "num_evicted": 126
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.13167235891567125,
+              "total_regret": 0.05195241793990135,
+              "mean_regret": 0.0003038153226953,
+              "num_tokens": 1024,
+              "num_retained": 853,
+              "num_evicted": 171
+            }
+          ]
+        },
+        {
+          "task": "lb/hotpotqa_e",
+          "idx": 88,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.05288500911951934,
+              "total_regret": 0.009477379731833935,
+              "mean_regret": 0.00032680618460290134,
+              "num_tokens": 1024,
+              "num_retained": 995,
+              "num_evicted": 29
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.15950849590515698,
+              "total_regret": 0.10969863086938858,
+              "mean_regret": 0.0005032047047279775,
+              "num_tokens": 1024,
+              "num_retained": 806,
+              "num_evicted": 218
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.21399619349474286,
+              "total_regret": 0.01400717906653881,
+              "mean_regret": 0.0004518444766290486,
+              "num_tokens": 1024,
+              "num_retained": 993,
+              "num_evicted": 31
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.23271325817180458,
+              "total_regret": 0.023636486381292343,
+              "mean_regret": 0.0005627734935842454,
+              "num_tokens": 1024,
+              "num_retained": 982,
+              "num_evicted": 42
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.20454688505829338,
+              "total_regret": 0.07496356219053268,
+              "mean_regret": 0.0009863626910373569,
+              "num_tokens": 1024,
+              "num_retained": 948,
+              "num_evicted": 76
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.14565685126242756,
+              "total_regret": 0.08584098517894745,
+              "mean_regret": 0.0006867278716526926,
+              "num_tokens": 1024,
+              "num_retained": 899,
+              "num_evicted": 125
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.14871563416422284,
+              "total_regret": 0.05848972871899605,
+              "mean_regret": 0.00044992100447416306,
+              "num_tokens": 1024,
+              "num_retained": 894,
+              "num_evicted": 130
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.11569080359058723,
+              "total_regret": 0.09570388495922089,
+              "mean_regret": 0.0010875441366806626,
+              "num_tokens": 1024,
+              "num_retained": 936,
+              "num_evicted": 88
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.09177983736857162,
+              "total_regret": 0.15249377489089966,
+              "mean_regret": 0.0006717787473462522,
+              "num_tokens": 1024,
+              "num_retained": 797,
+              "num_evicted": 227
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.06110589818324869,
+              "total_regret": 0.1396188884973526,
+              "mean_regret": 0.0006375291850417852,
+              "num_tokens": 1024,
+              "num_retained": 805,
+              "num_evicted": 219
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12532736392246618,
+              "total_regret": 0.07066534459590912,
+              "mean_regret": 0.00040612267912365496,
+              "num_tokens": 1024,
+              "num_retained": 850,
+              "num_evicted": 174
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.1312520228345612,
+              "total_regret": 0.06677206605672836,
+              "mean_regret": 0.000648272514808923,
+              "num_tokens": 1024,
+              "num_retained": 921,
+              "num_evicted": 103
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.14217860399828336,
+              "total_regret": 0.03472835198044777,
+              "mean_regret": 0.00039464037399739027,
+              "num_tokens": 1024,
+              "num_retained": 936,
+              "num_evicted": 88
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.06578841374007581,
+              "total_regret": 0.02483515627682209,
+              "mean_regret": 0.0004869638360105455,
+              "num_tokens": 1024,
+              "num_retained": 973,
+              "num_evicted": 51
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.07659022736213432,
+              "total_regret": 0.07579287886619568,
+              "mean_regret": 0.0006533868727274239,
+              "num_tokens": 1024,
+              "num_retained": 908,
+              "num_evicted": 116
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.13831377181532076,
+              "total_regret": 0.04348538815975189,
+              "mean_regret": 0.0002651548129506409,
+              "num_tokens": 1024,
+              "num_retained": 860,
+              "num_evicted": 164
+            }
+          ]
+        },
+        {
+          "task": "lb/hotpotqa_e",
+          "idx": 89,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.015480127047421499,
+              "total_regret": 0.012885197065770626,
+              "mean_regret": 0.000460185605334118,
+              "num_tokens": 1024,
+              "num_retained": 996,
+              "num_evicted": 28
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1481466923860954,
+              "total_regret": 0.11677949875593185,
+              "mean_regret": 0.000608226575423032,
+              "num_tokens": 1024,
+              "num_retained": 832,
+              "num_evicted": 192
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2168543804985337,
+              "total_regret": 0.014659207314252853,
+              "mean_regret": 0.00030540014267899096,
+              "num_tokens": 1024,
+              "num_retained": 976,
+              "num_evicted": 48
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2538124843537658,
+              "total_regret": 0.02827458642423153,
+              "mean_regret": 0.0005890539032407105,
+              "num_tokens": 1024,
+              "num_retained": 976,
+              "num_evicted": 48
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.19564212145054,
+              "total_regret": 0.05299869924783707,
+              "mean_regret": 0.0008982830331660807,
+              "num_tokens": 1024,
+              "num_retained": 965,
+              "num_evicted": 59
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.142865317216222,
+              "total_regret": 0.09652014076709747,
+              "mean_regret": 0.0008110936032608151,
+              "num_tokens": 1024,
+              "num_retained": 905,
+              "num_evicted": 119
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.10991521976253486,
+              "total_regret": 0.07508646696805954,
+              "mean_regret": 0.00047523080138489604,
+              "num_tokens": 1024,
+              "num_retained": 866,
+              "num_evicted": 158
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.14414574395649044,
+              "total_regret": 0.09701032191514969,
+              "mean_regret": 0.0011412978637963533,
+              "num_tokens": 1024,
+              "num_retained": 939,
+              "num_evicted": 85
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.0735162229096631,
+              "total_regret": 0.13734954595565796,
+              "mean_regret": 0.0006540454342029989,
+              "num_tokens": 1024,
+              "num_retained": 814,
+              "num_evicted": 210
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.13174895840783918,
+              "total_regret": 0.14836469292640686,
+              "mean_regret": 0.0008727334789000452,
+              "num_tokens": 1024,
+              "num_retained": 854,
+              "num_evicted": 170
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12938700884623275,
+              "total_regret": 0.09434305131435394,
+              "mean_regret": 0.0007147201104089618,
+              "num_tokens": 1024,
+              "num_retained": 892,
+              "num_evicted": 132
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.1514402358558043,
+              "total_regret": 0.07074173539876938,
+              "mean_regret": 0.000693546433467418,
+              "num_tokens": 1024,
+              "num_retained": 922,
+              "num_evicted": 102
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.1561369671339675,
+              "total_regret": 0.048446960747241974,
+              "mean_regret": 0.00041407658136449754,
+              "num_tokens": 1024,
+              "num_retained": 907,
+              "num_evicted": 117
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.1473743942672198,
+              "total_regret": 0.05589858070015907,
+              "mean_regret": 0.0005224166670814157,
+              "num_tokens": 1024,
+              "num_retained": 917,
+              "num_evicted": 107
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.07976930745297188,
+              "total_regret": 0.07760604470968246,
+              "mean_regret": 0.0006159209879115224,
+              "num_tokens": 1024,
+              "num_retained": 898,
+              "num_evicted": 126
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.09377792852800229,
+              "total_regret": 0.05294523760676384,
+              "mean_regret": 0.00035063072573393583,
+              "num_tokens": 1024,
+              "num_retained": 873,
+              "num_evicted": 151
+            }
+          ]
+        },
+        {
+          "task": "lb/hotpotqa_e",
+          "idx": 93,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.0056319513983262995,
+              "total_regret": 0.005647541489452124,
+              "mean_regret": 0.0004344262706581503,
+              "num_tokens": 1024,
+              "num_retained": 1011,
+              "num_evicted": 13
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.16887102362134324,
+              "total_regret": 0.08457538485527039,
+              "mean_regret": 0.0007904241792857647,
+              "num_tokens": 1024,
+              "num_retained": 917,
+              "num_evicted": 107
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2677667235891567,
+              "total_regret": 0.010488424450159073,
+              "mean_regret": 0.0002913451171480119,
+              "num_tokens": 1024,
+              "num_retained": 988,
+              "num_evicted": 36
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.26607706440884055,
+              "total_regret": 0.03134501352906227,
+              "mean_regret": 0.0005699093453586102,
+              "num_tokens": 1024,
+              "num_retained": 969,
+              "num_evicted": 55
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.1610224031721622,
+              "total_regret": 0.07665872573852539,
+              "mean_regret": 0.0009582340717315674,
+              "num_tokens": 1024,
+              "num_retained": 944,
+              "num_evicted": 80
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.1371594485373006,
+              "total_regret": 0.0990028977394104,
+              "mean_regret": 0.0008839544607326388,
+              "num_tokens": 1024,
+              "num_retained": 912,
+              "num_evicted": 112
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.11940291735212073,
+              "total_regret": 0.09836935997009277,
+              "mean_regret": 0.000603493012022227,
+              "num_tokens": 1024,
+              "num_retained": 861,
+              "num_evicted": 163
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.16494865800014305,
+              "total_regret": 0.10238799452781677,
+              "mean_regret": 0.0012798499083146453,
+              "num_tokens": 1024,
+              "num_retained": 944,
+              "num_evicted": 80
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.08736283840569342,
+              "total_regret": 0.17001661658287048,
+              "mean_regret": 0.0007624063291586936,
+              "num_tokens": 1024,
+              "num_retained": 801,
+              "num_evicted": 223
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.18275187084257205,
+              "total_regret": 0.18809863924980164,
+              "mean_regret": 0.0009646083926782012,
+              "num_tokens": 1024,
+              "num_retained": 829,
+              "num_evicted": 195
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12226420007510193,
+              "total_regret": 0.11576791852712631,
+              "mean_regret": 0.0012315736385062337,
+              "num_tokens": 1024,
+              "num_retained": 930,
+              "num_evicted": 94
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.16207892631070736,
+              "total_regret": 0.029544057324528694,
+              "mean_regret": 0.0009530340903438628,
+              "num_tokens": 1024,
+              "num_retained": 993,
+              "num_evicted": 31
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.17585967116086115,
+              "total_regret": 0.015005099587142467,
+              "mean_regret": 0.0004055432218592614,
+              "num_tokens": 1024,
+              "num_retained": 987,
+              "num_evicted": 37
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.1277617950253916,
+              "total_regret": 0.04412693902850151,
+              "mean_regret": 0.0006685899570584297,
+              "num_tokens": 1024,
+              "num_retained": 958,
+              "num_evicted": 66
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.07415950665188469,
+              "total_regret": 0.10800367593765259,
+              "mean_regret": 0.0007448529358953238,
+              "num_tokens": 1024,
+              "num_retained": 879,
+              "num_evicted": 145
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.13046426847149703,
+              "total_regret": 0.044448480010032654,
+              "mean_regret": 0.00031977324397303164,
+              "num_tokens": 1024,
+              "num_retained": 885,
+              "num_evicted": 139
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper",
+          "idx": 142,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.052552057256276374,
+              "total_regret": 0.008477769792079926,
+              "mean_regret": 0.00042388850124552846,
+              "num_tokens": 1024,
+              "num_retained": 1004,
+              "num_evicted": 20
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.17048458111254947,
+              "total_regret": 0.07219310104846954,
+              "mean_regret": 0.0005231384420767426,
+              "num_tokens": 1024,
+              "num_retained": 886,
+              "num_evicted": 138
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.26290941724483224,
+              "total_regret": 0.01230539195239544,
+              "mean_regret": 0.0003845434985123575,
+              "num_tokens": 1024,
+              "num_retained": 992,
+              "num_evicted": 32
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.3205890807166869,
+              "total_regret": 0.04004007577896118,
+              "mean_regret": 0.0006786453304812312,
+              "num_tokens": 1024,
+              "num_retained": 965,
+              "num_evicted": 59
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.24276270027179742,
+              "total_regret": 0.07649217545986176,
+              "mean_regret": 0.0011768026743084192,
+              "num_tokens": 1024,
+              "num_retained": 959,
+              "num_evicted": 65
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.16174696910092268,
+              "total_regret": 0.14627201855182648,
+              "mean_regret": 0.0007906595710664988,
+              "num_tokens": 1024,
+              "num_retained": 839,
+              "num_evicted": 185
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.13277126099706746,
+              "total_regret": 0.08232023566961288,
+              "mean_regret": 0.0004929355345666409,
+              "num_tokens": 1024,
+              "num_retained": 857,
+              "num_evicted": 167
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.1813283094020456,
+              "total_regret": 0.1309872269630432,
+              "mean_regret": 0.0014237741706892848,
+              "num_tokens": 1024,
+              "num_retained": 932,
+              "num_evicted": 92
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.10160017389671697,
+              "total_regret": 0.18802160024642944,
+              "mean_regret": 0.0007674351218156517,
+              "num_tokens": 1024,
+              "num_retained": 779,
+              "num_evicted": 245
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.15379477058150345,
+              "total_regret": 0.18888422846794128,
+              "mean_regret": 0.0007969798753038049,
+              "num_tokens": 1024,
+              "num_retained": 787,
+              "num_evicted": 237
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12951266450897644,
+              "total_regret": 0.10652477294206619,
+              "mean_regret": 0.0008731538546271622,
+              "num_tokens": 1024,
+              "num_retained": 902,
+              "num_evicted": 122
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.10568511506687646,
+              "total_regret": 0.07100211828947067,
+              "mean_regret": 0.0005867943400517106,
+              "num_tokens": 1024,
+              "num_retained": 903,
+              "num_evicted": 121
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.12554904870896216,
+              "total_regret": 0.0486721433699131,
+              "mean_regret": 0.000392517278669402,
+              "num_tokens": 1024,
+              "num_retained": 900,
+              "num_evicted": 124
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.08973942314569773,
+              "total_regret": 0.022165101021528244,
+              "mean_regret": 0.00020150092313997447,
+              "num_tokens": 1024,
+              "num_retained": 914,
+              "num_evicted": 110
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.06319673798369216,
+              "total_regret": 0.11950432509183884,
+              "mean_regret": 0.0006790018524043262,
+              "num_tokens": 1024,
+              "num_retained": 848,
+              "num_evicted": 176
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.10139179958515127,
+              "total_regret": 0.07616598904132843,
+              "mean_regret": 0.00043031631503254175,
+              "num_tokens": 1024,
+              "num_retained": 847,
+              "num_evicted": 177
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper",
+          "idx": 143,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.04191334444961018,
+              "total_regret": 0.007910335436463356,
+              "mean_regret": 0.0003955167776439339,
+              "num_tokens": 1024,
+              "num_retained": 1004,
+              "num_evicted": 20
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.15944699502896786,
+              "total_regret": 0.06911766529083252,
+              "mean_regret": 0.0007595347706228495,
+              "num_tokens": 1024,
+              "num_retained": 933,
+              "num_evicted": 91
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.24320167772333878,
+              "total_regret": 0.011775012128055096,
+              "mean_regret": 0.0002943752915598452,
+              "num_tokens": 1024,
+              "num_retained": 984,
+              "num_evicted": 40
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2752726021028538,
+              "total_regret": 0.03749167174100876,
+              "mean_regret": 0.0005951059283688664,
+              "num_tokens": 1024,
+              "num_retained": 961,
+              "num_evicted": 63
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.206128194066948,
+              "total_regret": 0.03646247461438179,
+              "mean_regret": 0.001041784998960793,
+              "num_tokens": 1024,
+              "num_retained": 989,
+              "num_evicted": 35
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.14427537819183175,
+              "total_regret": 0.09796449542045593,
+              "mean_regret": 0.0006200284697115421,
+              "num_tokens": 1024,
+              "num_retained": 866,
+              "num_evicted": 158
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.08679878048780486,
+              "total_regret": 0.08848602324724197,
+              "mean_regret": 0.0005362789379432797,
+              "num_tokens": 1024,
+              "num_retained": 859,
+              "num_evicted": 165
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.137242194764323,
+              "total_regret": 0.0658014565706253,
+              "mean_regret": 0.0011345078237354755,
+              "num_tokens": 1024,
+              "num_retained": 966,
+              "num_evicted": 58
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.054285972927544515,
+              "total_regret": 0.12863899767398834,
+              "mean_regret": 0.0007891962886787951,
+              "num_tokens": 1024,
+              "num_retained": 861,
+              "num_evicted": 163
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.14406053304484656,
+              "total_regret": 0.17343206703662872,
+              "mean_regret": 0.0008803658420220017,
+              "num_tokens": 1024,
+              "num_retained": 827,
+              "num_evicted": 197
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.06119030961662256,
+              "total_regret": 0.07746407389640808,
+              "mean_regret": 0.0008802735828794539,
+              "num_tokens": 1024,
+              "num_retained": 936,
+              "num_evicted": 88
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.057549933838781195,
+              "total_regret": 0.05783389136195183,
+              "mean_regret": 0.000649818975944072,
+              "num_tokens": 1024,
+              "num_retained": 935,
+              "num_evicted": 89
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.06998748301266003,
+              "total_regret": 0.035694919526576996,
+              "mean_regret": 0.0004889714764431119,
+              "num_tokens": 1024,
+              "num_retained": 951,
+              "num_evicted": 73
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.07873474492167941,
+              "total_regret": 0.052117716521024704,
+              "mean_regret": 0.000501131871715188,
+              "num_tokens": 1024,
+              "num_retained": 920,
+              "num_evicted": 104
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.02861301721979829,
+              "total_regret": 0.09662984311580658,
+              "mean_regret": 0.0006485224585048854,
+              "num_tokens": 1024,
+              "num_retained": 875,
+              "num_evicted": 149
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.06529763607753378,
+              "total_regret": 0.05419747903943062,
+              "mean_regret": 0.0004014628066215664,
+              "num_tokens": 1024,
+              "num_retained": 889,
+              "num_evicted": 135
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper",
+          "idx": 144,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.05296698421071454,
+              "total_regret": 0.008951385505497456,
+              "mean_regret": 0.0003729744057636708,
+              "num_tokens": 1024,
+              "num_retained": 1000,
+              "num_evicted": 24
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1714152912881768,
+              "total_regret": 0.08571897447109222,
+              "mean_regret": 0.0006036547711119056,
+              "num_tokens": 1024,
+              "num_retained": 882,
+              "num_evicted": 142
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2649055638008726,
+              "total_regret": 0.007036671508103609,
+              "mean_regret": 0.0003703511320054531,
+              "num_tokens": 1024,
+              "num_retained": 1005,
+              "num_evicted": 19
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.25112703177526646,
+              "total_regret": 0.03131968528032303,
+              "mean_regret": 0.00053999456577003,
+              "num_tokens": 1024,
+              "num_retained": 966,
+              "num_evicted": 58
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.20404516620771046,
+              "total_regret": 0.059394486248493195,
+              "mean_regret": 0.0008999164565466344,
+              "num_tokens": 1024,
+              "num_retained": 958,
+              "num_evicted": 66
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.18219323322723696,
+              "total_regret": 0.08967496454715729,
+              "mean_regret": 0.00074111542198807,
+              "num_tokens": 1024,
+              "num_retained": 903,
+              "num_evicted": 121
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.13936833917459407,
+              "total_regret": 0.0655607208609581,
+              "mean_regret": 0.00045214290730655193,
+              "num_tokens": 1024,
+              "num_retained": 879,
+              "num_evicted": 145
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.11633391969458548,
+              "total_regret": 0.08754940330982208,
+              "mean_regret": 0.001018016366288066,
+              "num_tokens": 1024,
+              "num_retained": 938,
+              "num_evicted": 86
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.08152014340891207,
+              "total_regret": 0.14182794094085693,
+              "mean_regret": 0.0006139737670309842,
+              "num_tokens": 1024,
+              "num_retained": 793,
+              "num_evicted": 231
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.12316040519276159,
+              "total_regret": 0.13826723396778107,
+              "mean_regret": 0.0006615656893700361,
+              "num_tokens": 1024,
+              "num_retained": 815,
+              "num_evicted": 209
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.13136365871539946,
+              "total_regret": 0.08812208473682404,
+              "mean_regret": 0.0007049766718409956,
+              "num_tokens": 1024,
+              "num_retained": 899,
+              "num_evicted": 125
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.1154045780881196,
+              "total_regret": 0.04938056319952011,
+              "mean_regret": 0.00046585436211898923,
+              "num_tokens": 1024,
+              "num_retained": 918,
+              "num_evicted": 106
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.13354123453257993,
+              "total_regret": 0.0568508617579937,
+              "mean_regret": 0.0004548068973235786,
+              "num_tokens": 1024,
+              "num_retained": 899,
+              "num_evicted": 125
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.12497123328088118,
+              "total_regret": 0.053496312350034714,
+              "mean_regret": 0.0004953362513333559,
+              "num_tokens": 1024,
+              "num_retained": 916,
+              "num_evicted": 108
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.06636285423734346,
+              "total_regret": 0.06343452632427216,
+              "mean_regret": 0.0006607763352803886,
+              "num_tokens": 1024,
+              "num_retained": 928,
+              "num_evicted": 96
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.1296937249660253,
+              "total_regret": 0.03287149965763092,
+              "mean_regret": 0.0003191407595295459,
+              "num_tokens": 1024,
+              "num_retained": 921,
+              "num_evicted": 103
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper_e",
+          "idx": 139,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.010781238824118446,
+              "total_regret": 0.008968926966190338,
+              "mean_regret": 0.0006406376487575471,
+              "num_tokens": 1024,
+              "num_retained": 1010,
+              "num_evicted": 14
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.15689768703955367,
+              "total_regret": 0.08157486468553543,
+              "mean_regret": 0.0006133448332548141,
+              "num_tokens": 1024,
+              "num_retained": 891,
+              "num_evicted": 133
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.25162650427365707,
+              "total_regret": 0.013042235746979713,
+              "mean_regret": 0.00032605588785372674,
+              "num_tokens": 1024,
+              "num_retained": 984,
+              "num_evicted": 40
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.3035925206530291,
+              "total_regret": 0.027245374396443367,
+              "mean_regret": 0.0005342230433598161,
+              "num_tokens": 1024,
+              "num_retained": 973,
+              "num_evicted": 51
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.23151918228309848,
+              "total_regret": 0.0433204248547554,
+              "mean_regret": 0.0008330850978381932,
+              "num_tokens": 1024,
+              "num_retained": 972,
+              "num_evicted": 52
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.1758442149166726,
+              "total_regret": 0.10039147734642029,
+              "mean_regret": 0.0008365956600755453,
+              "num_tokens": 1024,
+              "num_retained": 904,
+              "num_evicted": 120
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.11454596863600598,
+              "total_regret": 0.08946441113948822,
+              "mean_regret": 0.0005591525696218014,
+              "num_tokens": 1024,
+              "num_retained": 864,
+              "num_evicted": 160
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.21528098401401902,
+              "total_regret": 0.0855102613568306,
+              "mean_regret": 0.0012575038708746433,
+              "num_tokens": 1024,
+              "num_retained": 956,
+              "num_evicted": 68
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.15667586814247905,
+              "total_regret": 0.1777188628911972,
+              "mean_regret": 0.0008627129136584699,
+              "num_tokens": 1024,
+              "num_retained": 818,
+              "num_evicted": 206
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.21700657365352974,
+              "total_regret": 0.20000073313713074,
+              "mean_regret": 0.0009345828439109027,
+              "num_tokens": 1024,
+              "num_retained": 810,
+              "num_evicted": 214
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.14481700611544238,
+              "total_regret": 0.0796612799167633,
+              "mean_regret": 0.0008851253078319132,
+              "num_tokens": 1024,
+              "num_retained": 934,
+              "num_evicted": 90
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.15280497347070626,
+              "total_regret": 0.06616940349340439,
+              "mean_regret": 0.0006751979817636311,
+              "num_tokens": 1024,
+              "num_retained": 926,
+              "num_evicted": 98
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.14806900883341675,
+              "total_regret": 0.043212804943323135,
+              "mean_regret": 0.0005144381430000067,
+              "num_tokens": 1024,
+              "num_retained": 940,
+              "num_evicted": 84
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.11156852380015735,
+              "total_regret": 0.0420566089451313,
+              "mean_regret": 0.0005128854536451399,
+              "num_tokens": 1024,
+              "num_retained": 942,
+              "num_evicted": 82
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": 0.012441047224805091,
+              "total_regret": 0.09583922475576401,
+              "mean_regret": 0.0006432162481360137,
+              "num_tokens": 1024,
+              "num_retained": 875,
+              "num_evicted": 149
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.11057501028181102,
+              "total_regret": 0.05204539746046066,
+              "mean_regret": 0.00037442732718773186,
+              "num_tokens": 1024,
+              "num_retained": 885,
+              "num_evicted": 139
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper_e",
+          "idx": 140,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.054512519222516265,
+              "total_regret": 0.00979189109057188,
+              "mean_regret": 0.00040799545240588486,
+              "num_tokens": 1024,
+              "num_retained": 1000,
+              "num_evicted": 24
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1354488792825978,
+              "total_regret": 0.0704341009259224,
+              "mean_regret": 0.0005634728004224598,
+              "num_tokens": 1024,
+              "num_retained": 899,
+              "num_evicted": 125
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.29386644150990626,
+              "total_regret": 0.017262373119592667,
+              "mean_regret": 0.00035229334025643766,
+              "num_tokens": 1024,
+              "num_retained": 975,
+              "num_evicted": 49
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.27602345370502823,
+              "total_regret": 0.02697891741991043,
+              "mean_regret": 0.000562060798984021,
+              "num_tokens": 1024,
+              "num_retained": 976,
+              "num_evicted": 48
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.22694331816393676,
+              "total_regret": 0.05255357176065445,
+              "mean_regret": 0.0008758928743191063,
+              "num_tokens": 1024,
+              "num_retained": 964,
+              "num_evicted": 60
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.19053648701809595,
+              "total_regret": 0.10506615787744522,
+              "mean_regret": 0.000861198001075536,
+              "num_tokens": 1024,
+              "num_retained": 902,
+              "num_evicted": 122
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.11672156632215147,
+              "total_regret": 0.07530151307582855,
+              "mean_regret": 0.00046482414472848177,
+              "num_tokens": 1024,
+              "num_retained": 862,
+              "num_evicted": 162
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.1391141273735173,
+              "total_regret": 0.05358659476041794,
+              "mean_regret": 0.0007547407876700163,
+              "num_tokens": 1024,
+              "num_retained": 953,
+              "num_evicted": 71
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.02580312120020027,
+              "total_regret": 0.13431710004806519,
+              "mean_regret": 0.0005917052621953189,
+              "num_tokens": 1024,
+              "num_retained": 797,
+              "num_evicted": 227
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.12005579000071524,
+              "total_regret": 0.156503826379776,
+              "mean_regret": 0.0007347597274929285,
+              "num_tokens": 1024,
+              "num_retained": 811,
+              "num_evicted": 213
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.05165125885129818,
+              "total_regret": 0.10832154750823975,
+              "mean_regret": 0.0008332426659762859,
+              "num_tokens": 1024,
+              "num_retained": 894,
+              "num_evicted": 130
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.08392302499821185,
+              "total_regret": 0.05869517847895622,
+              "mean_regret": 0.0005989304045215249,
+              "num_tokens": 1024,
+              "num_retained": 926,
+              "num_evicted": 98
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.1185621446069666,
+              "total_regret": 0.04054391011595726,
+              "mean_regret": 0.00035564834251999855,
+              "num_tokens": 1024,
+              "num_retained": 910,
+              "num_evicted": 114
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.10591018614548314,
+              "total_regret": 0.04405980929732323,
+              "mean_regret": 0.00047891098074615,
+              "num_tokens": 1024,
+              "num_retained": 932,
+              "num_evicted": 92
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.09483545749588726,
+              "total_regret": 0.10092541575431824,
+              "mean_regret": 0.0006683802348561585,
+              "num_tokens": 1024,
+              "num_retained": 873,
+              "num_evicted": 151
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.15191150042915383,
+              "total_regret": 0.04487479850649834,
+              "mean_regret": 0.000345190754160285,
+              "num_tokens": 1024,
+              "num_retained": 894,
+              "num_evicted": 130
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper_e",
+          "idx": 141,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.004772459051569988,
+              "total_regret": 0.012249971739947796,
+              "mean_regret": 0.00034999920171685517,
+              "num_tokens": 1024,
+              "num_retained": 989,
+              "num_evicted": 35
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.057364995350833274,
+              "total_regret": 0.07169738411903381,
+              "mean_regret": 0.0005158085259608924,
+              "num_tokens": 1024,
+              "num_retained": 885,
+              "num_evicted": 139
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2305415161647951,
+              "total_regret": 0.008942659012973309,
+              "mean_regret": 0.0002980886201839894,
+              "num_tokens": 1024,
+              "num_retained": 994,
+              "num_evicted": 30
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.27608712270223873,
+              "total_regret": 0.028118304908275604,
+              "mean_regret": 0.0005857979995198548,
+              "num_tokens": 1024,
+              "num_retained": 976,
+              "num_evicted": 48
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.19008255623703593,
+              "total_regret": 0.04631364718079567,
+              "mean_regret": 0.0008576601394452155,
+              "num_tokens": 1024,
+              "num_retained": 970,
+              "num_evicted": 54
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.10606145170231027,
+              "total_regret": 0.09331483393907547,
+              "mean_regret": 0.0006020311848260462,
+              "num_tokens": 1024,
+              "num_retained": 869,
+              "num_evicted": 155
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.08204042539875545,
+              "total_regret": 0.05840638652443886,
+              "mean_regret": 0.0003455999249126762,
+              "num_tokens": 1024,
+              "num_retained": 855,
+              "num_evicted": 169
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.13324530314926647,
+              "total_regret": 0.08017516881227493,
+              "mean_regret": 0.000932269380427897,
+              "num_tokens": 1024,
+              "num_retained": 938,
+              "num_evicted": 86
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.061106434625563255,
+              "total_regret": 0.12058871984481812,
+              "mean_regret": 0.0005531592760235071,
+              "num_tokens": 1024,
+              "num_retained": 806,
+              "num_evicted": 218
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.11757620833631355,
+              "total_regret": 0.1804552525281906,
+              "mean_regret": 0.0007160922978073359,
+              "num_tokens": 1024,
+              "num_retained": 772,
+              "num_evicted": 252
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.05755757814176381,
+              "total_regret": 0.1000514030456543,
+              "mean_regret": 0.0005157288978807628,
+              "num_tokens": 1024,
+              "num_retained": 830,
+              "num_evicted": 194
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.06193167289535798,
+              "total_regret": 0.04539808630943298,
+              "mean_regret": 0.0005404534167610109,
+              "num_tokens": 1024,
+              "num_retained": 940,
+              "num_evicted": 84
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.04382048628495815,
+              "total_regret": 0.05688169598579407,
+              "mean_regret": 0.00038433578447438776,
+              "num_tokens": 1024,
+              "num_retained": 876,
+              "num_evicted": 148
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.02545713825906587,
+              "total_regret": 0.03555458039045334,
+              "mean_regret": 0.00038646283792331815,
+              "num_tokens": 1024,
+              "num_retained": 932,
+              "num_evicted": 92
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": 0.030385433803018377,
+              "total_regret": 0.0936100035905838,
+              "mean_regret": 0.0005115300882607698,
+              "num_tokens": 1024,
+              "num_retained": 841,
+              "num_evicted": 183
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.0731229995172019,
+              "total_regret": 0.0702204555273056,
+              "mean_regret": 0.0003013753448612988,
+              "num_tokens": 1024,
+              "num_retained": 791,
+              "num_evicted": 233
+            }
+          ]
+        }
+      ]
+    },
+    "M3_cs1024": {
+      "samples": [
+        {
+          "task": "lb/2wikimqa",
+          "idx": 91,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.003301668335598312,
+              "total_regret": 0.010109229013323784,
+              "mean_regret": 0.0005320647032931447,
+              "num_tokens": 1024,
+              "num_retained": 1005,
+              "num_evicted": 19
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1681691335562549,
+              "total_regret": 0.09776163101196289,
+              "mean_regret": 0.0006226855330169201,
+              "num_tokens": 1024,
+              "num_retained": 867,
+              "num_evicted": 157
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2366568244403118,
+              "total_regret": 0.008350834250450134,
+              "mean_regret": 0.0002982440928462893,
+              "num_tokens": 1024,
+              "num_retained": 996,
+              "num_evicted": 28
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2835292875151992,
+              "total_regret": 0.028435416519641876,
+              "mean_regret": 0.00067703373497352,
+              "num_tokens": 1024,
+              "num_retained": 982,
+              "num_evicted": 42
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.24442463208997925,
+              "total_regret": 0.05168262496590614,
+              "mean_regret": 0.0011485028080642223,
+              "num_tokens": 1024,
+              "num_retained": 979,
+              "num_evicted": 45
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.21478498721479147,
+              "total_regret": 0.07062361389398575,
+              "mean_regret": 0.0007206491427496076,
+              "num_tokens": 1024,
+              "num_retained": 926,
+              "num_evicted": 98
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.17065777886059652,
+              "total_regret": 0.0725492388010025,
+              "mean_regret": 0.0005073373322375119,
+              "num_tokens": 1024,
+              "num_retained": 881,
+              "num_evicted": 143
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.2008430190973464,
+              "total_regret": 0.07867736369371414,
+              "mean_regret": 0.0013112893793731928,
+              "num_tokens": 1024,
+              "num_retained": 964,
+              "num_evicted": 60
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.12970142514841568,
+              "total_regret": 0.11493708193302155,
+              "mean_regret": 0.0007274498930200934,
+              "num_tokens": 1024,
+              "num_retained": 866,
+              "num_evicted": 158
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.21129934151705884,
+              "total_regret": 0.1661127507686615,
+              "mean_regret": 0.0010067439870908856,
+              "num_tokens": 1024,
+              "num_retained": 859,
+              "num_evicted": 165
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.1397743030720263,
+              "total_regret": 0.08312465995550156,
+              "mean_regret": 0.0007421844638884068,
+              "num_tokens": 1024,
+              "num_retained": 912,
+              "num_evicted": 112
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.11643906238824119,
+              "total_regret": 0.04750758782029152,
+              "mean_regret": 0.0008334664744324982,
+              "num_tokens": 1024,
+              "num_retained": 967,
+              "num_evicted": 57
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.20280339165653383,
+              "total_regret": 0.02342543751001358,
+              "mean_regret": 0.0005447776056826115,
+              "num_tokens": 1024,
+              "num_retained": 981,
+              "num_evicted": 43
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.18069936431585723,
+              "total_regret": 0.03597021475434303,
+              "mean_regret": 0.0006096646538935602,
+              "num_tokens": 1024,
+              "num_retained": 965,
+              "num_evicted": 59
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.1291931572312424,
+              "total_regret": 0.07872961461544037,
+              "mean_regret": 0.0007157237851060927,
+              "num_tokens": 1024,
+              "num_retained": 914,
+              "num_evicted": 110
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.1245777416672627,
+              "total_regret": 0.029007261618971825,
+              "mean_regret": 0.00030533960671164095,
+              "num_tokens": 1024,
+              "num_retained": 929,
+              "num_evicted": 95
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa",
+          "idx": 92,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.029496157731921893,
+              "total_regret": 0.010450656525790691,
+              "mean_regret": 0.0004976502968929708,
+              "num_tokens": 1024,
+              "num_retained": 1003,
+              "num_evicted": 21
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1496572915921608,
+              "total_regret": 0.08724194765090942,
+              "mean_regret": 0.0005855164490640163,
+              "num_tokens": 1024,
+              "num_retained": 875,
+              "num_evicted": 149
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.20589799325870822,
+              "total_regret": 0.003932746592909098,
+              "mean_regret": 0.0001228983310284093,
+              "num_tokens": 1024,
+              "num_retained": 992,
+              "num_evicted": 32
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.273817859952793,
+              "total_regret": 0.02790028043091297,
+              "mean_regret": 0.000547064293641597,
+              "num_tokens": 1024,
+              "num_retained": 973,
+              "num_evicted": 51
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.24878401938344896,
+              "total_regret": 0.05333027243614197,
+              "mean_regret": 0.0009039029246196151,
+              "num_tokens": 1024,
+              "num_retained": 965,
+              "num_evicted": 59
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.21098789204992488,
+              "total_regret": 0.10205922275781631,
+              "mean_regret": 0.0009031789377331734,
+              "num_tokens": 1024,
+              "num_retained": 911,
+              "num_evicted": 113
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.19934024300836847,
+              "total_regret": 0.08041717112064362,
+              "mean_regret": 0.0005221894243732095,
+              "num_tokens": 1024,
+              "num_retained": 870,
+              "num_evicted": 154
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.19097131821758098,
+              "total_regret": 0.09061599522829056,
+              "mean_regret": 0.0013132753083482385,
+              "num_tokens": 1024,
+              "num_retained": 955,
+              "num_evicted": 69
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.17755523120663755,
+              "total_regret": 0.15490062534809113,
+              "mean_regret": 0.0007903093355707824,
+              "num_tokens": 1024,
+              "num_retained": 828,
+              "num_evicted": 196
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.2129449341964094,
+              "total_regret": 0.12622374296188354,
+              "mean_regret": 0.0008705085492692888,
+              "num_tokens": 1024,
+              "num_retained": 879,
+              "num_evicted": 145
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.18593146502396107,
+              "total_regret": 0.08832339197397232,
+              "mean_regret": 0.0008178091957233846,
+              "num_tokens": 1024,
+              "num_retained": 916,
+              "num_evicted": 108
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.19256769231456974,
+              "total_regret": 0.048630692064762115,
+              "mean_regret": 0.0007047926192171872,
+              "num_tokens": 1024,
+              "num_retained": 955,
+              "num_evicted": 69
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.2132984385058293,
+              "total_regret": 0.037145279347896576,
+              "mean_regret": 0.000580394989810884,
+              "num_tokens": 1024,
+              "num_retained": 960,
+              "num_evicted": 64
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.17216066670838995,
+              "total_regret": 0.037768684327602386,
+              "mean_regret": 0.0005637116846628487,
+              "num_tokens": 1024,
+              "num_retained": 957,
+              "num_evicted": 67
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.10371161084686359,
+              "total_regret": 0.07843940705060959,
+              "mean_regret": 0.0007615476497448981,
+              "num_tokens": 1024,
+              "num_retained": 921,
+              "num_evicted": 103
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.13556510845075456,
+              "total_regret": 0.04329937323927879,
+              "mean_regret": 0.00041237499681301415,
+              "num_tokens": 1024,
+              "num_retained": 919,
+              "num_evicted": 105
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa",
+          "idx": 93,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.018047651723767967,
+              "total_regret": 0.0072630587965250015,
+              "mean_regret": 0.0002593949611764401,
+              "num_tokens": 1024,
+              "num_retained": 996,
+              "num_evicted": 28
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.13127929198555183,
+              "total_regret": 0.07609300315380096,
+              "mean_regret": 0.000572127872146666,
+              "num_tokens": 1024,
+              "num_retained": 891,
+              "num_evicted": 133
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.20533860685930905,
+              "total_regret": 0.012576312758028507,
+              "mean_regret": 0.00023289468663278967,
+              "num_tokens": 1024,
+              "num_retained": 970,
+              "num_evicted": 54
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.24764096139403471,
+              "total_regret": 0.040562670677900314,
+              "mean_regret": 0.0005878647789359093,
+              "num_tokens": 1024,
+              "num_retained": 955,
+              "num_evicted": 69
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.19773625813604176,
+              "total_regret": 0.06363365054130554,
+              "mean_regret": 0.0008716938318684697,
+              "num_tokens": 1024,
+              "num_retained": 951,
+              "num_evicted": 73
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.09886344637364994,
+              "total_regret": 0.08355363458395004,
+              "mean_regret": 0.0007141336100175977,
+              "num_tokens": 1024,
+              "num_retained": 907,
+              "num_evicted": 117
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.080637841087905,
+              "total_regret": 0.05945565551519394,
+              "mean_regret": 0.0004187017912045121,
+              "num_tokens": 1024,
+              "num_retained": 882,
+              "num_evicted": 142
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.07257642067806308,
+              "total_regret": 0.044799238443374634,
+              "mean_regret": 0.0005670789396390319,
+              "num_tokens": 1024,
+              "num_retained": 945,
+              "num_evicted": 79
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.010960377029540088,
+              "total_regret": 0.12023794651031494,
+              "mean_regret": 0.0005865265848115087,
+              "num_tokens": 1024,
+              "num_retained": 819,
+              "num_evicted": 205
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.08001559035476719,
+              "total_regret": 0.10526667535305023,
+              "mean_regret": 0.0007210046169348061,
+              "num_tokens": 1024,
+              "num_retained": 878,
+              "num_evicted": 146
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.03254356358629568,
+              "total_regret": 0.0746372640132904,
+              "mean_regret": 0.0006975445430725813,
+              "num_tokens": 1024,
+              "num_retained": 917,
+              "num_evicted": 107
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.0726370051319648,
+              "total_regret": 0.04740368574857712,
+              "mean_regret": 0.0005512056523002684,
+              "num_tokens": 1024,
+              "num_retained": 938,
+              "num_evicted": 86
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.08357438219726772,
+              "total_regret": 0.023471467196941376,
+              "mean_regret": 0.00032599258702248335,
+              "num_tokens": 1024,
+              "num_retained": 952,
+              "num_evicted": 72
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.060389356537443664,
+              "total_regret": 0.0388982854783535,
+              "mean_regret": 0.0004743693280033767,
+              "num_tokens": 1024,
+              "num_retained": 942,
+              "num_evicted": 82
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.06797755659466419,
+              "total_regret": 0.10577364265918732,
+              "mean_regret": 0.0005779980565421283,
+              "num_tokens": 1024,
+              "num_retained": 841,
+              "num_evicted": 183
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.05512030836492381,
+              "total_regret": 0.03733517602086067,
+              "mean_regret": 0.00026108513702638447,
+              "num_tokens": 1024,
+              "num_retained": 881,
+              "num_evicted": 143
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa_e",
+          "idx": 102,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": 0.02368336939417781,
+              "total_regret": 0.012771463952958584,
+              "mean_regret": 0.0003192865988239646,
+              "num_tokens": 1024,
+              "num_retained": 984,
+              "num_evicted": 40
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.2220816085222802,
+              "total_regret": 0.11397884041070938,
+              "mean_regret": 0.0006062704487703741,
+              "num_tokens": 1024,
+              "num_retained": 836,
+              "num_evicted": 188
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2511457178492239,
+              "total_regret": 0.015847744420170784,
+              "mean_regret": 0.000310740084387362,
+              "num_tokens": 1024,
+              "num_retained": 973,
+              "num_evicted": 51
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.27331913623846643,
+              "total_regret": 0.03630954772233963,
+              "mean_regret": 0.0005586084444075823,
+              "num_tokens": 1024,
+              "num_retained": 959,
+              "num_evicted": 65
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.22042029137758387,
+              "total_regret": 0.069065161049366,
+              "mean_regret": 0.0008321103523485363,
+              "num_tokens": 1024,
+              "num_retained": 941,
+              "num_evicted": 83
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.14537989056576783,
+              "total_regret": 0.05482080206274986,
+              "mean_regret": 0.0005076000234112144,
+              "num_tokens": 1024,
+              "num_retained": 916,
+              "num_evicted": 108
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.15456853274086257,
+              "total_regret": 0.05824684724211693,
+              "mean_regret": 0.0004550534940790385,
+              "num_tokens": 1024,
+              "num_retained": 896,
+              "num_evicted": 128
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.14499091400829694,
+              "total_regret": 0.0597260482609272,
+              "mean_regret": 0.0009049401269294322,
+              "num_tokens": 1024,
+              "num_retained": 958,
+              "num_evicted": 66
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.059572790751734495,
+              "total_regret": 0.1113366037607193,
+              "mean_regret": 0.0007046620594337583,
+              "num_tokens": 1024,
+              "num_retained": 866,
+              "num_evicted": 158
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.13091990916243473,
+              "total_regret": 0.09244363009929657,
+              "mean_regret": 0.0006162908393889666,
+              "num_tokens": 1024,
+              "num_retained": 874,
+              "num_evicted": 150
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12872555834704238,
+              "total_regret": 0.07462982088327408,
+              "mean_regret": 0.0005528134643100202,
+              "num_tokens": 1024,
+              "num_retained": 889,
+              "num_evicted": 135
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.14701890065088333,
+              "total_regret": 0.04639415070414543,
+              "mean_regret": 0.0004639415128622204,
+              "num_tokens": 1024,
+              "num_retained": 924,
+              "num_evicted": 100
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.18870453651384017,
+              "total_regret": 0.025223584845662117,
+              "mean_regret": 0.0004135014023631811,
+              "num_tokens": 1024,
+              "num_retained": 963,
+              "num_evicted": 61
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.12066226038909947,
+              "total_regret": 0.033743590116500854,
+              "mean_regret": 0.0005531735951080918,
+              "num_tokens": 1024,
+              "num_retained": 963,
+              "num_evicted": 61
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.12147275767112509,
+              "total_regret": 0.07731035351753235,
+              "mean_regret": 0.00062347057973966,
+              "num_tokens": 1024,
+              "num_retained": 900,
+              "num_evicted": 124
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.11738197151491309,
+              "total_regret": 0.031663667410612106,
+              "mean_regret": 0.00031663666595704854,
+              "num_tokens": 1024,
+              "num_retained": 924,
+              "num_evicted": 100
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa_e",
+          "idx": 103,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.05097679439954223,
+              "total_regret": 0.013038081116974354,
+              "mean_regret": 0.00028343655867502093,
+              "num_tokens": 1024,
+              "num_retained": 978,
+              "num_evicted": 46
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.14926751037121808,
+              "total_regret": 0.11099525541067123,
+              "mean_regret": 0.0005904003046452999,
+              "num_tokens": 1024,
+              "num_retained": 836,
+              "num_evicted": 188
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.197483303232959,
+              "total_regret": 0.006663598120212555,
+              "mean_regret": 0.0003173142031300813,
+              "num_tokens": 1024,
+              "num_retained": 1003,
+              "num_evicted": 21
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.22959855115871539,
+              "total_regret": 0.032733719795942307,
+              "mean_regret": 0.0005195828271098435,
+              "num_tokens": 1024,
+              "num_retained": 961,
+              "num_evicted": 63
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.19775909046205561,
+              "total_regret": 0.05212321877479553,
+              "mean_regret": 0.00084069708827883,
+              "num_tokens": 1024,
+              "num_retained": 962,
+              "num_evicted": 62
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.1642622577068879,
+              "total_regret": 0.0854530930519104,
+              "mean_regret": 0.0008901364053599536,
+              "num_tokens": 1024,
+              "num_retained": 928,
+              "num_evicted": 96
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.10300634566554609,
+              "total_regret": 0.07134860754013062,
+              "mean_regret": 0.000524622097145766,
+              "num_tokens": 1024,
+              "num_retained": 888,
+              "num_evicted": 136
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.11350294596237749,
+              "total_regret": 0.06803339719772339,
+              "mean_regret": 0.000985991209745407,
+              "num_tokens": 1024,
+              "num_retained": 955,
+              "num_evicted": 69
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.07330455171303912,
+              "total_regret": 0.14115607738494873,
+              "mean_regret": 0.0006721718236804008,
+              "num_tokens": 1024,
+              "num_retained": 814,
+              "num_evicted": 210
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.13730403091695872,
+              "total_regret": 0.14608225226402283,
+              "mean_regret": 0.0007896337774582207,
+              "num_tokens": 1024,
+              "num_retained": 839,
+              "num_evicted": 185
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.11825909940276087,
+              "total_regret": 0.08173096179962158,
+              "mean_regret": 0.0006191739812493324,
+              "num_tokens": 1024,
+              "num_retained": 892,
+              "num_evicted": 132
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.10743141361490594,
+              "total_regret": 0.03948162868618965,
+              "mean_regret": 0.0005640232702717185,
+              "num_tokens": 1024,
+              "num_retained": 954,
+              "num_evicted": 70
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.08991153172162218,
+              "total_regret": 0.04163166880607605,
+              "mean_regret": 0.00043822810403071344,
+              "num_tokens": 1024,
+              "num_retained": 929,
+              "num_evicted": 95
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.017369420999928473,
+              "total_regret": 0.0412505604326725,
+              "mean_regret": 0.0003716266655828804,
+              "num_tokens": 1024,
+              "num_retained": 913,
+              "num_evicted": 111
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.02767154978184679,
+              "total_regret": 0.07616229355335236,
+              "mean_regret": 0.0005769870476797223,
+              "num_tokens": 1024,
+              "num_retained": 892,
+              "num_evicted": 132
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.06062054082326013,
+              "total_regret": 0.055601973086595535,
+              "mean_regret": 0.000327070418279618,
+              "num_tokens": 1024,
+              "num_retained": 854,
+              "num_evicted": 170
+            }
+          ]
+        },
+        {
+          "task": "lb/2wikimqa_e",
+          "idx": 105,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.001671252503397468,
+              "total_regret": 0.005422906018793583,
+              "mean_regret": 0.00027114531258121133,
+              "num_tokens": 1024,
+              "num_retained": 1004,
+              "num_evicted": 20
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.10569841436592517,
+              "total_regret": 0.09866704046726227,
+              "mean_regret": 0.0005979820853099227,
+              "num_tokens": 1024,
+              "num_retained": 859,
+              "num_evicted": 165
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.22468082799871247,
+              "total_regret": 0.0065779052674770355,
+              "mean_regret": 0.0002740793861448765,
+              "num_tokens": 1024,
+              "num_retained": 1000,
+              "num_evicted": 24
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.25263897208711816,
+              "total_regret": 0.026942690834403038,
+              "mean_regret": 0.0006265742122195661,
+              "num_tokens": 1024,
+              "num_retained": 981,
+              "num_evicted": 43
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.2123470915885845,
+              "total_regret": 0.07165732979774475,
+              "mean_regret": 0.0009070548112504184,
+              "num_tokens": 1024,
+              "num_retained": 945,
+              "num_evicted": 79
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.14200607073885987,
+              "total_regret": 0.06369709968566895,
+              "mean_regret": 0.0006369709735736251,
+              "num_tokens": 1024,
+              "num_retained": 924,
+              "num_evicted": 100
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.11203424513625633,
+              "total_regret": 0.04538433626294136,
+              "mean_regret": 0.0003846130275633186,
+              "num_tokens": 1024,
+              "num_retained": 906,
+              "num_evicted": 118
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.17703294873399614,
+              "total_regret": 0.09582677483558655,
+              "mean_regret": 0.0010889406548812985,
+              "num_tokens": 1024,
+              "num_retained": 936,
+              "num_evicted": 88
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.07053929216436593,
+              "total_regret": 0.1654704064130783,
+              "mean_regret": 0.0007194365607574582,
+              "num_tokens": 1024,
+              "num_retained": 794,
+              "num_evicted": 230
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.13621408071668692,
+              "total_regret": 0.17385481297969818,
+              "mean_regret": 0.0008398783393204212,
+              "num_tokens": 1024,
+              "num_retained": 817,
+              "num_evicted": 207
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.17959215855446675,
+              "total_regret": 0.09560836106538773,
+              "mean_regret": 0.0005558625562116504,
+              "num_tokens": 1024,
+              "num_retained": 852,
+              "num_evicted": 172
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.17220364914884487,
+              "total_regret": 0.05582692474126816,
+              "mean_regret": 0.0006272688042372465,
+              "num_tokens": 1024,
+              "num_retained": 935,
+              "num_evicted": 89
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.14370828043416062,
+              "total_regret": 0.04658086597919464,
+              "mean_regret": 0.0003667784621939063,
+              "num_tokens": 1024,
+              "num_retained": 897,
+              "num_evicted": 127
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.11867667504112725,
+              "total_regret": 0.04081795737147331,
+              "mean_regret": 0.0005301033379510045,
+              "num_tokens": 1024,
+              "num_retained": 947,
+              "num_evicted": 77
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.0867884763250125,
+              "total_regret": 0.0846155509352684,
+              "mean_regret": 0.0006508888327516615,
+              "num_tokens": 1024,
+              "num_retained": 894,
+              "num_evicted": 130
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.12214764680638007,
+              "total_regret": 0.05327678099274635,
+              "mean_regret": 0.00033934254315681756,
+              "num_tokens": 1024,
+              "num_retained": 867,
+              "num_evicted": 157
+            }
+          ]
+        },
+        {
+          "task": "lb/hotpotqa_e",
+          "idx": 88,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.0525579916493813,
+              "total_regret": 0.010682161897420883,
+              "mean_regret": 0.0003141812339890748,
+              "num_tokens": 1024,
+              "num_retained": 990,
+              "num_evicted": 34
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.16013133896001713,
+              "total_regret": 0.11269310116767883,
+              "mean_regret": 0.0005315712187439203,
+              "num_tokens": 1024,
+              "num_retained": 812,
+              "num_evicted": 212
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2011218126385809,
+              "total_regret": 0.014260468073189259,
+              "mean_regret": 0.000432135391747579,
+              "num_tokens": 1024,
+              "num_retained": 991,
+              "num_evicted": 33
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.21957577471210926,
+              "total_regret": 0.024073446169495583,
+              "mean_regret": 0.0005349654820747674,
+              "num_tokens": 1024,
+              "num_retained": 979,
+              "num_evicted": 45
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.19912691778127456,
+              "total_regret": 0.06327557563781738,
+              "mean_regret": 0.00102057377807796,
+              "num_tokens": 1024,
+              "num_retained": 962,
+              "num_evicted": 62
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.13708360900507832,
+              "total_regret": 0.08865249156951904,
+              "mean_regret": 0.0007207519374787807,
+              "num_tokens": 1024,
+              "num_retained": 901,
+              "num_evicted": 123
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.13172205806093984,
+              "total_regret": 0.062244296073913574,
+              "mean_regret": 0.0004901125794276595,
+              "num_tokens": 1024,
+              "num_retained": 897,
+              "num_evicted": 127
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.102769394624848,
+              "total_regret": 0.06770837306976318,
+              "mean_regret": 0.0007965691038407385,
+              "num_tokens": 1024,
+              "num_retained": 939,
+              "num_evicted": 85
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.07830439525069736,
+              "total_regret": 0.1454092562198639,
+              "mean_regret": 0.0006826725439168513,
+              "num_tokens": 1024,
+              "num_retained": 811,
+              "num_evicted": 213
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.07031284645232815,
+              "total_regret": 0.13285639882087708,
+              "mean_regret": 0.000670991896186024,
+              "num_tokens": 1024,
+              "num_retained": 826,
+              "num_evicted": 198
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.1252545307023818,
+              "total_regret": 0.059723637998104095,
+              "mean_regret": 0.000398157601011917,
+              "num_tokens": 1024,
+              "num_retained": 874,
+              "num_evicted": 150
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.14859649926686216,
+              "total_regret": 0.04997144266963005,
+              "mean_regret": 0.0005948981270194054,
+              "num_tokens": 1024,
+              "num_retained": 940,
+              "num_evicted": 84
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.13951830832916098,
+              "total_regret": 0.031704388558864594,
+              "mean_regret": 0.0004013213620055467,
+              "num_tokens": 1024,
+              "num_retained": 945,
+              "num_evicted": 79
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.040514179958515126,
+              "total_regret": 0.028897710144519806,
+              "mean_regret": 0.0004982363898307085,
+              "num_tokens": 1024,
+              "num_retained": 966,
+              "num_evicted": 58
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.08004673753665688,
+              "total_regret": 0.07404832541942596,
+              "mean_regret": 0.0006069535156711936,
+              "num_tokens": 1024,
+              "num_retained": 902,
+              "num_evicted": 122
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.11395249579786852,
+              "total_regret": 0.03876576945185661,
+              "mean_regret": 0.00026551896007731557,
+              "num_tokens": 1024,
+              "num_retained": 878,
+              "num_evicted": 146
+            }
+          ]
+        },
+        {
+          "task": "lb/hotpotqa_e",
+          "idx": 89,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.01515652939703884,
+              "total_regret": 0.013402734883129597,
+              "mean_regret": 0.00043234627810306847,
+              "num_tokens": 1024,
+              "num_retained": 993,
+              "num_evicted": 31
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.15076170338316283,
+              "total_regret": 0.12247784435749054,
+              "mean_regret": 0.0006379054393619299,
+              "num_tokens": 1024,
+              "num_retained": 832,
+              "num_evicted": 192
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.20430078097060292,
+              "total_regret": 0.014882080256938934,
+              "mean_regret": 0.00030371593311429024,
+              "num_tokens": 1024,
+              "num_retained": 975,
+              "num_evicted": 49
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.24483653038051642,
+              "total_regret": 0.029194045811891556,
+              "mean_regret": 0.0005957968533039093,
+              "num_tokens": 1024,
+              "num_retained": 975,
+              "num_evicted": 49
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.19925597686145483,
+              "total_regret": 0.05557812750339508,
+              "mean_regret": 0.0008821925148367882,
+              "num_tokens": 1024,
+              "num_retained": 961,
+              "num_evicted": 63
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.13913790964952968,
+              "total_regret": 0.09121772646903992,
+              "mean_regret": 0.000766535522416234,
+              "num_tokens": 1024,
+              "num_retained": 905,
+              "num_evicted": 119
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.09059406515985981,
+              "total_regret": 0.0753140076994896,
+              "mean_regret": 0.0004827821103390306,
+              "num_tokens": 1024,
+              "num_retained": 868,
+              "num_evicted": 156
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.13559004222133508,
+              "total_regret": 0.09160446375608444,
+              "mean_regret": 0.0010776995914056897,
+              "num_tokens": 1024,
+              "num_retained": 939,
+              "num_evicted": 85
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.06363864351620055,
+              "total_regret": 0.12299948185682297,
+              "mean_regret": 0.0006243628449738026,
+              "num_tokens": 1024,
+              "num_retained": 827,
+              "num_evicted": 197
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.13900641942636432,
+              "total_regret": 0.13807643949985504,
+              "mean_regret": 0.0008470946922898293,
+              "num_tokens": 1024,
+              "num_retained": 861,
+              "num_evicted": 163
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.14021200647307058,
+              "total_regret": 0.0806695818901062,
+              "mean_regret": 0.0007076279143802822,
+              "num_tokens": 1024,
+              "num_retained": 910,
+              "num_evicted": 114
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.16072629819040124,
+              "total_regret": 0.05521349981427193,
+              "mean_regret": 0.0006495706038549542,
+              "num_tokens": 1024,
+              "num_retained": 939,
+              "num_evicted": 85
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.14560037953293753,
+              "total_regret": 0.04020681232213974,
+              "mean_regret": 0.0004145032144151628,
+              "num_tokens": 1024,
+              "num_retained": 927,
+              "num_evicted": 97
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.12995622407195478,
+              "total_regret": 0.05766156688332558,
+              "mean_regret": 0.0005598210263997316,
+              "num_tokens": 1024,
+              "num_retained": 921,
+              "num_evicted": 103
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.08035904754667048,
+              "total_regret": 0.07466580718755722,
+              "mean_regret": 0.000592585769481957,
+              "num_tokens": 1024,
+              "num_retained": 898,
+              "num_evicted": 126
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.0685011689972105,
+              "total_regret": 0.047231391072273254,
+              "mean_regret": 0.0003349744074512273,
+              "num_tokens": 1024,
+              "num_retained": 883,
+              "num_evicted": 141
+            }
+          ]
+        },
+        {
+          "task": "lb/hotpotqa_e",
+          "idx": 93,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.007250967831342537,
+              "total_regret": 0.006381623912602663,
+              "mean_regret": 0.0004254415980540216,
+              "num_tokens": 1024,
+              "num_retained": 1009,
+              "num_evicted": 15
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.17051378880266074,
+              "total_regret": 0.08260026574134827,
+              "mean_regret": 0.0007866692030802369,
+              "num_tokens": 1024,
+              "num_retained": 919,
+              "num_evicted": 105
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2588022584221443,
+              "total_regret": 0.009817278012633324,
+              "mean_regret": 0.0002804936666507274,
+              "num_tokens": 1024,
+              "num_retained": 989,
+              "num_evicted": 35
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.27161341731635785,
+              "total_regret": 0.026942230761051178,
+              "mean_regret": 0.0005388446152210236,
+              "num_tokens": 1024,
+              "num_retained": 974,
+              "num_evicted": 50
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.18416804502539158,
+              "total_regret": 0.07375321537256241,
+              "mean_regret": 0.0009335849899798632,
+              "num_tokens": 1024,
+              "num_retained": 945,
+              "num_evicted": 79
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.14079875143051282,
+              "total_regret": 0.08735054731369019,
+              "mean_regret": 0.0008399091311730444,
+              "num_tokens": 1024,
+              "num_retained": 920,
+              "num_evicted": 104
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.12229007224089834,
+              "total_regret": 0.09083269536495209,
+              "mean_regret": 0.0005785521934740245,
+              "num_tokens": 1024,
+              "num_retained": 867,
+              "num_evicted": 157
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.15647644571203775,
+              "total_regret": 0.09780228137969971,
+              "mean_regret": 0.001304030418395996,
+              "num_tokens": 1024,
+              "num_retained": 949,
+              "num_evicted": 75
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.08988739181746655,
+              "total_regret": 0.17594586312770844,
+              "mean_regret": 0.0007961351075209677,
+              "num_tokens": 1024,
+              "num_retained": 803,
+              "num_evicted": 221
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.19238056335383732,
+              "total_regret": 0.17340339720249176,
+              "mean_regret": 0.001014054985716939,
+              "num_tokens": 1024,
+              "num_retained": 853,
+              "num_evicted": 171
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.11106101584292968,
+              "total_regret": 0.10954150557518005,
+              "mean_regret": 0.001217127894051373,
+              "num_tokens": 1024,
+              "num_retained": 934,
+              "num_evicted": 90
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.18109924853372433,
+              "total_regret": 0.022952662780880928,
+              "mean_regret": 0.000956360949203372,
+              "num_tokens": 1024,
+              "num_retained": 1000,
+              "num_evicted": 24
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.171594965935913,
+              "total_regret": 0.018622126430273056,
+              "mean_regret": 0.0005033006891608238,
+              "num_tokens": 1024,
+              "num_retained": 987,
+              "num_evicted": 37
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.1259264805807882,
+              "total_regret": 0.044826164841651917,
+              "mean_regret": 0.0007348551880568266,
+              "num_tokens": 1024,
+              "num_retained": 963,
+              "num_evicted": 61
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.07910651062155782,
+              "total_regret": 0.10859613120555878,
+              "mean_regret": 0.0007438090979121625,
+              "num_tokens": 1024,
+              "num_retained": 878,
+              "num_evicted": 146
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.11471661317144695,
+              "total_regret": 0.04823090881109238,
+              "mean_regret": 0.00033965427428483963,
+              "num_tokens": 1024,
+              "num_retained": 882,
+              "num_evicted": 142
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper",
+          "idx": 142,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.05284843045919461,
+              "total_regret": 0.008781876415014267,
+              "mean_regret": 0.0003991762059740722,
+              "num_tokens": 1024,
+              "num_retained": 1002,
+              "num_evicted": 22
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.17582724992847434,
+              "total_regret": 0.07477571070194244,
+              "mean_regret": 0.0005303241778165102,
+              "num_tokens": 1024,
+              "num_retained": 883,
+              "num_evicted": 141
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2525223405872255,
+              "total_regret": 0.014249921776354313,
+              "mean_regret": 0.0003749979368876666,
+              "num_tokens": 1024,
+              "num_retained": 986,
+              "num_evicted": 38
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.3190558279987125,
+              "total_regret": 0.04028493911027908,
+              "mean_regret": 0.0006827955949120224,
+              "num_tokens": 1024,
+              "num_retained": 965,
+              "num_evicted": 59
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.2568830466347185,
+              "total_regret": 0.07285818457603455,
+              "mean_regret": 0.0011943965218961239,
+              "num_tokens": 1024,
+              "num_retained": 963,
+              "num_evicted": 61
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.16266712413275158,
+              "total_regret": 0.12552617490291595,
+              "mean_regret": 0.0008204324985854328,
+              "num_tokens": 1024,
+              "num_retained": 871,
+              "num_evicted": 153
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.14424482333166438,
+              "total_regret": 0.09520404785871506,
+              "mean_regret": 0.0005633375840261579,
+              "num_tokens": 1024,
+              "num_retained": 855,
+              "num_evicted": 169
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.1802322795222087,
+              "total_regret": 0.11297816783189774,
+              "mean_regret": 0.0013449782272800803,
+              "num_tokens": 1024,
+              "num_retained": 940,
+              "num_evicted": 84
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.09532759861597881,
+              "total_regret": 0.18900436162948608,
+              "mean_regret": 0.0008182007004506886,
+              "num_tokens": 1024,
+              "num_retained": 793,
+              "num_evicted": 231
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.15102352076031755,
+              "total_regret": 0.1842171847820282,
+              "mean_regret": 0.0007974769687280059,
+              "num_tokens": 1024,
+              "num_retained": 793,
+              "num_evicted": 231
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.12047961295687,
+              "total_regret": 0.09616246819496155,
+              "mean_regret": 0.0008013538899831474,
+              "num_tokens": 1024,
+              "num_retained": 904,
+              "num_evicted": 120
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.09226965390530005,
+              "total_regret": 0.06737621873617172,
+              "mean_regret": 0.0006125110667198896,
+              "num_tokens": 1024,
+              "num_retained": 914,
+              "num_evicted": 110
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.12863202739432086,
+              "total_regret": 0.0579230822622776,
+              "mean_regret": 0.00048269235412590206,
+              "num_tokens": 1024,
+              "num_retained": 904,
+              "num_evicted": 120
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.09220696838566625,
+              "total_regret": 0.03191874548792839,
+              "mean_regret": 0.0003432123048696667,
+              "num_tokens": 1024,
+              "num_retained": 931,
+              "num_evicted": 93
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.0396364821007081,
+              "total_regret": 0.1102362722158432,
+              "mean_regret": 0.0006640739156864583,
+              "num_tokens": 1024,
+              "num_retained": 858,
+              "num_evicted": 166
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.07776011864315856,
+              "total_regret": 0.07619978487491608,
+              "mean_regret": 0.0004732905945274979,
+              "num_tokens": 1024,
+              "num_retained": 863,
+              "num_evicted": 161
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper",
+          "idx": 143,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.042486544238609536,
+              "total_regret": 0.01026459876447916,
+              "mean_regret": 0.00041058394708670676,
+              "num_tokens": 1024,
+              "num_retained": 999,
+              "num_evicted": 25
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1575058449860525,
+              "total_regret": 0.07050050050020218,
+              "mean_regret": 0.0007747307536192238,
+              "num_tokens": 1024,
+              "num_retained": 933,
+              "num_evicted": 91
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.23699410136971602,
+              "total_regret": 0.01109082717448473,
+              "mean_regret": 0.0002997520787175745,
+              "num_tokens": 1024,
+              "num_retained": 987,
+              "num_evicted": 37
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.26651997577068876,
+              "total_regret": 0.03158726915717125,
+              "mean_regret": 0.000535377417691052,
+              "num_tokens": 1024,
+              "num_retained": 965,
+              "num_evicted": 59
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.2214448291431228,
+              "total_regret": 0.03286213055253029,
+              "mean_regret": 0.0009665332618169487,
+              "num_tokens": 1024,
+              "num_retained": 990,
+              "num_evicted": 34
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.13968287318503683,
+              "total_regret": 0.0872381404042244,
+              "mean_regret": 0.0006143531063571572,
+              "num_tokens": 1024,
+              "num_retained": 882,
+              "num_evicted": 142
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.08026125858307702,
+              "total_regret": 0.08874233067035675,
+              "mean_regret": 0.0005581278819590807,
+              "num_tokens": 1024,
+              "num_retained": 865,
+              "num_evicted": 159
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.13609476700522136,
+              "total_regret": 0.056359127163887024,
+              "mean_regret": 0.001105080940760672,
+              "num_tokens": 1024,
+              "num_retained": 973,
+              "num_evicted": 51
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.06221991005650525,
+              "total_regret": 0.139156311750412,
+              "mean_regret": 0.0008807361591607332,
+              "num_tokens": 1024,
+              "num_retained": 866,
+              "num_evicted": 158
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.14437159135612615,
+              "total_regret": 0.1559329628944397,
+              "mean_regret": 0.0008567745098844171,
+              "num_tokens": 1024,
+              "num_retained": 842,
+              "num_evicted": 182
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.06124804422072813,
+              "total_regret": 0.07074511796236038,
+              "mean_regret": 0.0008131623035296798,
+              "num_tokens": 1024,
+              "num_retained": 937,
+              "num_evicted": 87
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.05464113126743436,
+              "total_regret": 0.054241884499788284,
+              "mean_regret": 0.0006696528871543705,
+              "num_tokens": 1024,
+              "num_retained": 943,
+              "num_evicted": 81
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.08118340292182247,
+              "total_regret": 0.02762443572282791,
+              "mean_regret": 0.0005212157848291099,
+              "num_tokens": 1024,
+              "num_retained": 971,
+              "num_evicted": 53
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.07615693843430368,
+              "total_regret": 0.055769119411706924,
+              "mean_regret": 0.0005163807072676718,
+              "num_tokens": 1024,
+              "num_retained": 916,
+              "num_evicted": 108
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.03154104230741721,
+              "total_regret": 0.09348909556865692,
+              "mean_regret": 0.0006191330612637103,
+              "num_tokens": 1024,
+              "num_retained": 873,
+              "num_evicted": 151
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.05437760398040196,
+              "total_regret": 0.051370855420827866,
+              "mean_regret": 0.00036957449628971517,
+              "num_tokens": 1024,
+              "num_retained": 885,
+              "num_evicted": 139
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper",
+          "idx": 144,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.05210000402331735,
+              "total_regret": 0.012117169797420502,
+              "mean_regret": 0.000417833449319005,
+              "num_tokens": 1024,
+              "num_retained": 995,
+              "num_evicted": 29
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.17723301936556754,
+              "total_regret": 0.0885012149810791,
+              "mean_regret": 0.0006145917577669024,
+              "num_tokens": 1024,
+              "num_retained": 880,
+              "num_evicted": 144
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2723172072813103,
+              "total_regret": 0.012285740114748478,
+              "mean_regret": 0.00042364621185697615,
+              "num_tokens": 1024,
+              "num_retained": 995,
+              "num_evicted": 29
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.24991215757098917,
+              "total_regret": 0.03223718702793121,
+              "mean_regret": 0.0005199546576477587,
+              "num_tokens": 1024,
+              "num_retained": 962,
+              "num_evicted": 62
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.21355663489736065,
+              "total_regret": 0.06407418847084045,
+              "mean_regret": 0.0008899192907847464,
+              "num_tokens": 1024,
+              "num_retained": 952,
+              "num_evicted": 72
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.1484414227344253,
+              "total_regret": 0.09014307707548141,
+              "mean_regret": 0.0007449841359630227,
+              "num_tokens": 1024,
+              "num_retained": 903,
+              "num_evicted": 121
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.14425972078177524,
+              "total_regret": 0.07352055609226227,
+              "mean_regret": 0.0004743261670228094,
+              "num_tokens": 1024,
+              "num_retained": 869,
+              "num_evicted": 155
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.09250757724769329,
+              "total_regret": 0.08881321549415588,
+              "mean_regret": 0.001020841533318162,
+              "num_tokens": 1024,
+              "num_retained": 937,
+              "num_evicted": 87
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.07857292933266576,
+              "total_regret": 0.1412293165922165,
+              "mean_regret": 0.0006087470683269203,
+              "num_tokens": 1024,
+              "num_retained": 792,
+              "num_evicted": 232
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.14209718770116586,
+              "total_regret": 0.12406599521636963,
+              "mean_regret": 0.0006816812674514949,
+              "num_tokens": 1024,
+              "num_retained": 842,
+              "num_evicted": 182
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.1355429019741077,
+              "total_regret": 0.07914979755878448,
+              "mean_regret": 0.0007004406652413309,
+              "num_tokens": 1024,
+              "num_retained": 911,
+              "num_evicted": 113
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.11629770983835204,
+              "total_regret": 0.05129580199718475,
+              "mean_regret": 0.0005234265699982643,
+              "num_tokens": 1024,
+              "num_retained": 926,
+              "num_evicted": 98
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.14025821874329447,
+              "total_regret": 0.04881475865840912,
+              "mean_regret": 0.0005032449262216687,
+              "num_tokens": 1024,
+              "num_retained": 927,
+              "num_evicted": 97
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.11383128218653886,
+              "total_regret": 0.05582169070839882,
+              "mean_regret": 0.0005028981249779463,
+              "num_tokens": 1024,
+              "num_retained": 913,
+              "num_evicted": 111
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.053889106197696865,
+              "total_regret": 0.05266520380973816,
+              "mean_regret": 0.000619590631686151,
+              "num_tokens": 1024,
+              "num_retained": 939,
+              "num_evicted": 85
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.12515999392032043,
+              "total_regret": 0.02890670672059059,
+              "mean_regret": 0.00032848530099727213,
+              "num_tokens": 1024,
+              "num_retained": 936,
+              "num_evicted": 88
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper_e",
+          "idx": 139,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.009437014966740575,
+              "total_regret": 0.00905404333025217,
+              "mean_regret": 0.0005658777081407607,
+              "num_tokens": 1024,
+              "num_retained": 1008,
+              "num_evicted": 16
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.1521706132429726,
+              "total_regret": 0.0813651978969574,
+              "mean_regret": 0.0006211083964444697,
+              "num_tokens": 1024,
+              "num_retained": 893,
+              "num_evicted": 131
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.2508654043880981,
+              "total_regret": 0.009240750223398209,
+              "mean_regret": 0.000288773444481194,
+              "num_tokens": 1024,
+              "num_retained": 992,
+              "num_evicted": 32
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2956519674021887,
+              "total_regret": 0.025839082896709442,
+              "mean_regret": 0.0004969054134562612,
+              "num_tokens": 1024,
+              "num_retained": 972,
+              "num_evicted": 52
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.2374113640833989,
+              "total_regret": 0.05201420933008194,
+              "mean_regret": 0.0009125299984589219,
+              "num_tokens": 1024,
+              "num_retained": 967,
+              "num_evicted": 57
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.164049558329161,
+              "total_regret": 0.10985083132982254,
+              "mean_regret": 0.0008858938235789537,
+              "num_tokens": 1024,
+              "num_retained": 900,
+              "num_evicted": 124
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.12102473893140689,
+              "total_regret": 0.09446145594120026,
+              "mean_regret": 0.0005830954178236425,
+              "num_tokens": 1024,
+              "num_retained": 862,
+              "num_evicted": 162
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.19749177455117656,
+              "total_regret": 0.08099160343408585,
+              "mean_regret": 0.001173791359178722,
+              "num_tokens": 1024,
+              "num_retained": 955,
+              "num_evicted": 69
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.15360042200128743,
+              "total_regret": 0.1755749136209488,
+              "mean_regret": 0.0009192404104396701,
+              "num_tokens": 1024,
+              "num_retained": 833,
+              "num_evicted": 191
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.22780509039052996,
+              "total_regret": 0.17648592591285706,
+              "mean_regret": 0.0009387549362145364,
+              "num_tokens": 1024,
+              "num_retained": 836,
+              "num_evicted": 188
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.14087281399756812,
+              "total_regret": 0.0718216672539711,
+              "mean_regret": 0.000806985015515238,
+              "num_tokens": 1024,
+              "num_retained": 935,
+              "num_evicted": 89
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.14051376645089764,
+              "total_regret": 0.06834790110588074,
+              "mean_regret": 0.000690382847096771,
+              "num_tokens": 1024,
+              "num_retained": 925,
+              "num_evicted": 99
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.17840198304842284,
+              "total_regret": 0.043500564992427826,
+              "mean_regret": 0.0006492621614597738,
+              "num_tokens": 1024,
+              "num_retained": 957,
+              "num_evicted": 67
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.1279825745654817,
+              "total_regret": 0.04780678078532219,
+              "mean_regret": 0.0005624326877295971,
+              "num_tokens": 1024,
+              "num_retained": 939,
+              "num_evicted": 85
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.03061323179672412,
+              "total_regret": 0.08334870636463165,
+              "mean_regret": 0.000631429604254663,
+              "num_tokens": 1024,
+              "num_retained": 892,
+              "num_evicted": 132
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.10141655416279236,
+              "total_regret": 0.03929031640291214,
+              "mean_regret": 0.00035396681050769985,
+              "num_tokens": 1024,
+              "num_retained": 913,
+              "num_evicted": 111
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper_e",
+          "idx": 140,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.05487172323152849,
+              "total_regret": 0.011806091293692589,
+              "mean_regret": 0.00042164610931649804,
+              "num_tokens": 1024,
+              "num_retained": 996,
+              "num_evicted": 28
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.13772796563192902,
+              "total_regret": 0.07215629518032074,
+              "mean_regret": 0.0005819055950269103,
+              "num_tokens": 1024,
+              "num_retained": 900,
+              "num_evicted": 124
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.29294167083899575,
+              "total_regret": 0.01815849542617798,
+              "mean_regret": 0.00037830197834409773,
+              "num_tokens": 1024,
+              "num_retained": 976,
+              "num_evicted": 48
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.27298434035476715,
+              "total_regret": 0.031141497194767,
+              "mean_regret": 0.0005766943795606494,
+              "num_tokens": 1024,
+              "num_retained": 970,
+              "num_evicted": 54
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.23188373953937483,
+              "total_regret": 0.05307699739933014,
+              "mean_regret": 0.0008701147162355483,
+              "num_tokens": 1024,
+              "num_retained": 963,
+              "num_evicted": 61
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.17221796545311494,
+              "total_regret": 0.09715087711811066,
+              "mean_regret": 0.0007772070239298046,
+              "num_tokens": 1024,
+              "num_retained": 899,
+              "num_evicted": 125
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.11333316196981616,
+              "total_regret": 0.07552532851696014,
+              "mean_regret": 0.0004662057326640934,
+              "num_tokens": 1024,
+              "num_retained": 862,
+              "num_evicted": 162
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.13451448617766967,
+              "total_regret": 0.0681908056139946,
+              "mean_regret": 0.0009341206168755889,
+              "num_tokens": 1024,
+              "num_retained": 951,
+              "num_evicted": 73
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.010471108111007797,
+              "total_regret": 0.12901577353477478,
+              "mean_regret": 0.0005811521550640464,
+              "num_tokens": 1024,
+              "num_retained": 802,
+              "num_evicted": 222
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.13860783161075743,
+              "total_regret": 0.1403399109840393,
+              "mean_regret": 0.0007796661811880767,
+              "num_tokens": 1024,
+              "num_retained": 844,
+              "num_evicted": 180
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.03653070461698018,
+              "total_regret": 0.10943035781383514,
+              "mean_regret": 0.0007987617282196879,
+              "num_tokens": 1024,
+              "num_retained": 887,
+              "num_evicted": 137
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.08484107896430869,
+              "total_regret": 0.05705881118774414,
+              "mean_regret": 0.0006958391750231385,
+              "num_tokens": 1024,
+              "num_retained": 942,
+              "num_evicted": 82
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.11248648835920178,
+              "total_regret": 0.03967674449086189,
+              "mean_regret": 0.0003852111112792045,
+              "num_tokens": 1024,
+              "num_retained": 921,
+              "num_evicted": 103
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": -0.08944701738073099,
+              "total_regret": 0.046768397092819214,
+              "mean_regret": 0.0004922989173792303,
+              "num_tokens": 1024,
+              "num_retained": 929,
+              "num_evicted": 95
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": -0.07352072678992919,
+              "total_regret": 0.09491100907325745,
+              "mean_regret": 0.0006500753806903958,
+              "num_tokens": 1024,
+              "num_retained": 878,
+              "num_evicted": 146
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.11933602970102279,
+              "total_regret": 0.04573323205113411,
+              "mean_regret": 0.00035179409314878285,
+              "num_tokens": 1024,
+              "num_retained": 894,
+              "num_evicted": 130
+            }
+          ]
+        },
+        {
+          "task": "lb/qasper_e",
+          "idx": 141,
+          "seq_len": 1024,
+          "layers": [
+            {
+              "layer_id": 0,
+              "spearman_rho": -0.005517018632429725,
+              "total_regret": 0.012742224149405956,
+              "mean_regret": 0.00035395065788179636,
+              "num_tokens": 1024,
+              "num_retained": 988,
+              "num_evicted": 36
+            },
+            {
+              "layer_id": 1,
+              "spearman_rho": -0.052152687128960734,
+              "total_regret": 0.07705370336771011,
+              "mean_regret": 0.0005503835855051875,
+              "num_tokens": 1024,
+              "num_retained": 884,
+              "num_evicted": 140
+            },
+            {
+              "layer_id": 2,
+              "spearman_rho": -0.22033067198340606,
+              "total_regret": 0.007399359717965126,
+              "mean_regret": 0.00024664532975293696,
+              "num_tokens": 1024,
+              "num_retained": 994,
+              "num_evicted": 30
+            },
+            {
+              "layer_id": 3,
+              "spearman_rho": -0.2694878764036907,
+              "total_regret": 0.029346609488129616,
+              "mean_regret": 0.0005869321757927537,
+              "num_tokens": 1024,
+              "num_retained": 974,
+              "num_evicted": 50
+            },
+            {
+              "layer_id": 4,
+              "spearman_rho": -0.19511450808239753,
+              "total_regret": 0.056453973054885864,
+              "mean_regret": 0.0008553632069379091,
+              "num_tokens": 1024,
+              "num_retained": 958,
+              "num_evicted": 66
+            },
+            {
+              "layer_id": 5,
+              "spearman_rho": -0.10877714621629354,
+              "total_regret": 0.08075830340385437,
+              "mean_regret": 0.0006512766121886671,
+              "num_tokens": 1024,
+              "num_retained": 900,
+              "num_evicted": 124
+            },
+            {
+              "layer_id": 6,
+              "spearman_rho": -0.08464164535798582,
+              "total_regret": 0.058618489652872086,
+              "mean_regret": 0.0003552635607775301,
+              "num_tokens": 1024,
+              "num_retained": 859,
+              "num_evicted": 165
+            },
+            {
+              "layer_id": 7,
+              "spearman_rho": -0.13764473884199985,
+              "total_regret": 0.07731296122074127,
+              "mean_regret": 0.00094284099759534,
+              "num_tokens": 1024,
+              "num_retained": 942,
+              "num_evicted": 82
+            },
+            {
+              "layer_id": 8,
+              "spearman_rho": -0.04671914115585438,
+              "total_regret": 0.11230266094207764,
+              "mean_regret": 0.0005081568378955126,
+              "num_tokens": 1024,
+              "num_retained": 803,
+              "num_evicted": 221
+            },
+            {
+              "layer_id": 9,
+              "spearman_rho": -0.11423862071740219,
+              "total_regret": 0.1624283641576767,
+              "mean_regret": 0.0006796165835112333,
+              "num_tokens": 1024,
+              "num_retained": 785,
+              "num_evicted": 239
+            },
+            {
+              "layer_id": 10,
+              "spearman_rho": -0.041022632392350086,
+              "total_regret": 0.09116863459348679,
+              "mean_regret": 0.00048753281589597464,
+              "num_tokens": 1024,
+              "num_retained": 837,
+              "num_evicted": 187
+            },
+            {
+              "layer_id": 11,
+              "spearman_rho": -0.040074788999356264,
+              "total_regret": 0.04382896423339844,
+              "mean_regret": 0.0004662655701395124,
+              "num_tokens": 1024,
+              "num_retained": 930,
+              "num_evicted": 94
+            },
+            {
+              "layer_id": 12,
+              "spearman_rho": -0.037385983656390814,
+              "total_regret": 0.03826325386762619,
+              "mean_regret": 0.0003788440953940153,
+              "num_tokens": 1024,
+              "num_retained": 923,
+              "num_evicted": 101
+            },
+            {
+              "layer_id": 13,
+              "spearman_rho": 0.005236582236606823,
+              "total_regret": 0.040127888321876526,
+              "mean_regret": 0.00038959115045145154,
+              "num_tokens": 1024,
+              "num_retained": 921,
+              "num_evicted": 103
+            },
+            {
+              "layer_id": 14,
+              "spearman_rho": 0.02966219780416279,
+              "total_regret": 0.08788591623306274,
+              "mean_regret": 0.0004937411285936832,
+              "num_tokens": 1024,
+              "num_retained": 846,
+              "num_evicted": 178
+            },
+            {
+              "layer_id": 15,
+              "spearman_rho": -0.05346194165295758,
+              "total_regret": 0.06045772507786751,
+              "mean_regret": 0.00030078471172600985,
+              "num_tokens": 1024,
+              "num_retained": 823,
+              "num_evicted": 201
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
