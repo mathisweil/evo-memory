@@ -9,6 +9,33 @@ We compare three conditions:
 
 ---
 
+## 0 · Dataset Characterisation and Performance Hypotheses
+
+**Question:** What are the structural differences between the 5 tasks, and what performance patterns should we expect under each condition before looking at results?
+
+**Method:** For each task in the 5-task LongBench QA subset (qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e), characterise:
+
+1. **Task structure:** What kind of reasoning is required — localised passage retrieval, multi-hop reasoning across documents, or comparison-based reasoning?
+2. **Answer characteristics:** Short factoid, extractive span, yes/no, or free-form? Average answer length.
+3. **Information distribution:** Is the answer-relevant information concentrated in one passage or distributed across multiple passages? This directly predicts eviction sensitivity.
+4. **Eviction impact:** At cache_size=1024 with contexts of 4096–6500 tokens, roughly 75–85% of tokens are evicted. Which task types lose critical information?
+
+Form predictions for the relative task ranking under each condition (B0, M1, M2, M3) based purely on task characteristics, before comparing against actual results in §1.
+
+**Hypothesis:** Tasks with localised information (Qasper — answer in a specific paper section) should be less sensitive to eviction than multi-hop tasks (2WikiMQA, HotpotQA — require combining facts from multiple passages). Under M3 fine-tuning, recovery should be easier for localised tasks since the model can learn to attend to the retained passage.
+
+**Data needed:** Dataset metadata, prompt templates, sample counts per split.
+
+**Effort:** Low — dataset inspection only.
+
+**References:**
+- Bai et al. (2023). "LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding." *ACL 2024*.
+- Dasigi et al. (2021). "A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers." *NAACL 2021*. Introduces the Qasper dataset.
+- Yang et al. (2018). "HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering." *EMNLP 2018*.
+- Ho et al. (2020). "Constructing A Multi-hop QA Dataset for Comprehensive Evaluation of Reasoning Steps." *COLING 2020*. Introduces 2WikiMultihopQA.
+
+---
+
 ## 1 · Per-Task Eviction Sensitivity
 
 **Question:** Which tasks are most affected by KV-cache eviction, and does M3 fine-tuning recover the lost performance uniformly or selectively?
