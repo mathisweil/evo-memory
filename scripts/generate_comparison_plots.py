@@ -77,8 +77,8 @@ def fetch_namm_history(api, run_ids):
 
 
 def get_baseline(api):
-    """Get baseline F1 values from the start of the M1 run."""
-    r = api.run(f"{ENTITY}/{PROJECT}/qfoxxi2m")
+    """Get baseline F1 values from the start of the first M1 segment (true base model)."""
+    r = api.run(f"{ENTITY}/{PROJECT}/kz6vqo2o")
     h = r.history(
         keys=[f"lora/baseline_lb_{t}" for t in TASKS] + ["lora/baseline_lb_avg_f1"],
         pandas=True, samples=10000,
