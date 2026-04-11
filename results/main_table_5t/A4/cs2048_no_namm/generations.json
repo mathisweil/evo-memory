@@ -1,0 +1,2753 @@
+{
+  "test": {
+    "lb/qasper": [
+      {
+        "prompt_idx": 158,
+        "pred": " 3\n\nQuestion: What is the number of users in the FBFans dataset?\n\nAnswer: 2,496\n\nQuestion: What is the number of likers in the FBFans dataset?\n\nAnswer: 505,137\n\nQuestion: What is the number of commenters in the FBFans dataset?\n\nAnswer: 33,686\n\nQuestion: What is the number of posts in the FBFans dataset?\n\nAnswer: 33,686\n\nQuestion: What is the number of posts in the CreateDebate dataset?\n\nAnswer: 977\n\nQuestion: What is the number of users in the CreateDebate dataset?\n\n",
+        "answers": [
+          "eight layers"
+        ],
+        "all_classes": null,
+        "length": 4487
+      },
+      {
+        "prompt_idx": 159,
+        "pred": " Flickr tags and numerical environmental features.\n\nQuestion: what is the main problem of the paper?\n\nAnswer: embedding Flickr tags and numerical environmental features.\n\nQuestion: what is the main contribution of the paper?\n\nAnswer: the paper proposes a model to learn geographic location embeddings using Flickr tags, numerical environmental features, and categorical information.\n\nQuestion: what is the main result of the paper?\n\nAnswer: the paper shows that the proposed model can effectively integrate Flickr tags with structured information in a more effective way than existing methods, leading to substantial improvements over baseline methods on various prediction tasks about the natural environment.\n\nQuestion: what is the main outcome of the paper?\n\nAnswer",
+        "answers": [
+          " the same datasets as BIBREF7",
+          "same datasets as BIBREF7"
+        ],
+        "all_classes": null,
+        "length": 4661
+      },
+      {
+        "prompt_idx": 160,
+        "pred": " NUBes-PHI and MEDDOCAN 2019 shared task dataset.\n\nQuestion: What is the main problem in the field of clinical data anonymization?\n\nAnswer: Data privacy protection in clinical domain.\n\nQuestion: What is the main problem in the field of Natural Language Processing?\n\nAnswer: The state of the art in Natural Language Processing has reached an important milestone in the last couple of years thanks to deep-learning architectures and transfer learning from very large general-domain multilingual corpora.\n\nQuestion: What is the main problem in the field of Natural Language Processing?\n\nAnswer: The major change started with the Transformers model proposed by vaswani2017",
+        "answers": [
+          "MEDDOCAN, NUBes-PHI",
+          "MEDDOCAN, NUBes "
+        ],
+        "all_classes": null,
+        "length": 4528
+      },
+      {
+        "prompt_idx": 161,
+        "pred": " Unanswerable\n\nQuestion: What was the sarcasm detection task?\n\nAnswer: Detect sarcasm in text\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer: Eye-tracking database for sarcasm detection\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer: Eye-tracking database for sarcasm detection\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer: Eye-tracking database for sarcasm detection\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer: Eye-tracking database for sarcasm detection\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer",
+        "answers": [
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 3543
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " The experiments are conducted on the transformation from non-ironic sentences to ironic sentences.\n\nQuestion: What is the result of the experiments?\n\nAnswer: The model outperforms other models in sentiment preservation and content preservation.\n\nQuestion: What is the result of the experiments on the transformation from ironic sentences to non-ironic sentences?\n\nAnswer: The model gets poor performances in irony accuracy.\n\nQuestion: What is the result of the experiments on the transformation from ironic sentences to non-ironic sentences?\n\nAnswer: The model gets poor performances in sentiment preservation.\n\nQuestion: What is the result of the experiments on the transformation from ironic sentences to non-iron",
+        "answers": [
+          "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
+        ],
+        "all_classes": null,
+        "length": 4600
+      },
+      {
+        "prompt_idx": 166,
+        "pred": " It is a variant of self-attention that uses directional features to capture localness and directional information.",
+        "answers": [
+          "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
+          "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
+        ],
+        "all_classes": null,
+        "length": 3612
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " social media texts.\n\nQuestion: What was the main task of the causal explanation analysis?\n\nAnswer: causal explanation identification.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: hierarchical LSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: BiLSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: LSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: LSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: LSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: LSTM model.\n\n",
+        "answers": [
+          "Facebook status update messages",
+          "Facebook status update messages"
+        ],
+        "all_classes": null,
+        "length": 4005
+      },
+      {
+        "prompt_idx": 173,
+        "pred": " text categorization, sentiment classification, web-page classification, medical text classification, healthcare text classification, sentiment analysis, topic modeling, and text classification.",
+        "answers": [
+          "text classification for themes including sentiment, web-page, science, medical and healthcare"
+        ],
+        "all_classes": null,
+        "length": 3591
+      },
+      {
+        "prompt_idx": 175,
+        "pred": " larger",
+        "answers": [
+          "By 14 times.",
+          "up to 1.95 times larger"
+        ],
+        "all_classes": null,
+        "length": 3294
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " 6946 sentences\n\nQuestion: What is the dataset used for?\n\nAnswer: POS-tagged Nepali NER\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing of the model\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing of the model\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing of the model\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing of the model\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing of the model\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing",
+        "answers": [
+          "3606",
+          "6946"
+        ],
+        "all_classes": null,
+        "length": 2835
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " MLP, s2sL, Eusboost, MWMOTE\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the",
+        "answers": [
+          "MLP",
+          "Eusboost, MWMOTE"
+        ],
+        "all_classes": null,
+        "length": 2474
+      },
+      {
+        "prompt_idx": 178,
+        "pred": " Yes",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 3784
+      },
+      {
+        "prompt_idx": 179,
+        "pred": " No",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4320
+      },
+      {
+        "prompt_idx": 180,
+        "pred": " Wall Street Journal (WSJ) corpus.\n\nQuestion: What is the experimental setup for POS tagging?\n\nAnswer: Markov-structured model.\n\nQuestion: What is the experimental setup for unsupervised dependency parsing?\n\nAnswer: Dependency Model with Valence (DMV) BIBREF2.\n\nQuestion: What is the experimental setup for unsupervised POS tagging?\n\nAnswer: Markov-structured model.\n\nQuestion: What is the experimental setup for unsupervised dependency parsing?\n\nAnswer: DMV BIBREF2.\n\nQuestion: What is the experimental setup for unsupervised POS tagging?\n\nAnswer: Markov-structured model.\n\nQuestion: What",
+        "answers": [
+          " Wall Street Journal (WSJ) portion of the Penn Treebank",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4327
+      }
+    ],
+    "lb/2wikimqa": [
+      {
+        "prompt_idx": 138,
+        "pred": " Ajman",
+        "answers": [
+          "Abu Dhabi"
+        ],
+        "all_classes": null,
+        "length": 3593
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " Ottensen, Hamburg-Ottensen.",
+        "answers": [
+          "Prenzlau"
+        ],
+        "all_classes": null,
+        "length": 3584
+      },
+      {
+        "prompt_idx": 140,
+        "pred": " Pozna\u0144, Poland.",
+        "answers": [
+          "Pozna\u0144"
+        ],
+        "all_classes": null,
+        "length": 3814
+      },
+      {
+        "prompt_idx": 142,
+        "pred": " Australia.",
+        "answers": [
+          "Toronto, Ontario"
+        ],
+        "all_classes": null,
+        "length": 3366
+      },
+      {
+        "prompt_idx": 143,
+        "pred": " Forbidden Daughters was released in 1927. The Third Kiss was released in 1919.",
+        "answers": [
+          "Forbidden Daughters"
+        ],
+        "all_classes": null,
+        "length": 4389
+      },
+      {
+        "prompt_idx": 145,
+        "pred": " Bogdan \u021a\u0103ru\u0219",
+        "answers": [
+          "Bogdan \u021a\u0103ru\u0219"
+        ],
+        "all_classes": null,
+        "length": 3425
+      },
+      {
+        "prompt_idx": 147,
+        "pred": " From Corleone To Brooklyn",
+        "answers": [
+          "From Corleone To Brooklyn"
+        ],
+        "all_classes": null,
+        "length": 3894
+      },
+      {
+        "prompt_idx": 151,
+        "pred": " Parkinson's disease.",
+        "answers": [
+          "Parkinson"
+        ],
+        "all_classes": null,
+        "length": 4337
+      },
+      {
+        "prompt_idx": 152,
+        "pred": " Thomas Berkeley, 3rd Baron Berkeley.",
+        "answers": [
+          "Roger Mortimer, 1st Earl of March"
+        ],
+        "all_classes": null,
+        "length": 3947
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " Italia-Germania 4-3 was released in 1990.",
+        "answers": [
+          "Prince Of Arcadia"
+        ],
+        "all_classes": null,
+        "length": 3155
+      },
+      {
+        "prompt_idx": 155,
+        "pred": " Rosario, Santa Fe Province, Argentina.",
+        "answers": [
+          "Milan"
+        ],
+        "all_classes": null,
+        "length": 3195
+      },
+      {
+        "prompt_idx": 156,
+        "pred": " N/A",
+        "answers": [
+          "K\u00f6ln"
+        ],
+        "all_classes": null,
+        "length": 3719
+      }
+    ],
+    "lb/qasper_e": [
+      {
+        "prompt_idx": 162,
+        "pred": " They use word importance to identify the under-translated words.",
+        "answers": [
+          "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
+          "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
+        ],
+        "all_classes": null,
+        "length": 4246
+      },
+      {
+        "prompt_idx": 164,
+        "pred": " no",
+        "answers": [
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4117
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " Europarl\n\nQuestion: what is the quality of BT data?\n\nAnswer: high quality\n\nQuestion: what is the quality of BT data?\n\nAnswer: low quality\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable",
+        "answers": [
+          "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
+          "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
+        ],
+        "all_classes": null,
+        "length": 4184
+      },
+      {
+        "prompt_idx": 166,
+        "pred": " Yes\n\nQuestion: What is the name of the dataset used for the experiment?\n\nAnswer: FBFans\n\nQuestion: What is the name of the dataset used for the experiment?\n\nAnswer: CreateDebate\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4484
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " A second order co-occurrence matrix is a matrix that contains the co-occurrence of two words in a corpus.\n\nQuestion: What is the purpose of the second order co-occurrence vector measure?\n\nAnswer: The purpose of the second order co-occurrence vector measure is to quantify the relatedness between two terms.\n\nQuestion: What is the main difference between the second order co-occurrence vector measure and the first order co-occurrence vector measure?\n\nAnswer: The main difference is that the second order co-occurrence vector measure uses a second order co-occurrence matrix, whereas the first order co-occurrence",
+        "answers": [
+          "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
+          "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
+        ],
+        "all_classes": null,
+        "length": 4271
+      },
+      {
+        "prompt_idx": 168,
+        "pred": " F1 score, accuracy, and precision.\n\nQuestion: what is the name of the model proposed in the article?\n\nAnswer: AutoJudge.\n\nQuestion: what is the name of the framework proposed in the article?\n\nAnswer: Legal Reading Comprehension.\n\nQuestion: what is the name of the dataset used for evaluation?\n\nAnswer: divorce proceedings.\n\nQuestion: what is the name of the model used for comparison?\n\nAnswer: baselines.\n\nQuestion: what is the name of the model proposed in the article?\n\nAnswer: AutoJudge.\n\nQuestion: what is the name of the framework proposed in the article?\n\nAnswer: Legal Reading Comprehension.\n\nQuestion",
+        "answers": [
+          "precision, recall, F1 and accuracy",
+          "precision, recall, F1 , accuracy "
+        ],
+        "all_classes": null,
+        "length": 4101
+      },
+      {
+        "prompt_idx": 169,
+        "pred": " No",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4770
+      },
+      {
+        "prompt_idx": 170,
+        "pred": " They match annotators to instances based on their predicted difficulty scores.\n\nQuestion: What is the difficulty prediction model?\n\nAnswer: A neural model that predicts annotation difficulty.\n\nQuestion: What is the task of predicting annotation difficulty for biomedical information extraction?\n\nAnswer: Predicting the difficulty of sentences in biomedical information extraction tasks.\n\nQuestion: What is the task of predicting annotation difficulty for biomedical information extraction?\n\nAnswer: Predicting the difficulty of sentences in biomedical information extraction tasks.\n\nQuestion: What is the task of predicting annotation difficulty for biomedical information extraction?\n\nAnswer: Predicting the difficulty of sentences in biomedical information extraction tasks.\n\nQuestion: What is the task of predicting annotation",
+        "answers": [
+          "Annotations from experts are used if they have already been collected."
+        ],
+        "all_classes": null,
+        "length": 4377
+      },
+      {
+        "prompt_idx": 171,
+        "pred": " 13,939 questions, 3,827 of which require commonsense knowledge.",
+        "answers": [
+          "13,939"
+        ],
+        "all_classes": null,
+        "length": 4489
+      },
+      {
+        "prompt_idx": 172,
+        "pred": " Yes\n\nQuestion: Can the model extract the frequency of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the dosage of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the frequency of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the dosage of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the frequency of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the dosage of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the frequency of a medication in",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4592
+      },
+      {
+        "prompt_idx": 173,
+        "pred": " No\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox with a specific vocabulary?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox with a specific vocabulary?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox with a specific vocabulary?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox with a specific vocabulary?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4457
+      },
+      {
+        "prompt_idx": 174,
+        "pred": " ROGUE-1 Recall, Precision, INLINEFORM0, INLINEFORM1, INLINEFORM2\n\nQuestion: What is the effect of using JAMR Parser?\n\nAnswer: The effect of using JAMR Parser is that the scores of first co-occurrence+first and first-1 models are more than that of the Lead-1-AMR model.\n\nQuestion: What is the effectiveness of the Generator?\n\nAnswer: The effectiveness of the Generator is that the drop in ROGUE scores is mainly due to the inability of the ROGUE metric to evaluate abstractive summaries.\n\nQuestion: What is the need for a",
+        "answers": [
+          "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
+          "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
+        ],
+        "all_classes": null,
+        "length": 4395
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " 59.4% (Joint model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 2.9% (Inception model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 59.4% (Joint model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 2.9% (Inception model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 59.4% (Joint model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 2.9% (Inception model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer",
+        "answers": [
+          "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
+        ],
+        "all_classes": null,
+        "length": 4203
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " Word embeddings, including word2vec, word2vec with word embeddings, and word2vec with word embeddings and word vectors.",
+        "answers": [
+          "Skip\u2013gram, CBOW",
+          "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
+        ],
+        "all_classes": null,
+        "length": 4259
+      },
+      {
+        "prompt_idx": 180,
+        "pred": " Yes, they show that there is still room for improvement beyond the best model's performance.",
+        "answers": [
+          " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
+          "majority of questions that our system could not answer so far are in fact answerable"
+        ],
+        "all_classes": null,
+        "length": 4232
+      },
+      {
+        "prompt_idx": 181,
+        "pred": " F1 score, precision, recall, and accuracy.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence",
+        "answers": [
+          "precision, recall , F1 score"
+        ],
+        "all_classes": null,
+        "length": 4515
+      },
+      {
+        "prompt_idx": 182,
+        "pred": " 29,794 articles.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: Featured Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: Good Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: B-class Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: C-class Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: Start Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: Stub Article.\n\nQuestion: What is the quality",
+        "answers": [
+          "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
+        ],
+        "all_classes": null,
+        "length": 4187
+      },
+      {
+        "prompt_idx": 183,
+        "pred": " No, they recommend translating the premise and hypothesis independently.",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4071
+      }
+    ],
+    "lb/hotpotqa_e": [
+      {
+        "prompt_idx": 88,
+        "pred": " No, both are French.",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3217
+      },
+      {
+        "prompt_idx": 89,
+        "pred": " Dublin.",
+        "answers": [
+          "Marlborough"
+        ],
+        "all_classes": null,
+        "length": 3829
+      },
+      {
+        "prompt_idx": 93,
+        "pred": " Yes.",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3674
+      },
+      {
+        "prompt_idx": 94,
+        "pred": " Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3705
+      },
+      {
+        "prompt_idx": 96,
+        "pred": " Aichryson has more species.",
+        "answers": [
+          "Polypodium"
+        ],
+        "all_classes": null,
+        "length": 3730
+      },
+      {
+        "prompt_idx": 97,
+        "pred": "  Ray Romano",
+        "answers": [
+          "Albert"
+        ],
+        "all_classes": null,
+        "length": 3271
+      },
+      {
+        "prompt_idx": 99,
+        "pred": " Universal Music Group",
+        "answers": [
+          "A1 Recordings"
+        ],
+        "all_classes": null,
+        "length": 2862
+      },
+      {
+        "prompt_idx": 107,
+        "pred": " 83.",
+        "answers": [
+          "729 at the 2010 census"
+        ],
+        "all_classes": null,
+        "length": 4198
+      },
+      {
+        "prompt_idx": 113,
+        "pred": " Vodka.",
+        "answers": [
+          "lime"
+        ],
+        "all_classes": null,
+        "length": 4196
+      },
+      {
+        "prompt_idx": 117,
+        "pred": " Abbott was a playwright, director, and producer, and his first big hit was the play \"Broadway,\" which was adapted into a film in 1926",
+        "answers": [
+          "American theater producer and director, playwright, screenwriter"
+        ],
+        "all_classes": null,
+        "length": 4512
+      },
+      {
+        "prompt_idx": 123,
+        "pred": " Scotland.",
+        "answers": [
+          "Scotland"
+        ],
+        "all_classes": null,
+        "length": 4500
+      },
+      {
+        "prompt_idx": 124,
+        "pred": " 13 times.",
+        "answers": [
+          "13"
+        ],
+        "all_classes": null,
+        "length": 4497
+      }
+    ],
+    "lb/2wikimqa_e": [
+      {
+        "prompt_idx": 107,
+        "pred": " Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4176
+      },
+      {
+        "prompt_idx": 108,
+        "pred": " Stein Erik Hagen",
+        "answers": [
+          "Kiplangat Sang"
+        ],
+        "all_classes": null,
+        "length": 4003
+      },
+      {
+        "prompt_idx": 117,
+        "pred": " London, UK",
+        "answers": [
+          "Sydney, Australia"
+        ],
+        "all_classes": null,
+        "length": 4287
+      },
+      {
+        "prompt_idx": 129,
+        "pred": " 3 May 1270.",
+        "answers": [
+          "6 August 1272"
+        ],
+        "all_classes": null,
+        "length": 4185
+      },
+      {
+        "prompt_idx": 132,
+        "pred": " No",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4141
+      },
+      {
+        "prompt_idx": 135,
+        "pred": " Prairie Thunder",
+        "answers": [
+          "Prairie Thunder"
+        ],
+        "all_classes": null,
+        "length": 4155
+      },
+      {
+        "prompt_idx": 141,
+        "pred": " 1399.",
+        "answers": [
+          "8 April 1643"
+        ],
+        "all_classes": null,
+        "length": 4038
+      },
+      {
+        "prompt_idx": 142,
+        "pred": " Jaffa, Israel.",
+        "answers": [
+          "Israeli"
+        ],
+        "all_classes": null,
+        "length": 4399
+      },
+      {
+        "prompt_idx": 145,
+        "pred": " The Thing About My Folks",
+        "answers": [
+          "The Thing About My Folks"
+        ],
+        "all_classes": null,
+        "length": 4234
+      },
+      {
+        "prompt_idx": 147,
+        "pred": " Hubba bint Hulail",
+        "answers": [
+          "Princess Maria Immaculata of Bourbon-Two Sicilies"
+        ],
+        "all_classes": null,
+        "length": 4083
+      },
+      {
+        "prompt_idx": 151,
+        "pred": " American",
+        "answers": [
+          "Canadian"
+        ],
+        "all_classes": null,
+        "length": 4421
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " Los Angeles County Museum of Art.",
+        "answers": [
+          "Nice"
+        ],
+        "all_classes": null,
+        "length": 4110
+      },
+      {
+        "prompt_idx": 171,
+        "pred": " Ramon Berenguer IV, Count of Barcelona",
+        "answers": [
+          "Urraca of Le\u00f3n"
+        ],
+        "all_classes": null,
+        "length": 4215
+      },
+      {
+        "prompt_idx": 172,
+        "pred": " Carnegie Mellon University",
+        "answers": [
+          "Warsaw School of Economics"
+        ],
+        "all_classes": null,
+        "length": 4162
+      }
+    ]
+  },
+  "extended_test": {
+    "lb/qasper": [
+      {
+        "prompt_idx": 158,
+        "pred": " 3\n\nQuestion: What is the number of users in the FBFans dataset?\n\nAnswer: 2,496\n\nQuestion: What is the number of likers in the FBFans dataset?\n\nAnswer: 505,137\n\nQuestion: What is the number of commenters in the FBFans dataset?\n\nAnswer: 33,686\n\nQuestion: What is the number of posts in the FBFans dataset?\n\nAnswer: 33,686\n\nQuestion: What is the number of posts in the CreateDebate dataset?\n\nAnswer: 977\n\nQuestion: What is the number of users in the CreateDebate dataset?\n\n",
+        "answers": [
+          "eight layers"
+        ],
+        "all_classes": null,
+        "length": 4487
+      },
+      {
+        "prompt_idx": 159,
+        "pred": " Flickr tags and numerical environmental features.\n\nQuestion: what is the main problem of the paper?\n\nAnswer: embedding Flickr tags and numerical environmental features.\n\nQuestion: what is the main contribution of the paper?\n\nAnswer: the paper proposes a model to learn geographic location embeddings using Flickr tags, numerical environmental features, and categorical information.\n\nQuestion: what is the main result of the paper?\n\nAnswer: the paper shows that the proposed model can effectively integrate Flickr tags with structured information in a more effective way than existing methods, leading to substantial improvements over baseline methods on various prediction tasks about the natural environment.\n\nQuestion: what is the main outcome of the paper?\n\nAnswer",
+        "answers": [
+          " the same datasets as BIBREF7",
+          "same datasets as BIBREF7"
+        ],
+        "all_classes": null,
+        "length": 4661
+      },
+      {
+        "prompt_idx": 160,
+        "pred": " NUBes-PHI and MEDDOCAN 2019 shared task dataset.\n\nQuestion: What is the main problem in the field of clinical data anonymization?\n\nAnswer: Data privacy protection in clinical domain.\n\nQuestion: What is the main problem in the field of Natural Language Processing?\n\nAnswer: The state of the art in Natural Language Processing has reached an important milestone in the last couple of years thanks to deep-learning architectures and transfer learning from very large general-domain multilingual corpora.\n\nQuestion: What is the main problem in the field of Natural Language Processing?\n\nAnswer: The major change started with the Transformers model proposed by vaswani2017",
+        "answers": [
+          "MEDDOCAN, NUBes-PHI",
+          "MEDDOCAN, NUBes "
+        ],
+        "all_classes": null,
+        "length": 4528
+      },
+      {
+        "prompt_idx": 161,
+        "pred": " Unanswerable\n\nQuestion: What was the sarcasm detection task?\n\nAnswer: Detect sarcasm in text\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer: Eye-tracking database for sarcasm detection\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer: Eye-tracking database for sarcasm detection\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer: Eye-tracking database for sarcasm detection\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer: Eye-tracking database for sarcasm detection\n\nQuestion: What was the eye-tracking database for sarcasm detection?\n\nAnswer",
+        "answers": [
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 3543
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " The experiments are conducted on the transformation from non-ironic sentences to ironic sentences.\n\nQuestion: What is the result of the experiments?\n\nAnswer: The model outperforms other models in sentiment preservation and content preservation.\n\nQuestion: What is the result of the experiments on the transformation from ironic sentences to non-ironic sentences?\n\nAnswer: The model gets poor performances in irony accuracy.\n\nQuestion: What is the result of the experiments on the transformation from ironic sentences to non-ironic sentences?\n\nAnswer: The model gets poor performances in sentiment preservation.\n\nQuestion: What is the result of the experiments on the transformation from ironic sentences to non-iron",
+        "answers": [
+          "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
+        ],
+        "all_classes": null,
+        "length": 4600
+      },
+      {
+        "prompt_idx": 166,
+        "pred": " It is a variant of self-attention that uses directional features to capture localness and directional information.",
+        "answers": [
+          "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
+          "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
+        ],
+        "all_classes": null,
+        "length": 3612
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " social media texts.\n\nQuestion: What was the main task of the causal explanation analysis?\n\nAnswer: causal explanation identification.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: hierarchical LSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: BiLSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: LSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: LSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: LSTM model.\n\nQuestion: What was the best model for causal explanation identification?\n\nAnswer: LSTM model.\n\n",
+        "answers": [
+          "Facebook status update messages",
+          "Facebook status update messages"
+        ],
+        "all_classes": null,
+        "length": 4005
+      },
+      {
+        "prompt_idx": 173,
+        "pred": " text categorization, sentiment classification, web-page classification, medical and healthcare classification, and sentiment analysis.",
+        "answers": [
+          "text classification for themes including sentiment, web-page, science, medical and healthcare"
+        ],
+        "all_classes": null,
+        "length": 3591
+      },
+      {
+        "prompt_idx": 175,
+        "pred": " larger",
+        "answers": [
+          "By 14 times.",
+          "up to 1.95 times larger"
+        ],
+        "all_classes": null,
+        "length": 3294
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " 6946 sentences\n\nQuestion: What is the dataset used for?\n\nAnswer: POS-tagged Nepali NER\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing\n\nQuestion: What is the dataset used for?\n\nAnswer: Training and testing",
+        "answers": [
+          "3606",
+          "6946"
+        ],
+        "all_classes": null,
+        "length": 2835
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " MLP, s2sL, Eusboost, MWMOTE\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the main problem of the task?\n\nAnswer: Low data resource scenarios\n\nQuestion: What is the",
+        "answers": [
+          "MLP",
+          "Eusboost, MWMOTE"
+        ],
+        "all_classes": null,
+        "length": 2474
+      },
+      {
+        "prompt_idx": 178,
+        "pred": " Yes",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 3784
+      },
+      {
+        "prompt_idx": 179,
+        "pred": " No",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4320
+      },
+      {
+        "prompt_idx": 180,
+        "pred": " Wall Street Journal (WSJ) corpus.\n\nQuestion: What is the experimental setup for POS tagging?\n\nAnswer: Markov-structured model.\n\nQuestion: What is the experimental setup for unsupervised dependency parsing?\n\nAnswer: Dependency Model with Valence (DMV) BIBREF2.\n\nQuestion: What is the experimental setup for unsupervised POS tagging?\n\nAnswer: Markov-structured model.\n\nQuestion: What is the experimental setup for unsupervised dependency parsing?\n\nAnswer: DMV BIBREF2.\n\nQuestion: What is the experimental setup for unsupervised POS tagging?\n\nAnswer: Markov-structured model.\n\nQuestion: What",
+        "answers": [
+          " Wall Street Journal (WSJ) portion of the Penn Treebank",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4327
+      },
+      {
+        "prompt_idx": 7,
+        "pred": " CNN/DailyMail, NYT, XSum\n\nQuestion: What is the purpose of the model?\n\nAnswer: To summarize news articles and extract relevant information.\n\nQuestion: What is the main difference between extractive and abstractive summarization?\n\nAnswer: Extractive summarization focuses on summarizing the content of the article, while abstractive summarization focuses on generating a summary of the article.\n\nQuestion: What is the main goal of the model?\n\nAnswer: To summarize news articles and extract relevant information.\n\nQuestion: What is the main difference between extractive and abstractive summarization?\n\nAnswer: Extractive summarization focuses on summarizing",
+        "answers": [
+          "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
+          "the CNN/DailyMail news highlights dataset BIBREF24, the New York Times Annotated Corpus (NYT; BIBREF25), XSum BIBREF22"
+        ],
+        "all_classes": null,
+        "length": 4369
+      },
+      {
+        "prompt_idx": 19,
+        "pred": " The model improves interpretability by providing a more nuanced understanding of the attention heads' roles in the Transformer architecture.",
+        "answers": [
+          "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
+          "We introduce sparse attention into the Transformer architecture"
+        ],
+        "all_classes": null,
+        "length": 4902
+      },
+      {
+        "prompt_idx": 22,
+        "pred": " Attention module pretrained on ASR model",
+        "answers": [
+          "the model is pre-trained on CTC-based ASR task and MT task in the pre-training stage."
+        ],
+        "all_classes": null,
+        "length": 4656
+      },
+      {
+        "prompt_idx": 30,
+        "pred": " machine translation, machine translation datasets, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine translation datasets of different training sizes, machine",
+        "answers": [
+          "four machine translation tasks: German -> English, Japanese -> English, Romanian -> English, English -> German",
+          " four machine translation tasks, IWSLT 2017 German $\\rightarrow $ English BIBREF27, KFTT Japanese $\\rightarrow $ English BIBREF28, WMT 2016 Romanian $\\rightarrow $ English BIBREF29, WMT 2014 English $\\rightarrow $ German BIBREF30"
+        ],
+        "all_classes": null,
+        "length": 4898
+      },
+      {
+        "prompt_idx": 36,
+        "pred": " The human judgements were assembled by the human evaluators.",
+        "answers": [
+          "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
+          "adequacy, precision and ranking values"
+        ],
+        "all_classes": null,
+        "length": 5344
+      },
+      {
+        "prompt_idx": 40,
+        "pred": " Source domain: IMDB, Yelp2014, Cell Phone, Baby, Aamzon, Amazon, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014, Yelp2014",
+        "answers": [
+          "Book, electronics, beauty, music, IMDB, Yelp, cell phone, baby, DVDs, kitchen",
+          "we use set 1 of the source domain as the only source with sentiment label information during training, and we evaluate the trained model on set 1 of the target domain, Book (BK), Electronics (E), Beauty (BT), and Music (M)"
+        ],
+        "all_classes": null,
+        "length": 5061
+      },
+      {
+        "prompt_idx": 51,
+        "pred": " Wikipedia data, Reddit CMV dataset.\n\nQuestion: What is the main goal of the model?\n\nAnswer: Forecasting conversational events.\n\nQuestion: What is the main challenge of the model?\n\nAnswer: Capturing inter-comment dynamics.\n\nQuestion: What is the main limitation of the model?\n\nAnswer: Assigning a single label to each conversation.\n\nQuestion: What is the main goal of the model?\n\nAnswer: Forecasting conversational events.\n\nQuestion: What is the main challenge of the model?\n\nAnswer: Capturing inter-comment dynamics.\n\nQuestion: What is the main limitation of the model?\n\nAnswer: Assigning a single label to each conversation.\n\n",
+        "answers": [
+          " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
+          "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
+        ],
+        "all_classes": null,
+        "length": 4718
+      },
+      {
+        "prompt_idx": 63,
+        "pred": " PBSMT BIBREF3\n\nQuestion: what was the best model for Ja INLINEFORM0 Ru pair?\n\nAnswer: M2M Transformer NMT model (b3) achieved best results for most of the translation directions and competitive results for the rest.\n\nQuestion: what was the best model for Ja INLINEFORM1 Ru pair?\n\nAnswer: M2M Transformer NMT model (b3) achieved best results for most of the translation directions and competitive results for the rest.\n\nQuestion: what was the best model for Ja INLINEFORM2 Ru pair?\n\nAnswer: M2M Transformer NMT model (b3) achieved best results for most",
+        "answers": [
+          "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
+          "M2M Transformer"
+        ],
+        "all_classes": null,
+        "length": 4542
+      },
+      {
+        "prompt_idx": 77,
+        "pred": " Event detection models.\n\nQuestion: What is the main problem in event detection?\n\nAnswer: Event detection is a challenging task due to the high variability of events, the lack of explicit event descriptions, and the need to detect events in real-time.\n\nQuestion: What is the main goal of the proposed approach?\n\nAnswer: The main goal of the proposed approach is to improve the performance of event detection models by discovering informative keywords and estimating expectations.\n\nQuestion: What type of keywords are used in the proposed approach?\n\nAnswer: Informative keywords are used in the proposed approach.\n\nQuestion: What is the main advantage of the proposed approach?\n\nAnswer: The main advantage",
+        "answers": [
+          "probabilistic model",
+          "Logistic Regression, Multilayer Perceptron"
+        ],
+        "all_classes": null,
+        "length": 4475
+      },
+      {
+        "prompt_idx": 87,
+        "pred": " The proposed schema is a multi-label annotation schema that annotates the expected answer, supporting facts, factual correctness, required reasoning, linguistic features, and factual correctness.\n\nQuestion: What is the main purpose of the proposed framework?\n\nAnswer: The main purpose of the proposed framework is to evaluate the quality of gold standards for machine reading comprehension.\n\nQuestion: What are the main features of the proposed framework?\n\nAnswer: The proposed framework includes the following features: expected answer, supporting facts, factual correctness, required reasoning, linguistic features, and factual correctness.\n\nQuestion: What is the main goal of the proposed framework?\n\nAnswer: The main goal of the proposed framework",
+        "answers": [
+          "The resulting taxonomy of the framework is shown in Figure FIGREF10",
+          "FIGREF10"
+        ],
+        "all_classes": null,
+        "length": 4958
+      },
+      {
+        "prompt_idx": 89,
+        "pred": " Vanilla ST baseline, Pre-training baselines, Multi-task baselines, Many-to-many baselines, Many-to-many+pre-training baselines, Triangle+pre-train baselines, All our baselines are implemented based on ESPnet BIBREF12, the RNN size is set as $d=1024$ for all models. We use a dropout of 0.3 for embeddings and encoders, and train using Adadelta with initial learning rate of 1.0 for a maximum of 10 epochs.",
+        "answers": [
+          "Vanilla ST baseline, encoder pre-training, in which the ST encoder is initialized from an ASR model, decoder pre-training, in which the ST decoder is initialized from an MT model, encoder-decoder pre-training, where both the encoder and decoder are pre-trained, many-to-many multi-task model where the encoders and decoders are derived from pre-trained ASR and MT models, Triangle+pre-train: BIBREF18 DBLP:conf/naacl/AnastasopoulosC18 proposed a triangle multi-task strategy for speech translation",
+          "Vanilla ST baseline, Pre-training baselines, Multi-task baselines, Many-to-many+pre-training, Triangle+pre-train",
+          "Vanilla ST baseline: The vanilla ST BIBREF9 has only a speech encoder and a decoder. It is trained from scratch on the ST-TED corpus.\n\nPre-training baselines: We conduct three pre-training baseline experiments: 1) encoder pre-training, in which the ST encoder is initialized from an ASR model; 2) decoder pre-training, in which the ST decoder is initialized from an MT model; and 3) encoder-decoder pre-training, where both the encoder and decoder are pre-trained. The ASR model has the same architecture with vanilla ST model, trained on the mixture of ST-TED and TED-LIUM2 corpus. The MT model has a text encoder and decoder with the same architecture of which in TCEN. It is first trained on WMT data (out-of-domain) and then fine-tuned on in-domain data.\n\nMulti-task baselines: We also conduct three multi-task baseline experiments including one-to-many setting, many-to-one setting, and many-to-many setting. In the first two settings, we train the model with $\\alpha _{st}=0.75$ while $\\alpha _{asr}=0.25$ or $\\alpha _{mt}=0.25$. For many-to-many setting, we use $\\alpha _{st}=0.6, \\alpha _{asr}=0.2$ and $\\alpha _{mt}=0.2$.. For MT task, we use only in-domain data.\n\nMany-to-many+pre-training: We train a many-to-many multi-task model where the encoders and decoders are derived from pre-trained ASR and MT models. "
+        ],
+        "all_classes": null,
+        "length": 4704
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " Text data.\n\nQuestion: TF weighted word subspace is a suitable method for text classification?\n\nAnswer: Yes\n\nQuestion: TF weighted word subspace is more accurate than MNB?\n\nAnswer: Yes\n\nQuestion: TF weighted word subspace is more accurate than SVM?\n\nAnswer: Yes\n\nQuestion: TF weighted word subspace is more accurate than LSA?\n\nAnswer: Yes\n\nQuestion: TF weighted word subspace is more accurate than TF-IDF?\n\nAnswer: Yes\n\nQuestion: TF weighted word subspace is more accurate than MNB?\n\nAnswer: Yes\n\nQuestion: TF weighted word subspace is more accurate than MSM?\n\nAnswer: Yes",
+        "answers": [
+          "Word vectors, usually in the context of others within the same class"
+        ],
+        "all_classes": null,
+        "length": 5151
+      },
+      {
+        "prompt_idx": 114,
+        "pred": " Relation detection.\n\nQuestion: What is the main focus of the KBQA system?\n\nAnswer: Relation detection.\n\nQuestion: What is the main contribution of the proposed HR-BiLSTM model?\n\nAnswer: It improves the performance of KBQA tasks.\n\nQuestion: What is the main difference between the proposed HR-BiLSTM model and the previous methods?\n\nAnswer: It uses hierarchical matching between questions and KB relations.\n\nQuestion: What is the main advantage of the proposed HR-BiLSTM model?\n\nAnswer: It improves the performance of KBQA tasks.\n\nQuestion: What is the main contribution of the proposed HR-BiLSTM model?\n\nAnswer",
+        "answers": [
+          "answer questions by obtaining information from KB tuples ",
+          "hierarchical matching between questions and relations with residual learning"
+        ],
+        "all_classes": null,
+        "length": 4527
+      },
+      {
+        "prompt_idx": 119,
+        "pred": " No",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 6169
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " The model takes into account the political bias of different sources, including left-biased and right-biased sources.",
+        "answers": [
+          "By assigning a political bias label to each news article and training only on left-biased or right-biased outlets of both disinformation and mainstream domains",
+          "we also account for political biases inherent to different news sources, referring to the procedure proposed in BIBREF2 to label different outlets. Overall we show that we are able to classify credible vs non-credible diffusion networks (and consequently news articles) with high accuracy (AUROC up to 94%), even when accounting for the political bias of sources (and training only on left-biased or right-biased articles). We observe that the layer of mentions alone conveys useful information for the classification, denoting a different usage of this functionality when sharing news belonging to the two news domains. We also show that most discriminative features, which are relative to the breadth and depth of largest cascades in different layers, are the same across the two countries."
+        ],
+        "all_classes": null,
+        "length": 4882
+      },
+      {
+        "prompt_idx": 168,
+        "pred": " The CNN model extracts features from the fully-connected layer of the CNN.\n\nQuestion: What is the CNN model's performance on Dataset 1?\n\nAnswer: The CNN model outperforms the baseline CNN model on Dataset 1.\n\nQuestion: What is the CNN model's performance on Dataset 2?\n\nAnswer: The CNN model outperforms the baseline CNN model on Dataset 2.\n\nQuestion: What is the CNN model's performance on Dataset 3?\n\nAnswer: The CNN model outperforms the baseline CNN model on Dataset 3.\n\nQuestion: What is the CNN model's performance on Dataset 3?\n\nAnswer: The CNN model outper",
+        "answers": [
+          " The features extracted from CNN."
+        ],
+        "all_classes": null,
+        "length": 4855
+      },
+      {
+        "prompt_idx": 174,
+        "pred": " Baseline models, QA+QC models, and other models.\n\nQuestion classification paired with question answering shows statistically significant gains of +1.7% P@1 at L6 using predicted labels, and a ceiling gain of up to +10% P@1 using gold labels. The QA performance graph in Figure FIGREF24 contains two deviations from the expectation of linear gains with increasing specificity, at L3 and L4. Region at INLINEFORM0 On gold labels, L3 provides small gains over L2, where as L4 provides large gains over L3. We hypothesize this is because approximately 57% of question labels belong",
+        "answers": [
+          "bag-of-words model, CNN"
+        ],
+        "all_classes": null,
+        "length": 5838
+      },
+      {
+        "prompt_idx": 182,
+        "pred": " SimpleQuestions, WebQSP\n\nRelation Detection Results:\n\n Table 2 shows the results on two relation detection tasks. The AMPCNN result is from BIBREF20, which yielded state-of-the-art scores by outperforming several attention-based methods. We re-implemented the BiCNN model from BIBREF4, where both questions and relations are represented with the word hash trick on character tri-grams. The baseline BiLSTM with relation word sequence appears to be the best baseline on WebQSP and is close to the previous best result of AMPCNN on SimpleQuestions. Our proposed HR-BiLSTM outperformed",
+        "answers": [
+          "SimpleQuestions, WebQSP",
+          "WebQSP, SimpleQuestions"
+        ],
+        "all_classes": null,
+        "length": 4524
+      }
+    ],
+    "lb/2wikimqa": [
+      {
+        "prompt_idx": 138,
+        "pred": " Ajman",
+        "answers": [
+          "Abu Dhabi"
+        ],
+        "all_classes": null,
+        "length": 3593
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " Ottensen, Hamburg-Ottensen.",
+        "answers": [
+          "Prenzlau"
+        ],
+        "all_classes": null,
+        "length": 3584
+      },
+      {
+        "prompt_idx": 140,
+        "pred": " Pozna\u0144, Poland.",
+        "answers": [
+          "Pozna\u0144"
+        ],
+        "all_classes": null,
+        "length": 3814
+      },
+      {
+        "prompt_idx": 142,
+        "pred": " Australia.",
+        "answers": [
+          "Toronto, Ontario"
+        ],
+        "all_classes": null,
+        "length": 3366
+      },
+      {
+        "prompt_idx": 143,
+        "pred": " Forbidden Daughters was released in 1927. The Third Kiss was released in 1919.",
+        "answers": [
+          "Forbidden Daughters"
+        ],
+        "all_classes": null,
+        "length": 4389
+      },
+      {
+        "prompt_idx": 145,
+        "pred": " Bogdan \u021a\u0103ru\u0219",
+        "answers": [
+          "Bogdan \u021a\u0103ru\u0219"
+        ],
+        "all_classes": null,
+        "length": 3425
+      },
+      {
+        "prompt_idx": 147,
+        "pred": " From Corleone To Brooklyn",
+        "answers": [
+          "From Corleone To Brooklyn"
+        ],
+        "all_classes": null,
+        "length": 3894
+      },
+      {
+        "prompt_idx": 151,
+        "pred": " Parkinson's disease.",
+        "answers": [
+          "Parkinson"
+        ],
+        "all_classes": null,
+        "length": 4337
+      },
+      {
+        "prompt_idx": 152,
+        "pred": " Thomas Berkeley, 3rd Baron Berkeley.",
+        "answers": [
+          "Roger Mortimer, 1st Earl of March"
+        ],
+        "all_classes": null,
+        "length": 3947
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " Italia-Germania 4-3 was released in 1990.",
+        "answers": [
+          "Prince Of Arcadia"
+        ],
+        "all_classes": null,
+        "length": 3155
+      },
+      {
+        "prompt_idx": 155,
+        "pred": " Rosario, Santa Fe Province, Argentina.",
+        "answers": [
+          "Milan"
+        ],
+        "all_classes": null,
+        "length": 3195
+      },
+      {
+        "prompt_idx": 156,
+        "pred": " N/A",
+        "answers": [
+          "K\u00f6ln"
+        ],
+        "all_classes": null,
+        "length": 3719
+      },
+      {
+        "prompt_idx": 0,
+        "pred": " Ozalj, Croatia.",
+        "answers": [
+          "Ozalj"
+        ],
+        "all_classes": null,
+        "length": 4696
+      },
+      {
+        "prompt_idx": 1,
+        "pred": " Elizabeth, daughter of Matthan the priest, and Mary's wife, under the reign of Cleopatra and Sosipatrus, before the reign of",
+        "answers": [
+          "John the Baptist"
+        ],
+        "all_classes": null,
+        "length": 4776
+      },
+      {
+        "prompt_idx": 3,
+        "pred": " 1483/1485",
+        "answers": [
+          "1510"
+        ],
+        "all_classes": null,
+        "length": 4621
+      },
+      {
+        "prompt_idx": 4,
+        "pred": " Abd al-Muttalib.",
+        "answers": [
+          "Edward Watson"
+        ],
+        "all_classes": null,
+        "length": 4625
+      },
+      {
+        "prompt_idx": 5,
+        "pred": " 16 September 1360",
+        "answers": [
+          "16 September 1360"
+        ],
+        "all_classes": null,
+        "length": 5001
+      },
+      {
+        "prompt_idx": 7,
+        "pred": " Bob Jones University",
+        "answers": [
+          "Bob Jones University"
+        ],
+        "all_classes": null,
+        "length": 5162
+      },
+      {
+        "prompt_idx": 11,
+        "pred": " United States",
+        "answers": [
+          "America"
+        ],
+        "all_classes": null,
+        "length": 4442
+      },
+      {
+        "prompt_idx": 22,
+        "pred": " Baldwin I R\u00e1t\u00f3t",
+        "answers": [
+          "Leustach R\u00e1t\u00f3t"
+        ],
+        "all_classes": null,
+        "length": 3948
+      },
+      {
+        "prompt_idx": 23,
+        "pred": " Kantipur.",
+        "answers": [
+          "Nepal"
+        ],
+        "all_classes": null,
+        "length": 4625
+      },
+      {
+        "prompt_idx": 24,
+        "pred": " Archibald Acheson, 3rd Earl of Gosford",
+        "answers": [
+          "Archibald Acheson, 2nd Earl of Gosford"
+        ],
+        "all_classes": null,
+        "length": 4383
+      },
+      {
+        "prompt_idx": 29,
+        "pred": " Blue Blood And Red",
+        "answers": [
+          "Blue Blood And Red"
+        ],
+        "all_classes": null,
+        "length": 4436
+      },
+      {
+        "prompt_idx": 31,
+        "pred": " Y\u0131ld\u0131z Palace",
+        "answers": [
+          "Constantinople"
+        ],
+        "all_classes": null,
+        "length": 4769
+      },
+      {
+        "prompt_idx": 32,
+        "pred": " Tarrytown, New York.",
+        "answers": [
+          "East Francia"
+        ],
+        "all_classes": null,
+        "length": 4957
+      },
+      {
+        "prompt_idx": 34,
+        "pred": " All-American Co-Ed",
+        "answers": [
+          "All-American Co-Ed"
+        ],
+        "all_classes": null,
+        "length": 5527
+      },
+      {
+        "prompt_idx": 41,
+        "pred": " 24 January 1672",
+        "answers": [
+          "May 19, 1669"
+        ],
+        "all_classes": null,
+        "length": 4570
+      },
+      {
+        "prompt_idx": 51,
+        "pred": " American",
+        "answers": [
+          "Sweden"
+        ],
+        "all_classes": null,
+        "length": 4845
+      },
+      {
+        "prompt_idx": 53,
+        "pred": " Melody Of The World",
+        "answers": [
+          "Melody Of The World"
+        ],
+        "all_classes": null,
+        "length": 4784
+      },
+      {
+        "prompt_idx": 59,
+        "pred": " Paris, France",
+        "answers": [
+          "La Trinit\u00e9"
+        ],
+        "all_classes": null,
+        "length": 4966
+      },
+      {
+        "prompt_idx": 60,
+        "pred": " King Frederick William IV of Prussia\nAnswer: Queen Elisabeth Ludovika of the United Kingdom\nAnswer: King Frederick William III of Prussia\nAnswer",
+        "answers": [
+          "Prince Albert of Prussia"
+        ],
+        "all_classes": null,
+        "length": 4350
+      },
+      {
+        "prompt_idx": 67,
+        "pred": " Closely Watched Trains",
+        "answers": [
+          "Det Sande Ansigt"
+        ],
+        "all_classes": null,
+        "length": 4713
+      },
+      {
+        "prompt_idx": 68,
+        "pred": " Bomgay",
+        "answers": [
+          "Bomgay"
+        ],
+        "all_classes": null,
+        "length": 4261
+      },
+      {
+        "prompt_idx": 69,
+        "pred": " Pliska.",
+        "answers": [
+          "Preslav"
+        ],
+        "all_classes": null,
+        "length": 5869
+      },
+      {
+        "prompt_idx": 72,
+        "pred": " American.",
+        "answers": [
+          "America"
+        ],
+        "all_classes": null,
+        "length": 5631
+      },
+      {
+        "prompt_idx": 75,
+        "pred": " John I, Duke of Bourbon",
+        "answers": [
+          "John I, Duke of Bourbon"
+        ],
+        "all_classes": null,
+        "length": 4501
+      },
+      {
+        "prompt_idx": 77,
+        "pred": " Jacques Dutronc.",
+        "answers": [
+          "Fran\u00e7oise Hardy"
+        ],
+        "all_classes": null,
+        "length": 5091
+      },
+      {
+        "prompt_idx": 83,
+        "pred": " The cause of death of Heonjong Of Goryeo's father was illness.",
+        "answers": [
+          "illness"
+        ],
+        "all_classes": null,
+        "length": 4438
+      },
+      {
+        "prompt_idx": 93,
+        "pred": " 1747\u20131793",
+        "answers": [
+          "13 March 1753"
+        ],
+        "all_classes": null,
+        "length": 4323
+      },
+      {
+        "prompt_idx": 95,
+        "pred": " Alkohol came out earlier.",
+        "answers": [
+          "Alkohol"
+        ],
+        "all_classes": null,
+        "length": 5610
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " The Comedians Of Comedy.",
+        "answers": [
+          "The Comedians Of Comedy"
+        ],
+        "all_classes": null,
+        "length": 4756
+      },
+      {
+        "prompt_idx": 102,
+        "pred": " Tombstone Rashomon.",
+        "answers": [
+          "Tombstone Rashomon"
+        ],
+        "all_classes": null,
+        "length": 5772
+      },
+      {
+        "prompt_idx": 103,
+        "pred": " Dhuen Ki Lakeer",
+        "answers": [
+          "Dhuen Ki Lakeer"
+        ],
+        "all_classes": null,
+        "length": 4828
+      },
+      {
+        "prompt_idx": 105,
+        "pred": " Juan Ren\u00e9 Serrano was born first.",
+        "answers": [
+          "Dudley Russell"
+        ],
+        "all_classes": null,
+        "length": 4526
+      },
+      {
+        "prompt_idx": 112,
+        "pred": " Karachi, Pakistan.",
+        "answers": [
+          "Morocco"
+        ],
+        "all_classes": null,
+        "length": 4417
+      },
+      {
+        "prompt_idx": 113,
+        "pred": " Solemn Promise",
+        "answers": [
+          "Tarzan The Magnificent"
+        ],
+        "all_classes": null,
+        "length": 4580
+      },
+      {
+        "prompt_idx": 116,
+        "pred": " Dublin, Ireland.",
+        "answers": [
+          "Gura Humorului"
+        ],
+        "all_classes": null,
+        "length": 4854
+      },
+      {
+        "prompt_idx": 118,
+        "pred": " Count Adolf III of Berg",
+        "answers": [
+          "Adolf II of Berg"
+        ],
+        "all_classes": null,
+        "length": 4040
+      },
+      {
+        "prompt_idx": 124,
+        "pred": " Pier-Luc Funk",
+        "answers": [
+          "F\u00e9lix Leclerc"
+        ],
+        "all_classes": null,
+        "length": 4871
+      },
+      {
+        "prompt_idx": 125,
+        "pred": " Louis d'Armagnac, Duke of Nemours.",
+        "answers": [
+          "Jacques"
+        ],
+        "all_classes": null,
+        "length": 5577
+      },
+      {
+        "prompt_idx": 135,
+        "pred": " German\n\nQuestion: What nationality is Princess Marie Elisabeth of Saxe-Meiningen's husband?\nAnswer: German\n\nQuestion: What nationality is Princess Marie",
+        "answers": [
+          "Duchy of Saxe-Gotha-Altenburg"
+        ],
+        "all_classes": null,
+        "length": 4847
+      },
+      {
+        "prompt_idx": 141,
+        "pred": " Picton.",
+        "answers": [
+          "Italy"
+        ],
+        "all_classes": null,
+        "length": 4597
+      },
+      {
+        "prompt_idx": 144,
+        "pred": " No, they are from different countries. Marianne Wiggins is American, while Leslie Pietrzyk is Polish.",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4958
+      },
+      {
+        "prompt_idx": 153,
+        "pred": " Ali Dinar",
+        "answers": [
+          "Albertus Seba"
+        ],
+        "all_classes": null,
+        "length": 4441
+      }
+    ],
+    "lb/qasper_e": [
+      {
+        "prompt_idx": 162,
+        "pred": " They use word importance to identify the under-translated words.",
+        "answers": [
+          "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
+          "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
+        ],
+        "all_classes": null,
+        "length": 4246
+      },
+      {
+        "prompt_idx": 164,
+        "pred": " no",
+        "answers": [
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4117
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " Europarl\n\nQuestion: what is the quality of BT data?\n\nAnswer: high quality\n\nQuestion: what is the quality of BT data?\n\nAnswer: low quality\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable\n\nQuestion: what is the quality of BT data?\n\nAnswer: unanswerable",
+        "answers": [
+          "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
+          "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
+        ],
+        "all_classes": null,
+        "length": 4184
+      },
+      {
+        "prompt_idx": 166,
+        "pred": " Yes\n\nQuestion: What is the name of the dataset used for the experiment?\n\nAnswer: FBFans\n\nQuestion: What is the name of the dataset used for the experiment?\n\nAnswer: CreateDebate\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model proposed?\n\nAnswer: UTCNN\n\nQuestion: What is the name",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4484
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " A second order co-occurrence matrix is a matrix that contains the co-occurrence of two words in a corpus.\n\nQuestion: What is the purpose of the second order co-occurrence vector measure?\n\nAnswer: The purpose of the second order co-occurrence vector measure is to quantify the relatedness between two terms.\n\nQuestion: What is the main difference between the second order co-occurrence vector measure and the first order co-occurrence vector measure?\n\nAnswer: The main difference is that the second order co-occurrence vector measure uses a second order co-occurrence matrix, whereas the first order co-occurrence",
+        "answers": [
+          "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
+          "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
+        ],
+        "all_classes": null,
+        "length": 4271
+      },
+      {
+        "prompt_idx": 168,
+        "pred": " F1 score, accuracy, and precision.\n\nQuestion: what is the name of the model proposed in the article?\n\nAnswer: AutoJudge.\n\nQuestion: what is the name of the framework proposed in the article?\n\nAnswer: Legal Reading Comprehension.\n\nQuestion: what is the name of the dataset used for evaluation?\n\nAnswer: divorce proceedings.\n\nQuestion: what is the name of the model used for comparison?\n\nAnswer: baselines.\n\nQuestion: what is the name of the model proposed in the article?\n\nAnswer: AutoJudge.\n\nQuestion: what is the name of the framework proposed in the article?\n\nAnswer: Legal Reading Comprehension.\n\nQuestion",
+        "answers": [
+          "precision, recall, F1 and accuracy",
+          "precision, recall, F1 , accuracy "
+        ],
+        "all_classes": null,
+        "length": 4101
+      },
+      {
+        "prompt_idx": 169,
+        "pred": " No",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4770
+      },
+      {
+        "prompt_idx": 170,
+        "pred": " They match annotators to instances based on their predicted difficulty scores.\n\nQuestion: What is the difficulty prediction model?\n\nAnswer: A neural model that predicts annotation difficulty.\n\nQuestion: What is the task of predicting annotation difficulty for biomedical information extraction?\n\nAnswer: Predicting the difficulty of sentences in biomedical information extraction tasks.\n\nQuestion: What is the task of predicting annotation difficulty for biomedical information extraction?\n\nAnswer: Predicting the difficulty of sentences in biomedical information extraction tasks.\n\nQuestion: What is the task of predicting annotation difficulty for biomedical information extraction?\n\nAnswer: Predicting the difficulty of sentences in biomedical information extraction tasks.\n\nQuestion: What is the task of predicting annotation",
+        "answers": [
+          "Annotations from experts are used if they have already been collected."
+        ],
+        "all_classes": null,
+        "length": 4377
+      },
+      {
+        "prompt_idx": 171,
+        "pred": " 13,939 questions, 3,827 of which require commonsense knowledge.",
+        "answers": [
+          "13,939"
+        ],
+        "all_classes": null,
+        "length": 4489
+      },
+      {
+        "prompt_idx": 172,
+        "pred": " Yes\n\nQuestion: Can the model extract the frequency of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the dosage of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the frequency of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the dosage of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the frequency of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the dosage of a medication in a conversation?\n\nAnswer: Yes\n\nQuestion: Can the model extract the frequency of a medication in",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4592
+      },
+      {
+        "prompt_idx": 173,
+        "pred": " No\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox with a specific vocabulary?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox with a specific vocabulary?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox with a specific vocabulary?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person from a Wikipedia infobox with a specific vocabulary?\n\nAnswer: Yes\n\nQuestion: Can they generate a description of a person",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4457
+      },
+      {
+        "prompt_idx": 174,
+        "pred": " ROGUE-1 Recall, Precision, INLINEFORM0, INLINEFORM1, INLINEFORM2\n\nQuestion: What is the effect of using JAMR Parser?\n\nAnswer: The effect of using JAMR Parser is that the scores of first co-occurrence+first and first-1 models are more than that of the Lead-1-AMR model.\n\nQuestion: What is the effectiveness of the Generator?\n\nAnswer: The effectiveness of the Generator is that the drop in ROGUE scores is mainly due to the inability of the ROGUE metric to evaluate abstractive summaries.\n\nQuestion: What is the need for a",
+        "answers": [
+          "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
+          "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
+        ],
+        "all_classes": null,
+        "length": 4395
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " 59.4% (Joint model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 2.9% (Inception model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 59.4% (Joint model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 2.9% (Inception model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 59.4% (Joint model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer: 2.9% (Inception model)\n\nQuestion: What is the system's absolute accuracy?\n\nAnswer",
+        "answers": [
+          "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
+        ],
+        "all_classes": null,
+        "length": 4203
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " Word embeddings, including word2vec, word2vec with word embeddings, and word2vec with word embeddings and word vectors.",
+        "answers": [
+          "Skip\u2013gram, CBOW",
+          "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
+        ],
+        "all_classes": null,
+        "length": 4259
+      },
+      {
+        "prompt_idx": 180,
+        "pred": " Yes, they show that there is still room for improvement beyond the best model's performance.",
+        "answers": [
+          " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
+          "majority of questions that our system could not answer so far are in fact answerable"
+        ],
+        "all_classes": null,
+        "length": 4232
+      },
+      {
+        "prompt_idx": 181,
+        "pred": " F1 score, precision, recall, and accuracy.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence-level classification.\n\nQuestion: What is the main problem of the article?\n\nAnswer: Class imbalance in sentence",
+        "answers": [
+          "precision, recall , F1 score"
+        ],
+        "all_classes": null,
+        "length": 4515
+      },
+      {
+        "prompt_idx": 182,
+        "pred": " 29,794 articles.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: Featured Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: Good Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: B-class Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: C-class Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: Start Article.\n\nQuestion: What is the quality class of the majority of the articles?\n\nAnswer: Stub Article.\n\nQuestion: What is the quality",
+        "answers": [
+          "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
+        ],
+        "all_classes": null,
+        "length": 4187
+      },
+      {
+        "prompt_idx": 183,
+        "pred": " No, they recommend translating the premise and hypothesis independently.",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4071
+      },
+      {
+        "prompt_idx": 100,
+        "pred": " morphological features, syntactic features, and lexical features.\n\nQuestion: What is the best system for MSA CW diacritization?\n\nAnswer: Farasa BIBREF31.\n\nQuestion: What is the best system for CA CW diacritization?\n\nAnswer: MADAMIRA BIBREF29.\n\nQuestion: What is the best system for MSA CE diacritization?\n\nAnswer: MADAMIRA BIBREF29.\n\nQuestion: What is the best system for CA CE diacritization?\n\nAnswer: MADAMIRA BIBREF29.\n\nQuestion: What is the best system for MSA CW diacritization",
+        "answers": [
+          "POS, gender/number and stem POS"
+        ],
+        "all_classes": null,
+        "length": 4719
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " The dimension values are denoted with blue and red/green markers for the original and proposed algorithms, respectively.",
+        "answers": [
+          "dimension corresponding to the concept that the particular word belongs to"
+        ],
+        "all_classes": null,
+        "length": 6182
+      },
+      {
+        "prompt_idx": 104,
+        "pred": " Disinformation and mainstream news.\n\nQuestion: Which of the following is not a feature of the multi-layer diffusion networks?\n\nAnswer: Pure tweets.\n\nQuestion: Which of the following is a feature of the multi-layer diffusion networks?\n\nAnswer: The number of users involved in the sharing of news articles.\n\nQuestion: Which of the following is a feature of the multi-layer diffusion networks?\n\nAnswer: The size of the largest cascade in the layer.\n\nQuestion: Which of the following is a feature of the multi-layer diffusion networks?\n\nAnswer: The depth of the largest cascade in the layer.\n\nQuestion: Which of the following is a feature of the multi-layer diffusion",
+        "answers": [
+          "mainstream news and disinformation",
+          "mainstream and disinformation news"
+        ],
+        "all_classes": null,
+        "length": 4856
+      },
+      {
+        "prompt_idx": 105,
+        "pred": " CoinCollector, CookingWorld\n\nQuestion: What is the maximum number of steps in a text-based game?\n\nAnswer: 50\n\nQuestion: What is the maximum score achieved by an agent in a text-based game?\n\nAnswer: +1\n\nQuestion: What is the maximum score achieved by an agent in a text-based game?\n\nAnswer: +1\n\nQuestion: What is the maximum score achieved by an agent in a text-based game?\n\nAnswer: +1\n\nQuestion: What is the maximum score achieved by an agent in a text-based game?\n\nAnswer: +1\n\nQuestion: What is the maximum score achieved by an agent in a text",
+        "answers": [
+          "CoinCollector , CookingWorld ",
+          "CoinCollector, CookingWorld"
+        ],
+        "all_classes": null,
+        "length": 4924
+      },
+      {
+        "prompt_idx": 108,
+        "pred": " None\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\nQuestion: Related work\nUnanswerable\n\n",
+        "answers": [
+          "rther constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions",
+          "to further constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions"
+        ],
+        "all_classes": null,
+        "length": 4704
+      },
+      {
+        "prompt_idx": 109,
+        "pred": " The objective function is modified to partially influence vector representation distributions across an input vocabulary.",
+        "answers": [
+          "The cost function for any one of the words of concept word-groups is modified by the introduction of an additive term to the cost function. . Each embedding vector dimension is first associated with a concept. For a word belonging to any one of the word-groups representing these concepts, the modified cost term favors an increase for the value of this word's embedding vector dimension corresponding to the concept that the particular word belongs to,",
+          "An additive term added to the cost function for any one of the words of concept word-groups"
+        ],
+        "all_classes": null,
+        "length": 6244
+      },
+      {
+        "prompt_idx": 110,
+        "pred": " The document-level encoder is novel because it uses a novel approach to extract sentences from a document.\n\nQuestion: What is the main limitation of the current summarization models?\n\nAnswer: The main limitation of the current summarization models is that they are not able to generate novel n-grams.\n\nQuestion: What is the main limitation of the current summarization models?\n\nAnswer: The main limitation of the current summarization models is that they are not able to generate novel n-grams.\n\nQuestion: What is the main limitation of the current summarization models?\n\nAnswer: The main limitation of the current summarization models is that they are not able to generate",
+        "answers": [
+          "Bert model have a maximum length of 512; we overcome this limitation by adding more position embeddings, we insert external [cls] tokens at the start of each sentence, and each [cls] symbol collects features for the sentence preceding it, document representations are learned hierarchically"
+        ],
+        "all_classes": null,
+        "length": 4404
+      },
+      {
+        "prompt_idx": 111,
+        "pred": " The model improves interpretability by providing a more nuanced understanding of the attention heads' roles in the Transformer architecture.",
+        "answers": [
+          "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
+          "We introduce sparse attention into the Transformer architecture"
+        ],
+        "all_classes": null,
+        "length": 4902
+      },
+      {
+        "prompt_idx": 112,
+        "pred": " The model improves the efficacy of the attention mechanism by 50%",
+        "answers": [
+          "Unanswerable",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 5331
+      },
+      {
+        "prompt_idx": 118,
+        "pred": " The human judgements were assembled by the human evaluators.",
+        "answers": [
+          "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
+          "adequacy, precision and ranking values"
+        ],
+        "all_classes": null,
+        "length": 5344
+      },
+      {
+        "prompt_idx": 120,
+        "pred": " PBSMT BIBREF3\n\nQuestion: what was the best model for Ja INLINEFORM0 Ru pair?\n\nAnswer: M2M Transformer NMT model (b3) achieved best results for most of the translation directions and competitive results for the rest.\n\nQuestion: what was the best model for Ja INLINEFORM1 Ru pair?\n\nAnswer: M2M Transformer NMT model (b3) achieved best results for most of the translation directions and competitive results for the rest.\n\nQuestion: what was the best model for Ja INLINEFORM2 Ru pair?\n\nAnswer: M2M Transformer NMT model (b3) achieved best results for most",
+        "answers": [
+          "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
+          "M2M Transformer"
+        ],
+        "all_classes": null,
+        "length": 4542
+      },
+      {
+        "prompt_idx": 122,
+        "pred": " Relation detection.\n\nQuestion: What is the main focus of the KBQA system?\n\nAnswer: Relation detection.\n\nQuestion: What is the main contribution of the proposed HR-BiLSTM model?\n\nAnswer: It improves the performance of KBQA tasks.\n\nQuestion: What is the main difference between the proposed HR-BiLSTM model and the previous methods?\n\nAnswer: It uses hierarchical matching between questions and KB relations.\n\nQuestion: What is the main advantage of the proposed HR-BiLSTM model?\n\nAnswer: It improves the performance of KBQA tasks.\n\nQuestion: What is the main contribution of the proposed HR-BiLSTM model?\n\nAnswer",
+        "answers": [
+          "answer questions by obtaining information from KB tuples ",
+          "hierarchical matching between questions and relations with residual learning"
+        ],
+        "all_classes": null,
+        "length": 4527
+      },
+      {
+        "prompt_idx": 123,
+        "pred": " BIBREF6",
+        "answers": [
+          "BIBREF7",
+          " reward learning algorithm BIBREF7"
+        ],
+        "all_classes": null,
+        "length": 4841
+      },
+      {
+        "prompt_idx": 126,
+        "pred": " CNN-SVM, CNN, baseline CNN, baseline features, pre-trained features, pre-trained CNN, pre-trained features and baseline features.\n\nQuestion: What is the best feature combination for sarcasm detection?\n\nAnswer: Baseline features and sentiment features.\n\nQuestion: What is the best feature combination for sarcasm detection?\n\nAnswer: Pre-trained features and baseline features.\n\nQuestion: What is the best feature combination for sarcasm detection?\n\nAnswer: Pre-trained features and sentiment features.\n\nQuestion: What is the best feature combination for sarcasm detection?\n\nAnswer: Pre-trained features and baseline features.\n\nQuestion: What is the best feature combination for sarcasm detection?\n\n",
+        "answers": [
+          "BIBREF9 , BIBREF8 ",
+          "BIBREF9 , BIBREF8"
+        ],
+        "all_classes": null,
+        "length": 4855
+      },
+      {
+        "prompt_idx": 135,
+        "pred": " Character space is generated from character-HLA pairs, which are ranked similarly to BIBREF29 hu2008collaborative for character $c$. The latent factors for character $c$ are used to generate the character space. The character space is used to generate character-HLA pairs, which are then used to train the dialogue model.",
+        "answers": [
+          "attributes are determined by human viewers and their impressions of the characters, and are correlated with human-like characteristics"
+        ],
+        "all_classes": null,
+        "length": 5136
+      },
+      {
+        "prompt_idx": 136,
+        "pred": " Reuters-8 dataset.\n\nQuestion: What is the main contribution of the proposed method?\n\nAnswer: The main contribution of the proposed method is the TF weighted word subspace formulation.\n\nQuestion: What is the main limitation of the proposed method?\n\nAnswer: The main limitation of the proposed method is that it does not consider the order of the words in a text.\n\nQuestion: What is the main contribution of the proposed method?\n\nAnswer: The main contribution of the proposed method is the TF weighted word subspace formulation.\n\nQuestion: What is the main limitation of the proposed method?\n\nAnswer: The main limitation of the proposed method is that it does not consider",
+        "answers": [
+          "Reuters-8 dataset without stop words",
+          "The Reuters-8 dataset (with stop words removed)"
+        ],
+        "all_classes": null,
+        "length": 5147
+      },
+      {
+        "prompt_idx": 137,
+        "pred": " The approach improves LR by 5.17% and MLP by 10.71% on average.",
+        "answers": [
+          "significant improvements clearly demonstrate that our approach is effective at improving model performance",
+          "By evaluating the performance of the approach using accuracy and AUC"
+        ],
+        "all_classes": null,
+        "length": 4489
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " SimpleQuestions, WebQSP\n\nRelation Detection Results:\n\n Table 2 shows the results on two relation detection tasks. The AMPCNN result is from BIBREF20, which yielded state-of-the-art scores by outperforming several attention-based methods. We re-implemented the BiCNN model from BIBREF4, where both questions and relations are represented with the word hash trick on character tri-grams. The baseline BiLSTM with relation word sequence appears to be the best baseline on WebQSP and is close to the previous best result of AMPCNN on SimpleQuestions. Our proposed HR-BiLSTM outperformed",
+        "answers": [
+          "SimpleQuestions, WebQSP",
+          "WebQSP, SimpleQuestions"
+        ],
+        "all_classes": null,
+        "length": 4524
+      },
+      {
+        "prompt_idx": 143,
+        "pred": " Knowledge Question Answering\n\nRelation detection is a crucial step in KBQA, as it enables the system to understand the context and meaning of the question. Relation detection involves identifying the relationships between entities, such as entities, relations, and concepts, to determine the relevance and accuracy of the answer.\n\nThe proposed HR-BiLSTM model is a hierarchical relation detection model that uses a combination of word-level and relation-level representations to identify the relationships between entities. The model consists of two main components: a word-level encoder and a relation-level encoder. The word-level encoder uses a BiLSTM to represent the input question as a sequence of words,",
+        "answers": [
+          "Knowledge Base Question Answering",
+          "Knowledge Base Question Answering "
+        ],
+        "all_classes": null,
+        "length": 4521
+      },
+      {
+        "prompt_idx": 149,
+        "pred": " CyberAttack and PoliticianDeath datasets.\n\nQuestion: How many microposts are collected in the dataset?\n\nAnswer: 80k.\n\nQuestion: How many keywords are selected for the keyword discovery task?\n\nAnswer: 8 keywords.\n\nQuestion: How many keywords are selected for the keyword discovery task?\n\nAnswer: 8 keywords.\n\nQuestion: How many keywords are selected for the keyword discovery task?\n\nAnswer: 8 keywords.\n\nQuestion: How many keywords are selected for the keyword discovery task?\n\nAnswer: 8 keywords.\n\nQuestion: How many keywords are selected for the keyword discovery task?\n\nAnswer: 8 keywords.\n\nQuestion: How many keywords",
+        "answers": [
+          "Tweets related to CyberAttack and tweets related to PoliticianDeath",
+          "cyber security (CyberAttack), death of politicians (PoliticianDeath)"
+        ],
+        "all_classes": null,
+        "length": 4481
+      },
+      {
+        "prompt_idx": 150,
+        "pred": " Wiseman's work.\n\nQuestion: What is the main idea of the extractive evaluation metrics?\n\nQuestion: The main idea of the extractive evaluation metrics is to use an Information Extraction (IE) model to identify records mentioned in texts. Then compare them with tables or records extracted from reference to evaluate the model.\n\nQuestion: What is the main idea of the extractive evaluation metrics?\n\nQuestion: The main idea of the extractive evaluation metrics is to use an Information Extraction (IE) model to identify records mentioned in texts. Then compare them with tables or records extracted from reference to evaluate the model.\n\nQuestion: What is the main idea of the",
+        "answers": [
+          "Conditional Copy (CC) model ",
+          "delayed copy model (DEL),  template system (TEM), conditional copy (CC), NCP+CC (NCP)"
+        ],
+        "all_classes": null,
+        "length": 4746
+      },
+      {
+        "prompt_idx": 152,
+        "pred": " Event detection models.\n\nQuestion: What is the main problem in event detection?\n\nAnswer: Event detection is a challenging task due to the high variability of events, the lack of explicit event descriptions, and the need to detect events in real-time.\n\nQuestion: What is the main goal of the proposed approach?\n\nAnswer: The main goal of the proposed approach is to improve the performance of event detection models by discovering informative keywords and estimating expectations.\n\nQuestion: What type of keywords are used in the proposed approach?\n\nAnswer: Informative keywords are used in the proposed approach.\n\nQuestion: What is the main advantage of the proposed approach?\n\nAnswer: The main advantage",
+        "answers": [
+          "probabilistic model",
+          "Logistic Regression, Multilayer Perceptron"
+        ],
+        "all_classes": null,
+        "length": 4475
+      },
+      {
+        "prompt_idx": 156,
+        "pred": " Offensive language is often used in a dialectal manner, with specific expressions and vocabulary that are unique to certain dialects or regions. It is also often used in a way that is intended to be humorous or ironic, rather than to be taken literally. Additionally, offensive language is often used to mock or ridicule certain groups or individuals, and is frequently used in a way that is intended to be provocative or attention-grabbing.",
+        "answers": [
+          "Frequent use of direct animal name calling, using simile and metaphors, through indirect speech like sarcasm, wishing evil to others, name alteration, societal stratification, immoral behavior and sexually related uses.",
+          "Direct name calling, Simile and metaphor, Indirect speech, Wishing Evil, Name alteration, Societal stratification, Immoral behavior, Sexually related"
+        ],
+        "all_classes": null,
+        "length": 4566
+      },
+      {
+        "prompt_idx": 157,
+        "pred": " The authors show that their learned policy generalizes better than existing solutions to unseen games by finding a winning trajectory in 4,279 out of 4,440 games, compared to 47,562 steps in the single game setting.",
+        "answers": [
+          "promising results by solving almost half of the unseen games, most of the lost games are in the hardest set, where a very long sequence of actions is required for winning the game"
+        ],
+        "all_classes": null,
+        "length": 4964
+      },
+      {
+        "prompt_idx": 163,
+        "pred": " Wikipedia data, Reddit CMV dataset.\n\nQuestion: What is the main goal of the model?\n\nAnswer: Forecasting conversational events.\n\nQuestion: What is the main challenge of the model?\n\nAnswer: Capturing inter-comment dynamics.\n\nQuestion: What is the main limitation of the model?\n\nAnswer: Assigning a single label to each conversation.\n\nQuestion: What is the main goal of the model?\n\nAnswer: Forecasting conversational events.\n\nQuestion: What is the main challenge of the model?\n\nAnswer: Capturing inter-comment dynamics.\n\nQuestion: What is the main limitation of the model?\n\nAnswer: Assigning a single label to each conversation.\n\n",
+        "answers": [
+          " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
+          "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
+        ],
+        "all_classes": null,
+        "length": 4718
+      },
+      {
+        "prompt_idx": 175,
+        "pred": " NaiveNN, mSDA, NaiveNN, AuxNN, ADAN, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD, MMD",
+        "answers": [
+          "(1) Naive, (2) mSDA BIBREF7, (3) NaiveNN, (4) AuxNN BIBREF4, (5) ADAN BIBREF16, (6) MMD",
+          "non-domain-adaptive baseline with bag-of-words representations and SVM classifier, mSDA, non-domain-adaptive CNN trained on source domain, neural model that exploits auxiliary tasks, adversarial training to reduce representation difference between domains, variants of deep CNNs are used for encoding images and the MMDs of multiple layers are jointly minimized"
+        ],
+        "all_classes": null,
+        "length": 5063
+      },
+      {
+        "prompt_idx": 178,
+        "pred": " US dataset, Italian dataset.\n\nQuestion: What is the classification performance of the baseline classifier?\n\nAnswer: AUROC = 0.5.\n\nQuestion: What is the classification performance of the multi-layer approach?\n\nAnswer: AUROC = 0.94.\n\nQuestion: What is the classification performance of the single-layer approach?\n\nAnswer: AUROC = 0.85.\n\nQuestion: What is the classification performance of the multi-layer approach for disinformation news?\n\nAnswer: AUROC = 0.93.\n\nQuestion: What is the classification performance of the multi-layer approach for mainstream news?\n\nAnswer: AUROC = 0.88.\n\nQuestion",
+        "answers": [
+          "US dataset, Italian dataset",
+          "US dataset, Italian dataset"
+        ],
+        "all_classes": null,
+        "length": 4857
+      },
+      {
+        "prompt_idx": 179,
+        "pred": " Influential leaders and their followers both made changes to their profile attributes, but the changes were mostly related to the same attributes.",
+        "answers": [
+          "Influential leaders are more likely to change their profile attributes than their followers; the leaders do not change their usernames, while their followers change their usernames a lot; the leaders  tend to make new changes related to previous attribute values, while the followers make comparatively less related changes to previous attribute values."
+        ],
+        "all_classes": null,
+        "length": 5092
+      }
+    ],
+    "lb/hotpotqa_e": [
+      {
+        "prompt_idx": 88,
+        "pred": " No, both are French.",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3217
+      },
+      {
+        "prompt_idx": 89,
+        "pred": " Dublin.",
+        "answers": [
+          "Marlborough"
+        ],
+        "all_classes": null,
+        "length": 3829
+      },
+      {
+        "prompt_idx": 93,
+        "pred": " Yes.",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3674
+      },
+      {
+        "prompt_idx": 94,
+        "pred": " Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3705
+      },
+      {
+        "prompt_idx": 96,
+        "pred": " Aichryson has more species.",
+        "answers": [
+          "Polypodium"
+        ],
+        "all_classes": null,
+        "length": 3730
+      },
+      {
+        "prompt_idx": 97,
+        "pred": "  Ray Romano",
+        "answers": [
+          "Albert"
+        ],
+        "all_classes": null,
+        "length": 3271
+      },
+      {
+        "prompt_idx": 99,
+        "pred": " Universal Music Group",
+        "answers": [
+          "A1 Recordings"
+        ],
+        "all_classes": null,
+        "length": 2862
+      },
+      {
+        "prompt_idx": 107,
+        "pred": " 83.",
+        "answers": [
+          "729 at the 2010 census"
+        ],
+        "all_classes": null,
+        "length": 4198
+      },
+      {
+        "prompt_idx": 113,
+        "pred": " Vodka.",
+        "answers": [
+          "lime"
+        ],
+        "all_classes": null,
+        "length": 4196
+      },
+      {
+        "prompt_idx": 117,
+        "pred": " Abbott was a playwright, director, and producer, and his first big hit was the play \"Broadway,\" which was adapted into a film in 1926",
+        "answers": [
+          "American theater producer and director, playwright, screenwriter"
+        ],
+        "all_classes": null,
+        "length": 4512
+      },
+      {
+        "prompt_idx": 123,
+        "pred": " Scotland.",
+        "answers": [
+          "Scotland"
+        ],
+        "all_classes": null,
+        "length": 4500
+      },
+      {
+        "prompt_idx": 124,
+        "pred": " 13 times.",
+        "answers": [
+          "13"
+        ],
+        "all_classes": null,
+        "length": 4497
+      },
+      {
+        "prompt_idx": 100,
+        "pred": " Osteomeles.",
+        "answers": [
+          "Medinilla"
+        ],
+        "all_classes": null,
+        "length": 4208
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " Macaulay Culkin",
+        "answers": [
+          "Eduardo Kuno Becker Paz"
+        ],
+        "all_classes": null,
+        "length": 4166
+      },
+      {
+        "prompt_idx": 102,
+        "pred": " Mississippi County.",
+        "answers": [
+          "Sunflower County"
+        ],
+        "all_classes": null,
+        "length": 4751
+      },
+      {
+        "prompt_idx": 103,
+        "pred": " 8 million",
+        "answers": [
+          "about 7 million"
+        ],
+        "all_classes": null,
+        "length": 5850
+      },
+      {
+        "prompt_idx": 104,
+        "pred": " No",
+        "answers": [
+          "no"
+        ],
+        "all_classes": null,
+        "length": 5047
+      },
+      {
+        "prompt_idx": 105,
+        "pred": " David Dobkin",
+        "answers": [
+          "David Dobkin"
+        ],
+        "all_classes": null,
+        "length": 5609
+      },
+      {
+        "prompt_idx": 106,
+        "pred": " Kaka Bhaniawala",
+        "answers": [
+          "Lehmber Hussainpuri"
+        ],
+        "all_classes": null,
+        "length": 5194
+      },
+      {
+        "prompt_idx": 108,
+        "pred": " Yes",
+        "answers": [
+          "no"
+        ],
+        "all_classes": null,
+        "length": 4508
+      },
+      {
+        "prompt_idx": 118,
+        "pred": " trees.",
+        "answers": [
+          "flowering plants"
+        ],
+        "all_classes": null,
+        "length": 4553
+      },
+      {
+        "prompt_idx": 119,
+        "pred": " York County.",
+        "answers": [
+          "York County"
+        ],
+        "all_classes": null,
+        "length": 5098
+      },
+      {
+        "prompt_idx": 121,
+        "pred": " 2003.",
+        "answers": [
+          "1976"
+        ],
+        "all_classes": null,
+        "length": 5564
+      },
+      {
+        "prompt_idx": 122,
+        "pred": "  segregation.",
+        "answers": [
+          "filibuster"
+        ],
+        "all_classes": null,
+        "length": 5564
+      },
+      {
+        "prompt_idx": 127,
+        "pred": " Atlantic League.",
+        "answers": [
+          "Canadian-American Association of Professional Baseball"
+        ],
+        "all_classes": null,
+        "length": 5794
+      },
+      {
+        "prompt_idx": 129,
+        "pred": " Bob Jones",
+        "answers": [
+          "Tie Domi"
+        ],
+        "all_classes": null,
+        "length": 5764
+      },
+      {
+        "prompt_idx": 136,
+        "pred": " Field of Dreams",
+        "answers": [
+          "\"Field of Dreams\""
+        ],
+        "all_classes": null,
+        "length": 5762
+      },
+      {
+        "prompt_idx": 137,
+        "pred": " Romantic era",
+        "answers": [
+          "Romantic"
+        ],
+        "all_classes": null,
+        "length": 4685
+      },
+      {
+        "prompt_idx": 138,
+        "pred": " Carnforth railway station",
+        "answers": [
+          "Borwick railway station"
+        ],
+        "all_classes": null,
+        "length": 5102
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " August Heckscher.",
+        "answers": [
+          "August Heckscher"
+        ],
+        "all_classes": null,
+        "length": 5267
+      },
+      {
+        "prompt_idx": 140,
+        "pred": " Detroit.",
+        "answers": [
+          "Prudential Center"
+        ],
+        "all_classes": null,
+        "length": 5348
+      }
+    ],
+    "lb/2wikimqa_e": [
+      {
+        "prompt_idx": 107,
+        "pred": " Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4176
+      },
+      {
+        "prompt_idx": 108,
+        "pred": " Stein Erik Hagen",
+        "answers": [
+          "Kiplangat Sang"
+        ],
+        "all_classes": null,
+        "length": 4003
+      },
+      {
+        "prompt_idx": 117,
+        "pred": " London, UK.",
+        "answers": [
+          "Sydney, Australia"
+        ],
+        "all_classes": null,
+        "length": 4287
+      },
+      {
+        "prompt_idx": 129,
+        "pred": " 3 May 1270.",
+        "answers": [
+          "6 August 1272"
+        ],
+        "all_classes": null,
+        "length": 4185
+      },
+      {
+        "prompt_idx": 132,
+        "pred": " No",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4141
+      },
+      {
+        "prompt_idx": 135,
+        "pred": " Prairie Thunder",
+        "answers": [
+          "Prairie Thunder"
+        ],
+        "all_classes": null,
+        "length": 4155
+      },
+      {
+        "prompt_idx": 141,
+        "pred": " 1399",
+        "answers": [
+          "8 April 1643"
+        ],
+        "all_classes": null,
+        "length": 4038
+      },
+      {
+        "prompt_idx": 142,
+        "pred": " Jaffa, Israel.",
+        "answers": [
+          "Israeli"
+        ],
+        "all_classes": null,
+        "length": 4399
+      },
+      {
+        "prompt_idx": 145,
+        "pred": " The Thing About My Folks",
+        "answers": [
+          "The Thing About My Folks"
+        ],
+        "all_classes": null,
+        "length": 4234
+      },
+      {
+        "prompt_idx": 147,
+        "pred": " Hubba bint Hulail",
+        "answers": [
+          "Princess Maria Immaculata of Bourbon-Two Sicilies"
+        ],
+        "all_classes": null,
+        "length": 4083
+      },
+      {
+        "prompt_idx": 151,
+        "pred": " American",
+        "answers": [
+          "Canadian"
+        ],
+        "all_classes": null,
+        "length": 4421
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " Los Angeles County Museum of Art.",
+        "answers": [
+          "Nice"
+        ],
+        "all_classes": null,
+        "length": 4110
+      },
+      {
+        "prompt_idx": 171,
+        "pred": " Ramon Berenguer IV, Count of Barcelona",
+        "answers": [
+          "Urraca of Le\u00f3n"
+        ],
+        "all_classes": null,
+        "length": 4215
+      },
+      {
+        "prompt_idx": 172,
+        "pred": " Carnegie Mellon University",
+        "answers": [
+          "Warsaw School of Economics"
+        ],
+        "all_classes": null,
+        "length": 4162
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " Sweden.",
+        "answers": [
+          "Sweden"
+        ],
+        "all_classes": null,
+        "length": 4797
+      },
+      {
+        "prompt_idx": 102,
+        "pred": " Faiz Muhammad was born in 1917, Guillermo Capetillo was born in 1958.",
+        "answers": [
+          "Guillermo Capetillo"
+        ],
+        "all_classes": null,
+        "length": 4267
+      },
+      {
+        "prompt_idx": 104,
+        "pred": " Werner Mensching lived longer.",
+        "answers": [
+          "Werner Mensching"
+        ],
+        "all_classes": null,
+        "length": 4774
+      },
+      {
+        "prompt_idx": 106,
+        "pred": " 13 December 1300",
+        "answers": [
+          "13 December 1272"
+        ],
+        "all_classes": null,
+        "length": 4629
+      },
+      {
+        "prompt_idx": 109,
+        "pred": " Jos, Nigeria.",
+        "answers": [
+          "Barkin Ladi"
+        ],
+        "all_classes": null,
+        "length": 5240
+      },
+      {
+        "prompt_idx": 110,
+        "pred": " Bloomington, Indiana.",
+        "answers": [
+          "Sey\u00f0isfj\u00f6r\u00f0ur"
+        ],
+        "all_classes": null,
+        "length": 4396
+      },
+      {
+        "prompt_idx": 111,
+        "pred": " Another Earth was released earlier.",
+        "answers": [
+          "Another Earth"
+        ],
+        "all_classes": null,
+        "length": 5575
+      },
+      {
+        "prompt_idx": 112,
+        "pred": " Bavaria.",
+        "answers": [
+          "German"
+        ],
+        "all_classes": null,
+        "length": 4327
+      },
+      {
+        "prompt_idx": 114,
+        "pred": " Hagi, Yamaguchi.",
+        "answers": [
+          "Florence"
+        ],
+        "all_classes": null,
+        "length": 4864
+      },
+      {
+        "prompt_idx": 118,
+        "pred": " Deuces Wild",
+        "answers": [
+          "Cavalcade Of The West"
+        ],
+        "all_classes": null,
+        "length": 4759
+      },
+      {
+        "prompt_idx": 119,
+        "pred": " The Rebellion Of The Brides",
+        "answers": [
+          "The Rebellion Of The Brides"
+        ],
+        "all_classes": null,
+        "length": 4961
+      },
+      {
+        "prompt_idx": 120,
+        "pred": " English.",
+        "answers": [
+          "England"
+        ],
+        "all_classes": null,
+        "length": 4993
+      },
+      {
+        "prompt_idx": 121,
+        "pred": " Lancaster County, Pennsylvania.",
+        "answers": [
+          "New York"
+        ],
+        "all_classes": null,
+        "length": 5794
+      },
+      {
+        "prompt_idx": 122,
+        "pred": " No",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 5421
+      },
+      {
+        "prompt_idx": 124,
+        "pred": " Su-Ki-Da",
+        "answers": [
+          "Su-Ki-Da"
+        ],
+        "all_classes": null,
+        "length": 5606
+      },
+      {
+        "prompt_idx": 128,
+        "pred": " Viva Knievel!",
+        "answers": [
+          "Maria Marten, Or The Murder In The Red Barn"
+        ],
+        "all_classes": null,
+        "length": 4497
+      },
+      {
+        "prompt_idx": 130,
+        "pred": " Margaret de Stafford",
+        "answers": [
+          "Lady Anne Campbell"
+        ],
+        "all_classes": null,
+        "length": 4264
+      },
+      {
+        "prompt_idx": 131,
+        "pred": " Yes Or No",
+        "answers": [
+          "Yes Or No?"
+        ],
+        "all_classes": null,
+        "length": 5491
+      },
+      {
+        "prompt_idx": 134,
+        "pred": " No. Don'T Bet On Blondes is from the United States, while The Empress And I is from Japan.",
+        "answers": [
+          "no"
+        ],
+        "all_classes": null,
+        "length": 5078
+      },
+      {
+        "prompt_idx": 136,
+        "pred": " Karthika (film)",
+        "answers": [
+          "Everything'S Ducky"
+        ],
+        "all_classes": null,
+        "length": 4171
+      },
+      {
+        "prompt_idx": 137,
+        "pred": " J\u00f6rn Lenz was born first.",
+        "answers": [
+          "Alejandro Romualdo"
+        ],
+        "all_classes": null,
+        "length": 5191
+      },
+      {
+        "prompt_idx": 138,
+        "pred": " Throw Momma From The Train.",
+        "answers": [
+          "Dona Mariquita Of My Heart"
+        ],
+        "all_classes": null,
+        "length": 5540
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " Amadeus VII, Count of Savoy",
+        "answers": [
+          "Amadeus VI, Count of Savoy"
+        ],
+        "all_classes": null,
+        "length": 4356
+      },
+      {
+        "prompt_idx": 140,
+        "pred": " Northwestern University",
+        "answers": [
+          "UCLA"
+        ],
+        "all_classes": null,
+        "length": 4374
+      },
+      {
+        "prompt_idx": 143,
+        "pred": " Montfort l'Amaury.",
+        "answers": [
+          "Toulouse"
+        ],
+        "all_classes": null,
+        "length": 5159
+      },
+      {
+        "prompt_idx": 144,
+        "pred": " St. Stephen, New Brunswick",
+        "answers": [
+          "St. Stephen, New Brunswick"
+        ],
+        "all_classes": null,
+        "length": 5174
+      },
+      {
+        "prompt_idx": 146,
+        "pred": " Robert Burns.",
+        "answers": [
+          "Nandlal Nehru"
+        ],
+        "all_classes": null,
+        "length": 4881
+      },
+      {
+        "prompt_idx": 149,
+        "pred": " New York City.",
+        "answers": [
+          "Yale"
+        ],
+        "all_classes": null,
+        "length": 5306
+      },
+      {
+        "prompt_idx": 150,
+        "pred": " No.",
+        "answers": [
+          "no"
+        ],
+        "all_classes": null,
+        "length": 5248
+      },
+      {
+        "prompt_idx": 152,
+        "pred": " K\u00f6pekler Adas\u0131",
+        "answers": [
+          "K\u00f6pekler Adas\u0131"
+        ],
+        "all_classes": null,
+        "length": 5307
+      },
+      {
+        "prompt_idx": 153,
+        "pred": " Indian.",
+        "answers": [
+          "Indian"
+        ],
+        "all_classes": null,
+        "length": 4733
+      },
+      {
+        "prompt_idx": 155,
+        "pred": " Young And Dangerous: The Prequel.",
+        "answers": [
+          "Hanuman Patal Vijay"
+        ],
+        "all_classes": null,
+        "length": 5611
+      },
+      {
+        "prompt_idx": 156,
+        "pred": " Fergal mac M\u00f3rda, High King of Ireland.",
+        "answers": [
+          "Niall mac Cernaig Sotal"
+        ],
+        "all_classes": null,
+        "length": 4707
+      },
+      {
+        "prompt_idx": 158,
+        "pred": " Brodie Croft.",
+        "answers": [
+          "Saad Abdulrahman"
+        ],
+        "all_classes": null,
+        "length": 4643
+      },
+      {
+        "prompt_idx": 159,
+        "pred": " Naples.",
+        "answers": [
+          "Neapolitan"
+        ],
+        "all_classes": null,
+        "length": 4678
+      },
+      {
+        "prompt_idx": 160,
+        "pred": " Pieces Of A Woman was born in 2020. Oriental Nights was born in 1960.",
+        "answers": [
+          "Oriental Nights"
+        ],
+        "all_classes": null,
+        "length": 5382
+      },
+      {
+        "prompt_idx": 161,
+        "pred": " Geoffrey II, Viscount of Ch\u00e2teaudun.",
+        "answers": [
+          "John of Gaunt"
+        ],
+        "all_classes": null,
+        "length": 4846
+      },
+      {
+        "prompt_idx": 162,
+        "pred": " Landgrave Moritz of Hesse.",
+        "answers": [
+          "Frederick V of Denmark"
+        ],
+        "all_classes": null,
+        "length": 4645
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " Konrad III the Old",
+        "answers": [
+          "Konrad I of Ole\u015bnica"
+        ],
+        "all_classes": null,
+        "length": 5351
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " Sitric mac Sithrigi",
+        "answers": [
+          "Fer Corb"
+        ],
+        "all_classes": null,
+        "length": 4254
+      },
+      {
+        "prompt_idx": 168,
+        "pred": " The Royal Bank of New Zealand.",
+        "answers": [
+          "Oxford"
+        ],
+        "all_classes": null,
+        "length": 5628
+      },
+      {
+        "prompt_idx": 174,
+        "pred": " Cry Of The Hunted",
+        "answers": [
+          "Salvage With A Smile"
+        ],
+        "all_classes": null,
+        "length": 4787
+      },
+      {
+        "prompt_idx": 175,
+        "pred": " Singapore Dreaming",
+        "answers": [
+          "Singapore Dreaming"
+        ],
+        "all_classes": null,
+        "length": 5303
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " Motu Hafoka lived longer.",
+        "answers": [
+          "Wilhelm Meise"
+        ],
+        "all_classes": null,
+        "length": 5217
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " Cleopatra Thea",
+        "answers": [
+          "Laodice V"
+        ],
+        "all_classes": null,
+        "length": 5047
+      },
+      {
+        "prompt_idx": 178,
+        "pred": " Ebar Shabor",
+        "answers": [
+          "Circle Of Deception"
+        ],
+        "all_classes": null,
+        "length": 4460
+      },
+      {
+        "prompt_idx": 181,
+        "pred": " Ernst I, Prince of Hohenlohe-Langenburg",
+        "answers": [
+          "Charles Louis"
+        ],
+        "all_classes": null,
+        "length": 4584
+      }
+    ]
+  }
+}
