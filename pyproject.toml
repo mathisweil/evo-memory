@@ -47,7 +47,7 @@ dependencies = [
     "python-levenshtein",
     # Config / experiment tracking
     "hydra-core==1.3.2",
-    "wandb==0.16.6",
+    "wandb",
     "pandas==2.2.2",
     "tqdm",
     # Cloud storage
@@ -77,17 +77,37 @@ dev = [
 ]
 
 # ── uv source routing ────────────────────────────────────────────────────────
-# When the `gpu` extra is active, pull torch from the CUDA 12.1 PyTorch index
-# instead of PyPI. Other extras fall back to PyPI.
+# Route torch to the correct PyTorch wheel index per active extra:
+#   gpu → CUDA 12.1 wheels (~2 GB, includes nvcc runtime libs)
+#   cpu → CPU-only wheels  (~180 MB, no CUDA runtime)
+#   tpu → default PyPI torch + torch-xla[tpu] (handled by torch-xla's own deps)
 # ─────────────────────────────────────────────────────────────────────────────
+[tool.uv]
+# gpu / cpu / tpu are mutually exclusive — declaring the conflict lets uv
+# resolve and lock a separate torch variant per extra instead of collapsing
+# onto a single universal resolution.
+conflicts = [
+    [
+        { extra = "gpu" },
+        { extra = "cpu" },
+        { extra = "tpu" },
+    ],
+]
+
 [tool.uv.sources]
 torch = [
     { index = "pytorch-cu121", marker = "extra == 'gpu'" },
+    { index = "pytorch-cpu",   marker = "extra == 'cpu' and extra != 'gpu'" },
 ]
 
 [[tool.uv.index]]
 name = "pytorch-cu121"
 url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 # ── Build system ─────────────────────────────────────────────────────────────
