@@ -5,10 +5,10 @@
 # while NAMM manages the KV cache.
 #
 # Install:
-#   make setup-local       # CPU / local GPU
-#   make setup-gpu GPU=2   # pin to CUDA device 2
-#   make setup-tpu         # Google Cloud TPU VM
-#   make setup-ucl-gpu     # UCL CSH cluster
+#   uv sync --extra gpu              # CUDA 12.1 GPU
+#   uv sync --extra cpu              # CPU only
+#   uv sync --extra tpu              # Google Cloud TPU VM
+#   uv sync --extra gpu --extra dev  # add dev tools (ruff, pytest)
 #
 # Requires: python 3.10+, uv (https://docs.astral.sh/uv/)
 # =============================================================================
@@ -23,8 +23,8 @@ license = { text = "MIT" }
 authors = [{ name = "Mathis Weil" }]
 
 # ── Shared dependencies ─────────────────────────────────────────────────────
-# Everything EXCEPT PyTorch, which varies by hardware and is installed by the
-# Makefile with the correct index URL.
+# Everything EXCEPT PyTorch, which varies by hardware and is resolved via the
+# `[tool.uv.sources]` + `[[tool.uv.index]]` blocks below per selected extra.
 # ─────────────────────────────────────────────────────────────────────────────
 dependencies = [
     # Core ML
@@ -63,8 +63,9 @@ dependencies = [
 ]
 
 # ── Platform-specific extras ─────────────────────────────────────────────────
-# These declare WHAT each platform needs. The Makefile handles WHERE to fetch
-# them (CUDA index, Google TPU find-links, or default PyPI).
+# These declare WHAT each platform needs. `[tool.uv.sources]` below routes the
+# `gpu` extra to the CUDA 12.1 PyTorch index; `cpu` and `tpu` resolve from the
+# default PyPI / the `torch-xla[tpu]` find-links declared in that package.
 # ─────────────────────────────────────────────────────────────────────────────
 [project.optional-dependencies]
 gpu = [
@@ -85,6 +86,26 @@ dev = [
     "ruff",
     "pytest",
 ]
+
+# ── uv source routing ────────────────────────────────────────────────────────
+# When the `gpu` extra is active, pull torch/torchvision/torchaudio from the
+# CUDA 12.1 PyTorch index instead of PyPI. Other extras fall back to PyPI.
+# ─────────────────────────────────────────────────────────────────────────────
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu121", marker = "extra == 'gpu'" },
+]
+torchvision = [
+    { index = "pytorch-cu121", marker = "extra == 'gpu'" },
+]
+torchaudio = [
+    { index = "pytorch-cu121", marker = "extra == 'gpu'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
 
 # ── Build system ─────────────────────────────────────────────────────────────
 # Enables `pip install -e .` so namm/, grad_lora_finetuning/, etc. are importable.
