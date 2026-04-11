@@ -20,6 +20,7 @@ from namm.run_utils import (
     make_task_sampler,
     stochasticity_setup,
 )
+from utils.hydra_helpers import assert_fair01_test_size
 
 
 @hydra.main(version_base=None, config_path='../config', config_name='config')
@@ -119,6 +120,20 @@ def main(cfg: DictConfig):
             min_conditioning_length=min_cond,
             tokenizer=tokenizer,
         )
+
+        if master_process:
+            run_choice = (
+                hydra.core.hydra_config.HydraConfig.get()
+                .runtime.choices.get('run@_global_', '')
+            )
+            assert_fair01_test_size(
+                task_sampler,
+                run_config=run_choice,
+                train_frac=train_frac,
+                val_frac=val_frac,
+                min_conditioning_length=min_cond,
+                max_conditioning_length=max_cond,
+            )
 
         trainer = hydra.utils.instantiate(
             cfg.trainer,

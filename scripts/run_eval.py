@@ -29,6 +29,7 @@ from hydra import compose, initialize
 from namm.run_utils import make_eval_model, make_task_sampler
 from es_finetuning.device import get_device
 from experiment_utils import load_config_defaults
+from utils.hydra_helpers import assert_fair01_test_size
 
 
 class Tee:
@@ -71,8 +72,14 @@ def parse_args():
                         help="Path to ES fine-tuned checkpoint (omit for baseline)")
     parser.add_argument("--namm_checkpoint", type=str, default=None,
                         help="Path to pre-trained NAMM scoring network checkpoint")
+    parser.add_argument("--namm_active",
+                        action=argparse.BooleanOptionalAction, default=None,
+                        help="Whether NAMM eviction is active at eval time. "
+                             "Default: True iff --namm_checkpoint is given. "
+                             "Pass --no-namm_active to force full cache "
+                             "(A4 NAMM-off ablation).")
     parser.add_argument("--run_config", type=str,
-                        default="namm_bam_i1_llama32_1b")
+                        default="namm_bam_i1_llama32_1b_5t")
     parser.add_argument("--batch_size", type=int, default=None,
                         help="Inference batch size (default: use config value)")
     parser.add_argument("--filter_by_length", type=int, default=None,
@@ -89,16 +96,30 @@ def parse_args():
                         help="Generation temperature (0 = greedy)")
     parser.add_argument("--num_samples", type=int, default=1,
                         help="Samples per question (averaged for final score)")
-    parser.add_argument("--train_split", type=float, default=0.8,
-                        help="Train/test split fraction (must match training)")
+    parser.add_argument("--train_split", type=float, default=0.7,
+                        help="Train split fraction (FAIR-01: 0.7)")
+    parser.add_argument("--val_split", type=float, default=0.15,
+                        help="Val split fraction (FAIR-01: 0.15). The "
+                             "remaining fraction is the test split that "
+                             "headline F1 numbers are computed on.")
     parser.add_argument("--split_seed", type=int, default=42,
-                        help="Seed for deterministic train/test split")
+                        help="Seed for deterministic train/val/test split")
+    parser.add_argument("--min_conditioning_length", type=int, default=4096,
+                        help="Drop prompts shorter than this (FAIR-01: 4096)")
+    parser.add_argument("--max_conditioning_length", type=int, default=6500,
+                        help="Drop prompts longer than this (FAIR-01: 6500)")
     load_config_defaults(parser)
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+
+    # Resolve namm_active default: unless explicitly set, NAMM is active iff
+    # a checkpoint was provided. This makes ``--namm_checkpoint ...`` the
+    # "NAMM on" arm and omitting it the "NAMM off" arm (A4 ablation).
+    if args.namm_active is None:
+        args.namm_active = args.namm_checkpoint is not None
 
     # Resolve "latest" NAMM checkpoint from GCS
     if args.namm_checkpoint == "latest":
@@ -142,10 +163,15 @@ def main():
                     job_name="es_eval"):
         cfg = compose(config_name="config", overrides=overrides)
 
-    # Build model
+    # Build model. namm_active=False makes make_eval_model swap in a
+    # passthrough Recency policy after construction (A4 NAMM-off arm).
     with torch.no_grad():
         (memory_policy, memory_model, memory_evaluator,
-         evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
+         evolution_algorithm, auxiliary_loss) = make_eval_model(
+             cfg=cfg,
+             namm_active=args.namm_active,
+             cache_size=args.cache_size,
+         )
     memory_model.to(device)
     memory_evaluator.device = device
 
@@ -193,7 +219,7 @@ def main():
     else:
         print("No ES checkpoint -- evaluating base LLM weights (baseline)")
 
-    # Create task sampler and evaluate on full val set
+    # Create task sampler and evaluate on the held-out test split.
     print("Creating task sampler...")
     task_sampler = make_task_sampler(
         cfg=cfg, train_split=args.train_split, split_seed=args.split_seed)
@@ -207,9 +233,28 @@ def main():
     task_sampler.filter_answers_by_token_count(
         memory_evaluator.tokenizer, args.filter_answers_by_tokens)
 
-    # Show val set sizes
-    for task_n, n in task_sampler.num_prompts_per_lb_task.items():
-        print(f"  Task: {task_n}, total samples: {n}")
+    # Apply the 3-way split used by M1/M2/M3/M4 training so the test set is
+    # the identical 69 prompts that every condition trained against. Without
+    # this, make_task_sampler's in-constructor 2-way split is what gets used
+    # — which does NOT match any training-time split.
+    task_sampler.apply_train_val_test_split(
+        train_frac=args.train_split,
+        val_frac=args.val_split,
+        max_conditioning_length=args.max_conditioning_length,
+        min_conditioning_length=args.min_conditioning_length,
+        tokenizer=memory_evaluator.tokenizer,
+    )
+    n_test = assert_fair01_test_size(
+        task_sampler,
+        run_config=args.run_config,
+        train_frac=args.train_split,
+        val_frac=args.val_split,
+        min_conditioning_length=args.min_conditioning_length,
+        max_conditioning_length=args.max_conditioning_length,
+    )
+    test_idxs = task_sampler.get_split_indices('test')
+    print(f"  Test split size: {n_test} prompts across "
+          f"{len(test_idxs)} tasks (FAIR-01 target: 69)")
 
     # Generation kwargs
     gen_kwargs = {}
@@ -261,11 +306,17 @@ def main():
             "config": {
                 "es_checkpoint": args.es_checkpoint,
                 "namm_checkpoint": args.namm_checkpoint,
+                "namm_active": args.namm_active,
                 "cache_size": args.cache_size,
                 "run_config": args.run_config,
                 "filter_by_length": args.filter_by_length,
                 "temperature": args.temperature,
                 "num_samples": args.num_samples,
+                "train_split": args.train_split,
+                "val_split": args.val_split,
+                "split_seed": args.split_seed,
+                "min_conditioning_length": args.min_conditioning_length,
+                "max_conditioning_length": args.max_conditioning_length,
             },
             "scores": dict(avg_scores),
         }

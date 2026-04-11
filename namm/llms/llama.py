@@ -1,7 +1,10 @@
 import copy
+import logging
 import math
 import os
 import numpy as np
+
+logger = logging.getLogger(__name__)
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union, Any, List
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
@@ -239,11 +242,21 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
 
         Forces LoRA parameters to float32 regardless of base model dtype,
         preventing bfloat16 underflow at ES sigma=0.001.
+
+        lora_alpha defaults to ``2 * rank`` — the convention used by the
+        M1/M3 YAMLs and required by the FAIR-01 comparison. The M1 sweep
+        (``r ∈ {4, 8, 16}``) keeps this ratio fixed.
         """
         if target_modules is None:
             target_modules = ['q_proj', 'v_proj']
         if lora_alpha is None:
-            lora_alpha = rank
+            lora_alpha = 2 * rank
+            logger.warning(
+                "apply_lora_adapters: lora_alpha not provided; defaulting to "
+                "2 * rank = %d. FAIR-01 expects callers to set lora_alpha "
+                "explicitly so the M1 sweep ratio is auditable.",
+                lora_alpha,
+            )
         peft_config = LoraConfig(
             r=rank,
             target_modules=target_modules,
