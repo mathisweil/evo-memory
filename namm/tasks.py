@@ -54,6 +54,12 @@ class TaskSampler():
             store_gen_outputs_path = 'generated_outputs/temp/'
 
         self.store_gen_outputs_path = store_gen_outputs_path
+        # In-memory snapshot of generated outputs from the most recent
+        # evaluate() call. Populated only when store_gen_outputs=True.
+        # Layout: {task_name: [{'pred', 'answers', 'all_classes', 'length',
+        #                       'prompt_idx'}, ...]}.
+        # Cleared at the start of each evaluate() call.
+        self.last_gen_outputs = None
 
         if store_gen_outputs:
             if not os.path.exists(store_gen_outputs_path):
@@ -96,6 +102,10 @@ class TaskSampler():
         self._build_split()
         # Populated by apply_train_val_test_split(); None means "use _build_split"
         self._val_idxs_per_task = None
+        # Populated only when apply_train_val_test_split() is called with
+        # extended_max_conditioning_length set. Eval-only superset of test:
+        # current test indices ∪ prompts in (max_cond, extended_max_cond] tokens.
+        self._extended_test_idxs_per_task = None
 
     def get_cached_per_task_stats(self, reset=True) -> dict:
         cached_per_task_stats = copy.deepcopy(self.cached_per_task_stats)
@@ -234,21 +244,41 @@ class TaskSampler():
     def apply_train_val_test_split(self, train_frac=0.8, val_frac=0.1,
                                     max_conditioning_length=None,
                                     min_conditioning_length=None,
-                                    tokenizer=None):
+                                    tokenizer=None,
+                                    extended_max_conditioning_length=None):
         """Partition each task's prompts into deterministic train/val/test sets.
 
         When max/min_conditioning_length and tokenizer are provided, prompts
         outside that token range are filtered out BEFORE splitting so that
         each partition has proportional representation of usable prompts.
 
+        If extended_max_conditioning_length is provided (and > max_conditioning_length),
+        an additional eval-only "extended_test" split is built. It is the union of
+        the regular test indices and all prompts whose token count is in
+        (max_conditioning_length, extended_max_conditioning_length]. The
+        train/val/test splits themselves are unchanged. This is intended to
+        recover prompts dropped by the standard upper bound to enlarge the test
+        set and reduce eval variance.
+
         After calling this method:
           - resample_requests_lb(train=True) samples only from train indices
           - resample_requests_lb(train=False) samples only from test indices
           - get_split_indices('val') returns val indices for held-out evaluation
+          - get_split_indices('extended_test') returns extended test (if requested)
         """
         self._train_idxs_per_task = {}
         self._val_idxs_per_task = {}
         self._test_idxs_per_task = {}
+        build_extended = (
+            extended_max_conditioning_length is not None
+            and max_conditioning_length is not None
+            and extended_max_conditioning_length > max_conditioning_length
+            and tokenizer is not None
+        )
+        if build_extended:
+            self._extended_test_idxs_per_task = {}
+        else:
+            self._extended_test_idxs_per_task = None
 
         for task_n in self.lb_tasks:
             prompts = self.lb_prompts_per_task[task_n]
@@ -261,8 +291,11 @@ class TaskSampler():
                                           or min_conditioning_length is not None):
                 lo = min_conditioning_length or 0
                 hi = max_conditioning_length or float('inf')
+                ext_hi = (extended_max_conditioning_length
+                          if build_extended else None)
                 bos_id = getattr(tokenizer, 'bos_token_id', None)
                 eligible = []
+                extended_extra = []  # idxs with hi < n_tok <= ext_hi
                 for idx in all_idxs:
                     messages = [{"role": "user", "content": prompts[idx]}]
                     tok_ids = tokenizer.apply_chat_template(
@@ -271,11 +304,15 @@ class TaskSampler():
                         1 if bos_id is not None and tok_ids[0] == bos_id else 0)
                     if lo <= n_tok <= hi:
                         eligible.append(idx)
+                    elif ext_hi is not None and hi < n_tok <= ext_hi:
+                        extended_extra.append(idx)
                 n_dropped = len(all_idxs) - len(eligible)
                 eligible = np.array(eligible)
+                extended_extra = np.array(extended_extra, dtype=np.int64)
             else:
                 eligible = all_idxs
                 n_dropped = 0
+                extended_extra = np.array([], dtype=np.int64)
 
             n_eligible = len(eligible)
             n_train = int(n_eligible * train_frac)
@@ -287,9 +324,18 @@ class TaskSampler():
             self._test_idxs_per_task[task_n] = eligible[n_train + n_val:]
 
             filter_desc = f"[{lo}-{hi}] tok" if tokenizer else ""
+            extra_desc = ""
+            if build_extended:
+                test_idxs = self._test_idxs_per_task[task_n]
+                ext_test = np.concatenate([test_idxs, extended_extra]).astype(np.int64)
+                self._extended_test_idxs_per_task[task_n] = ext_test
+                extra_desc = (f" | extended_test={len(ext_test)} "
+                              f"(+{len(extended_extra)} in "
+                              f"({hi}, {extended_max_conditioning_length}])")
             print(f"  {task_n}: {len(all_idxs)} total, {n_dropped} filtered "
                   f"{filter_desc} -> "
-                  f"{n_train} train / {n_val} val / {n_test} test")
+                  f"{n_train} train / {n_val} val / {n_test} test"
+                  f"{extra_desc}")
 
     def get_split_indices(self, split='val'):
         """Return {task_name: np.array of indices} for the given split."""
@@ -299,6 +345,13 @@ class TaskSampler():
             return self._val_idxs_per_task
         elif split == 'test':
             return self._test_idxs_per_task
+        elif split == 'extended_test':
+            if self._extended_test_idxs_per_task is None:
+                raise ValueError(
+                    "extended_test split was not built — call "
+                    "apply_train_val_test_split with "
+                    "extended_max_conditioning_length set.")
+            return self._extended_test_idxs_per_task
         else:
             raise ValueError(f"Unknown split: {split}")
 
@@ -443,6 +496,9 @@ class TaskSampler():
                     eligible = self._train_idxs_per_task[task_n]
                 elif split == 'val' and self._val_idxs_per_task is not None:
                     eligible = self._val_idxs_per_task[task_n]
+                elif (split == 'extended_test'
+                      and self._extended_test_idxs_per_task is not None):
+                    eligible = self._extended_test_idxs_per_task[task_n]
                 else:
                     eligible = self._test_idxs_per_task[task_n]
             else:
@@ -586,6 +642,9 @@ class TaskSampler():
                     eligible = self._train_idxs_per_task[task_n]
                 elif split == 'val' and self._val_idxs_per_task is not None:
                     eligible = self._val_idxs_per_task[task_n]
+                elif (split == 'extended_test'
+                      and self._extended_test_idxs_per_task is not None):
+                    eligible = self._extended_test_idxs_per_task[task_n]
                 else:
                     eligible = self._test_idxs_per_task[task_n]
             else:
@@ -626,6 +685,11 @@ class TaskSampler():
             sampled_task_prompts[task_n] = prompts
 
         self.latest_sampled_idxs_per_lb_task = sampled_idxs_per_lb_task
+
+        # Reset gen-output buffer at the start of each evaluate() call so that
+        # back-to-back evals on different splits don't bleed into each other.
+        if self.store_gen_outputs:
+            self.last_gen_outputs = {}
 
         resps_per_task = {}
         pop_task_scores = [{} for _ in range(pop_reps)]
@@ -688,7 +752,17 @@ class TaskSampler():
                     length_list.append(length)
 
                     if self.store_gen_outputs:
+                        # prompt_idx = original LongBench dataset index for
+                        # this prompt within its task. Captured here so that
+                        # post-hoc joins (e.g. paired Δ across runs) can match
+                        # by index unambiguously.
+                        sampled = sampled_idxs_per_lb_task[task_n]
+                        if sampled is None:
+                            prompt_idx_val = i
+                        else:
+                            prompt_idx_val = int(sampled[i])
                         prompt_dict = dict(
+                            prompt_idx=prompt_idx_val,
                             pred=pred,
                             answers=answers,
                             all_classes=all_classes,
@@ -724,6 +798,9 @@ class TaskSampler():
                     self.cached_per_task_stats[
                         f'{task_n[task_n.index("/") + 1:]}/' + k] = v
             if self.store_gen_outputs:
-                pass
+                # Persist this task's generations into the in-memory buffer.
+                # The eval script reads self.last_gen_outputs after evaluate()
+                # returns and writes them to disk in its preferred format.
+                self.last_gen_outputs[task_n] = dicts_to_store
 
         return pop_task_scores, stats
