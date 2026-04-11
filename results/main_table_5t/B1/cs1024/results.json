@@ -1,6 +1,6 @@
 {
   "type": "eval_namm_splits",
-  "timestamp": "20260411_153325",
+  "timestamp": "20260411_173358",
   "config": {
     "namm_checkpoint": null,
     "lora_checkpoint": null,
@@ -29,6 +29,15 @@
       "lb/2wikimqa_e": 9.12183055040198,
       "tasks_aggregate": 0.001161513786704989,
       "mean_f1": 11.61513786704989,
+      "micro_mean_f1": 11.964694798658487,
+      "n_prompts_total": 70,
+      "n_prompts_per_task": {
+        "lb/qasper": 14,
+        "lb/2wikimqa": 12,
+        "lb/qasper_e": 18,
+        "lb/hotpotqa_e": 12,
+        "lb/2wikimqa_e": 14
+      },
       "per_prompt_f1": {
         "lb/qasper": {
           "158": 0.0,
@@ -128,6 +137,15 @@
       "lb/2wikimqa_e": 8.16558874719958,
       "tasks_aggregate": 0.0008842209271507718,
       "mean_f1": 8.842209271507716,
+      "micro_mean_f1": 8.700081275595807,
+      "n_prompts_total": 224,
+      "n_prompts_per_task": {
+        "lb/qasper": 32,
+        "lb/2wikimqa": 54,
+        "lb/qasper_e": 46,
+        "lb/hotpotqa_e": 31,
+        "lb/2wikimqa_e": 61
+      },
       "per_prompt_f1": {
         "lb/qasper": {
           "158": 0.0,

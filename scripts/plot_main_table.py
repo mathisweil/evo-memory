@@ -42,6 +42,12 @@ CONDITIONS = [
     ("M1",                "M1 LoRA only",        "#1f77b4"),
     ("M2/cs1024",         "M2 NAMM cs1024",      "#2ca02c"),
     ("M2/cs2048",         "M2 NAMM cs2048",      "#1d6a1d"),
+    ("M1_recency/cs1024", "M1 LoRA + recency cs1024", "#56a3d9"),
+    ("M1_recency/cs2048", "M1 LoRA + recency cs2048", "#3a6f93"),
+    ("Trunc/plain_1024",  "Trunc plain 1024",        "#c5b0d5"),
+    ("Trunc/plain_2048",  "Trunc plain 2048",        "#9467bd"),
+    ("Trunc/lora_m1_1024","Trunc M1 LoRA 1024",      "#aec7e8"),
+    ("Trunc/lora_m1_2048","Trunc M1 LoRA 2048",      "#5d8aa8"),
     ("M4/cs1024",         "M4 LoRA+NAMM cs1024", "#d62728"),
     ("M4/cs2048",         "M4 LoRA+NAMM cs2048", "#8c1a1b"),
     ("A4/cs1024_no_namm", "A4 (M4-cs1024 no NAMM)", "#e377c2"),
@@ -148,7 +154,8 @@ def plot_cs_sweep(results, out_path, split="test"):
     on the requested split's MICRO mean F1.
     """
     families = [
-        ("B1 recency",            "B1/cs1024",          "B1/cs2048"),
+        ("B1 recency (plain)",    "B1/cs1024",          "B1/cs2048"),
+        ("M1 LoRA + recency",     "M1_recency/cs1024",  "M1_recency/cs2048"),
         ("M2 standalone NAMM",    "M2/cs1024",          "M2/cs2048"),
         ("M4 LoRA+NAMM",          "M4/cs1024",          "M4/cs2048"),
         ("A4 ablation (no NAMM)", "A4/cs1024_no_namm",  "A4/cs2048_no_namm"),

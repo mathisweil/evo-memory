@@ -97,6 +97,29 @@ def parse_args():
                         help="Hydra run config override name")
     parser.add_argument("--cache_size", type=int, default=None,
                         help="Override cache size for NAMM eviction")
+    parser.add_argument("--use_classic_recency", action="store_true",
+                        help="Replace the (untrained) DeepMP scoring policy "
+                             "with namm.policy.base.Recency, which deterministically "
+                             "keeps only the last `cache_size` tokens. Use this "
+                             "to reproduce the StreamingLLM-style 'recency' "
+                             "baseline from the NAMM paper. Mutually exclusive "
+                             "with --namm_checkpoint and --lora_checkpoint.")
+    parser.add_argument("--truncate_input_to", type=int, default=None,
+                        help="Truncate every prompt to its last N tokens "
+                             "BEFORE feeding it to the model. The model never "
+                             "sees the evicted tokens — there is no KV cache "
+                             "eviction stack at all, no rotary offset bookkeeping, "
+                             "no policy hooks. This is the cleanest 'naive "
+                             "tail-only' baseline: 'what does the LM produce when "
+                             "the input is shortened to its last N tokens?'. "
+                             "Implemented by monkey-patching the evaluator's "
+                             "tok_batch_encode to skip use_mid_cropping and "
+                             "instead slice [:, -N:] after tokenization. "
+                             "Compatible with --lora_checkpoint (LoRA modifies "
+                             "LM weights, truncation only changes inputs). "
+                             "Incompatible with --namm_checkpoint and "
+                             "--use_classic_recency (those run the eviction "
+                             "stack).")
     parser.add_argument("--filter_by_length", type=int, default=None,
                         help="Override filter_by_length in Hydra config")
     parser.add_argument("--batch_size", type=int, default=None,
@@ -182,8 +205,41 @@ def main():
     memory_model.to(device)
     memory_evaluator.device = device
 
+    # ── Optional: swap to CLASSIC recency (last-N) policy ───────────────────
+    # The default --no-checkpoint path (eval_mode=recency_baseline) uses
+    # untrained DeepMP at scoring_initializer=0, which is NOT the StreamingLLM-
+    # style last-N baseline from the NAMM paper. --use_classic_recency replaces
+    # the entire eviction policy with namm.policy.base.Recency, which slices
+    # `key_cache[..., -cache_size:, :]` deterministically every step.
+    if args.use_classic_recency:
+        if args.namm_checkpoint:
+            raise ValueError(
+                "--use_classic_recency cannot be combined with "
+                "--namm_checkpoint. The classic recency policy replaces "
+                "the entire eviction policy and is incompatible with a "
+                "trained NAMM checkpoint.")
+        # NB: --lora_checkpoint IS allowed with --use_classic_recency.
+        # LoRA modifies LM weights; recency operates on the KV cache.
+        # The two are orthogonal — applying both gives a "finetuned model
+        # under naive eviction" baseline. The LoRA load below runs after
+        # the policy swap; PeftModel.get_peft_model wraps memory_model.model
+        # without touching the memory_policy attribute.
+        from namm.policy.base import Recency
+        cs = args.cache_size or cfg.get('cache_size', 1024)
+        recency_policy = Recency(cache_size=cs)
+        # swap_memory_policy on the evaluator also swaps on its inner model
+        # (memory_model), mirroring the run_lora.py --namm_active=False path.
+        memory_evaluator.swap_memory_policy(recency_policy)
+        memory_policy = recency_policy
+        eval_mode = "classic_recency"
+        print(f"  Swapped to classic Recency policy (last-{cs} tokens)")
+
     # ── Load NAMM checkpoint or use init params (recency baseline) ──────────
-    if args.namm_checkpoint:
+    if args.use_classic_recency:
+        # Already handled above. Skip the NAMM/init-param branches entirely
+        # because Recency has no learnable params and no scoring net.
+        pass
+    elif args.namm_checkpoint:
         print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
         ckpt = torch.load(args.namm_checkpoint, map_location="cpu",
                           weights_only=False)
@@ -221,12 +277,13 @@ def main():
         print("  No checkpoint — using init params (recency eviction baseline)")
         eval_mode = "recency_baseline"
 
-    batch_idxs = np.zeros([1])
-    memory_policy.set_params_batch_idxs(batch_idxs)
-
-    # Enable eval stats recording for eviction/cache metrics
-    memory_policy.record_eval_stats = True
-    memory_policy.initialize_stat_objects()
+    # Recency has no learnable params / no batch idxs / no per-step stat
+    # buffers — skip the DynamicMemoryPolicy bookkeeping in that case.
+    if not args.use_classic_recency:
+        batch_idxs = np.zeros([1])
+        memory_policy.set_params_batch_idxs(batch_idxs)
+        memory_policy.record_eval_stats = True
+        memory_policy.initialize_stat_objects()
 
     # ── Load LoRA checkpoint (optional) ─────────────────────────────────────
     if args.lora_checkpoint:
@@ -276,6 +333,41 @@ def main():
     elif not args.namm_checkpoint:
         # No NAMM, no LoRA — pure recency baseline. Already set above.
         pass
+
+    # ── Optional: tail-only input truncation (StreamingLLM rolling-window) ──
+    # When --truncate_input_to N is set, EVERY prompt is reduced to its last
+    # N tokens *before* the model sees it. There is no KV cache eviction at
+    # all — the truncation happens in input space, not cache space.
+    #
+    # Implementation: tokenize each prompt string with the same tokenizer
+    # the evaluator will use, slice the last N token ids, decode back to a
+    # string, and stash the truncated string back onto the task sampler.
+    # The downstream eval pipeline (tok_batch_encode → model.generate)
+    # then runs UNCHANGED on the shorter strings — no monkey-patching, no
+    # mid-cropping interference, no fiddling with evaluator internals.
+    #
+    # The decode→re-encode round-trip can shift the token count by ±1 in
+    # rare cases (BPE merges across the boundary), but never by more than
+    # a handful, so the effective input length is N±a few. This is the
+    # tradeoff for keeping the model path completely untouched.
+    if args.truncate_input_to is not None:
+        if args.namm_checkpoint:
+            raise ValueError(
+                "--truncate_input_to is incompatible with --namm_checkpoint. "
+                "NAMM is meant to be evaluated on the full prompt; truncating "
+                "the input would defeat its purpose.")
+        if args.use_classic_recency:
+            raise ValueError(
+                "--truncate_input_to is incompatible with --use_classic_recency. "
+                "Pick one: tail-only input truncation OR cache-side eviction.")
+        # Note: this is set up here, BEFORE the task sampler is built.
+        # The sampler builds prompts lazily, so we'll apply the truncation
+        # inside a hook on get_lb_request_strings (see below).
+        eval_mode = (eval_mode + "+trunc"
+                     if eval_mode != "recency_baseline" else "trunc")
+        print(f"  Will truncate every prompt to its last "
+              f"{args.truncate_input_to} tokens (no cache eviction, no monkey "
+              f"patching of the model path).")
 
     # ── Create task sampler with EXACT same filtering/splits as run_namm.py ─
     print("Creating task sampler (replicating run_namm.py filtering)...")
@@ -328,6 +420,41 @@ def main():
     # Show per-task sample counts
     for task_n, n in task_sampler.num_prompts_per_lb_task.items():
         print(f"  Task: {task_n}, total eligible samples: {n}")
+
+    # ── Apply tail-only input truncation at the STRING level ───────────────
+    # If --truncate_input_to N is set, replace every prompt string with one
+    # that decodes from its last N token ids. Done HERE (after all sampler
+    # filtering is complete) so no other code path needs to know about it.
+    # The downstream evaluator runs unchanged on the shorter strings — no
+    # monkey-patching, no mid-cropping interference, nothing that could
+    # affect the model path itself.
+    if args.truncate_input_to is not None:
+        n_truncate = args.truncate_input_to
+        total_truncated = 0
+        total_prompts = 0
+        max_orig_len = 0
+        max_new_len = 0
+        for task_name, prompts in task_sampler.lb_prompts_per_task.items():
+            new_prompts = []
+            for p in prompts:
+                ids = tokenizer(p, add_special_tokens=False).input_ids
+                total_prompts += 1
+                max_orig_len = max(max_orig_len, len(ids))
+                if len(ids) > n_truncate:
+                    tail_ids = ids[-n_truncate:]
+                    new_p = tokenizer.decode(
+                        tail_ids, skip_special_tokens=False)
+                    new_prompts.append(new_p)
+                    total_truncated += 1
+                    max_new_len = max(max_new_len, len(tail_ids))
+                else:
+                    new_prompts.append(p)
+                    max_new_len = max(max_new_len, len(ids))
+            task_sampler.lb_prompts_per_task[task_name] = new_prompts
+        print(f"  Tail-truncated {total_truncated}/{total_prompts} prompts "
+              f"to last {n_truncate} tokens "
+              f"(max orig len = {max_orig_len}, max new len ≤ {max_new_len}). "
+              f"Decoded back to strings; downstream eval unchanged.")
 
     # ── Evaluate on requested splits ────────────────────────────────────────
     all_results = {}
@@ -397,15 +524,21 @@ def main():
         }
 
         # Snapshot RAW per-layer per-step eviction arrays BEFORE
-        # get_param_stats(reset=True) clears them. These let us compute
-        # retention histograms, layer heterogeneity, sink rates, etc. post-hoc.
-        eviction_traces_per_split[split_name] = _snapshot_raw_eviction_arrays(
-            memory_policy)
+        # get_param_stats(reset=True) clears them. Classic Recency has no
+        # such buffers, so the snapshot is empty there.
+        if not args.use_classic_recency:
+            eviction_traces_per_split[split_name] = (
+                _snapshot_raw_eviction_arrays(memory_policy))
+        else:
+            eviction_traces_per_split[split_name] = {}
 
-        # Collect eviction/cache stats from memory policy (this also resets
-        # the internal buffers, so the snapshot above MUST come first).
-        mem_stats = memory_policy.get_param_stats(reset=True)
-        memory_policy.initialize_stat_objects()
+        # Collect eviction/cache stats from memory policy (DynamicMemoryPolicy
+        # only — classic Recency has neither method nor buffers).
+        if args.use_classic_recency:
+            mem_stats = {}
+        else:
+            mem_stats = memory_policy.get_param_stats(reset=True)
+            memory_policy.initialize_stat_objects()
         eviction_summary = {}
         if mem_stats:
             dyn_cache = mem_stats.get('mem_stats/overall/dynamic_cache_sizes', None)
@@ -491,6 +624,8 @@ def main():
             "min_conditioning_length": min_cond,
             "max_answer_tokens": max_answer_tok,
             "extended_max_conditioning_length": ext_max_cond,
+            "truncate_input_to": args.truncate_input_to,
+            "use_classic_recency": args.use_classic_recency,
         },
         "scores_per_split": all_results,
     }
