@@ -2,18 +2,18 @@
 
 Same as B1 cs1024 but with double the cache budget.
 
-**Source run:** `eval_results/recency_cs2048_5t/ext_20260411_145757/`
+**Source run:** `eval_results/recency_cs2048_5t/ext_rerun_20260411_173358/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 16.09 | 9.86 |
-| lb/2wikimqa | 7.80 | 7.64 |
-| lb/qasper_e | 14.41 | 11.35 |
+| lb/qasper | 16.09 | 12.93 |
+| lb/2wikimqa | 7.80 | 7.65 |
+| lb/qasper_e | 14.41 | 11.60 |
 | lb/hotpotqa_e | 15.55 | 13.06 |
 | lb/2wikimqa_e | 11.66 | 10.87 |
-| **mean F1** | **13.10** | **10.55** |
+| **mean F1** | **13.10** | **11.22** |
 
 ## Command
 

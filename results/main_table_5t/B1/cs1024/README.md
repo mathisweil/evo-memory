@@ -2,7 +2,7 @@
 
 Base model with a fixed recency policy (keep most recent, evict oldest). No learned policy, no training.
 
-**Source run:** `eval_results/recency_cs1024_5t/ext_20260411_153325/`
+**Source run:** `eval_results/recency_cs1024_5t/ext_rerun_20260411_173358/`
 
 ## Results
 
