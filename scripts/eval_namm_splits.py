@@ -1,0 +1,527 @@
+"""Evaluate a NAMM checkpoint on the exact train/val/test splits used during
+NAMM training (3-way 70/15/15 split with token-length filtering).
+
+This script replicates the filtering and splitting logic from run_namm.py so
+that the evaluation uses *identical* sample sets to those seen during training.
+
+Usage:
+    python eval_namm_splits.py \
+        --namm_checkpoint exp_local/pretrained/namm_pretrained_romain.pt \
+        --splits train val test \
+        --cache_size 1024
+
+    # With a custom Hydra run config:
+    python eval_namm_splits.py \
+        --run_config namm_bam_i1_llama32_1b_5t \
+        --namm_checkpoint path/to/checkpoint.pt
+"""
+
+import argparse
+import datetime
+import json
+import os
+import sys
+
+import numpy as np
+import torch
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+import hydra
+from hydra import compose, initialize
+from namm.run_utils import make_eval_model, make_task_sampler
+from es_finetuning.device import get_device
+
+
+def _snapshot_raw_eviction_arrays(memory_policy):
+    """Snapshot the per-layer per-step buffers from a DynamicMemoryPolicy
+    BEFORE get_param_stats(reset=True) clears them.
+
+    Returns a dict of plain numpy arrays keyed by signal name. Each array is
+    shape (num_layers, num_steps_layer_i) — ragged across layers (steps may
+    differ if the policy fired at different rates), so stored as an object
+    array of 1-D arrays per layer.
+
+    Signals captured (when present on the policy):
+      - dynamic_cache_sizes: cache size after eviction at each policy step.
+      - final_dynamic_cache_sizes: cache size at the end of each prompt.
+      - dynamic_mask_sample_sparsity: max-over-heads unmasked count per step.
+      - dynamic_mask_head_sparsity: mean-over-heads unmasked count per step.
+      - recorded_final_recencies: mean position-recency of kept tokens per step.
+    """
+    snap = {}
+
+    def _to_obj_array(per_layer_lists):
+        if not per_layer_lists:
+            return None
+        # Allocate (n_layers,)-shaped object array explicitly: when every
+        # inner list is empty, np.array([...], dtype=object) collapses to
+        # shape (n_layers, 0), which is wrong.
+        n_layers = len(per_layer_lists)
+        out = np.empty(n_layers, dtype=object)
+        for i, layer in enumerate(per_layer_lists):
+            out[i] = np.asarray(layer, dtype=np.float32)
+        return out
+
+    for attr in (
+        'dynamic_cache_sizes',
+        'final_dynamic_cache_sizes',
+        'dynamic_mask_sample_sparsity',
+        'dynamic_mask_head_sparsity',
+        'recorded_final_recencies',
+    ):
+        if hasattr(memory_policy, attr):
+            arr = _to_obj_array(getattr(memory_policy, attr))
+            if arr is not None:
+                snap[attr] = arr
+    return snap
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Evaluate NAMM checkpoint on exact training splits "
+                    "(3-way 70/15/15 with token filtering)")
+    parser.add_argument("--namm_checkpoint", type=str, default=None,
+                        help="Path to NAMM checkpoint (.pt file)")
+    parser.add_argument("--lora_checkpoint", type=str, default=None,
+                        help="Path to a LoRA finetuning checkpoint (with "
+                             "'lora_state_dict' and 'lora_config' keys, as "
+                             "saved by LoRAGradTrainer). Loaded on top of the "
+                             "NAMM/recency model. Use without --namm_checkpoint "
+                             "to evaluate a plain LoRA at large cache_size.")
+    parser.add_argument("--run_config", type=str,
+                        default="namm_bam_i1_llama32_1b_5t",
+                        help="Hydra run config override name")
+    parser.add_argument("--cache_size", type=int, default=None,
+                        help="Override cache size for NAMM eviction")
+    parser.add_argument("--filter_by_length", type=int, default=None,
+                        help="Override filter_by_length in Hydra config")
+    parser.add_argument("--batch_size", type=int, default=None,
+                        help="Inference batch size (default: use config value)")
+    parser.add_argument("--output_dir", type=str, default=None,
+                        help="Parent directory for run subfolders. Defaults "
+                             "to directory containing the checkpoint. Each "
+                             "run creates a unique subfolder so results are "
+                             "never overwritten.")
+    parser.add_argument("--run_label", type=str, default=None,
+                        help="Optional short label appended to the per-run "
+                             "subfolder name (e.g. 'cs1024', 'lora_m4'). The "
+                             "subfolder is always {label_}{timestamp}.")
+    parser.add_argument("--splits", nargs="+", default=["train", "val", "test"],
+                        choices=["train", "val", "test", "extended_test"],
+                        help="Which splits to evaluate (default: all three). "
+                             "'extended_test' = test ∪ prompts in "
+                             "(max_conditioning_length, "
+                             "extended_max_conditioning_length] tokens.")
+    parser.add_argument("--extended_max_conditioning_length", type=int,
+                        default=8192,
+                        help="Upper token bound for the extended_test split "
+                             "(default: 8192). Only used if 'extended_test' "
+                             "is in --splits.")
+    parser.add_argument("--task_config", type=str, default=None,
+                        help="Override task config (e.g. rh_ood_eval_3t for OOD eval)")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    # ── Resolve output directory ────────────────────────────────────────────
+    if args.output_dir:
+        parent_dir = args.output_dir
+    else:
+        ckpt_dir = os.path.dirname(os.path.abspath(args.namm_checkpoint))
+        if os.path.basename(ckpt_dir) == "checkpoints":
+            parent_dir = os.path.dirname(ckpt_dir)
+        else:
+            parent_dir = ckpt_dir
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    subfolder = (f"{args.run_label}_{timestamp}"
+                 if args.run_label else timestamp)
+    output_dir = os.path.join(parent_dir, subfolder)
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"Run output dir: {output_dir}")
+
+    # ── Device setup ────────────────────────────────────────────────────────
+    if torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+    device = get_device()
+
+    # ── Load Hydra config (without changing cwd) ────────────────────────────
+    overrides = [
+        f"run@_global_={args.run_config}",
+        "wandb_log=false",
+        "wandb_project=Experiments",
+    ]
+    if args.batch_size is not None:
+        overrides.append(f"batch_size={args.batch_size}")
+        # Also override eval_max_batch_size — the evaluator uses this for
+        # actual batching, not `batch_size`. The 5t config sets it to 4.
+        overrides.append(f"eval_max_batch_size={args.batch_size}")
+    if args.filter_by_length is not None:
+        overrides.append(f"filter_by_length={args.filter_by_length}")
+    if args.cache_size is not None:
+        overrides.append(f"cache_size={args.cache_size}")
+        overrides.append(f"max_memory_length={args.cache_size}")
+    if args.task_config is not None:
+        overrides.append(f"task@_global_={args.task_config}")
+
+    with initialize(version_base=None, config_path="../config",
+                    job_name="eval_namm_splits"):
+        cfg = compose(config_name="config", overrides=overrides)
+
+    # ── Build NAMM model ────────────────────────────────────────────────────
+    print("Building model...")
+    with torch.no_grad():
+        (memory_policy, memory_model, memory_evaluator,
+         evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
+    memory_model.to(device)
+    memory_evaluator.device = device
+
+    # ── Load NAMM checkpoint or use init params (recency baseline) ──────────
+    if args.namm_checkpoint:
+        print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
+        ckpt = torch.load(args.namm_checkpoint, map_location="cpu",
+                          weights_only=False)
+        evo_state = ckpt['evolution_state']
+        print(f"  Checkpoint iter: {ckpt['iter_num']}, "
+              f"best_val: {ckpt['best_val_loss']:.6f}")
+
+        # Use CMA-ES mean (matches training eval when prefer_mean_to_best=true)
+        prefer_mean = cfg.get('prefer_mean_to_best', True)
+        if prefer_mean and 'mean' in evo_state:
+            params_vec = evo_state['mean']
+            print(f"  Using CMA-ES mean (prefer_mean_to_best={prefer_mean})")
+        else:
+            params_vec = evo_state['best_member']
+            print(f"  Using best_member")
+        params = params_vec.unsqueeze(0).to(device)
+        memory_model.set_memory_params(params)
+
+        buffers_prefix = 'stored_buffers_to_save.'
+        buffers_dict = {
+            k[len(buffers_prefix):]: v.to(device)
+            for k, v in evo_state.items()
+            if k.startswith(buffers_prefix)
+        }
+        if buffers_dict:
+            memory_model.load_buffers_dict(buffers_dict=buffers_dict)
+        print(f"  NAMM loaded ({params_vec.shape[0]} params)")
+        eval_mode = "namm"
+    else:
+        # No checkpoint: use init params (scoring_initializer=0 → all scores ≈ 0
+        # → selection keeps most recent tokens = recency eviction baseline)
+        init_param = memory_policy.get_init_param_values()
+        params = init_param.unsqueeze(0).to(device)
+        memory_model.set_memory_params(params)
+        print("  No checkpoint — using init params (recency eviction baseline)")
+        eval_mode = "recency_baseline"
+
+    batch_idxs = np.zeros([1])
+    memory_policy.set_params_batch_idxs(batch_idxs)
+
+    # Enable eval stats recording for eviction/cache metrics
+    memory_policy.record_eval_stats = True
+    memory_policy.initialize_stat_objects()
+
+    # ── Load LoRA checkpoint (optional) ─────────────────────────────────────
+    if args.lora_checkpoint:
+        print(f"Loading LoRA checkpoint: {args.lora_checkpoint}")
+        lora_ckpt = torch.load(args.lora_checkpoint, map_location="cpu",
+                               weights_only=False)
+        if 'lora_state_dict' not in lora_ckpt:
+            raise ValueError(
+                f"Checkpoint at {args.lora_checkpoint} has no 'lora_state_dict' "
+                f"key. Top-level keys: {list(lora_ckpt.keys())[:10]}")
+        lora_cfg = lora_ckpt.get('lora_config', {})
+        lora_rank = lora_cfg.get('rank', 8)
+        lora_targets = lora_cfg.get('target_modules', ['q_proj', 'v_proj'])
+        print(f"  lora_config: rank={lora_rank} targets={lora_targets} "
+              f"step={lora_ckpt.get('best_step', '?')} "
+              f"val={lora_ckpt.get('best_val_score', '?')}")
+        # Inject LoRA adapters into memory_model.model. Mirrors the call in
+        # scripts/run_lora.py:289 so the saved state dict keys line up.
+        memory_model.apply_lora_adapters(
+            rank=lora_rank, target_modules=lora_targets)
+        # Move newly-created LoRA params to the eval device (apply_lora_adapters
+        # casts them to float32 on CPU).
+        memory_model.to(device)
+        # Copy weights — pattern from grad_lora_finetuning/trainer.py:626-633.
+        loaded = 0
+        missing = []
+        lora_sd = lora_ckpt['lora_state_dict']
+        for n, p in memory_model.model.named_parameters():
+            if n in lora_sd:
+                p.data.copy_(lora_sd[n].to(p.device, dtype=p.dtype))
+                loaded += 1
+        for k in lora_sd:
+            found = any(n == k for n, _ in memory_model.model.named_parameters())
+            if not found:
+                missing.append(k)
+        print(f"  Loaded {loaded}/{len(lora_sd)} LoRA tensors")
+        if missing:
+            raise RuntimeError(
+                f"LoRA checkpoint has {len(missing)} keys not present in "
+                f"the model after apply_lora_adapters; first few: "
+                f"{missing[:5]}")
+        if loaded == 0:
+            raise RuntimeError(
+                "LoRA checkpoint had matching keys but 0 tensors were copied "
+                "— check rank/targets and model wrapping.")
+        eval_mode = (eval_mode + "+lora") if args.namm_checkpoint else "lora"
+    elif not args.namm_checkpoint:
+        # No NAMM, no LoRA — pure recency baseline. Already set above.
+        pass
+
+    # ── Create task sampler with EXACT same filtering/splits as run_namm.py ─
+    print("Creating task sampler (replicating run_namm.py filtering)...")
+    task_sampler = make_task_sampler(cfg=cfg)
+    # Capture raw model generations (pred + answers + length + prompt_idx) so
+    # post-hoc analyses (BLEU, exact match, hallucination, qualitative) don't
+    # require re-running the model.
+    task_sampler.store_gen_outputs = True
+
+    # Step 1: filter answers by token count (same as run_namm.py line 104)
+    tokenizer = hydra.utils.call(cfg.tokenizer)
+    max_answer_tok = cfg.get('max_answer_tokens', cfg.get('max_new_tokens', 64))
+    task_sampler.filter_answers_by_token_count(tokenizer, max_answer_tok)
+    print(f"  max_answer_tokens: {max_answer_tok}")
+
+    # Step 2: apply 3-way train/val/test split with token length filtering
+    # (same as run_namm.py lines 106-121)
+    train_frac = cfg.get('train_frac', 0.7)
+    val_frac = cfg.get('val_frac', 0.15)
+    max_cond = cfg.get('split_max_conditioning_length',
+                       cfg.get('max_conditioning_length', 6500))
+    min_cond = cfg.get('min_conditioning_length', None)
+    ext_max_cond = (args.extended_max_conditioning_length
+                    if "extended_test" in args.splits else None)
+    if ext_max_cond is not None:
+        # Stage-1 word filter inside TaskSampler.__init__ uses
+        # filter_by_length / 1.3 as max words. To preserve prompts in
+        # (max_cond, ext_max_cond] tokens, filter_by_length must be ≥ ext_max_cond.
+        cur_filter = cfg.get('filter_by_length', None)
+        if cur_filter is not None and cur_filter < ext_max_cond:
+            print(f"WARNING: filter_by_length={cur_filter} < "
+                  f"extended_max_conditioning_length={ext_max_cond}; "
+                  f"prompts above ~{cur_filter/1.3:.0f} words were already "
+                  f"dropped at construction. Consider passing "
+                  f"--filter_by_length {ext_max_cond}.")
+    task_sampler.apply_train_val_test_split(
+        train_frac=train_frac,
+        val_frac=val_frac,
+        max_conditioning_length=max_cond,
+        min_conditioning_length=min_cond,
+        tokenizer=tokenizer,
+        extended_max_conditioning_length=ext_max_cond,
+    )
+    print(f"  train_frac={train_frac}, val_frac={val_frac}")
+    print(f"  min_conditioning_length={min_cond}, "
+          f"max_conditioning_length={max_cond}")
+    if ext_max_cond is not None:
+        print(f"  extended_max_conditioning_length={ext_max_cond}")
+
+    # Show per-task sample counts
+    for task_n, n in task_sampler.num_prompts_per_lb_task.items():
+        print(f"  Task: {task_n}, total eligible samples: {n}")
+
+    # ── Evaluate on requested splits ────────────────────────────────────────
+    all_results = {}
+    # Sidecar buffers — written to disk once after the eval loop:
+    #   - generations_per_split: full model outputs per prompt per task per split
+    #   - eviction_traces_per_split: raw per-layer per-step arrays (numpy)
+    generations_per_split = {}
+    eviction_traces_per_split = {}
+    for split_name in args.splits:
+        print(f"\n{'=' * 60}")
+        print(f"Evaluating on split: {split_name}")
+        print('=' * 60)
+
+        # train=True for train/val splits (uses lb_training_tasks),
+        # train=False for test split (uses lb_test_tasks).
+        is_train = split_name in ('train', 'val')
+
+        with torch.no_grad():
+            score_dicts = task_sampler.evaluate(
+                lm=memory_evaluator,
+                split=split_name,
+                train=is_train,
+                evolved_model=False,
+                pop_reps=1,
+                resample_requests=True,
+                sampled_requests_per_task=None,
+                performance_per_request=True,
+            )
+        scores = score_dicts[0]
+        # Pull per-prompt F1 dict aside before the dict-vs-scalar split.
+        # Layout: {task_name: {orig_lb_idx: f1_score}}
+        per_prompt_f1 = scores.pop('performance_per_request', {})
+        # Compute tasks_aggregate (same as NAMM training):
+        # mean(per_task_F1 / 100) / 100
+        task_f1s = [v for k, v in scores.items() if not isinstance(v, dict)]
+        tasks_aggregate = np.mean([f / 100 for f in task_f1s]) / 100
+        scores['tasks_aggregate'] = tasks_aggregate
+        # mean_f1 = MACRO average (each task counts as 1/n_tasks).
+        mean_f1 = np.mean(task_f1s)
+        scores['mean_f1'] = mean_f1
+        # micro_mean_f1 = prompt-count-weighted average — matches the
+        # val_lb_avg_f1 metric printed during LoRA training so the two are
+        # directly comparable. Computed from per_prompt_f1 so we don't have
+        # to redo any scoring.
+        # per_prompt_f1 values are raw 0-1 from get_score's all_scores list,
+        # while task F1s and mean_f1 are 0-100. Multiply by 100 to match.
+        all_prompt_scores = []
+        for task_dict in per_prompt_f1.values():
+            all_prompt_scores.extend(task_dict.values())
+        if all_prompt_scores:
+            scores['micro_mean_f1'] = float(np.mean(all_prompt_scores)) * 100.0
+            scores['n_prompts_total'] = int(len(all_prompt_scores))
+            scores['n_prompts_per_task'] = {
+                task: len(d) for task, d in per_prompt_f1.items()}
+        # Record per-prompt F1 inside the split's scores so it lands in JSON.
+        scores['per_prompt_f1'] = per_prompt_f1
+
+        # Snapshot generations BEFORE the next split overwrites them. Convert
+        # numpy ints from prompt_idx to plain Python int for JSON safety.
+        gens = task_sampler.last_gen_outputs or {}
+        generations_per_split[split_name] = {
+            task: [
+                {**d, 'prompt_idx': int(d.get('prompt_idx', -1))}
+                for d in dicts
+            ]
+            for task, dicts in gens.items()
+        }
+
+        # Snapshot RAW per-layer per-step eviction arrays BEFORE
+        # get_param_stats(reset=True) clears them. These let us compute
+        # retention histograms, layer heterogeneity, sink rates, etc. post-hoc.
+        eviction_traces_per_split[split_name] = _snapshot_raw_eviction_arrays(
+            memory_policy)
+
+        # Collect eviction/cache stats from memory policy (this also resets
+        # the internal buffers, so the snapshot above MUST come first).
+        mem_stats = memory_policy.get_param_stats(reset=True)
+        memory_policy.initialize_stat_objects()
+        eviction_summary = {}
+        if mem_stats:
+            dyn_cache = mem_stats.get('mem_stats/overall/dynamic_cache_sizes', None)
+            final_cache = mem_stats.get('mem_stats/overall/final_dynamic_cache_sizes', None)
+            unmasked = mem_stats.get('mem_stats/overall/unmasked_samples', None)
+            unmasked_final = mem_stats.get('mem_stats/overall/unmasked_sample_final', None)
+            cache_size_used = args.cache_size or cfg.get('cache_size', 1024)
+            eviction_summary = {
+                'avg_dynamic_cache_size': dyn_cache,
+                'avg_final_cache_size': final_cache,
+                'avg_unmasked_tokens': unmasked,
+                'avg_final_unmasked_tokens': unmasked_final,
+                'cache_budget': cache_size_used,
+                'budget_utilization_pct': (dyn_cache / cache_size_used * 100) if dyn_cache else None,
+            }
+            scores['eviction_stats'] = eviction_summary
+
+        all_results[split_name] = dict(scores)
+
+        print(f"\nResults ({split_name}):")
+        for k, v in sorted(scores.items()):
+            if k in ('eviction_stats', 'per_prompt_f1',
+                     'n_prompts_per_task'):
+                continue
+            if isinstance(v, (int, float)):
+                print(f"  {k}: {v:.4f}")
+        print(f"  --- tasks_aggregate: {tasks_aggregate:.6f} (mean_f1: {mean_f1:.2f})")
+        if eviction_summary:
+            print(f"\n  Eviction stats ({split_name}):")
+            print(f"    Cache budget:              {eviction_summary['cache_budget']}")
+            print(f"    Avg dynamic cache:         {eviction_summary['avg_dynamic_cache_size']:.1f} (across all steps)")
+            print(f"    Avg final cache:           {eviction_summary['avg_final_cache_size']:.1f} (end of prompt)")
+            print(f"    Avg unmasked tokens:       {eviction_summary['avg_unmasked_tokens']:.1f} (across all steps)")
+            print(f"    Avg final unmasked tokens: {eviction_summary['avg_final_unmasked_tokens']:.1f} (end of prompt)")
+
+    # ── Summary across splits ───────────────────────────────────────────────
+    print(f"\n{'=' * 60}")
+    print("SUMMARY")
+    print('=' * 60)
+    # Collect all metric keys seen across splits
+    all_metric_keys = set()
+    for scores in all_results.values():
+        all_metric_keys.update(scores.keys())
+
+    for metric in sorted(all_metric_keys):
+        if metric in ('eviction_stats', 'per_prompt_f1',
+                      'n_prompts_per_task'):
+            continue
+        vals = []
+        for split_name in args.splits:
+            if metric in all_results.get(split_name, {}):
+                v = all_results[split_name][metric]
+                if isinstance(v, (int, float)):
+                    vals.append(f"{split_name}={v:.4f}")
+        if vals:
+            print(f"  {metric}: {', '.join(vals)}")
+
+    # ── Save results as JSON ────────────────────────────────────────────────
+    # Coerce numpy ints (used as prompt index keys) to plain Python ints so
+    # the JSON serializer accepts them.
+    for split_name, split_scores in all_results.items():
+        ppf1 = split_scores.get('per_prompt_f1', {})
+        split_scores['per_prompt_f1'] = {
+            task: {int(k): float(v) for k, v in task_dict.items()}
+            for task, task_dict in ppf1.items()
+        }
+
+    results_payload = {
+        "type": "eval_namm_splits",
+        "timestamp": timestamp,
+        "config": {
+            "namm_checkpoint": os.path.abspath(args.namm_checkpoint) if args.namm_checkpoint else None,
+            "lora_checkpoint": os.path.abspath(args.lora_checkpoint) if args.lora_checkpoint else None,
+            "eval_mode": eval_mode,
+            "run_config": args.run_config,
+            "cache_size": args.cache_size,
+            "filter_by_length": args.filter_by_length,
+            "batch_size": args.batch_size,
+            "splits_evaluated": args.splits,
+            "train_frac": train_frac,
+            "val_frac": val_frac,
+            "max_conditioning_length": max_cond,
+            "min_conditioning_length": min_cond,
+            "max_answer_tokens": max_answer_tok,
+            "extended_max_conditioning_length": ext_max_cond,
+        },
+        "scores_per_split": all_results,
+    }
+
+    results_path = os.path.join(output_dir, "results.json")
+    with open(results_path, "w") as f:
+        json.dump(results_payload, f, indent=2)
+    print(f"\nResults saved: {results_path}")
+
+    # ── Sidecar: full per-prompt generations (pred, answers, length, idx) ──
+    # Kept separate from results.json because individual predictions can be
+    # long. One file per run, all splits + all tasks inside.
+    gens_path = os.path.join(output_dir, "generations.json")
+    with open(gens_path, "w") as f:
+        json.dump(generations_per_split, f, indent=2)
+    print(f"Generations saved: {gens_path}")
+
+    # ── Sidecar: raw per-layer per-step eviction arrays (.npz) ──────────────
+    # Layout: keys are "{split}/{signal}", values are object arrays
+    # of shape (num_layers,) where each entry is a 1-D float32 array of
+    # per-step values for that layer. Load with `np.load(..., allow_pickle=True)`.
+    has_eviction = any(traces for traces in eviction_traces_per_split.values())
+    if has_eviction:
+        npz_payload = {}
+        for split_name, traces in eviction_traces_per_split.items():
+            for signal_name, arr in traces.items():
+                npz_payload[f"{split_name}/{signal_name}"] = arr
+        npz_path = os.path.join(output_dir, "eviction_traces.npz")
+        np.savez(npz_path, **npz_payload)
+        print(f"Raw eviction traces saved: {npz_path}")
+
+
+if __name__ == "__main__":
+    main()
