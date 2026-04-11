@@ -21,7 +21,7 @@ build/
 .ipynb_checkpoints/
 
 # IDE / tooling
-.claude/
+.claude/settings.local.json
 .planning/
 .vscode/
 .idea/
