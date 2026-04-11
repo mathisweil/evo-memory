@@ -67,6 +67,7 @@ from experiment_utils import (
     make_full_eval_fn,
     EXPERIMENTS_DIR,
 )
+from joint_metrics import JointMetricsTracker
 
 
 # ── NAMM ↔ model helpers ────────────────────────────────────────────────
@@ -174,6 +175,10 @@ def parse_args():
     parser.add_argument("--eval_after_each_loop",
                         action=argparse.BooleanOptionalAction, default=True,
                         help="Run full evaluation after each outer loop")
+    parser.add_argument("--detailed_diagnostics",
+                        action=argparse.BooleanOptionalAction, default=False,
+                        help="Enable expensive diagnostics (e.g. adapter-"
+                             "disabled co-adaptation eval)")
 
     # NAMM config
     parser.add_argument("--run_config", type=str,
@@ -482,6 +487,11 @@ def main():
         "eval_scores": [],
         "eval_time_s": [],
     }
+    tracker = JointMetricsTracker(
+        output_dir=run_dir,
+        wandb_run=None,
+        detailed_diagnostics=args.detailed_diagnostics,
+    )
     total_start = time.time()
 
     for k in range(args.num_outer_loops):
@@ -505,7 +515,7 @@ def main():
             namm_trainer.force_initial_re_eval = False
 
         namm_start = time.time()
-        with torch.no_grad():
+        with torch.no_grad(), tracker.capture_namm_fitness(namm_trainer):
             namm_trainer.train()
         namm_time = time.time() - namm_start
         print(f"Stage A complete in {namm_time:.1f}s")
@@ -513,6 +523,15 @@ def main():
         # Transfer best NAMM params to model for Stage B
         set_namm_params_from_evo(
             evolution_algorithm, memory_model, memory_policy, device_str)
+
+        tracker.log_namm_stage_end(
+            outer_loop=k,
+            evolution_algorithm=evolution_algorithm,
+            memory_policy=memory_policy,
+            memory_evaluator=memory_evaluator,
+            task_sampler=task_sampler,
+            stage_time_s=namm_time,
+        )
 
         # Save NAMM checkpoint for this stage
         namm_ckpt_path = os.path.join(namm_dir, f"namm_stage_{k}.pt")
@@ -548,6 +567,14 @@ def main():
         adapter_time = time.time() - adapter_start
         print(f"Stage B complete in {adapter_time:.1f}s")
 
+        tracker.log_adapter_stage_end(
+            outer_loop=k,
+            adapter_type=args.adapter_type,
+            memory_model=memory_model,
+            stage_dir=adapter_stage_dir,
+            stage_time_s=adapter_time,
+        )
+
         # Save adapter checkpoint for this stage
         if args.adapter_type == "es":
             # ES final checkpoint is already saved by ESTrainer
@@ -560,6 +587,7 @@ def main():
 
         eval_scores = {}
         eval_time = 0.0
+        adapter_off_scores = None
         if full_eval_fn:
             print(f"\n--- Evaluating after outer loop {k+1} ---")
             eval_start = time.time()
@@ -575,6 +603,10 @@ def main():
                 print(f"  {task_short}: {score:.2f}")
             print(f"  Eval time: {eval_time:.1f}s")
 
+            if args.detailed_diagnostics:
+                adapter_off_scores = tracker.evaluate_adapter_disabled(
+                    memory_model=memory_model, full_eval_fn=full_eval_fn)
+
         # ── Record history ───────────────────────────────────────────────
 
         history["outer_loop"].append(k)
@@ -583,6 +615,14 @@ def main():
         history["eval_scores"].append(
             {k: round(v, 4) for k, v in eval_scores.items()})
         history["eval_time_s"].append(round(eval_time, 1))
+
+        tracker.log_outer_loop_end(
+            outer_loop=k,
+            eval_scores=eval_scores,
+            eval_time_s=eval_time,
+            adapter_disabled_scores=adapter_off_scores,
+            total_time_s=time.time() - total_start,
+        )
 
         # Save intermediate results (overwritten each loop)
         results_path = os.path.join(run_dir, "results.json")
@@ -597,11 +637,14 @@ def main():
 
     # ── Done ─────────────────────────────────────────────────────────────
 
+    tracker.finalize()
+
     total_time = time.time() - total_start
     print(f"\n{'='*60}")
     print(f"Joint training complete in {total_time:.1f}s "
           f"({total_time / 3600:.2f}h)")
     print(f"Results: {results_path}")
+    print(f"Figures: {tracker.figures_dir}")
     print(f"{'='*60}")
 
 
