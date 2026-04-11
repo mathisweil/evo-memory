@@ -8,6 +8,7 @@ import json
 import os
 import socket
 from datetime import datetime
+from typing import Optional
 
 import yaml
 from hydra import compose, initialize
@@ -195,7 +196,7 @@ def claim_run_gcs(gcs, experiment_name: str, method: str, run_name: str) -> None
 
 # ── Hydra config loading ──────────────────────────────────────────────────────
 
-def load_hydra_config(run_config: str, extra_overrides: list | None = None):
+def load_hydra_config(run_config: str, extra_overrides: Optional[list] = None):
     """Load a Hydra experiment config by run_config name.
 
     Args:
