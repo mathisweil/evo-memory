@@ -309,7 +309,7 @@ python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
 python scripts/run_joint.py --run_name test --adapter_type es \
     --num_outer_loops 2 --namm_iterations_per_stage 3 \
     --adapter_iterations_per_stage 2 --population_size 2 \
-    --mini_batch_size 2 --no-gcs
+    --mini_batch_size 2
 ```
 
 ---

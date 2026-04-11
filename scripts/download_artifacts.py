@@ -31,7 +31,6 @@ Prerequisites:
 
 import json
 import os
-import sys
 
 ENTITY = "SNLP_NAMM"
 PROJECT = "memory_evolution_hf"
