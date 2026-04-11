@@ -208,6 +208,51 @@ python scripts/run_namm.py \
     split_max_conditioning_length=6500
 ```
 
+#### Cache-size sweep (5-task QA)
+
+Train NAMM at different KV-cache budgets on the same 5-task LongBench QA subset to compare how budget affects eviction quality. All three runs share the `namm_bam_i1_llama32_1b_5t` base config; only `cache_size`, `max_memory_length`, and the run-name suffix differ.
+
+```bash
+# cache_size=1024 (~6h, ~10 GB peak on RTX 3090 Ti)
+python scripts/run_namm.py \
+    run@_global_=namm_bam_i1_llama32_1b_5t \
+    filter_by_length=8192 \
+    cache_size=1024 max_memory_length=1024 \
+    run_name_suffix=llama32-1b-5t-cs1024
+
+# cache_size=2048 (~8h, ~14 GB peak)
+python scripts/run_namm.py \
+    run@_global_=namm_bam_i1_llama32_1b_5t \
+    filter_by_length=8192 \
+    cache_size=2048 max_memory_length=2048 \
+    run_name_suffix=llama32-1b-5t-cs2048
+
+# cache_size=4096 (~14h, ~20 GB peak — batch_size must drop to 2)
+python scripts/run_namm.py \
+    run@_global_=namm_bam_i1_llama32_1b_5t \
+    filter_by_length=8192 \
+    cache_size=4096 max_memory_length=4096 \
+    batch_size=2 eval_max_batch_size=2 \
+    run_name_suffix=llama32-1b-5t-cs4096
+```
+
+`max_memory_length` must equal `cache_size` — it's the physical KV buffer limit. `filter_by_length=8192` caps RoPE position embeddings. At `cache_size=4096`, `batch_size=4` OOMs on 24 GB GPUs; drop to `2`.
+
+5-task LongBench QA split (prompts in [4096, 6500] tokens):
+
+| Task | Train | Val | Test |
+|---|---|---|---|
+| `lb/qasper` | 60 | 13 | 14 |
+| `lb/2wikimqa` | 56 | 12 | 12 |
+| `lb/qasper_e` | 77 | 16 | 17 |
+| `lb/hotpotqa_e` | 51 | 10 | 12 |
+| `lb/2wikimqa_e` | 62 | 13 | 14 |
+| **Total** | **306** | **64** | **69** |
+
+#### Resuming interrupted runs
+
+`scratch=true` (default) starts fresh. To resume from `latest.pt` in the run's output directory, append `scratch=false` to any of the commands above. The best checkpoint (`ckpt.pt`) is only overwritten when `val_tasks_aggregate` improves.
+
 ### Example commands
 
 ```bash
