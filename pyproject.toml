@@ -36,22 +36,15 @@ dependencies = [
     "accelerate",
     "datasets==2.20.0",
     "peft==0.11.1",
-    "bitsandbytes",
-    "einops",
-    "scipy==1.13.0",
-    "tensorboard",
-    # Tokenisation
+    # Tokenisation (kept for HF tokenizer runtime fallbacks on LLaMA)
     "tiktoken",
     "sentencepiece",
     # Evaluation
     "lm-eval==0.4.2",
     "rouge",
-    "rouge-score",
     "jieba",
     "fuzzywuzzy",
     "python-levenshtein",
-    "ftfy",
-    "fugashi==1.3.2",
     # Config / experiment tracking
     "hydra-core==1.3.2",
     "wandb==0.16.6",
@@ -63,15 +56,13 @@ dependencies = [
 ]
 
 # ── Platform-specific extras ─────────────────────────────────────────────────
-# These declare WHAT each platform needs. `[tool.uv.sources]` below routes the
-# `gpu` extra to the CUDA 12.1 PyTorch index; `cpu` and `tpu` resolve from the
-# default PyPI / the `torch-xla[tpu]` find-links declared in that package.
+# Declare the torch variant per platform. `[tool.uv.sources]` below routes the
+# `gpu` extra to the CUDA 12.1 PyTorch index; `cpu` resolves from default PyPI
+# and `tpu` pulls `torch-xla[tpu]` from its own declared find-links.
 # ─────────────────────────────────────────────────────────────────────────────
 [project.optional-dependencies]
 gpu = [
     "torch==2.3.1",
-    "torchvision==0.18.1",
-    "torchaudio==2.3.1",
 ]
 tpu = [
     "torch==2.3.1",
@@ -79,8 +70,6 @@ tpu = [
 ]
 cpu = [
     "torch==2.3.1",
-    "torchvision==0.18.1",
-    "torchaudio==2.3.1",
 ]
 dev = [
     "ruff",
@@ -88,17 +77,11 @@ dev = [
 ]
 
 # ── uv source routing ────────────────────────────────────────────────────────
-# When the `gpu` extra is active, pull torch/torchvision/torchaudio from the
-# CUDA 12.1 PyTorch index instead of PyPI. Other extras fall back to PyPI.
+# When the `gpu` extra is active, pull torch from the CUDA 12.1 PyTorch index
+# instead of PyPI. Other extras fall back to PyPI.
 # ─────────────────────────────────────────────────────────────────────────────
 [tool.uv.sources]
 torch = [
-    { index = "pytorch-cu121", marker = "extra == 'gpu'" },
-]
-torchvision = [
-    { index = "pytorch-cu121", marker = "extra == 'gpu'" },
-]
-torchaudio = [
     { index = "pytorch-cu121", marker = "extra == 'gpu'" },
 ]
 
