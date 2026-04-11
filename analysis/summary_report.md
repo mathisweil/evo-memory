@@ -45,7 +45,7 @@ The key insight: eviction sensitivity is driven by **answer diversity and distra
 
 ### Report 2 — Adaptation Rate
 
-M3 cs1024 starts from a drastically lower baseline (19.96 vs 41.58 F1 — eviction destroys zero-shot performance) yet recovers to match M1's peak in roughly the same number of gradient steps (~340). The absolute improvement per step is ~2x larger for M3 than M1, indicating efficient adaptation despite the information bottleneck. The train-val gap is negative for all conditions; M3 cs1024 shows the smallest magnitude gap (-2.24 vs M1's -5.74), offering weak evidence for eviction-as-regularisation.
+M3 cs1024 starts from a slightly lower baseline than M1 (19.96 vs 22.59 F1 — eviction degrades zero-shot performance) yet recovers to match M1's peak in roughly the same number of gradient steps (~340). Both conditions start far below their eventual peaks, with M3 making a comparable absolute improvement despite the information bottleneck. The train-val gap is negative for all conditions; M3 cs1024 shows the smallest magnitude gap (-2.24 vs M1's -5.74), offering weak evidence for eviction-as-regularisation.
 
 ### Report 3 — Per-Layer Retention
 

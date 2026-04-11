@@ -26,7 +26,7 @@ Cache sizes tested for M2 and M3: 1024, 2048, 3072 tokens.
 
 | Condition       | Qasper | 2WikiMQA | Qasper-E | HotpotQA-E | 2WikiMQA-E | **Mean** |
 |-----------------|-------:|---------:|---------:|----------:|-----------:|--------:|
-| B0              | 30.35  |   50.83  |   29.17  |    42.00  |     55.56  | **41.58** |
+| B0              | 14.69  |   15.83  |   12.57  |    40.00  |     35.68  | **22.59** |
 | M1 (LoRA)       | 30.67  |   50.83  |   32.67  |    44.00  |     69.23  | **45.48** |
 | M2 cs1024       | 14.18  |   29.00  |   17.82  |    39.54  |     38.97  | **27.90** |
 | M2 cs2048       | 13.77  |   33.89  |   15.78  |    39.00  |     35.90  | **27.67** |
@@ -39,8 +39,9 @@ See `best_val_f1_comparison.png` for the visual comparison.
 
 ### Key observations
 
-- **M1 improves modestly over B0** (45.48 vs 41.58 mean), with the biggest
-  gain on 2WikiMQA-E (+13.7 pp). Qasper and 2WikiMQA are essentially flat.
+- **M1 improves substantially over B0** (45.48 vs 22.59 mean), with large
+  gains across all tasks. The biggest absolute gains are on 2WikiMQA (+35.0 pp)
+  and 2WikiMQA-E (+33.6 pp).
 - **M2 (NAMM-only) degrades substantially** across all cache sizes, with mean
   F1 around 28-31. The eviction policy alone cannot compensate for the loss
   of context.
