@@ -1,0 +1,2753 @@
+{
+  "test": {
+    "lb/qasper": [
+      {
+        "prompt_idx": 158,
+        "pred": " 2-10% (Source: Tang et al., 2017)",
+        "answers": [
+          "eight layers"
+        ],
+        "all_classes": null,
+        "length": 4487
+      },
+      {
+        "prompt_idx": 159,
+        "pred": " Flickr\n\n## Step 1: Understand the problem\nThe problem is asking to find the main value of a scientific article that uses geographic coordinates to represent locations.\n\n## Step 2: Identify the key information\nThe article uses geographic coordinates to represent locations, which implies that the main value is likely related to the location itself.\n\n## Step 3: Determine the main value\nBased on the information provided, the main value of the article is likely to be the location itself, as it is represented using geographic coordinates.\n\n## Step 4: Provide the final answer\nThe final answer is: $\\boxed{location}$\n\nThe final answer is",
+        "answers": [
+          " the same datasets as BIBREF7",
+          "same datasets as BIBREF7"
+        ],
+        "all_classes": null,
+        "length": 4661
+      },
+      {
+        "prompt_idx": 160,
+        "pred": " unbalanced medical reports.\n\nThe final answer is: $\\boxed{unbalanced medical reports}$",
+        "answers": [
+          "MEDDOCAN, NUBes-PHI",
+          "MEDDOCAN, NUBes "
+        ],
+        "all_classes": null,
+        "length": 4528
+      },
+      {
+        "prompt_idx": 161,
+        "pred": " None. Sarcasm is not present in the text.",
+        "answers": [
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 3543
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " Experimental.\n\nThe final answer is: $\\boxed{Experimental}$",
+        "answers": [
+          "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
+        ],
+        "all_classes": null,
+        "length": 4600
+      },
+      {
+        "prompt_idx": 166,
+        "pred": " Gaussian-masked directional encoder.",
+        "answers": [
+          "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
+          "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
+        ],
+        "all_classes": null,
+        "length": 3612
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " They used a feature-based model.\n\n## Step 1: Identify the type of model used\nThe problem states that the model used is a recursive neural network model.\n\n## Step 2: Determine the type of model\nThe model is a recursive neural network model, which is a type of deep learning model.\n\n## Step 3: Identify the specific type of model\nThe model is a recursive neural network model with distributed representation of discourse arguments.\n\n## Step 4: Determine the specific type of distributed representation\nThe model uses distributed representation of discourse arguments.\n\n## Step 5: Identify the specific type of distributed representation\nThe model uses a",
+        "answers": [
+          "Facebook status update messages",
+          "Facebook status update messages"
+        ],
+        "all_classes": null,
+        "length": 4005
+      },
+      {
+        "prompt_idx": 173,
+        "pred": " Sentiment classification.\n\n## Step 1: Understand the problem\nThe problem is to determine the most suitable method for sentiment classification, which involves predicting the sentiment of a piece of text.\n\n## Step 2: Review the options\nThere are several options for sentiment classification, including Naive Bayes, Logistic Regression, Support Vector Machines, and Random Forest.\n\n## Step 3: Evaluate the options\nNaive Bayes is a simple and interpretable model, but it can be slow and biased. Logistic Regression is a popular choice, but it can be sensitive to outliers and non-linear relationships. Support Vector Machines is a powerful model, but",
+        "answers": [
+          "text classification for themes including sentiment, web-page, science, medical and healthcare"
+        ],
+        "all_classes": null,
+        "length": 3591
+      },
+      {
+        "prompt_idx": 175,
+        "pred": " unanswerable.",
+        "answers": [
+          "By 14 times.",
+          "up to 1.95 times larger"
+        ],
+        "all_classes": null,
+        "length": 3294
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " unanswerable",
+        "answers": [
+          "3606",
+          "6946"
+        ],
+        "all_classes": null,
+        "length": 2835
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " s2sL",
+        "answers": [
+          "MLP",
+          "Eusboost, MWMOTE"
+        ],
+        "all_classes": null,
+        "length": 2474
+      },
+      {
+        "prompt_idx": 178,
+        "pred": " yes.",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 3784
+      },
+      {
+        "prompt_idx": 179,
+        "pred": " unanswerable.",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4320
+      },
+      {
+        "prompt_idx": 180,
+        "pred": " POS induction.\n\n### Example 2: Dependency Parsing\n\nThe following is an example of a dependency parsing algorithm in Python:\n```python\nimport re\n\ndef parse_dependency(sentence):\n    # Tokenize the sentence\n    tokens = re.findall(r'\\w+|[^\\w\\s]', sentence)\n\n    # Initialize the dependency graph\n    graph = {}\n\n    # Iterate over the tokens\n    for token in tokens:\n        # If the token is a verb, add it to the graph\n        if token in ['I', 'you', 'he','she', 'it']:\n            graph[token] = []\n        # If the token is",
+        "answers": [
+          " Wall Street Journal (WSJ) portion of the Penn Treebank",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4327
+      }
+    ],
+    "lb/2wikimqa": [
+      {
+        "prompt_idx": 138,
+        "pred": " Heilbronn, Germany.",
+        "answers": [
+          "Abu Dhabi"
+        ],
+        "all_classes": null,
+        "length": 3593
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " Larissa.",
+        "answers": [
+          "Prenzlau"
+        ],
+        "all_classes": null,
+        "length": 3584
+      },
+      {
+        "prompt_idx": 140,
+        "pred": " Dublin.",
+        "answers": [
+          "Pozna\u0144"
+        ],
+        "all_classes": null,
+        "length": 3814
+      },
+      {
+        "prompt_idx": 142,
+        "pred": " California\n\nAnswer the question based on the given passages. Only give the answer and do not include any additional information.\n\nPassage 1:\nJohn Angus \"B",
+        "answers": [
+          "Toronto, Ontario"
+        ],
+        "all_classes": null,
+        "length": 3366
+      },
+      {
+        "prompt_idx": 143,
+        "pred": " Forbidden\n\nThe third kiss is a plot point in the film \"The Third Kiss\" (2003), where the main character, Alex, shares a romantic kiss",
+        "answers": [
+          "Forbidden Daughters"
+        ],
+        "all_classes": null,
+        "length": 4389
+      },
+      {
+        "prompt_idx": 145,
+        "pred": " Bogdan\n\nPassage 3:\nGreg A. Hill is a Canadian-born First Nations artist and curator. He is Kanyen'keh\u00e0:ka",
+        "answers": [
+          "Bogdan \u021a\u0103ru\u0219"
+        ],
+        "all_classes": null,
+        "length": 3425
+      },
+      {
+        "prompt_idx": 147,
+        "pred": " From 1923 to 1930.\n\nPassage 5:\nThe film \"The Great Dictator\" (1940) was directed by Charlie Chaplin",
+        "answers": [
+          "From Corleone To Brooklyn"
+        ],
+        "all_classes": null,
+        "length": 3894
+      },
+      {
+        "prompt_idx": 151,
+        "pred": " Kennedy\n\nAnswer 2:\nPassage 3:\nPassage 4:\nPassage 5:\nPassage 6:\nPassage 7:\nPass",
+        "answers": [
+          "Parkinson"
+        ],
+        "all_classes": null,
+        "length": 4337
+      },
+      {
+        "prompt_idx": 152,
+        "pred": " Maurice Berkeley, 1st Baron Berkeley of Stratton.",
+        "answers": [
+          "Roger Mortimer, 1st Earl of March"
+        ],
+        "all_classes": null,
+        "length": 3947
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " Prince\n\nNotes\nPassage 1:\nThe Wonderful World of Captain Kuhio\nCaptain Kuhio was a real-life hero who swindled over",
+        "answers": [
+          "Prince Of Arcadia"
+        ],
+        "all_classes": null,
+        "length": 3155
+      },
+      {
+        "prompt_idx": 155,
+        "pred": " Ireland.",
+        "answers": [
+          "Milan"
+        ],
+        "all_classes": null,
+        "length": 3195
+      },
+      {
+        "prompt_idx": 156,
+        "pred": " He was buried in a cemetery in Paris.",
+        "answers": [
+          "K\u00f6ln"
+        ],
+        "all_classes": null,
+        "length": 3719
+      }
+    ],
+    "lb/qasper_e": [
+      {
+        "prompt_idx": 162,
+        "pred": " They are not.",
+        "answers": [
+          "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
+          "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
+        ],
+        "all_classes": null,
+        "length": 4246
+      },
+      {
+        "prompt_idx": 164,
+        "pred": " yes",
+        "answers": [
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4117
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " unanswerable.",
+        "answers": [
+          "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
+          "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
+        ],
+        "all_classes": null,
+        "length": 4184
+      },
+      {
+        "prompt_idx": 166,
+        "pred": " yes.",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4484
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " A single concept.\n\nThe final answer is: $\\boxed{1}$",
+        "answers": [
+          "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
+          "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
+        ],
+        "all_classes": null,
+        "length": 4271
+      },
+      {
+        "prompt_idx": 168,
+        "pred": " unanswerable.\n\nNote: The question \"unanswerable\" is a bit of a paradox, as it's a statement that can be true or false. In this case, the statement is true, as the question itself is a complex and open-ended one that cannot be answered definitively.",
+        "answers": [
+          "precision, recall, F1 and accuracy",
+          "precision, recall, F1 , accuracy "
+        ],
+        "all_classes": null,
+        "length": 4101
+      },
+      {
+        "prompt_idx": 169,
+        "pred": " yes",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4770
+      },
+      {
+        "prompt_idx": 170,
+        "pred": " They use a 10-fold validation like setting.",
+        "answers": [
+          "Annotations from experts are used if they have already been collected."
+        ],
+        "all_classes": null,
+        "length": 4377
+      },
+      {
+        "prompt_idx": 171,
+        "pred": " unanswerable.",
+        "answers": [
+          "13,939"
+        ],
+        "all_classes": null,
+        "length": 4489
+      },
+      {
+        "prompt_idx": 172,
+        "pred": " unanswerable.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4592
+      },
+      {
+        "prompt_idx": 173,
+        "pred": " yes.",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4457
+      },
+      {
+        "prompt_idx": 174,
+        "pred": " ROGUE-1.\n\n## Step 1: Understand the problem\nThe problem is asking to generate a summary of a given text using a specific method.\n\n## Step 2: Identify the method\nThe method used in the problem is a sequence-to-sequence model, which is a type of neural network that can be used for sequence-to-sequence tasks such as machine translation.\n\n## Step 3: Determine the input and output\nThe input to the model is the given text, and the output is the generated summary.\n\n## Step 4: Train the model\nThe model is trained on a large dataset of text summaries and the",
+        "answers": [
+          "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
+          "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
+        ],
+        "all_classes": null,
+        "length": 4395
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " unanswerable.",
+        "answers": [
+          "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
+        ],
+        "all_classes": null,
+        "length": 4203
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " Semantic similarity, relatedness, and information content.",
+        "answers": [
+          "Skip\u2013gram, CBOW",
+          "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
+        ],
+        "all_classes": null,
+        "length": 4259
+      },
+      {
+        "prompt_idx": 180,
+        "pred": " They are not.",
+        "answers": [
+          " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
+          "majority of questions that our system could not answer so far are in fact answerable"
+        ],
+        "all_classes": null,
+        "length": 4232
+      },
+      {
+        "prompt_idx": 181,
+        "pred": " The cost of mislabeling one class is higher than that of mislabeling another.",
+        "answers": [
+          "precision, recall , F1 score"
+        ],
+        "all_classes": null,
+        "length": 4515
+      },
+      {
+        "prompt_idx": 182,
+        "pred": " unanswerable.",
+        "answers": [
+          "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
+        ],
+        "all_classes": null,
+        "length": 4187
+      },
+      {
+        "prompt_idx": 183,
+        "pred": " Yes.",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4071
+      }
+    ],
+    "lb/hotpotqa_e": [
+      {
+        "prompt_idx": 88,
+        "pred": " No\n\nAnswer the question based on the given passages. Only give the answer and do not include any additional information.\n\nThe Big Brain\nThe Big Brain is a",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3217
+      },
+      {
+        "prompt_idx": 89,
+        "pred": " Marlborough\n\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough",
+        "answers": [
+          "Marlborough"
+        ],
+        "all_classes": null,
+        "length": 3829
+      },
+      {
+        "prompt_idx": 93,
+        "pred": " No\n\nAnswer to the question based on the given passages is: No\n\nNote: The question was not based on the given passages, but rather on the provided",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3674
+      },
+      {
+        "prompt_idx": 94,
+        "pred": " Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3705
+      },
+      {
+        "prompt_idx": 96,
+        "pred": " A\n\nB.  Polypodium is a genus of ferns.\n\nC.  Polypodium is a genus of ferns that is native to the",
+        "answers": [
+          "Polypodium"
+        ],
+        "all_classes": null,
+        "length": 3730
+      },
+      {
+        "prompt_idx": 97,
+        "pred": " None\n\n## Step 1: Understand the problem\nThe problem is asking for the answer to a question about a song, specifically the song \"I'm a",
+        "answers": [
+          "Albert"
+        ],
+        "all_classes": null,
+        "length": 3271
+      },
+      {
+        "prompt_idx": 99,
+        "pred": " A1 Recordings, Freebandz, and Epic Records.",
+        "answers": [
+          "A1 Recordings"
+        ],
+        "all_classes": null,
+        "length": 2862
+      },
+      {
+        "prompt_idx": 107,
+        "pred": " 15,154\n\nAnswer: 15,154\nAnswer: 15,154\nAnswer: 15,154\nAnswer: 15,154",
+        "answers": [
+          "729 at the 2010 census"
+        ],
+        "all_classes": null,
+        "length": 4198
+      },
+      {
+        "prompt_idx": 113,
+        "pred": " None\n\n## Step 1: Identify the problem\nThe problem is to determine the number of possible combinations of ingredients in a cocktail.\n\n## Step 2:",
+        "answers": [
+          "lime"
+        ],
+        "all_classes": null,
+        "length": 4196
+      },
+      {
+        "prompt_idx": 117,
+        "pred": " None.",
+        "answers": [
+          "American theater producer and director, playwright, screenwriter"
+        ],
+        "all_classes": null,
+        "length": 4512
+      },
+      {
+        "prompt_idx": 123,
+        "pred": " Scotland\n\nAnswer 2:\nThe Hatton Baronetage is a system of baronetcy in the United Kingdom, which is a hereditary title of nob",
+        "answers": [
+          "Scotland"
+        ],
+        "all_classes": null,
+        "length": 4500
+      },
+      {
+        "prompt_idx": 124,
+        "pred": " 2\n\nAnswer: 2\n\nExplanation: The definition of a non-sexual marriage is often broadened to include those where sexual intimacy occurs fewer than ten",
+        "answers": [
+          "13"
+        ],
+        "all_classes": null,
+        "length": 4497
+      }
+    ],
+    "lb/2wikimqa_e": [
+      {
+        "prompt_idx": 107,
+        "pred": " Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4176
+      },
+      {
+        "prompt_idx": 108,
+        "pred": " Kiplangat Sang\n\nKiplangat Sang (born 14 April 1981) is a Kenyan judoka. He competed in the men",
+        "answers": [
+          "Kiplangat Sang"
+        ],
+        "all_classes": null,
+        "length": 4003
+      },
+      {
+        "prompt_idx": 117,
+        "pred": " Ireland\n\nAnswer the following questions about the passage:\n\n1. What is the name of the person who wrote the passage?\n2. What is the name of the",
+        "answers": [
+          "Sydney, Australia"
+        ],
+        "all_classes": null,
+        "length": 4287
+      },
+      {
+        "prompt_idx": 129,
+        "pred": " 6 April \u2013 6 November 1928.",
+        "answers": [
+          "6 August 1272"
+        ],
+        "all_classes": null,
+        "length": 4185
+      },
+      {
+        "prompt_idx": 132,
+        "pred": " No\n\nAnswer: No\n\nExplanation: The passage does not provide any information about the person's name, occupation, or any other personal details. It only provides",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4141
+      },
+      {
+        "prompt_idx": 135,
+        "pred": " Lassie Come Home\n\nPassage 4:\nAbraham Lincoln\nAbraham Lincoln was the 16th President of the United States. He was born",
+        "answers": [
+          "Prairie Thunder"
+        ],
+        "all_classes": null,
+        "length": 4155
+      },
+      {
+        "prompt_idx": 141,
+        "pred": " 1358\n\nAnswer 2:\nPassage 3:\nGerald FitzGerald, 3rd Earl of Desmond\nGerald FitzGerald,",
+        "answers": [
+          "8 April 1643"
+        ],
+        "all_classes": null,
+        "length": 4038
+      },
+      {
+        "prompt_idx": 142,
+        "pred": " Sydney, Australia.",
+        "answers": [
+          "Israeli"
+        ],
+        "all_classes": null,
+        "length": 4399
+      },
+      {
+        "prompt_idx": 145,
+        "pred": " The Thing from Another World\n\nThe Thing from Another World is a 1951 science fiction film directed by Christian Nyby, based on the 1938 nov",
+        "answers": [
+          "The Thing About My Folks"
+        ],
+        "all_classes": null,
+        "length": 4234
+      },
+      {
+        "prompt_idx": 147,
+        "pred": " Queen Mary II and Queen Anne.",
+        "answers": [
+          "Princess Maria Immaculata of Bourbon-Two Sicilies"
+        ],
+        "all_classes": null,
+        "length": 4083
+      },
+      {
+        "prompt_idx": 151,
+        "pred": " Irish\n\nAnswer: Irish\n\nQuestion: What is the name of the famous Irish poet who wrote \"The Waste Land\"?\n\nAnswer: Yeats\n\nAnswer: Ye",
+        "answers": [
+          "Canadian"
+        ],
+        "all_classes": null,
+        "length": 4421
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " S. Spiegel Film and Television School, Jerusalem.",
+        "answers": [
+          "Nice"
+        ],
+        "all_classes": null,
+        "length": 4110
+      },
+      {
+        "prompt_idx": 171,
+        "pred": " Alfonso VII of Castile\n\nAnswer 2:\nSancha of Castile, Queen of Aragon, married King Alfonso II of Ar",
+        "answers": [
+          "Urraca of Le\u00f3n"
+        ],
+        "all_classes": null,
+        "length": 4215
+      },
+      {
+        "prompt_idx": 172,
+        "pred": " None\n\nThe final answer is: $\\boxed{None}$",
+        "answers": [
+          "Warsaw School of Economics"
+        ],
+        "all_classes": null,
+        "length": 4162
+      }
+    ]
+  },
+  "extended_test": {
+    "lb/qasper": [
+      {
+        "prompt_idx": 158,
+        "pred": " 2-10% (Source: Tang et al., 2018)",
+        "answers": [
+          "eight layers"
+        ],
+        "all_classes": null,
+        "length": 4487
+      },
+      {
+        "prompt_idx": 159,
+        "pred": " Flickr\n\n## Step 1: Understand the problem\nThe problem is asking to find the main value of a scientific article that uses geographic coordinates to represent locations.\n\n## Step 2: Identify the key information\nThe article uses geographic coordinates to represent locations, which implies that the main value is likely related to the location itself.\n\n## Step 3: Determine the main value\nBased on the information provided, the main value of the article is likely to be the location itself, as it is represented using geographic coordinates.\n\n## Step 4: Provide the final answer\nThe main value of the article is the location itself.\n\nThe final answer is",
+        "answers": [
+          " the same datasets as BIBREF7",
+          "same datasets as BIBREF7"
+        ],
+        "all_classes": null,
+        "length": 4661
+      },
+      {
+        "prompt_idx": 160,
+        "pred": " unbalanced medical reports.\n\nThe final answer is: $\\boxed{unbalanced medical reports}$",
+        "answers": [
+          "MEDDOCAN, NUBes-PHI",
+          "MEDDOCAN, NUBes "
+        ],
+        "all_classes": null,
+        "length": 4528
+      },
+      {
+        "prompt_idx": 161,
+        "pred": " None. Sarcasm is not present in the text.",
+        "answers": [
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 3543
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " Experimental.\n\nThe final answer is: $\\boxed{Experimental}$",
+        "answers": [
+          "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
+        ],
+        "all_classes": null,
+        "length": 4600
+      },
+      {
+        "prompt_idx": 166,
+        "pred": " Gaussian-masked directional encoder.",
+        "answers": [
+          "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
+          "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
+        ],
+        "all_classes": null,
+        "length": 3612
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " They used a feature-based model.\n\n## Step 2: Identify the type of model used\nThe problem states that the model used is a recursive neural network model.\n\n## Step 3: Describe the model\nThe model is a recursive neural network model that uses distributed representation of discourse arguments as its basis.\n\n## Step 4: Explain the distributed representation\nThe distributed representation is a way of representing the arguments in a way that allows them to be processed and analyzed in a more efficient and effective way.\n\n## Step 5: Describe the model's capabilities\nThe model's capabilities include the ability to process and analyze large amounts of text data,",
+        "answers": [
+          "Facebook status update messages",
+          "Facebook status update messages"
+        ],
+        "all_classes": null,
+        "length": 4005
+      },
+      {
+        "prompt_idx": 173,
+        "pred": " Sentiment classification.\n\n## Step 1: Understand the problem\nThe problem is to determine the most suitable method for sentiment classification, given a set of labeled features and a set of unlabeled features.\n\n## Step 2: Review the options\nThere are several options for sentiment classification, including supervised learning, unsupervised learning, and hybrid approaches.\n\n## Step 3: Choose the best option\nSupervised learning is the most suitable option for sentiment classification, as it involves training a model on labeled data and using the model to predict sentiment on new, unlabeled data.\n\n## Step 4: Implement the solution\nTo implement the solution",
+        "answers": [
+          "text classification for themes including sentiment, web-page, science, medical and healthcare"
+        ],
+        "all_classes": null,
+        "length": 3591
+      },
+      {
+        "prompt_idx": 175,
+        "pred": " unanswerable.",
+        "answers": [
+          "By 14 times.",
+          "up to 1.95 times larger"
+        ],
+        "all_classes": null,
+        "length": 3294
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " unanswerable",
+        "answers": [
+          "3606",
+          "6946"
+        ],
+        "all_classes": null,
+        "length": 2835
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " s2sL",
+        "answers": [
+          "MLP",
+          "Eusboost, MWMOTE"
+        ],
+        "all_classes": null,
+        "length": 2474
+      },
+      {
+        "prompt_idx": 178,
+        "pred": " yes.",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 3784
+      },
+      {
+        "prompt_idx": 179,
+        "pred": " unstate.",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4320
+      },
+      {
+        "prompt_idx": 180,
+        "pred": " POS induction, unsupervised dependency parsing.\n\n## Step 1: Understand the problem\nThe problem is asking to learn a new latent variable representation for a given dataset, where the new representation is used to improve the performance of a model.\n\n## Step 2: Identify the key components\nThe key components of the problem are:\n- The dataset: A collection of data points that need to be represented.\n- The model: A machine learning model that needs to be improved.\n- The new representation: A new latent variable representation that needs to be learned.\n\n## Step 3: Determine the approach\nThe approach to solve the problem is to",
+        "answers": [
+          " Wall Street Journal (WSJ) portion of the Penn Treebank",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4327
+      },
+      {
+        "prompt_idx": 7,
+        "pred": " The article does not mention any specific model or system.",
+        "answers": [
+          "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
+          "the CNN/DailyMail news highlights dataset BIBREF24, the New York Times Annotated Corpus (NYT; BIBREF25), XSum BIBREF22"
+        ],
+        "all_classes": null,
+        "length": 4369
+      },
+      {
+        "prompt_idx": 19,
+        "pred": " The Transformer architecture uses a self-attention mechanism to process input sequences, allowing for efficient and effective information flow.",
+        "answers": [
+          "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
+          "We introduce sparse attention into the Transformer architecture"
+        ],
+        "all_classes": null,
+        "length": 4902
+      },
+      {
+        "prompt_idx": 22,
+        "pred": " unanswerable.\n\n ::: End of Section 1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1",
+        "answers": [
+          "the model is pre-trained on CTC-based ASR task and MT task in the pre-training stage."
+        ],
+        "all_classes": null,
+        "length": 4656
+      },
+      {
+        "prompt_idx": 30,
+        "pred": " @START@$\\alpha$@END@\n\n## Step 1: Understand the problem\nThe problem asks us to analyze the given article about the Transformer model and identify the different attention heads used in the model.\n\n## Step 2: Identify the different attention heads\nThe article mentions that the Transformer model uses three different attention heads: softmax, sparsemax, and attention.\n\n## Step 3: Analyze the softmax attention head\nThe softmax attention head is used to compute the weighted sum of the input features. It is used to compute the attention weights for each input feature.\n\n## Step 4: Analyze the sparsemax attention head",
+        "answers": [
+          "four machine translation tasks: German -> English, Japanese -> English, Romanian -> English, English -> German",
+          " four machine translation tasks, IWSLT 2017 German $\\rightarrow $ English BIBREF27, KFTT Japanese $\\rightarrow $ English BIBREF28, WMT 2016 Romanian $\\rightarrow $ English BIBREF29, WMT 2014 English $\\rightarrow $ German BIBREF30"
+        ],
+        "all_classes": null,
+        "length": 4898
+      },
+      {
+        "prompt_idx": 36,
+        "pred": " The article was written in a style that is concise and to the point, with a clear and logical structure.",
+        "answers": [
+          "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
+          "adequacy, precision and ranking values"
+        ],
+        "all_classes": null,
+        "length": 5344
+      },
+      {
+        "prompt_idx": 40,
+        "pred": " Source domain, target domain.\n\n## Step 2: Understand the problem context\nThe problem is asking to find a way to transfer or adapt a sentiment analysis model from one domain to another, specifically from a source domain to a target domain. The goal is to transfer the model's ability to classify sentiment into the target domain.\n\n## Step 3: Identify the key challenge\nThe key challenge in this problem is to transfer the model's ability to classify sentiment from one domain to another. This requires finding a way to adapt the model's features and weights to the target domain.\n\n## Step 4: Consider the solution approach\nOne possible solution",
+        "answers": [
+          "Book, electronics, beauty, music, IMDB, Yelp, cell phone, baby, DVDs, kitchen",
+          "we use set 1 of the source domain as the only source with sentiment label information during training, and we evaluate the trained model on set 1 of the target domain, Book (BK), Electronics (E), Beauty (BT), and Music (M)"
+        ],
+        "all_classes": null,
+        "length": 5061
+      },
+      {
+        "prompt_idx": 51,
+        "pred": " unanswerable.\n\n**Note:** This is a very concise answer, and the question is asking for a specific type of answer. In a real-world scenario, the answer would be a more detailed explanation of why the question is unanswerable.\n\n**Example Answer:** The reason why the question is unanswerable is that it is based on a false premise. The concept of \"unanswerable\" is a subjective term that implies a lack of knowledge or understanding. However, in reality, there are many questions that are unanswerable due to the limitations of our current understanding or the complexity of the subject matter. For example, the question",
+        "answers": [
+          " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
+          "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
+        ],
+        "all_classes": null,
+        "length": 4718
+      },
+      {
+        "prompt_idx": 63,
+        "pred": " unanswerable",
+        "answers": [
+          "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
+          "M2M Transformer"
+        ],
+        "all_classes": null,
+        "length": 4542
+      },
+      {
+        "prompt_idx": 77,
+        "pred": " Yes.\n\nThe final answer is: $\\boxed{Yes}$",
+        "answers": [
+          "probabilistic model",
+          "Logistic Regression, Multilayer Perceptron"
+        ],
+        "all_classes": null,
+        "length": 4475
+      },
+      {
+        "prompt_idx": 87,
+        "pred": " Proposed framework for MRC gold standard analysis.\n\n### Problem\nThe problem is to develop a framework for evaluating the quality of gold standard datasets in the field of natural language processing (NLP). The framework should be able to assess the quality of the dataset based on various criteria, such as the accuracy of the annotations, the diversity of the data, and the relevance of the annotations.\n\n### Solution\nTo develop a framework for evaluating the quality of gold standard datasets in NLP, we can follow these steps:\n\n1. **Define the evaluation criteria**: Identify the key criteria that will be used to evaluate the quality of the dataset, such as accuracy",
+        "answers": [
+          "The resulting taxonomy of the framework is shown in Figure FIGREF10",
+          "FIGREF10"
+        ],
+        "all_classes": null,
+        "length": 4958
+      },
+      {
+        "prompt_idx": 89,
+        "pred": " unanswerable.",
+        "answers": [
+          "Vanilla ST baseline, encoder pre-training, in which the ST encoder is initialized from an ASR model, decoder pre-training, in which the ST decoder is initialized from an MT model, encoder-decoder pre-training, where both the encoder and decoder are pre-trained, many-to-many multi-task model where the encoders and decoders are derived from pre-trained ASR and MT models, Triangle+pre-train: BIBREF18 DBLP:conf/naacl/AnastasopoulosC18 proposed a triangle multi-task strategy for speech translation",
+          "Vanilla ST baseline, Pre-training baselines, Multi-task baselines, Many-to-many+pre-training, Triangle+pre-train",
+          "Vanilla ST baseline: The vanilla ST BIBREF9 has only a speech encoder and a decoder. It is trained from scratch on the ST-TED corpus.\n\nPre-training baselines: We conduct three pre-training baseline experiments: 1) encoder pre-training, in which the ST encoder is initialized from an ASR model; 2) decoder pre-training, in which the ST decoder is initialized from an MT model; and 3) encoder-decoder pre-training, where both the encoder and decoder are pre-trained. The ASR model has the same architecture with vanilla ST model, trained on the mixture of ST-TED and TED-LIUM2 corpus. The MT model has a text encoder and decoder with the same architecture of which in TCEN. It is first trained on WMT data (out-of-domain) and then fine-tuned on in-domain data.\n\nMulti-task baselines: We also conduct three multi-task baseline experiments including one-to-many setting, many-to-one setting, and many-to-many setting. In the first two settings, we train the model with $\\alpha _{st}=0.75$ while $\\alpha _{asr}=0.25$ or $\\alpha _{mt}=0.25$. For many-to-many setting, we use $\\alpha _{st}=0.6, \\alpha _{asr}=0.2$ and $\\alpha _{mt}=0.2$.. For MT task, we use only in-domain data.\n\nMany-to-many+pre-training: We train a many-to-many multi-task model where the encoders and decoders are derived from pre-trained ASR and MT models. "
+        ],
+        "all_classes": null,
+        "length": 4704
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " Contextual information.\n\nThe final answer is: $\\boxed{Contextual information}$",
+        "answers": [
+          "Word vectors, usually in the context of others within the same class"
+        ],
+        "all_classes": null,
+        "length": 5151
+      },
+      {
+        "prompt_idx": 114,
+        "pred": " HR.\n\nThe final answer is: $\\boxed{HR}$",
+        "answers": [
+          "answer questions by obtaining information from KB tuples ",
+          "hierarchical matching between questions and relations with residual learning"
+        ],
+        "all_classes": null,
+        "length": 4527
+      },
+      {
+        "prompt_idx": 119,
+        "pred": " unanswerable.",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 6169
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " The authors used a novel approach to classify disinformation and fake news, leveraging machine learning and natural language processing techniques.",
+        "answers": [
+          "By assigning a political bias label to each news article and training only on left-biased or right-biased outlets of both disinformation and mainstream domains",
+          "we also account for political biases inherent to different news sources, referring to the procedure proposed in BIBREF2 to label different outlets. Overall we show that we are able to classify credible vs non-credible diffusion networks (and consequently news articles) with high accuracy (AUROC up to 94%), even when accounting for the political bias of sources (and training only on left-biased or right-biased articles). We observe that the layer of mentions alone conveys useful information for the classification, denoting a different usage of this functionality when sharing news belonging to the two news domains. We also show that most discriminative features, which are relative to the breadth and depth of largest cascades in different layers, are the same across the two countries."
+        ],
+        "all_classes": null,
+        "length": 4882
+      },
+      {
+        "prompt_idx": 168,
+        "pred": " Baseline.\n\nThe final answer is: $\\boxed{Baseline}$",
+        "answers": [
+          " The features extracted from CNN."
+        ],
+        "all_classes": null,
+        "length": 4855
+      },
+      {
+        "prompt_idx": 174,
+        "pred": " The question classification models were trained on a large dataset of questions and answers, and were used to classify new questions as either correct or incorrect.",
+        "answers": [
+          "bag-of-words model, CNN"
+        ],
+        "all_classes": null,
+        "length": 5838
+      },
+      {
+        "prompt_idx": 182,
+        "pred": " HR.",
+        "answers": [
+          "SimpleQuestions, WebQSP",
+          "WebQSP, SimpleQuestions"
+        ],
+        "all_classes": null,
+        "length": 4524
+      }
+    ],
+    "lb/2wikimqa": [
+      {
+        "prompt_idx": 138,
+        "pred": " Heilbronn, Germany.",
+        "answers": [
+          "Abu Dhabi"
+        ],
+        "all_classes": null,
+        "length": 3593
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " Larissa.",
+        "answers": [
+          "Prenzlau"
+        ],
+        "all_classes": null,
+        "length": 3584
+      },
+      {
+        "prompt_idx": 140,
+        "pred": " Dublin.",
+        "answers": [
+          "Pozna\u0144"
+        ],
+        "all_classes": null,
+        "length": 3814
+      },
+      {
+        "prompt_idx": 142,
+        "pred": " California\n\nAnswer the question based on the given passages. Only give the answer and do not include any additional information.\n\nPassage 1:\nJohn Angus \"B",
+        "answers": [
+          "Toronto, Ontario"
+        ],
+        "all_classes": null,
+        "length": 3366
+      },
+      {
+        "prompt_idx": 143,
+        "pred": " Forbidden\n\nThe story of the three friends, Alex, Ben, and Chris, is a classic tale of friendship and adventure. The three friends were inseparable as",
+        "answers": [
+          "Forbidden Daughters"
+        ],
+        "all_classes": null,
+        "length": 4389
+      },
+      {
+        "prompt_idx": 145,
+        "pred": " Bogdan\n\nPassage 3:\nJohn W. Smith (American football player)\nJohn William Smith (born 1977) is an American football player who",
+        "answers": [
+          "Bogdan \u021a\u0103ru\u0219"
+        ],
+        "all_classes": null,
+        "length": 3425
+      },
+      {
+        "prompt_idx": 147,
+        "pred": " From 1923 to 1930.\n\nPassage 5:\nThe film \"The Great Dictator\" (1940) was directed by Charlie Chaplin",
+        "answers": [
+          "From Corleone To Brooklyn"
+        ],
+        "all_classes": null,
+        "length": 3894
+      },
+      {
+        "prompt_idx": 151,
+        "pred": " Kennedy\n\nAnswer 2:\nPassage 3:\nPassage 4:\nPassage 5:\nPassage 6:\nPassage 7:\nPass",
+        "answers": [
+          "Parkinson"
+        ],
+        "all_classes": null,
+        "length": 4337
+      },
+      {
+        "prompt_idx": 152,
+        "pred": " Maurice Berkeley, 1st Baron Berkeley of Stratton.",
+        "answers": [
+          "Roger Mortimer, 1st Earl of March"
+        ],
+        "all_classes": null,
+        "length": 3947
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " Prince\n\nNotes\nPassage 1:\nThe Wonderful World of Captain Kuhio\nCaptain Kuhio was a real-life hero who swindled over",
+        "answers": [
+          "Prince Of Arcadia"
+        ],
+        "all_classes": null,
+        "length": 3155
+      },
+      {
+        "prompt_idx": 155,
+        "pred": " Ireland.",
+        "answers": [
+          "Milan"
+        ],
+        "all_classes": null,
+        "length": 3195
+      },
+      {
+        "prompt_idx": 156,
+        "pred": " He was buried in a cemetery in Paris.",
+        "answers": [
+          "K\u00f6ln"
+        ],
+        "all_classes": null,
+        "length": 3719
+      },
+      {
+        "prompt_idx": 0,
+        "pred": " Ayurveda\n\nAnswer 2:\nThe term \"Ayurveda\" is derived from the Sanskrit words \"Ayur\" meaning \"life\" and \"",
+        "answers": [
+          "Ozalj"
+        ],
+        "all_classes": null,
+        "length": 4696
+      },
+      {
+        "prompt_idx": 1,
+        "pred": " Elizabeth Ramel Kjellgren\n\nElizabeth Ramel Kjellgren is a Swedish actress, born on July 18, 1987. She is",
+        "answers": [
+          "John the Baptist"
+        ],
+        "all_classes": null,
+        "length": 4776
+      },
+      {
+        "prompt_idx": 3,
+        "pred": " 1602\n\nAnswer: William Paulet, 3rd Marquess of Winchester\nAnswer: 1602\nAnswer: William Paulet, ",
+        "answers": [
+          "1510"
+        ],
+        "all_classes": null,
+        "length": 4621
+      },
+      {
+        "prompt_idx": 4,
+        "pred": " Roderick Watson, 1st Earl of Rockingham.",
+        "answers": [
+          "Edward Watson"
+        ],
+        "all_classes": null,
+        "length": 4625
+      },
+      {
+        "prompt_idx": 5,
+        "pred": " 23 June 1374\n\nPassage 5:\nEleanor de Braose\nEleanor de Braose (c. 1220 \u2013 128",
+        "answers": [
+          "16 September 1360"
+        ],
+        "all_classes": null,
+        "length": 5001
+      },
+      {
+        "prompt_idx": 7,
+        "pred": " The Sam Spiegel Film and Television School.",
+        "answers": [
+          "Bob Jones University"
+        ],
+        "all_classes": null,
+        "length": 5162
+      },
+      {
+        "prompt_idx": 11,
+        "pred": " Israel\n\nAnswer: Israel\n\nPassage 2:\nIn 2019, the United States and the United Kingdom announced a new partnership to provide $1 billion",
+        "answers": [
+          "America"
+        ],
+        "all_classes": null,
+        "length": 4442
+      },
+      {
+        "prompt_idx": 22,
+        "pred": " Abd al-Rahman ibn Muhammad al-Ghafir al-Qurashi.",
+        "answers": [
+          "Leustach R\u00e1t\u00f3t"
+        ],
+        "all_classes": null,
+        "length": 3948
+      },
+      {
+        "prompt_idx": 23,
+        "pred": " Nepal.",
+        "answers": [
+          "Nepal"
+        ],
+        "all_classes": null,
+        "length": 4625
+      },
+      {
+        "prompt_idx": 24,
+        "pred": " Archibald Primrose, 4th Earl of Rosebery.",
+        "answers": [
+          "Archibald Acheson, 2nd Earl of Gosford"
+        ],
+        "all_classes": null,
+        "length": 4383
+      },
+      {
+        "prompt_idx": 29,
+        "pred": " Blue Blood and Raoul.",
+        "answers": [
+          "Blue Blood And Red"
+        ],
+        "all_classes": null,
+        "length": 4436
+      },
+      {
+        "prompt_idx": 31,
+        "pred": " Kamau, a village in Kenya.\n\nThe following are the names of places in the world:\n\n1. Africa\n2. Asia\n3. Australia\n4",
+        "answers": [
+          "Constantinople"
+        ],
+        "all_classes": null,
+        "length": 4769
+      },
+      {
+        "prompt_idx": 32,
+        "pred": " Obviate\n\nSynonyms for \"Obviate\" include:\n- Avoid\n- Avert\n- Defer\n- Delay\n- Postpone\n",
+        "answers": [
+          "East Francia"
+        ],
+        "all_classes": null,
+        "length": 4957
+      },
+      {
+        "prompt_idx": 34,
+        "pred": " All of the above.",
+        "answers": [
+          "All-American Co-Ed"
+        ],
+        "all_classes": null,
+        "length": 5527
+      },
+      {
+        "prompt_idx": 41,
+        "pred": " 22 February 1820.",
+        "answers": [
+          "May 19, 1669"
+        ],
+        "all_classes": null,
+        "length": 4570
+      },
+      {
+        "prompt_idx": 51,
+        "pred": " Irish\n\nAnswer: Irish\n\nNote: The question is asking for a single word that is a common noun, and the answer is a proper noun (the name",
+        "answers": [
+          "Sweden"
+        ],
+        "all_classes": null,
+        "length": 4845
+      },
+      {
+        "prompt_idx": 53,
+        "pred": " Ladies, the answer is \"White\".",
+        "answers": [
+          "Melody Of The World"
+        ],
+        "all_classes": null,
+        "length": 4784
+      },
+      {
+        "prompt_idx": 59,
+        "pred": " West Berlin, West Germany.",
+        "answers": [
+          "La Trinit\u00e9"
+        ],
+        "all_classes": null,
+        "length": 4966
+      },
+      {
+        "prompt_idx": 60,
+        "pred": " Prince William, Duke of Cambridge\n\nAnswer 2:\nOgawa Mataji\nViscount Ogawa Mataji (\u5c0f\u5ddd Mataji, 16th",
+        "answers": [
+          "Prince Albert of Prussia"
+        ],
+        "all_classes": null,
+        "length": 4350
+      },
+      {
+        "prompt_idx": 67,
+        "pred": " C\n\nB = 1\nC = 2\nD = 3\nE = 4\nF = 5\nG = 6\n",
+        "answers": [
+          "Det Sande Ansigt"
+        ],
+        "all_classes": null,
+        "length": 4713
+      },
+      {
+        "prompt_idx": 68,
+        "pred": " Bombe\n\nBombe is a type of cake that originated in the United States. It is a dense, moist, and flavorful cake made with a combination",
+        "answers": [
+          "Bomgay"
+        ],
+        "all_classes": null,
+        "length": 4261
+      },
+      {
+        "prompt_idx": 69,
+        "pred": " Mother Russia.",
+        "answers": [
+          "Preslav"
+        ],
+        "all_classes": null,
+        "length": 5869
+      },
+      {
+        "prompt_idx": 72,
+        "pred": " American\n\nThe best answer is American.",
+        "answers": [
+          "America"
+        ],
+        "all_classes": null,
+        "length": 5631
+      },
+      {
+        "prompt_idx": 75,
+        "pred": " Philip the Good\nAnswer: Philip the Good\nAnswer: Philip the Good\nAnswer: Philip the Good\nAnswer: Philip the Good\nAnswer: Philip the",
+        "answers": [
+          "John I, Duke of Bourbon"
+        ],
+        "all_classes": null,
+        "length": 4501
+      },
+      {
+        "prompt_idx": 77,
+        "pred": " Gertrude Aznavour\n\nAnswer: Jacques Dutronc\n\nAnswer: Amandine Bourgeois\n\nAnswer: Amandine Bourgeois\n\nAnswer:",
+        "answers": [
+          "Fran\u00e7oise Hardy"
+        ],
+        "all_classes": null,
+        "length": 5091
+      },
+      {
+        "prompt_idx": 83,
+        "pred": " He was killed by a group of robbers.\n\nNote: The story is fictional and not based on any real events or people.",
+        "answers": [
+          "illness"
+        ],
+        "all_classes": null,
+        "length": 4438
+      },
+      {
+        "prompt_idx": 93,
+        "pred": " I am not sure of the date of my birth, but I was born in 1560.",
+        "answers": [
+          "13 March 1753"
+        ],
+        "all_classes": null,
+        "length": 4323
+      },
+      {
+        "prompt_idx": 95,
+        "pred": " Al\n\nAnswer: A\nExplanation: The first letter of the first word of the passage is A, the first letter of the second word is A, and",
+        "answers": [
+          "Alkohol"
+        ],
+        "all_classes": null,
+        "length": 5610
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " The Comedians of Comedy is a 1967 American comedy film directed by and starring Richard Burton.\n\nAnswer the question based on the passage.\n\nThe final answer",
+        "answers": [
+          "The Comedians Of Comedy"
+        ],
+        "all_classes": null,
+        "length": 4756
+      },
+      {
+        "prompt_idx": 102,
+        "pred": " Tomb Raider\n\nThe following are the answers to the questions posed in the text:\n\n* What is the name of the director of the film \"Repo Man\"?\n",
+        "answers": [
+          "Tombstone Rashomon"
+        ],
+        "all_classes": null,
+        "length": 5772
+      },
+      {
+        "prompt_idx": 103,
+        "pred": " Bomma Boru\n\nBen Palmer is a British film and television director, born in 1976 in London, England. He is known for his work in",
+        "answers": [
+          "Dhuen Ki Lakeer"
+        ],
+        "all_classes": null,
+        "length": 4828
+      },
+      {
+        "prompt_idx": 105,
+        "pred": " Juan Serrano\n\nPassage 2:\nJos\u00e9 Serrano\nJos\u00e9 Serrano (born 15 April 1957) is a",
+        "answers": [
+          "Dudley Russell"
+        ],
+        "all_classes": null,
+        "length": 4526
+      },
+      {
+        "prompt_idx": 112,
+        "pred": " Persia (modern-day Iran)\n\nAnswer 2:\nThe Almohad Caliphate was a Muslim state that existed from 1236 to 133",
+        "answers": [
+          "Morocco"
+        ],
+        "all_classes": null,
+        "length": 4417
+      },
+      {
+        "prompt_idx": 113,
+        "pred": " Tar\n\nPassage 4:\nThe story of the three men who were stranded on a deserted island is a well-known tale. The three men were a sailor",
+        "answers": [
+          "Tarzan The Magnificent"
+        ],
+        "all_classes": null,
+        "length": 4580
+      },
+      {
+        "prompt_idx": 116,
+        "pred": " Kennedy, Australia.\n\nAnswer: \nAs art director, Nathan Hertz was born in 1907 in New York City, USA. He was a renowned film",
+        "answers": [
+          "Gura Humorului"
+        ],
+        "all_classes": null,
+        "length": 4854
+      },
+      {
+        "prompt_idx": 118,
+        "pred": " John von Berg\n\nAnswer: Bruno von Berg\n\nNote: The passage is a biography of Bruno von Berg, a German politician. The answer is the name of",
+        "answers": [
+          "Adolf II of Berg"
+        ],
+        "all_classes": null,
+        "length": 4040
+      },
+      {
+        "prompt_idx": 124,
+        "pred": " Obata Lerew\n\nObata Lerew is a Canadian actor, best known for his role as Martin in the 2008 film \"Un \u00e9t\u00e9 sans point",
+        "answers": [
+          "F\u00e9lix Leclerc"
+        ],
+        "all_classes": null,
+        "length": 4871
+      },
+      {
+        "prompt_idx": 125,
+        "pred": " Louis d'Este\n\nAnswer: Nemours, the Duke of Nemours, was the son of Philippe, Duke of Nemours, and Charlotte d'Or",
+        "answers": [
+          "Jacques"
+        ],
+        "all_classes": null,
+        "length": 5577
+      },
+      {
+        "prompt_idx": 135,
+        "pred": " German\n\nAnswer: German\nQuestion: What is the first great-grandchild of the Duke of Saxe-Meiningen?\nAnswer: The Duke of S",
+        "answers": [
+          "Duchy of Saxe-Gotha-Altenburg"
+        ],
+        "all_classes": null,
+        "length": 4847
+      },
+      {
+        "prompt_idx": 141,
+        "pred": " For experimental garden.\n\nAnswer: Cranmore.",
+        "answers": [
+          "Italy"
+        ],
+        "all_classes": null,
+        "length": 4597
+      },
+      {
+        "prompt_idx": 144,
+        "pred": " No\n\nAnswer: Lara Porzak\n\nPassage 5:\nAlexandros Margaritis\nAlexandros Margaritis (Greek: \u0391\u03bb\u03ad",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4958
+      },
+      {
+        "prompt_idx": 153,
+        "pred": " Albert\n\nAnswer: Ali\n\nAnswer: Farzat\n\nAnswer: Farzat\n\nAnswer: Farzat\n\nAnswer: Farzat\n\nAnswer:",
+        "answers": [
+          "Albertus Seba"
+        ],
+        "all_classes": null,
+        "length": 4441
+      }
+    ],
+    "lb/qasper_e": [
+      {
+        "prompt_idx": 162,
+        "pred": " They are not.",
+        "answers": [
+          "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
+          "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
+        ],
+        "all_classes": null,
+        "length": 4246
+      },
+      {
+        "prompt_idx": 164,
+        "pred": " yes",
+        "answers": [
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4117
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " unanswerable.",
+        "answers": [
+          "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
+          "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
+        ],
+        "all_classes": null,
+        "length": 4184
+      },
+      {
+        "prompt_idx": 166,
+        "pred": " yes.",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4484
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " A single concept.\n\nThe final answer is: $\\boxed{1}$",
+        "answers": [
+          "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
+          "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
+        ],
+        "all_classes": null,
+        "length": 4271
+      },
+      {
+        "prompt_idx": 168,
+        "pred": " unanswerable.\n\nNote: The question \"unanswerable\" is a bit of a mouthful, and it's not a straightforward answer. The correct answer is \"unanswerable\" because the question itself is a bit of a paradox, and it's not possible to provide a clear and concise answer.",
+        "answers": [
+          "precision, recall, F1 and accuracy",
+          "precision, recall, F1 , accuracy "
+        ],
+        "all_classes": null,
+        "length": 4101
+      },
+      {
+        "prompt_idx": 169,
+        "pred": " yes.",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4770
+      },
+      {
+        "prompt_idx": 170,
+        "pred": " They use a 10-fold validation like setting.",
+        "answers": [
+          "Annotations from experts are used if they have already been collected."
+        ],
+        "all_classes": null,
+        "length": 4377
+      },
+      {
+        "prompt_idx": 171,
+        "pred": " unanswerable.",
+        "answers": [
+          "13,939"
+        ],
+        "all_classes": null,
+        "length": 4489
+      },
+      {
+        "prompt_idx": 172,
+        "pred": " unanswerable.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4592
+      },
+      {
+        "prompt_idx": 173,
+        "pred": " yes.",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4457
+      },
+      {
+        "prompt_idx": 174,
+        "pred": " ROGUE-1.\n\n## Step 1: Understand the problem\nThe problem is asking to generate a summary of a given text using a specific method.\n\n## Step 2: Identify the method\nThe method used in the problem is a sequence-to-sequence model, which is a type of neural network that can be used for text generation.\n\n## Step 3: Choose a model\nThe problem does not specify a particular model, but it mentions that the model is based on a sequence-to-sequence learning method.\n\n## Step 4: Choose a task\nThe problem asks to generate a summary of a given text.\n\n## Step",
+        "answers": [
+          "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
+          "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
+        ],
+        "all_classes": null,
+        "length": 4395
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " unanswerable.",
+        "answers": [
+          "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
+        ],
+        "all_classes": null,
+        "length": 4203
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " Semantic similarity, relatedness, and information content.",
+        "answers": [
+          "Skip\u2013gram, CBOW",
+          "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
+        ],
+        "all_classes": null,
+        "length": 4259
+      },
+      {
+        "prompt_idx": 180,
+        "pred": " They are not.",
+        "answers": [
+          " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
+          "majority of questions that our system could not answer so far are in fact answerable"
+        ],
+        "all_classes": null,
+        "length": 4232
+      },
+      {
+        "prompt_idx": 181,
+        "pred": " The cost of mislabeling one class is higher than that of mislabeling another.",
+        "answers": [
+          "precision, recall , F1 score"
+        ],
+        "all_classes": null,
+        "length": 4515
+      },
+      {
+        "prompt_idx": 182,
+        "pred": " unanswerable.",
+        "answers": [
+          "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
+        ],
+        "all_classes": null,
+        "length": 4187
+      },
+      {
+        "prompt_idx": 183,
+        "pred": " Yes.",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4071
+      },
+      {
+        "prompt_idx": 100,
+        "pred": " character, morph, and synt. (BIBREF32)",
+        "answers": [
+          "POS, gender/number and stem POS"
+        ],
+        "all_classes": null,
+        "length": 4719
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " The original word embeddings.\n\nThe final answer is: $\\boxed{1}$",
+        "answers": [
+          "dimension corresponding to the concept that the particular word belongs to"
+        ],
+        "all_classes": null,
+        "length": 6182
+      },
+      {
+        "prompt_idx": 104,
+        "pred": " Disinformation.\n\nThe final answer is: $\\boxed{disinformation}$",
+        "answers": [
+          "mainstream news and disinformation",
+          "mainstream and disinformation news"
+        ],
+        "all_classes": null,
+        "length": 4856
+      },
+      {
+        "prompt_idx": 105,
+        "pred": " unanswerable.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "answers": [
+          "CoinCollector , CookingWorld ",
+          "CoinCollector, CookingWorld"
+        ],
+        "all_classes": null,
+        "length": 4924
+      },
+      {
+        "prompt_idx": 108,
+        "pred": " None.",
+        "answers": [
+          "rther constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions",
+          "to further constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions"
+        ],
+        "all_classes": null,
+        "length": 4704
+      },
+      {
+        "prompt_idx": 109,
+        "pred": " The proposed method is to use a combination of machine learning algorithms and natural language processing techniques to analyze and interpret the results.",
+        "answers": [
+          "The cost function for any one of the words of concept word-groups is modified by the introduction of an additive term to the cost function. . Each embedding vector dimension is first associated with a concept. For a word belonging to any one of the word-groups representing these concepts, the modified cost term favors an increase for the value of this word's embedding vector dimension corresponding to the concept that the particular word belongs to,",
+          "An additive term added to the cost function for any one of the words of concept word-groups"
+        ],
+        "all_classes": null,
+        "length": 6244
+      },
+      {
+        "prompt_idx": 110,
+        "pred": " Novel.\n\nThe best answer is B.",
+        "answers": [
+          "Bert model have a maximum length of 512; we overcome this limitation by adding more position embeddings, we insert external [cls] tokens at the start of each sentence, and each [cls] symbol collects features for the sentence preceding it, document representations are learned hierarchically"
+        ],
+        "all_classes": null,
+        "length": 4404
+      },
+      {
+        "prompt_idx": 111,
+        "pred": " The Transformer architecture uses a self-attention mechanism to process input sequences, allowing for efficient and effective information flow.",
+        "answers": [
+          "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
+          "We introduce sparse attention into the Transformer architecture"
+        ],
+        "all_classes": null,
+        "length": 4902
+      },
+      {
+        "prompt_idx": 112,
+        "pred": " unanswerable.",
+        "answers": [
+          "Unanswerable",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 5331
+      },
+      {
+        "prompt_idx": 118,
+        "pred": " The article was written in a style that is concise and to the point, with a clear and logical structure.",
+        "answers": [
+          "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
+          "adequacy, precision and ranking values"
+        ],
+        "all_classes": null,
+        "length": 5344
+      },
+      {
+        "prompt_idx": 120,
+        "pred": " unanswerable",
+        "answers": [
+          "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
+          "M2M Transformer"
+        ],
+        "all_classes": null,
+        "length": 4542
+      },
+      {
+        "prompt_idx": 122,
+        "pred": " HR.\n\nThe final answer is: $\\boxed{HR}$",
+        "answers": [
+          "answer questions by obtaining information from KB tuples ",
+          "hierarchical matching between questions and relations with residual learning"
+        ],
+        "all_classes": null,
+        "length": 4527
+      },
+      {
+        "prompt_idx": 123,
+        "pred": " \"Unanswerable\"",
+        "answers": [
+          "BIBREF7",
+          " reward learning algorithm BIBREF7"
+        ],
+        "all_classes": null,
+        "length": 4841
+      },
+      {
+        "prompt_idx": 126,
+        "pred": " Pre-trained models.\n\n### 2.1.1. **Sentiment Analysis**\n\nSentiment analysis is a type of NLP task that involves determining the emotional tone or attitude conveyed by a piece of text. It can be used to analyze the sentiment of a customer review, a social media post, or a piece of text from a news article.\n\nSentiment analysis can be performed using various techniques, including:\n\n* **Rule-based approach**: This involves using pre-defined rules to determine the sentiment of a piece of text. For example, a rule might say that if the text contains the word \"good\", it is likely to be positive.\n",
+        "answers": [
+          "BIBREF9 , BIBREF8 ",
+          "BIBREF9 , BIBREF8"
+        ],
+        "all_classes": null,
+        "length": 4855
+      },
+      {
+        "prompt_idx": 135,
+        "pred": " Unanswerable.",
+        "answers": [
+          "attributes are determined by human viewers and their impressions of the characters, and are correlated with human-like characteristics"
+        ],
+        "all_classes": null,
+        "length": 5136
+      },
+      {
+        "prompt_idx": 136,
+        "pred": " Reuters database.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "answers": [
+          "Reuters-8 dataset without stop words",
+          "The Reuters-8 dataset (with stop words removed)"
+        ],
+        "all_classes": null,
+        "length": 5147
+      },
+      {
+        "prompt_idx": 137,
+        "pred": " The article presents a human-AI loop approach for event detection, where a human expert is trained to detect events and a machine learning model is used to predict the likelihood of the event.",
+        "answers": [
+          "significant improvements clearly demonstrate that our approach is effective at improving model performance",
+          "By evaluating the performance of the approach using accuracy and AUC"
+        ],
+        "all_classes": null,
+        "length": 4489
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " HR.",
+        "answers": [
+          "SimpleQuestions, WebQSP",
+          "WebQSP, SimpleQuestions"
+        ],
+        "all_classes": null,
+        "length": 4524
+      },
+      {
+        "prompt_idx": 143,
+        "pred": " Knowledge Base\n\n## Step 1: Understand the problem\nThe problem is asking to write a program that can answer a question based on a given relation between two entities.\n\n## Step 2: Identify the type of relation\nThe problem does not specify the type of relation, but it mentions that the relation is between a relation name and a relation type.\n\n## Step 3: Determine the approach\nTo solve this problem, we need to determine how to represent the relation between a relation name and a relation type. We can use a dictionary or a data structure to store the relations.\n\n## Step 4: Choose a data structure\nWe",
+        "answers": [
+          "Knowledge Base Question Answering",
+          "Knowledge Base Question Answering "
+        ],
+        "all_classes": null,
+        "length": 4521
+      },
+      {
+        "prompt_idx": 149,
+        "pred": " unlabelled microposts.",
+        "answers": [
+          "Tweets related to CyberAttack and tweets related to PoliticianDeath",
+          "cyber security (CyberAttack), death of politicians (PoliticianDeath)"
+        ],
+        "all_classes": null,
+        "length": 4481
+      },
+      {
+        "prompt_idx": 150,
+        "pred": " The model is trained on a large dataset of text.",
+        "answers": [
+          "Conditional Copy (CC) model ",
+          "delayed copy model (DEL),  template system (TEM), conditional copy (CC), NCP+CC (NCP)"
+        ],
+        "all_classes": null,
+        "length": 4746
+      },
+      {
+        "prompt_idx": 152,
+        "pred": " Yes.\n\nThe final answer is: $\\boxed{Yes}$",
+        "answers": [
+          "probabilistic model",
+          "Logistic Regression, Multilayer Perceptron"
+        ],
+        "all_classes": null,
+        "length": 4475
+      },
+      {
+        "prompt_idx": 156,
+        "pred": " Unbiased class.",
+        "answers": [
+          "Frequent use of direct animal name calling, using simile and metaphors, through indirect speech like sarcasm, wishing evil to others, name alteration, societal stratification, immoral behavior and sexually related uses.",
+          "Direct name calling, Simile and metaphor, Indirect speech, Wishing Evil, Name alteration, Societal stratification, Immoral behavior, Sexually related"
+        ],
+        "all_classes": null,
+        "length": 4566
+      },
+      {
+        "prompt_idx": 157,
+        "pred": " The authors used a hierarchical pointer generator to generate a set of possible solutions, and then used a Seq2Seq model to predict the most likely solution.",
+        "answers": [
+          "promising results by solving almost half of the unseen games, most of the lost games are in the hardest set, where a very long sequence of actions is required for winning the game"
+        ],
+        "all_classes": null,
+        "length": 4964
+      },
+      {
+        "prompt_idx": 163,
+        "pred": " unanswerable.\n\n**Note:** This is a very concise answer, and the question is asking for a specific type of answer. In a real-world scenario, the answer would be a more detailed explanation of why the question is unanswerable.\n\n**Example Answer:** The reason why the question is unanswerable is that it is based on a false premise. The concept of \"unanswerable\" is a subjective term that implies a lack of knowledge or understanding. However, in reality, there are many questions that are unanswerable due to the limitations of our current understanding or the complexity of the subject matter. For example, the question",
+        "answers": [
+          " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
+          "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
+        ],
+        "all_classes": null,
+        "length": 4718
+      },
+      {
+        "prompt_idx": 175,
+        "pred": " NaCl (sodium chloride).",
+        "answers": [
+          "(1) Naive, (2) mSDA BIBREF7, (3) NaiveNN, (4) AuxNN BIBREF4, (5) ADAN BIBREF16, (6) MMD",
+          "non-domain-adaptive baseline with bag-of-words representations and SVM classifier, mSDA, non-domain-adaptive CNN trained on source domain, neural model that exploits auxiliary tasks, adversarial training to reduce representation difference between domains, variants of deep CNNs are used for encoding images and the MMDs of multiple layers are jointly minimized"
+        ],
+        "all_classes": null,
+        "length": 5063
+      },
+      {
+        "prompt_idx": 178,
+        "pred": " unanswerable.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "answers": [
+          "US dataset, Italian dataset",
+          "US dataset, Italian dataset"
+        ],
+        "all_classes": null,
+        "length": 4857
+      },
+      {
+        "prompt_idx": 179,
+        "pred": " Unanswerable.",
+        "answers": [
+          "Influential leaders are more likely to change their profile attributes than their followers; the leaders do not change their usernames, while their followers change their usernames a lot; the leaders  tend to make new changes related to previous attribute values, while the followers make comparatively less related changes to previous attribute values."
+        ],
+        "all_classes": null,
+        "length": 5092
+      }
+    ],
+    "lb/hotpotqa_e": [
+      {
+        "prompt_idx": 88,
+        "pred": " No\n\nAnswer the question based on the given passages. Only give the answer and do not include any additional information.\n\nThe Big Brain\nThe Big Brain is a",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3217
+      },
+      {
+        "prompt_idx": 89,
+        "pred": " Marlborough\n\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough",
+        "answers": [
+          "Marlborough"
+        ],
+        "all_classes": null,
+        "length": 3829
+      },
+      {
+        "prompt_idx": 93,
+        "pred": " No\n\nAnswer to the question based on the given passages is: No\n\nNote: The question was based on the given passages, but the answer was not explicitly",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3674
+      },
+      {
+        "prompt_idx": 94,
+        "pred": " Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3705
+      },
+      {
+        "prompt_idx": 96,
+        "pred": " A\n\nB.  Polypodium is a genus of ferns.\n\nC.  Polypodium is a genus of ferns that is native to the",
+        "answers": [
+          "Polypodium"
+        ],
+        "all_classes": null,
+        "length": 3730
+      },
+      {
+        "prompt_idx": 97,
+        "pred": " None\n\n## Step 1: Understand the problem\nThe problem is asking for the answer to a series of questions about a song, its lyrics, and its",
+        "answers": [
+          "Albert"
+        ],
+        "all_classes": null,
+        "length": 3271
+      },
+      {
+        "prompt_idx": 99,
+        "pred": " A1 Recordings, Freebandz, and Epic Records.",
+        "answers": [
+          "A1 Recordings"
+        ],
+        "all_classes": null,
+        "length": 2862
+      },
+      {
+        "prompt_idx": 107,
+        "pred": " 15,154\n\nAnswer: 15,154\nAnswer: 15,154\nAnswer: 15,154\nAnswer: 15,154",
+        "answers": [
+          "729 at the 2010 census"
+        ],
+        "all_classes": null,
+        "length": 4198
+      },
+      {
+        "prompt_idx": 113,
+        "pred": " None\n\n## Step 1: Identify the problem\nThe problem is to determine the number of possible combinations of ingredients in a cocktail.\n\n## Step 2:",
+        "answers": [
+          "lime"
+        ],
+        "all_classes": null,
+        "length": 4196
+      },
+      {
+        "prompt_idx": 117,
+        "pred": " None.",
+        "answers": [
+          "American theater producer and director, playwright, screenwriter"
+        ],
+        "all_classes": null,
+        "length": 4512
+      },
+      {
+        "prompt_idx": 123,
+        "pred": " Scotland\n\nAnswer 2:\nThe area is 47 hectares (117 acres) in size.\n\nAnswer 3:\nThe area is 1,670 hectares (",
+        "answers": [
+          "Scotland"
+        ],
+        "all_classes": null,
+        "length": 4500
+      },
+      {
+        "prompt_idx": 124,
+        "pred": " 2\n\nAnswer: 2\n\nExplanation: The definition of a non-sexual marriage is often broadened to include those where sexual intimacy occurs fewer than ten",
+        "answers": [
+          "13"
+        ],
+        "all_classes": null,
+        "length": 4497
+      },
+      {
+        "prompt_idx": 100,
+        "pred": " Osteomeles\n\nThe following are the phylogenetic relationships of the genus Osteomeles:\n\n* Osteomeles is a member of the family",
+        "answers": [
+          "Medinilla"
+        ],
+        "all_classes": null,
+        "length": 4208
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " Jaime Fern\u00e1ndez Reyes\n\nPassage 2:\nThe Sex Worker Advocacy and Resistance Movement (SWARM) is a global network of sex workers, activists,",
+        "answers": [
+          "Eduardo Kuno Becker Paz"
+        ],
+        "all_classes": null,
+        "length": 4166
+      },
+      {
+        "prompt_idx": 102,
+        "pred": " Sunflower County.\n\nThe following is a list of the top 10 most common words in the passage:\n\n1. the (14 times)\n2. and (",
+        "answers": [
+          "Sunflower County"
+        ],
+        "all_classes": null,
+        "length": 4751
+      },
+      {
+        "prompt_idx": 103,
+        "pred": " 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "answers": [
+          "about 7 million"
+        ],
+        "all_classes": null,
+        "length": 5850
+      },
+      {
+        "prompt_idx": 104,
+        "pred": " Yes.",
+        "answers": [
+          "no"
+        ],
+        "all_classes": null,
+        "length": 5047
+      },
+      {
+        "prompt_idx": 105,
+        "pred": " Terry Ehrich\n\nAnswer: Terry Ehrich\nQuestion: What is the name of the person who founded Rhino Foods?\nAnswer: Anne Castle\nQuestion",
+        "answers": [
+          "David Dobkin"
+        ],
+        "all_classes": null,
+        "length": 5609
+      },
+      {
+        "prompt_idx": 106,
+        "pred": " J\u00f3gvan \u00e1 Lakjuni\n\nPassage 4:\nVegar Sandberg\nVegar Sandberg is a Swedish singer, songwriter, and",
+        "answers": [
+          "Lehmber Hussainpuri"
+        ],
+        "all_classes": null,
+        "length": 5194
+      },
+      {
+        "prompt_idx": 108,
+        "pred": " No\n\nAnswer: 1\n\nNote: The answer is 1 because the passage does not mention the number of people who attended the event.",
+        "answers": [
+          "no"
+        ],
+        "all_classes": null,
+        "length": 4508
+      },
+      {
+        "prompt_idx": 118,
+        "pred": " Self-taught\n\nAnswer: Self-taught\nDefinition: A person who learns something on their own, without formal education or training.\nExample: A",
+        "answers": [
+          "flowering plants"
+        ],
+        "all_classes": null,
+        "length": 4553
+      },
+      {
+        "prompt_idx": 119,
+        "pred": " York\n\nAnswer: York\nPassage 5:\nCalifornia State Route 1\nCalifornia State Route 1 is a state highway in the U.S. state",
+        "answers": [
+          "York County"
+        ],
+        "all_classes": null,
+        "length": 5098
+      },
+      {
+        "prompt_idx": 121,
+        "pred": " 2016.",
+        "answers": [
+          "1976"
+        ],
+        "all_classes": null,
+        "length": 5564
+      },
+      {
+        "prompt_idx": 122,
+        "pred": "  white supremacy\n\nThe following is a list of the main characters in the book:\n\n1. Theodore Bilbo (also known as Bilbo) - The main",
+        "answers": [
+          "filibuster"
+        ],
+        "all_classes": null,
+        "length": 5564
+      },
+      {
+        "prompt_idx": 127,
+        "pred": " Atlantic League\n\nAnswer: The answer is Atlantic League.\n\nNote: The passage is a list of teams in the Atlantic League, a professional baseball league in the United",
+        "answers": [
+          "Canadian-American Association of Professional Baseball"
+        ],
+        "all_classes": null,
+        "length": 5794
+      },
+      {
+        "prompt_idx": 129,
+        "pred": " Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont",
+        "answers": [
+          "Tie Domi"
+        ],
+        "all_classes": null,
+        "length": 5764
+      },
+      {
+        "prompt_idx": 136,
+        "pred": " \"The Big League World Series\"",
+        "answers": [
+          "\"Field of Dreams\""
+        ],
+        "all_classes": null,
+        "length": 5762
+      },
+      {
+        "prompt_idx": 137,
+        "pred": " The 19th century.",
+        "answers": [
+          "Romantic"
+        ],
+        "all_classes": null,
+        "length": 4685
+      },
+      {
+        "prompt_idx": 138,
+        "pred": " The nearest railway station is Rugeley Town.",
+        "answers": [
+          "Borwick railway station"
+        ],
+        "all_classes": null,
+        "length": 5102
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " August Heckscher.",
+        "answers": [
+          "August Heckscher"
+        ],
+        "all_classes": null,
+        "length": 5267
+      },
+      {
+        "prompt_idx": 140,
+        "pred": " The Disney/ABC Studios.\n\nThe 2012 NBA draft was held on June 28, 2012, at the Barclays Center in Brooklyn, New York",
+        "answers": [
+          "Prudential Center"
+        ],
+        "all_classes": null,
+        "length": 5348
+      }
+    ],
+    "lb/2wikimqa_e": [
+      {
+        "prompt_idx": 107,
+        "pred": " Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4176
+      },
+      {
+        "prompt_idx": 108,
+        "pred": " Kiplangat Sang\n\nKiplangat Sang (born 14 April 1981) is a Kenyan judoka. He competed in the men",
+        "answers": [
+          "Kiplangat Sang"
+        ],
+        "all_classes": null,
+        "length": 4003
+      },
+      {
+        "prompt_idx": 117,
+        "pred": " Ireland\n\nAnswer the following questions:\n\n1. What is the name of the gallery where the director of the Toledo Museum of Art is based?\n2. What is",
+        "answers": [
+          "Sydney, Australia"
+        ],
+        "all_classes": null,
+        "length": 4287
+      },
+      {
+        "prompt_idx": 129,
+        "pred": " 6 April - 6 November 1928.",
+        "answers": [
+          "6 August 1272"
+        ],
+        "all_classes": null,
+        "length": 4185
+      },
+      {
+        "prompt_idx": 132,
+        "pred": " No\n\nAnswer: No\n\nExplanation: The passage does not provide any information about the person's name, occupation, or any other personal details. It only mentions",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4141
+      },
+      {
+        "prompt_idx": 135,
+        "pred": " Lassie Come Home\n\nPassage 4:\nAbraham Lincoln\nAbraham Lincoln was the 16th President of the United States. He was born",
+        "answers": [
+          "Prairie Thunder"
+        ],
+        "all_classes": null,
+        "length": 4155
+      },
+      {
+        "prompt_idx": 141,
+        "pred": " 1358\n\nAnswer 2:\nPassage 3:\nGerald FitzGerald, 3rd Earl of Desmond\nGerald FitzGerald,",
+        "answers": [
+          "8 April 1643"
+        ],
+        "all_classes": null,
+        "length": 4038
+      },
+      {
+        "prompt_idx": 142,
+        "pred": " Sydney, Australia.",
+        "answers": [
+          "Israeli"
+        ],
+        "all_classes": null,
+        "length": 4399
+      },
+      {
+        "prompt_idx": 145,
+        "pred": " The Thing from Another World\n\nThe Thing from Another World is a 1951 science fiction film directed by Christian Nyby, based on the 1938 nov",
+        "answers": [
+          "The Thing About My Folks"
+        ],
+        "all_classes": null,
+        "length": 4234
+      },
+      {
+        "prompt_idx": 147,
+        "pred": " Queen Mary II\n\nNote: The information provided is based on the given passage and may not be comprehensive or accurate.",
+        "answers": [
+          "Princess Maria Immaculata of Bourbon-Two Sicilies"
+        ],
+        "all_classes": null,
+        "length": 4083
+      },
+      {
+        "prompt_idx": 151,
+        "pred": " Irish\n\nAnswer: Irish\n\nQuestion: What is the name of the famous Irish poet who wrote \"The Waste Land\"?\n\nAnswer: Yeats\n\nAnswer: Ye",
+        "answers": [
+          "Canadian"
+        ],
+        "all_classes": null,
+        "length": 4421
+      },
+      {
+        "prompt_idx": 154,
+        "pred": " S. Spiegel Film and Television School, Jerusalem.",
+        "answers": [
+          "Nice"
+        ],
+        "all_classes": null,
+        "length": 4110
+      },
+      {
+        "prompt_idx": 171,
+        "pred": " Alfonso VII of Castile\n\nAnswer 2:\nSancha of Castile, Queen of Aragon, married King Alfonso II of Ar",
+        "answers": [
+          "Urraca of Le\u00f3n"
+        ],
+        "all_classes": null,
+        "length": 4215
+      },
+      {
+        "prompt_idx": 172,
+        "pred": " None\n\nThe final answer is: $\\boxed{None}$",
+        "answers": [
+          "Warsaw School of Economics"
+        ],
+        "all_classes": null,
+        "length": 4162
+      },
+      {
+        "prompt_idx": 101,
+        "pred": " Sweden\n\nAnswer: Sweden\n\nSources:\nFurther reading\nMathilda Sta\u00ebl von Holstein, a Swedish noblewoman, was a prominent figure in the 18",
+        "answers": [
+          "Sweden"
+        ],
+        "all_classes": null,
+        "length": 4797
+      },
+      {
+        "prompt_idx": 102,
+        "pred": " Guillermo Campanal.\n\nFaiz Muhammad Khan Bahadur was a renowned Pakistani footballer who played as a midfielder. He was born on 23 February",
+        "answers": [
+          "Guillermo Capetillo"
+        ],
+        "all_classes": null,
+        "length": 4267
+      },
+      {
+        "prompt_idx": 104,
+        "pred": " Werner Zartmann (1926\u20132010) was a German philosopher and writer.",
+        "answers": [
+          "Werner Mensching"
+        ],
+        "all_classes": null,
+        "length": 4774
+      },
+      {
+        "prompt_idx": 106,
+        "pred": " 13 December 1970\n\nAnswer: 13 December 1970\n\nAnswer: 13 December 1970\n\nAnswer: 13 December 197",
+        "answers": [
+          "13 December 1272"
+        ],
+        "all_classes": null,
+        "length": 4629
+      },
+      {
+        "prompt_idx": 109,
+        "pred": " Marshall\n\nAnswer 2:\nKenneth Gyang is a Nigerian filmmaker, and he directed the 2013 film \"Confusion Na Wa\". He is also",
+        "answers": [
+          "Barkin Ladi"
+        ],
+        "all_classes": null,
+        "length": 5240
+      },
+      {
+        "prompt_idx": 110,
+        "pred": " Moor\n\nAnswer: Moor\nPassage 2:\nAlfred L. Copley\nAlfred L. Copley (born 1910)",
+        "answers": [
+          "Sey\u00f0isfj\u00f6r\u00f0ur"
+        ],
+        "all_classes": null,
+        "length": 4396
+      },
+      {
+        "prompt_idx": 111,
+        "pred": " Pal Pal Dil Ke Paas is a 2019 Indian Hindi-language romantic drama film directed by Karan Johar, starring Anushka Sharma and Ranve",
+        "answers": [
+          "Another Earth"
+        ],
+        "all_classes": null,
+        "length": 5575
+      },
+      {
+        "prompt_idx": 112,
+        "pred": " Germany\n\nAnswer the question based on the given text. The text does not mention Germany. It mentions Baden, Baden-Baden, and Baden-W",
+        "answers": [
+          "German"
+        ],
+        "all_classes": null,
+        "length": 4327
+      },
+      {
+        "prompt_idx": 114,
+        "pred": " The city of Dublin.\n\nAnswer to the first question: The city of Dublin.\n\nAnswer to the second question: The city of Dublin.\n\nAnswer to the third question",
+        "answers": [
+          "Florence"
+        ],
+        "all_classes": null,
+        "length": 4864
+      },
+      {
+        "prompt_idx": 118,
+        "pred": " De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer:",
+        "answers": [
+          "Cavalcade Of The West"
+        ],
+        "all_classes": null,
+        "length": 4759
+      },
+      {
+        "prompt_idx": 119,
+        "pred": " Arizona\n\nAnswer 2:\nPh\u1ea1m Minh H\u01b0ng (born 1985) is a Vietnamese professional footballer who plays as a midfielder for the Vietnam national",
+        "answers": [
+          "The Rebellion Of The Brides"
+        ],
+        "all_classes": null,
+        "length": 4961
+      },
+      {
+        "prompt_idx": 120,
+        "pred": " English\n\nAnswer to the question: What is the name of the first English queen to rule England?\n\nAnswer: Mary I (Mary Tudor, also known as",
+        "answers": [
+          "England"
+        ],
+        "all_classes": null,
+        "length": 4993
+      },
+      {
+        "prompt_idx": 121,
+        "pred": " The village of Gettysburg, Pennsylvania.",
+        "answers": [
+          "New York"
+        ],
+        "all_classes": null,
+        "length": 5794
+      },
+      {
+        "prompt_idx": 122,
+        "pred": " No\n\nAnswer: Grace of My Heart\n\nCast\nProduction\nThe story is loosely based on the career arc of singer-songwriter Carole King. The film",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 5421
+      },
+      {
+        "prompt_idx": 124,
+        "pred": " Su-ki-da\n\nNote: The passage is a continuation of the previous one, and it provides more information about the story. The story is about a man",
+        "answers": [
+          "Su-Ki-Da"
+        ],
+        "all_classes": null,
+        "length": 5606
+      },
+      {
+        "prompt_idx": 128,
+        "pred": " V\n\nAnswer 2: The answer is 7.",
+        "answers": [
+          "Maria Marten, Or The Murder In The Red Barn"
+        ],
+        "all_classes": null,
+        "length": 4497
+      },
+      {
+        "prompt_idx": 130,
+        "pred": " Margaret Gordon\n\nAnswer the question based on the given text.",
+        "answers": [
+          "Lady Anne Campbell"
+        ],
+        "all_classes": null,
+        "length": 4264
+      },
+      {
+        "prompt_idx": 131,
+        "pred": " Hell\n\nThe following is a list of the main characters in the 2012 film \"Yes or No\":\n\n* Mackenzie Foy as Mackenzie \"Mac",
+        "answers": [
+          "Yes Or No?"
+        ],
+        "all_classes": null,
+        "length": 5491
+      },
+      {
+        "prompt_idx": 134,
+        "pred": " No\n\nAnswer: Onmy\u014dji\n\nNote: The passage is a brief summary of the film \"Onmy\u014dji\" (2001), directed by",
+        "answers": [
+          "no"
+        ],
+        "all_classes": null,
+        "length": 5078
+      },
+      {
+        "prompt_idx": 136,
+        "pred": " Karate\n\nAnswer: Karate\nQuestion: What is the name of the famous martial art that originated in Okinawa, Japan?\nAnswer: Karate",
+        "answers": [
+          "Everything'S Ducky"
+        ],
+        "all_classes": null,
+        "length": 4171
+      },
+      {
+        "prompt_idx": 137,
+        "pred": " J\n\nPassage 5:\nHenry Moore\nHenry Moore (born 3 May 1896, died 8 August 1996) was a British",
+        "answers": [
+          "Alejandro Romualdo"
+        ],
+        "all_classes": null,
+        "length": 5191
+      },
+      {
+        "prompt_idx": 138,
+        "pred": " Throw Momma from the Train.",
+        "answers": [
+          "Dona Mariquita Of My Heart"
+        ],
+        "all_classes": null,
+        "length": 5540
+      },
+      {
+        "prompt_idx": 139,
+        "pred": " John Le Deux\n\nAnswer the question based on the passage.",
+        "answers": [
+          "Amadeus VI, Count of Savoy"
+        ],
+        "all_classes": null,
+        "length": 4356
+      },
+      {
+        "prompt_idx": 140,
+        "pred": " In the United States.",
+        "answers": [
+          "UCLA"
+        ],
+        "all_classes": null,
+        "length": 4374
+      },
+      {
+        "prompt_idx": 143,
+        "pred": " Soya\n\nAnswer: Soya\nExplanation: The passage does not provide any information about the origin of the word \"soya\". It only mentions that the",
+        "answers": [
+          "Toulouse"
+        ],
+        "all_classes": null,
+        "length": 5159
+      },
+      {
+        "prompt_idx": 144,
+        "pred": " An unspecified location.\n\nThe final answer is: $\\boxed{An unspecified location}$",
+        "answers": [
+          "St. Stephen, New Brunswick"
+        ],
+        "all_classes": null,
+        "length": 5174
+      },
+      {
+        "prompt_idx": 146,
+        "pred": " Ogden, Utah\n\nAnswer 2:\nThe answer is 1,000,000.",
+        "answers": [
+          "Nandlal Nehru"
+        ],
+        "all_classes": null,
+        "length": 4881
+      },
+      {
+        "prompt_idx": 149,
+        "pred": " At the University of Wisconsin\u2013Madison.",
+        "answers": [
+          "Yale"
+        ],
+        "all_classes": null,
+        "length": 5306
+      },
+      {
+        "prompt_idx": 150,
+        "pred": " No.",
+        "answers": [
+          "no"
+        ],
+        "all_classes": null,
+        "length": 5248
+      },
+      {
+        "prompt_idx": 152,
+        "pred": " B\n\nAnswer: B\n\nExplanation: The passage does not provide any information about the characters or their relationships. Therefore, it is impossible to determine who is the",
+        "answers": [
+          "K\u00f6pekler Adas\u0131"
+        ],
+        "all_classes": null,
+        "length": 5307
+      },
+      {
+        "prompt_idx": 153,
+        "pred": " Indian\n\nAnswer: Indian\nPassage 5:\nBrian Patrick Kennedy is an American film director, producer, and screenwriter. He is the son of actor",
+        "answers": [
+          "Indian"
+        ],
+        "all_classes": null,
+        "length": 4733
+      },
+      {
+        "prompt_idx": 155,
+        "pred": " Hanuman Patal Vijay.",
+        "answers": [
+          "Hanuman Patal Vijay"
+        ],
+        "all_classes": null,
+        "length": 5611
+      },
+      {
+        "prompt_idx": 156,
+        "pred": " Shay C\u00e1in\n\nAnswer: Shay C\u00e1in\n\nNote: The passage is a response to a question about the descendants of Conall Grant, and the",
+        "answers": [
+          "Niall mac Cernaig Sotal"
+        ],
+        "all_classes": null,
+        "length": 4707
+      },
+      {
+        "prompt_idx": 158,
+        "pred": " Broke\n\nThe word \"broke\" is a verb that means to become or make something worthless or useless. It can also be a noun that refers to",
+        "answers": [
+          "Saad Abdulrahman"
+        ],
+        "all_classes": null,
+        "length": 4643
+      },
+      {
+        "prompt_idx": 159,
+        "pred": " At the time of her death.\n\nAnswer to the first question: The name of the first wife of Louis of Gravina is not mentioned in the passage.",
+        "answers": [
+          "Neapolitan"
+        ],
+        "all_classes": null,
+        "length": 4678
+      },
+      {
+        "prompt_idx": 160,
+        "pred": " Pieces of a Woman\n\nThe film Pieces of a Woman is a drama that explores the complexities of motherhood, grief, and relationships. The story follows a young",
+        "answers": [
+          "Oriental Nights"
+        ],
+        "all_classes": null,
+        "length": 5382
+      },
+      {
+        "prompt_idx": 161,
+        "pred": " K. Rotrou, Count of Perche.",
+        "answers": [
+          "John of Gaunt"
+        ],
+        "all_classes": null,
+        "length": 4846
+      },
+      {
+        "prompt_idx": 162,
+        "pred": " Christian VII of Hesse-Kassel\n\nAnswer: Christian VII of Hesse-Kassel\n\nPassage 2:\nPrincess Louise of Denmark (1750\u2013",
+        "answers": [
+          "Frederick V of Denmark"
+        ],
+        "all_classes": null,
+        "length": 4645
+      },
+      {
+        "prompt_idx": 165,
+        "pred": " Jan D\u0142ugosz\n\nAnswer: Jan D\u0142ugosz\n\nPassage 2:\nStanis\u0142aw Kantner\nStanis\u0142aw Kantner (ur",
+        "answers": [
+          "Konrad I of Ole\u015bnica"
+        ],
+        "all_classes": null,
+        "length": 5351
+      },
+      {
+        "prompt_idx": 167,
+        "pred": " Fuji\n\nAnswer: F\nQuestion: What is the next letter in the word \"Fuji\"?\n\nAnswer: I\nQuestion: What is the next letter in",
+        "answers": [
+          "Fer Corb"
+        ],
+        "all_classes": null,
+        "length": 4254
+      },
+      {
+        "prompt_idx": 168,
+        "pred": " At the University College, Oxford.",
+        "answers": [
+          "Oxford"
+        ],
+        "all_classes": null,
+        "length": 5628
+      },
+      {
+        "prompt_idx": 174,
+        "pred": " Cry of the Hunted.",
+        "answers": [
+          "Salvage With A Smile"
+        ],
+        "all_classes": null,
+        "length": 4787
+      },
+      {
+        "prompt_idx": 175,
+        "pred": " Gray Lady Down\n\nSee also\n* Singapore\n* Singaporean\n* Singaporean cuisine\n* Singaporean culture\n* Singaporean history\n* Singaporean",
+        "answers": [
+          "Singapore Dreaming"
+        ],
+        "all_classes": null,
+        "length": 5303
+      },
+      {
+        "prompt_idx": 176,
+        "pred": " Motivation.",
+        "answers": [
+          "Wilhelm Meise"
+        ],
+        "all_classes": null,
+        "length": 5217
+      },
+      {
+        "prompt_idx": 177,
+        "pred": " Cleopatra VII\n\nAnswer: Cleopatra VII\n\nPassage 2:\nHannah Arnold\nHannah Arnold (n\u00e9e Waterman) (c",
+        "answers": [
+          "Laodice V"
+        ],
+        "all_classes": null,
+        "length": 5047
+      },
+      {
+        "prompt_idx": 178,
+        "pred": " Circle of Death.",
+        "answers": [
+          "Circle Of Deception"
+        ],
+        "all_classes": null,
+        "length": 4460
+      },
+      {
+        "prompt_idx": 181,
+        "pred": " Guillaume de Nogaret\n\nAnswer: Guillaume de Nogaret\n\nNote: The name of the person is not mentioned in the passage, but it",
+        "answers": [
+          "Charles Louis"
+        ],
+        "all_classes": null,
+        "length": 4584
+      }
+    ]
+  }
+}
