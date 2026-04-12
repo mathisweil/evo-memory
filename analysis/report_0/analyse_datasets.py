@@ -6,7 +6,7 @@ Produces:
   - dataset_characteristics.png: summary table-as-figure
   - prompt_templates.png: prompt templates for each task
   - length_distributions.png: context and answer length distributions
-  - Printed statistics used in report.md
+  - Printed statistics used in _report.md
 
 Tasks analysed:
   lb/qasper, lb/2wikimqa, lb/qasper_e, lb/hotpotqa_e, lb/2wikimqa_e
