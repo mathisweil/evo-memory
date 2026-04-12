@@ -71,7 +71,7 @@ This finding is arguably a **stronger contribution** than the earlier (buggy) "d
 
 1. **Pre-emptive hedging, not dormant adaptation.** M3 does not simply switch on a latent capability when eviction activates. Instead, it learns a qualitatively different attention strategy — broader, less sink-dependent — that is *always active*. This strategy is coherent with eviction robustness: distributing attention across more tokens means no single eviction is catastrophic.
 
-2. **Different computation path, same task performance.** Despite producing different internal representations (Report 7, CKA dip at layer 3) and different attention patterns (this report, +4% entropy), M3 matches M1 on aggregate F1 (45.59 vs 45.48 from Report 1). The model finds a different but equally effective solution that happens to also be robust to eviction.
+2. **Different computation path, same task performance.** Despite producing different internal representations (Report 7, CKA dip at layer 3) and different attention patterns (this report, +4% entropy), M3 matches M1 on aggregate F1 (val: 45.59 vs 45.48; test micro: 32.28 vs 31.14 — see Report 1). The model finds a different but equally effective solution that happens to also be robust to eviction.
 
 3. **M3 occupies a different region of function space.** Combining the orthogonal LoRA subspaces (Report 4), the attention entropy shift (this report), and the CKA divergence (Report 7), the evidence shows M3 is not a minor perturbation of M1 — it is a genuinely different model that generalises across both full-context and evicted-context conditions.
 
