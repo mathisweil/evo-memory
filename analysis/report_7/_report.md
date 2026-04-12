@@ -77,7 +77,7 @@ This is a coherent picture: M1 and M3 differ in weight space (Report 4), and thi
 
 ### Implications
 
-1. **M3's adaptation has a small cost on full context.** The models are not functionally identical — M3's LoRA weights produce slightly different representations. However, Report 1 shows M3 matches M1 on aggregate F1 (45.59 vs 45.48), so the representational difference does not hurt task performance — M3 reaches similar answers via a different computation path.
+1. **M3's adaptation has a small cost on full context.** The models are not functionally identical — M3's LoRA weights produce slightly different representations. However, Report 1 shows M3 matches M1 on aggregate F1 (val: 45.59 vs 45.48; test micro: 32.28 vs 31.14), so the representational difference does not hurt task performance — M3 reaches similar answers via a different computation path.
 2. **CKA is sensitive enough to detect rank-8 LoRA perturbations.** CKA can resolve ~1-2% representation differences from low-rank fine-tuning, making it a viable tool for comparing LoRA-adapted models.
 3. **Layer 3 may be a critical adaptation point.** The CKA dip at layer 3 suggests this is where M3's LoRA makes the largest representational change, potentially redirecting information flow for eviction robustness.
 
