@@ -10,13 +10,13 @@
 
 This project fine-tunes LLaMA 3.2-1B-Instruct on a 5-task LongBench QA subset. All tasks require the model to read a long context passage and answer a question about it. The tasks differ in source dataset, reasoning requirements, and answer format.
 
-| Task | Source Dataset | Domain | Reasoning Type |
-|------|---------------|--------|----------------|
-| Qasper | Qasper (Dasigi et al., 2021) | Scientific papers | Single-passage retrieval |
-| 2WikiMQA | 2WikiMultihopQA (Ho et al., 2020) | Wikipedia passages | Multi-hop reasoning |
-| Qasper-E | Qasper, LongBench-E variant | Scientific papers | Single-passage retrieval |
+| Task       | Source Dataset                            | Domain             | Reasoning Type                |
+| ---------- | ----------------------------------------- | ------------------ | ----------------------------- |
+| Qasper     | Qasper (Dasigi et al., 2021)              | Scientific papers  | Single-passage retrieval      |
+| 2WikiMQA   | 2WikiMultihopQA (Ho et al., 2020)         | Wikipedia passages | Multi-hop reasoning           |
+| Qasper-E   | Qasper, LongBench-E variant               | Scientific papers  | Single-passage retrieval      |
 | HotpotQA-E | HotpotQA (Yang et al., 2018), LongBench-E | Wikipedia passages | Multi-hop (bridge/comparison) |
-| 2WikiMQA-E | 2WikiMultihopQA, LongBench-E variant | Wikipedia passages | Multi-hop reasoning |
+| 2WikiMQA-E | 2WikiMultihopQA, LongBench-E variant      | Wikipedia passages | Multi-hop reasoning           |
 
 All tasks are evaluated using **token-level F1 score** (qa_f1_score).
 
@@ -152,14 +152,14 @@ Filtering applied (matching experiment configuration):
 
 **Note:** The exact counts below use word-based approximation (1.3 tokens/word) matching the `init_tasks()` code. Tokenizer-based filtering in `apply_train_val_test_split()` gives slightly different numbers. The reported total from experiments is 306/64/69 = 439; our word-based approximation yields 320/67/74 = 461.
 
-| Task | Raw | After Length Filter | Eligible (min 4096 tok) | Train | Val | Test |
-|------|-----|-------------------|------------------------|-------|-----|------|
-| Qasper | 200 | 180 | 95 | 66 | 14 | 15 |
-| 2WikiMQA | 200 | 138 | 96 | 67 | 14 | 15 |
-| Qasper-E | 224 | 178 | 124 | 86 | 18 | 20 |
-| HotpotQA-E | 300 | 111 | 62 | 43 | 9 | 10 |
-| 2WikiMQA-E | 300 | 142 | 84 | 58 | 12 | 14 |
-| **Total** | **1224** | **749** | **461** | **320** | **67** | **74** |
+| Task       | Raw      | After Length Filter | Eligible (min 4096 tok) | Train   | Val    | Test   |
+| ---------- | -------- | ------------------- | ----------------------- | ------- | ------ | ------ |
+| Qasper     | 200      | 180                 | 95                      | 66      | 14     | 15     |
+| 2WikiMQA   | 200      | 138                 | 96                      | 67      | 14     | 15     |
+| Qasper-E   | 224      | 178                 | 124                     | 86      | 18     | 20     |
+| HotpotQA-E | 300      | 111                 | 62                      | 43      | 9      | 10     |
+| 2WikiMQA-E | 300      | 142                 | 84                      | 58      | 12     | 14     |
+| **Total**  | **1224** | **749**             | **461**                 | **320** | **67** | **74** |
 
 **Key observations:**
 - HotpotQA-E has the fewest eligible samples (62) because its raw contexts tend to be longer (mean 6658 words), and most are filtered out by the 6500-token upper bound.
@@ -172,25 +172,25 @@ Filtering applied (matching experiment configuration):
 
 ### 5.1 Context Lengths (Eligible Samples)
 
-| Task | Mean (words) | Median | Min | Max | Std |
-|------|-------------|--------|-----|-----|-----|
-| Qasper | 3987 | 3862 | 3164 | 4958 | 508 |
-| 2WikiMQA | 4037 | 3984 | 3155 | 4966 | 534 |
-| Qasper-E | 4118 | 4171 | 3158 | 4964 | 484 |
-| HotpotQA-E | 3737 | 3710 | 3177 | 4751 | 413 |
-| 2WikiMQA-E | 3989 | 3998 | 3155 | 4993 | 554 |
+| Task       | Mean (words) | Median | Min  | Max  | Std |
+| ---------- | ------------ | ------ | ---- | ---- | --- |
+| Qasper     | 3987         | 3862   | 3164 | 4958 | 508 |
+| 2WikiMQA   | 4037         | 3984   | 3155 | 4966 | 534 |
+| Qasper-E   | 4118         | 4171   | 3158 | 4964 | 484 |
+| HotpotQA-E | 3737         | 3710   | 3177 | 4751 | 413 |
+| 2WikiMQA-E | 3989         | 3998   | 3155 | 4993 | 554 |
 
 After filtering, all tasks have similar context length distributions (mean ~3800-4100 words, ~4900-5350 tokens). HotpotQA-E is slightly shorter on average. See `length_distributions.png`.
 
 ### 5.2 Answer Lengths
 
-| Task | Mean (words) | Median | Max |
-|------|-------------|--------|-----|
-| Qasper | 9.5 | 6 | 43 |
-| 2WikiMQA | 2.2 | 2 | 7 |
-| Qasper-E | 8.7 | 5 | 46 |
-| HotpotQA-E | 2.5 | 2 | 11 |
-| 2WikiMQA-E | 2.4 | 2 | 9 |
+| Task       | Mean (words) | Median | Max |
+| ---------- | ------------ | ------ | --- |
+| Qasper     | 9.5          | 6      | 43  |
+| 2WikiMQA   | 2.2          | 2      | 7   |
+| Qasper-E   | 8.7          | 5      | 46  |
+| HotpotQA-E | 2.5          | 2      | 11  |
+| 2WikiMQA-E | 2.4          | 2      | 9   |
 
 There is a stark divide: **Qasper tasks have much longer, more variable answers** (mean ~9 words, range 1-46) while **multi-hop tasks have very short answers** (mean ~2.3 words, mostly 1-3 words). See `answer_types.png`.
 
@@ -205,10 +205,10 @@ This section analyses where answer-relevant information is located within the co
 At cache_size=1024 with contexts of 4096-6500 tokens, approximately **75-80% of tokens are evicted**. Only ~20-25% of the original context is retained. See `eviction_analysis.png`.
 
 | Cache Size | Approx. Tokens Retained | Approx. % Evicted |
-|-----------|------------------------|-------------------|
-| 1024 | 1024 of ~5000 | ~80% |
-| 2048 | 2048 of ~5000 | ~60% |
-| 3072 | 3072 of ~5000 | ~40% |
+| ---------- | ----------------------- | ----------------- |
+| 1024       | 1024 of ~5000           | ~80%              |
+| 2048       | 2048 of ~5000           | ~60%              |
+| 3072       | 3072 of ~5000           | ~40%              |
 
 ### 6.2 Relevant Token Analysis
 
@@ -216,13 +216,13 @@ To quantify how much of each context is actually needed to answer the question, 
 
 See `relevant_tokens.png`, `relevant_tokens_boxplot.png`, `answer_positions.png`, and `eviction_survival.png`.
 
-| Task | Mean Relevant Tokens | % of Context | # Distinct Regions | Answer Occurrences | Answer Position |
-|------|---------------------|-------------|-------------------|-------------------|-----------------|
-| Qasper | **192** | 3.9% | 1.2 | 0.6 | 0.47 (mid) |
-| 2WikiMQA | **1124** | 21.6% | 5.6 | 2.9 | 0.38 |
-| Qasper-E | **271** | 5.2% | 1.5 | 1.3 | 0.43 |
-| HotpotQA-E | **2034** | 42.1% | 9.3 | 8.4 | 0.21 (early) |
-| 2WikiMQA-E | **1173** | 22.8% | 5.8 | 2.7 | 0.38 |
+| Task       | Mean Relevant Tokens | % of Context | # Distinct Regions | Answer Occurrences | Answer Position |
+| ---------- | -------------------- | ------------ | ------------------ | ------------------ | --------------- |
+| Qasper     | **192**              | 3.9%         | 1.2                | 0.6                | 0.47 (mid)      |
+| 2WikiMQA   | **1124**             | 21.6%        | 5.6                | 2.9                | 0.38            |
+| Qasper-E   | **271**              | 5.2%         | 1.5                | 1.3                | 0.43            |
+| HotpotQA-E | **2034**             | 42.1%        | 9.3                | 8.4                | 0.21 (early)    |
+| 2WikiMQA-E | **1173**             | 22.8%        | 5.8                | 2.7                | 0.38            |
 
 **Key findings:**
 
@@ -233,13 +233,13 @@ See `relevant_tokens.png`, `relevant_tokens_boxplot.png`, `answer_positions.png`
 
 **Estimated relevant token survival** (assuming an ideal eviction policy that prioritises relevant tokens):
 
-| Task | cache=1024 | cache=2048 | cache=3072 |
-|------|-----------|-----------|-----------|
-| Qasper | 97% | 100% | 100% |
-| 2WikiMQA | 83% | 95% | 98% |
-| Qasper-E | 96% | 98% | 100% |
-| HotpotQA-E | **60%** | 87% | 98% |
-| 2WikiMQA-E | 82% | 95% | 99% |
+| Task       | cache=1024 | cache=2048 | cache=3072 |
+| ---------- | ---------- | ---------- | ---------- |
+| Qasper     | 97%        | 100%       | 100%       |
+| 2WikiMQA   | 83%        | 95%        | 98%        |
+| Qasper-E   | 96%        | 98%        | 100%       |
+| HotpotQA-E | **60%**    | 87%        | 98%        |
+| 2WikiMQA-E | 82%        | 95%        | 99%        |
 
 HotpotQA-E is the only task where relevant tokens substantially exceed the cache budget at cs1024. This should make it the most eviction-sensitive task under our initial hypothesis — but as Report 1 shows, the actual results tell a different story.
 
@@ -264,13 +264,13 @@ HotpotQA-E is the only task where relevant tokens substantially exceed the cache
 
 ### 6.3 Eviction Sensitivity Summary
 
-| Task | Info Locality | Sensitivity | Reasoning |
-|------|--------------|-------------|-----------|
-| Qasper | Localised | **MEDIUM** | Answer in one section; eviction may lose it, but structured context helps |
-| 2WikiMQA | Distributed | **HIGH** | Must retain 2+ passages; loss of either is fatal |
-| Qasper-E | Localised | **MEDIUM** | Same as Qasper |
-| HotpotQA-E | Distributed | **HIGH** | 2 gold passages among many distractors; both needed |
-| 2WikiMQA-E | Distributed | **HIGH** | Same as 2WikiMQA |
+| Task       | Info Locality | Sensitivity | Reasoning                                                                 |
+| ---------- | ------------- | ----------- | ------------------------------------------------------------------------- |
+| Qasper     | Localised     | **MEDIUM**  | Answer in one section; eviction may lose it, but structured context helps |
+| 2WikiMQA   | Distributed   | **HIGH**    | Must retain 2+ passages; loss of either is fatal                          |
+| Qasper-E   | Localised     | **MEDIUM**  | Same as Qasper                                                            |
+| HotpotQA-E | Distributed   | **HIGH**    | 2 gold passages among many distractors; both needed                       |
+| 2WikiMQA-E | Distributed   | **HIGH**    | Same as 2WikiMQA                                                          |
 
 ---
 
@@ -333,25 +333,25 @@ LoRA fine-tuning with a pre-trained (frozen) NAMM eviction policy active. The LL
 
 ### 8.1 Relative Task Ordering (Predicted F1, Best to Worst)
 
-| Rank | B0 (Base, Full) | M1 (LoRA, Full) | M2 (NAMM cs1024) | M3 (LoRA+NAMM cs1024) |
-|------|-----------------|------------------|-------------------|------------------------|
-| 1 (best) | 2WikiMQA | 2WikiMQA | Qasper | 2WikiMQA |
-| 2 | 2WikiMQA-E | 2WikiMQA-E | Qasper-E | 2WikiMQA-E |
-| 3 | HotpotQA-E | HotpotQA-E | 2WikiMQA | HotpotQA-E |
-| 4 | Qasper | Qasper-E | 2WikiMQA-E | Qasper-E |
-| 5 (worst) | Qasper-E | Qasper | HotpotQA-E | Qasper |
+| Rank      | B0 (Base, Full) | M1 (LoRA, Full) | M2 (NAMM cs1024) | M3 (LoRA+NAMM cs1024) |
+| --------- | --------------- | --------------- | ---------------- | --------------------- |
+| 1 (best)  | 2WikiMQA        | 2WikiMQA        | Qasper           | 2WikiMQA              |
+| 2         | 2WikiMQA-E      | 2WikiMQA-E      | Qasper-E         | 2WikiMQA-E            |
+| 3         | HotpotQA-E      | HotpotQA-E      | 2WikiMQA         | HotpotQA-E            |
+| 4         | Qasper          | Qasper-E        | 2WikiMQA-E       | Qasper-E              |
+| 5 (worst) | Qasper-E        | Qasper          | HotpotQA-E       | Qasper                |
 
 ### 8.2 Expected Trends Across Conditions
 
-| Trend | Prediction | Confidence |
-|-------|-----------|------------|
-| M1 > B0 for all tasks | Yes, fine-tuning should help universally | High |
-| M2 < B0 for all tasks | Yes, 80% eviction causes major degradation | High |
-| M3 > M2 for all tasks | Yes, LoRA compensates for eviction | High |
-| M3 < M1 for all tasks | Likely, eviction still loses information | Medium |
-| Multi-hop tasks degrade more under eviction (M2) | Yes, distributed info is harder to retain | High |
-| Qasper tasks benefit more from fine-tuning (B0 to M1) | Moderate, due to format learning | Medium |
-| _E variants track their base counterparts | Yes, same task type | High |
+| Trend                                                 | Prediction                                 | Confidence |
+| ----------------------------------------------------- | ------------------------------------------ | ---------- |
+| M1 > B0 for all tasks                                 | Yes, fine-tuning should help universally   | High       |
+| M2 < B0 for all tasks                                 | Yes, 80% eviction causes major degradation | High       |
+| M3 > M2 for all tasks                                 | Yes, LoRA compensates for eviction         | High       |
+| M3 < M1 for all tasks                                 | Likely, eviction still loses information   | Medium     |
+| Multi-hop tasks degrade more under eviction (M2)      | Yes, distributed info is harder to retain  | High       |
+| Qasper tasks benefit more from fine-tuning (B0 to M1) | Moderate, due to format learning           | Medium     |
+| _E variants track their base counterparts             | Yes, same task type                        | High       |
 
 ### 8.3 Specific Predictions
 

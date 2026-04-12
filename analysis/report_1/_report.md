@@ -28,23 +28,23 @@ This analysis evaluates 16 experimental conditions on 5 LongBench QA tasks
 using a proper held-out test split (n=70) and an extended test split (n=224).
 Results come from `results/main_table_5t/all_results.json`.
 
-| Condition | Results Key | Description |
-|-----------|-------------|-------------|
-| **B0** | `B0` | Base Llama-3.2-1B-Instruct, no fine-tuning, full KV cache |
-| **B1/cs1024** | `B1/cs1024` | Base model + recency eviction (keep last 1024 KV entries) |
-| **B1/cs2048** | `B1/cs2048` | Base model + recency eviction (keep last 2048 KV entries) |
-| **M1** | `M1` | LoRA fine-tuned (rank 8), full KV cache, no eviction |
-| **M2/cs1024** | `M2/cs1024` | Standalone NAMM eviction (CMA-ES trained), no LoRA, cache 1024 |
-| **M2/cs2048** | `M2/cs2048` | Standalone NAMM eviction, no LoRA, cache 2048 |
-| **M3/cs1024** | `M4/cs1024` | LoRA fine-tuned with frozen NAMM active, cache 1024 |
-| **M3/cs2048** | `M4/cs2048` | LoRA fine-tuned with frozen NAMM active, cache 2048 |
-| **Trunc/plain_1024** | `Trunc/plain_1024` | Plain Llama, input truncated to last 1024 tokens |
-| **Trunc/plain_2048** | `Trunc/plain_2048` | Plain Llama, input truncated to last 2048 tokens |
-| **Trunc/lora_m1_1024** | `Trunc/lora_m1_1024` | M1 LoRA adapter, input truncated to last 1024 tokens |
-| **Trunc/lora_m1_2048** | `Trunc/lora_m1_2048` | M1 LoRA adapter, input truncated to last 2048 tokens |
-| **M1_recency/cs1024** | `M1_recency/cs1024` | M1 LoRA + recency eviction, cache 1024 (BROKEN -- all zeros) |
-| **A4/cs1024** | `A4/cs1024_no_namm` | M3/cs1024 LoRA weights, NAMM disabled at eval (full cache) |
-| **A4/cs2048** | `A4/cs2048_no_namm` | M3/cs2048 LoRA weights, NAMM disabled at eval (full cache) |
+| Condition              | Results Key          | Description                                                    |
+| ---------------------- | -------------------- | -------------------------------------------------------------- |
+| **B0**                 | `B0`                 | Base Llama-3.2-1B-Instruct, no fine-tuning, full KV cache      |
+| **B1/cs1024**          | `B1/cs1024`          | Base model + recency eviction (keep last 1024 KV entries)      |
+| **B1/cs2048**          | `B1/cs2048`          | Base model + recency eviction (keep last 2048 KV entries)      |
+| **M1**                 | `M1`                 | LoRA fine-tuned (rank 8), full KV cache, no eviction           |
+| **M2/cs1024**          | `M2/cs1024`          | Standalone NAMM eviction (CMA-ES trained), no LoRA, cache 1024 |
+| **M2/cs2048**          | `M2/cs2048`          | Standalone NAMM eviction, no LoRA, cache 2048                  |
+| **M3/cs1024**          | `M4/cs1024`          | LoRA fine-tuned with frozen NAMM active, cache 1024            |
+| **M3/cs2048**          | `M4/cs2048`          | LoRA fine-tuned with frozen NAMM active, cache 2048            |
+| **Trunc/plain_1024**   | `Trunc/plain_1024`   | Plain Llama, input truncated to last 1024 tokens               |
+| **Trunc/plain_2048**   | `Trunc/plain_2048`   | Plain Llama, input truncated to last 2048 tokens               |
+| **Trunc/lora_m1_1024** | `Trunc/lora_m1_1024` | M1 LoRA adapter, input truncated to last 1024 tokens           |
+| **Trunc/lora_m1_2048** | `Trunc/lora_m1_2048` | M1 LoRA adapter, input truncated to last 2048 tokens           |
+| **M1_recency/cs1024**  | `M1_recency/cs1024`  | M1 LoRA + recency eviction, cache 1024 (BROKEN -- all zeros)   |
+| **A4/cs1024**          | `A4/cs1024_no_namm`  | M3/cs1024 LoRA weights, NAMM disabled at eval (full cache)     |
+| **A4/cs2048**          | `A4/cs2048_no_namm`  | M3/cs2048 LoRA weights, NAMM disabled at eval (full cache)     |
 
 All runs use `train_frac=0.7`, `val_frac=0.15`, `split_seed=42`,
 `min_conditioning_length=4096`, `max_conditioning_length=6500`,
@@ -55,45 +55,45 @@ length window (6500, 8192].
 
 ## 2. Test-Split Per-Task F1 (n=70)
 
-| Condition | Qasper | 2WikiMQA | Qasper-E | HotpotQA-E | 2WikiMQA-E | Macro | Micro |
-|-----------|-------:|---------:|---------:|-----------:|-----------:|------:|------:|
-| B0 | 25.85 | 26.52 | 6.06 | 44.56 | 17.46 | 24.09 | **22.41** |
-| B1/cs1024 | 22.29 | 10.42 | 7.26 | 17.65 | 6.55 | 12.83 | **12.45** |
-| B1/cs2048 | 23.32 | 7.63 | 6.14 | 25.93 | 8.93 | 14.39 | **13.78** |
-| M1 | 45.03 | 10.00 | 35.62 | 30.51 | 30.16 | 30.26 | **31.14** |
-| M2/cs1024 | 28.30 | 27.56 | 8.09 | 17.50 | 24.16 | 21.12 | **20.30** |
-| M2/cs2048 | 26.79 | 25.00 | 6.06 | 18.45 | 15.18 | 18.30 | **17.40** |
-| M3/cs1024 | 29.30 | 44.23 | 26.56 | 43.45 | 22.79 | 33.27 | **32.28** |
-| M3/cs2048 | 39.68 | 25.00 | 30.47 | 35.51 | 24.60 | 31.05 | **31.06** |
-| Trunc/plain_1024 | 29.80 | 26.52 | 13.99 | 9.38 | 12.50 | 18.44 | **18.21** |
-| Trunc/plain_2048 | 24.81 | 25.00 | 12.42 | 17.28 | 14.29 | 18.76 | **18.26** |
-| Trunc/lora_m1_1024 | 26.35 | 26.52 | 27.20 | 33.89 | 21.43 | 27.08 | **26.90** |
-| Trunc/lora_m1_2048 | 31.56 | 27.56 | 30.04 | 33.95 | 21.43 | 28.91 | **28.87** |
-| M1_recency/cs1024 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | **0.00** |
-| A4/cs1024 | 46.19 | 25.00 | 28.12 | 26.67 | 17.46 | 28.69 | **28.82** |
-| A4/cs2048 | 43.56 | 38.89 | 34.63 | 35.80 | 17.46 | 34.07 | **33.91** |
+| Condition          | Qasper | 2WikiMQA | Qasper-E | HotpotQA-E | 2WikiMQA-E | Macro |     Micro |
+| ------------------ | -----: | -------: | -------: | ---------: | ---------: | ----: | --------: |
+| B0                 |  25.85 |    26.52 |     6.06 |      44.56 |      17.46 | 24.09 | **22.41** |
+| B1/cs1024          |  22.29 |    10.42 |     7.26 |      17.65 |       6.55 | 12.83 | **12.45** |
+| B1/cs2048          |  23.32 |     7.63 |     6.14 |      25.93 |       8.93 | 14.39 | **13.78** |
+| M1                 |  45.03 |    10.00 |    35.62 |      30.51 |      30.16 | 30.26 | **31.14** |
+| M2/cs1024          |  28.30 |    27.56 |     8.09 |      17.50 |      24.16 | 21.12 | **20.30** |
+| M2/cs2048          |  26.79 |    25.00 |     6.06 |      18.45 |      15.18 | 18.30 | **17.40** |
+| M3/cs1024          |  29.30 |    44.23 |    26.56 |      43.45 |      22.79 | 33.27 | **32.28** |
+| M3/cs2048          |  39.68 |    25.00 |    30.47 |      35.51 |      24.60 | 31.05 | **31.06** |
+| Trunc/plain_1024   |  29.80 |    26.52 |    13.99 |       9.38 |      12.50 | 18.44 | **18.21** |
+| Trunc/plain_2048   |  24.81 |    25.00 |    12.42 |      17.28 |      14.29 | 18.76 | **18.26** |
+| Trunc/lora_m1_1024 |  26.35 |    26.52 |    27.20 |      33.89 |      21.43 | 27.08 | **26.90** |
+| Trunc/lora_m1_2048 |  31.56 |    27.56 |    30.04 |      33.95 |      21.43 | 28.91 | **28.87** |
+| M1_recency/cs1024  |   0.00 |     0.00 |     0.00 |       0.00 |       0.00 |  0.00 |  **0.00** |
+| A4/cs1024          |  46.19 |    25.00 |    28.12 |      26.67 |      17.46 | 28.69 | **28.82** |
+| A4/cs2048          |  43.56 |    38.89 |    34.63 |      35.80 |      17.46 | 34.07 | **33.91** |
 
 ---
 
 ## 3. Extended-Test Per-Task F1 (n=224)
 
-| Condition | Qasper | 2WikiMQA | Qasper-E | HotpotQA-E | 2WikiMQA-E | Macro | Micro |
-|-----------|-------:|---------:|---------:|-----------:|-----------:|------:|------:|
-| B0 | 18.34 | 17.86 | 13.11 | 45.88 | 23.27 | 23.69 | **22.30** |
-| B1/cs1024 | 15.36 | 5.35 | 4.80 | 14.24 | 4.27 | 8.81 | **7.60** |
-| B1/cs2048 | 16.84 | 4.40 | 7.66 | 21.47 | 8.32 | 11.74 | **10.28** |
-| M1 | 35.92 | 23.59 | 27.81 | 47.83 | 31.93 | 33.42 | **31.84** |
-| M2/cs1024 | 19.49 | 23.74 | 12.13 | 26.36 | 22.05 | 20.75 | **20.65** |
-| M2/cs2048 | 20.20 | 20.90 | 10.14 | 24.71 | 20.49 | 19.29 | **19.01** |
-| M3/cs1024 | 25.39 | 27.27 | 23.78 | 41.21 | 22.51 | 28.03 | **26.92** |
-| M3/cs2048 | 23.41 | 22.00 | 14.59 | 29.55 | 27.24 | 23.36 | **23.15** |
-| Trunc/plain_1024 | 23.36 | 18.95 | 14.55 | 23.52 | 13.52 | 18.78 | **17.83** |
-| Trunc/plain_2048 | 19.97 | 17.23 | 12.72 | 31.91 | 19.54 | 20.27 | **19.35** |
-| Trunc/lora_m1_1024 | 25.50 | 18.58 | 28.15 | 37.31 | 18.99 | 25.71 | **24.24** |
-| Trunc/lora_m1_2048 | 30.62 | 18.72 | 31.68 | 41.85 | 23.83 | 29.34 | **27.67** |
-| M1_recency/cs1024 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | **0.00** |
-| A4/cs1024 | 30.41 | 23.55 | 21.41 | 31.57 | 25.07 | 26.40 | **25.62** |
-| A4/cs2048 | 24.54 | 31.15 | 22.88 | 29.92 | 21.31 | 25.96 | **25.66** |
+| Condition          | Qasper | 2WikiMQA | Qasper-E | HotpotQA-E | 2WikiMQA-E | Macro |     Micro |
+| ------------------ | -----: | -------: | -------: | ---------: | ---------: | ----: | --------: |
+| B0                 |  18.34 |    17.86 |    13.11 |      45.88 |      23.27 | 23.69 | **22.30** |
+| B1/cs1024          |  15.36 |     5.35 |     4.80 |      14.24 |       4.27 |  8.81 |  **7.60** |
+| B1/cs2048          |  16.84 |     4.40 |     7.66 |      21.47 |       8.32 | 11.74 | **10.28** |
+| M1                 |  35.92 |    23.59 |    27.81 |      47.83 |      31.93 | 33.42 | **31.84** |
+| M2/cs1024          |  19.49 |    23.74 |    12.13 |      26.36 |      22.05 | 20.75 | **20.65** |
+| M2/cs2048          |  20.20 |    20.90 |    10.14 |      24.71 |      20.49 | 19.29 | **19.01** |
+| M3/cs1024          |  25.39 |    27.27 |    23.78 |      41.21 |      22.51 | 28.03 | **26.92** |
+| M3/cs2048          |  23.41 |    22.00 |    14.59 |      29.55 |      27.24 | 23.36 | **23.15** |
+| Trunc/plain_1024   |  23.36 |    18.95 |    14.55 |      23.52 |      13.52 | 18.78 | **17.83** |
+| Trunc/plain_2048   |  19.97 |    17.23 |    12.72 |      31.91 |      19.54 | 20.27 | **19.35** |
+| Trunc/lora_m1_1024 |  25.50 |    18.58 |    28.15 |      37.31 |      18.99 | 25.71 | **24.24** |
+| Trunc/lora_m1_2048 |  30.62 |    18.72 |    31.68 |      41.85 |      23.83 | 29.34 | **27.67** |
+| M1_recency/cs1024  |   0.00 |     0.00 |     0.00 |       0.00 |       0.00 |  0.00 |  **0.00** |
+| A4/cs1024          |  30.41 |    23.55 |    21.41 |      31.57 |      25.07 | 26.40 | **25.62** |
+| A4/cs2048          |  24.54 |    31.15 |    22.88 |      29.92 |      21.31 | 25.96 | **25.66** |
 
 ---
 
@@ -105,24 +105,24 @@ mean M3 is worse than M1; negative values mean M3 exceeds M1.
 
 ### Test split
 
-| Task | cs=1024 | cs=2048 |
-|------|--------:|--------:|
-| Qasper | +34.94% | +11.90% |
-| 2WikiMQA | -342.31% | -150.00% |
-| Qasper-E | +25.45% | +14.45% |
-| HotpotQA-E | -42.43% | -16.39% |
-| 2WikiMQA-E | +24.44% | +18.42% |
+| Task         |    cs=1024 |    cs=2048 |
+| ------------ | ---------: | ---------: |
+| Qasper       |    +34.94% |    +11.90% |
+| 2WikiMQA     |   -342.31% |   -150.00% |
+| Qasper-E     |    +25.45% |    +14.45% |
+| HotpotQA-E   |    -42.43% |    -16.39% |
+| 2WikiMQA-E   |    +24.44% |    +18.42% |
 | **Micro F1** | **-3.64%** | **+0.25%** |
 
 ### Extended test split
 
-| Task | cs=1024 | cs=2048 |
-|------|--------:|--------:|
-| Qasper | +29.31% | +34.83% |
-| 2WikiMQA | -15.59% | +6.75% |
-| Qasper-E | +14.50% | +47.56% |
-| HotpotQA-E | +13.85% | +38.22% |
-| 2WikiMQA-E | +29.49% | +14.68% |
+| Task         |     cs=1024 |     cs=2048 |
+| ------------ | ----------: | ----------: |
+| Qasper       |     +29.31% |     +34.83% |
+| 2WikiMQA     |     -15.59% |      +6.75% |
+| Qasper-E     |     +14.50% |     +47.56% |
+| HotpotQA-E   |     +13.85% |     +38.22% |
+| 2WikiMQA-E   |     +29.49% |     +14.68% |
 | **Micro F1** | **+15.47%** | **+27.30%** |
 
 ### Interpretation
@@ -154,47 +154,47 @@ mean M3 exceeds M1.
 
 ### Test split, cs=1024
 
-| Task | Recovery Ratio |
-|------|---------------:|
-| Qasper | 0.06 |
-| 2WikiMQA | -0.95 |
-| Qasper-E | 0.67 |
-| HotpotQA-E | 2.00 |
-| 2WikiMQA-E | -0.23 |
-| **Micro F1** | **1.10** |
+| Task         | Recovery Ratio |
+| ------------ | -------------: |
+| Qasper       |           0.06 |
+| 2WikiMQA     |          -0.95 |
+| Qasper-E     |           0.67 |
+| HotpotQA-E   |           2.00 |
+| 2WikiMQA-E   |          -0.23 |
+| **Micro F1** |       **1.10** |
 
 ### Test split, cs=2048
 
-| Task | Recovery Ratio |
-|------|---------------:|
-| Qasper | 0.71 |
-| 2WikiMQA | -0.00 |
-| Qasper-E | 0.83 |
-| HotpotQA-E | 1.41 |
-| 2WikiMQA-E | 0.63 |
-| **Micro F1** | **0.99** |
+| Task         | Recovery Ratio |
+| ------------ | -------------: |
+| Qasper       |           0.71 |
+| 2WikiMQA     |          -0.00 |
+| Qasper-E     |           0.83 |
+| HotpotQA-E   |           1.41 |
+| 2WikiMQA-E   |           0.63 |
+| **Micro F1** |       **0.99** |
 
 ### Extended test split, cs=1024
 
-| Task | Recovery Ratio |
-|------|---------------:|
-| Qasper | 0.36 |
-| 2WikiMQA | -22.70 |
-| Qasper-E | 0.74 |
-| HotpotQA-E | 0.69 |
-| 2WikiMQA-E | 0.05 |
-| **Micro F1** | **0.56** |
+| Task         | Recovery Ratio |
+| ------------ | -------------: |
+| Qasper       |           0.36 |
+| 2WikiMQA     |         -22.70 |
+| Qasper-E     |           0.74 |
+| HotpotQA-E   |           0.69 |
+| 2WikiMQA-E   |           0.05 |
+| **Micro F1** |       **0.56** |
 
 ### Extended test split, cs=2048
 
-| Task | Recovery Ratio |
-|------|---------------:|
-| Qasper | 0.20 |
-| 2WikiMQA | 0.41 |
-| Qasper-E | 0.25 |
-| HotpotQA-E | 0.21 |
-| 2WikiMQA-E | 0.59 |
-| **Micro F1** | **0.32** |
+| Task         | Recovery Ratio |
+| ------------ | -------------: |
+| Qasper       |           0.20 |
+| 2WikiMQA     |           0.41 |
+| Qasper-E     |           0.25 |
+| HotpotQA-E   |           0.21 |
+| 2WikiMQA-E   |           0.59 |
+| **Micro F1** |       **0.32** |
 
 ### Interpretation
 
@@ -226,19 +226,19 @@ tokens), providing a baseline for comparison with NAMM's learned eviction (M2).
 ### Test split, micro F1
 
 | Cache Size | B1 (recency) | M2 (NAMM) | Delta |
-|------------|-------------:|----------:|------:|
-| cs1024 | 12.45 | 20.30 | +7.85 |
-| cs2048 | 13.78 | 17.40 | +3.62 |
+| ---------- | -----------: | --------: | ----: |
+| cs1024     |        12.45 |     20.30 | +7.85 |
+| cs2048     |        13.78 |     17.40 | +3.62 |
 
 ### Per-task comparison (test, cs1024)
 
-| Task | B1 | M2 | Delta |
-|------|---:|---:|------:|
-| Qasper | 22.29 | 28.30 | +6.01 |
-| 2WikiMQA | 10.42 | 27.56 | +17.15 |
-| Qasper-E | 7.26 | 8.09 | +0.83 |
-| HotpotQA-E | 17.65 | 17.50 | -0.15 |
-| 2WikiMQA-E | 6.55 | 24.16 | +17.61 |
+| Task       |    B1 |    M2 |  Delta |
+| ---------- | ----: | ----: | -----: |
+| Qasper     | 22.29 | 28.30 |  +6.01 |
+| 2WikiMQA   | 10.42 | 27.56 | +17.15 |
+| Qasper-E   |  7.26 |  8.09 |  +0.83 |
+| HotpotQA-E | 17.65 | 17.50 |  -0.15 |
+| 2WikiMQA-E |  6.55 | 24.16 | +17.61 |
 
 **Key findings:**
 
@@ -269,13 +269,13 @@ contributions of LoRA and NAMM.
 
 ### Test split, micro F1
 
-| Method | cs1024 | cs2048 |
-|--------|-------:|-------:|
-| M3 (LoRA + frozen NAMM) | 32.28 | 31.06 |
-| Trunc/lora_m1 (M1 LoRA + truncation) | 26.90 | 28.87 |
-| M2 (NAMM only, no LoRA) | 20.30 | 17.40 |
-| Trunc/plain (plain Llama + truncation) | 18.21 | 18.26 |
-| B1 (recency eviction) | 12.45 | 13.78 |
+| Method                                 | cs1024 | cs2048 |
+| -------------------------------------- | -----: | -----: |
+| M3 (LoRA + frozen NAMM)                |  32.28 |  31.06 |
+| Trunc/lora_m1 (M1 LoRA + truncation)   |  26.90 |  28.87 |
+| M2 (NAMM only, no LoRA)                |  20.30 |  17.40 |
+| Trunc/plain (plain Llama + truncation) |  18.21 |  18.26 |
+| B1 (recency eviction)                  |  12.45 |  13.78 |
 
 **Key observations:**
 
@@ -307,13 +307,13 @@ disabled (full KV cache). This isolates whether the M3 performance comes from
 
 ### Test split, micro F1
 
-| Condition | Micro F1 | vs M1 |
-|-----------|-------:|------:|
-| M1 (full-context LoRA) | 31.14 | -- |
-| M3/cs1024 (NAMM on) | 32.28 | +1.14 |
-| A4/cs1024 (NAMM off) | 28.82 | -2.32 |
-| M3/cs2048 (NAMM on) | 31.06 | -0.08 |
-| A4/cs2048 (NAMM off) | 33.91 | +2.77 |
+| Condition              | Micro F1 | vs M1 |
+| ---------------------- | -------: | ----: |
+| M1 (full-context LoRA) |    31.14 |    -- |
+| M3/cs1024 (NAMM on)    |    32.28 | +1.14 |
+| A4/cs1024 (NAMM off)   |    28.82 | -2.32 |
+| M3/cs2048 (NAMM on)    |    31.06 | -0.08 |
+| A4/cs2048 (NAMM off)   |    33.91 | +2.77 |
 
 ### Interpretation
 
@@ -334,23 +334,23 @@ standard full-context training even when eviction is removed.
 
 **Per-task (test, cs1024):**
 
-| Task | M1 | M3/cs1024 | A4/cs1024 |
-|------|---:|----------:|----------:|
-| Qasper | 45.03 | 29.30 | 46.19 |
-| 2WikiMQA | 10.00 | 44.23 | 25.00 |
-| Qasper-E | 35.62 | 26.56 | 28.12 |
-| HotpotQA-E | 30.51 | 43.45 | 26.67 |
-| 2WikiMQA-E | 30.16 | 22.79 | 17.46 |
+| Task       |    M1 | M3/cs1024 | A4/cs1024 |
+| ---------- | ----: | --------: | --------: |
+| Qasper     | 45.03 |     29.30 |     46.19 |
+| 2WikiMQA   | 10.00 |     44.23 |     25.00 |
+| Qasper-E   | 35.62 |     26.56 |     28.12 |
+| HotpotQA-E | 30.51 |     43.45 |     26.67 |
+| 2WikiMQA-E | 30.16 |     22.79 |     17.46 |
 
 **Per-task (test, cs2048):**
 
-| Task | M1 | M3/cs2048 | A4/cs2048 |
-|------|---:|----------:|----------:|
-| Qasper | 45.03 | 39.68 | 43.56 |
-| 2WikiMQA | 10.00 | 25.00 | 38.89 |
-| Qasper-E | 35.62 | 30.47 | 34.63 |
-| HotpotQA-E | 30.51 | 35.51 | 35.80 |
-| 2WikiMQA-E | 30.16 | 24.60 | 17.46 |
+| Task       |    M1 | M3/cs2048 | A4/cs2048 |
+| ---------- | ----: | --------: | --------: |
+| Qasper     | 45.03 |     39.68 |     43.56 |
+| 2WikiMQA   | 10.00 |     25.00 |     38.89 |
+| Qasper-E   | 35.62 |     30.47 |     34.63 |
+| HotpotQA-E | 30.51 |     35.51 |     35.80 |
+| 2WikiMQA-E | 30.16 |     24.60 |     17.46 |
 
 ---
 
@@ -405,11 +405,11 @@ comparative analyses. The `M1_recency/cs2048` run is still pending.
 
 ## 11. Figures
 
-| File | Description |
-|------|-------------|
-| `generate_plots_v2.py` | Script to generate all plots from `all_results.json` |
-| `results_test.json` | Extracted per-condition, per-task, per-split F1 numbers |
-| `test_f1_comparison.png` | Grouped bar chart: all conditions, 5 tasks + micro, test split |
-| `extended_test_f1_comparison.png` | Same for extended_test split |
-| `sensitivity_test.png` | Eviction sensitivity (M1-M3)/M1 per task, cs1024 and cs2048 |
-| `recovery_ratio_test.png` | Recovery ratio (M3-M2)/(M1-M2) per task, cs1024 and cs2048 |
+| File                              | Description                                                    |
+| --------------------------------- | -------------------------------------------------------------- |
+| `generate_plots_v2.py`            | Script to generate all plots from `all_results.json`           |
+| `results_test.json`               | Extracted per-condition, per-task, per-split F1 numbers        |
+| `test_f1_comparison.png`          | Grouped bar chart: all conditions, 5 tasks + micro, test split |
+| `extended_test_f1_comparison.png` | Same for extended_test split                                   |
+| `sensitivity_test.png`            | Eviction sensitivity (M1-M3)/M1 per task, cs1024 and cs2048    |
+| `recovery_ratio_test.png`         | Recovery ratio (M3-M2)/(M1-M2) per task, cs1024 and cs2048     |

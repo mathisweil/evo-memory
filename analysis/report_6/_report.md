@@ -34,10 +34,10 @@ For each test sample, the script performs a two-pass approach:
 
 ### Score-Attention Correlation
 
-| Metric | M1 | M3 cs1024 |
-|--------|-----|-----------|
-| Mean Spearman rho (all layers) | -0.137 | -0.136 |
-| Std Spearman rho | 0.070 | 0.071 |
+| Metric                         | M1     | M3 cs1024 |
+| ------------------------------ | ------ | --------- |
+| Mean Spearman rho (all layers) | -0.137 | -0.136    |
+| Std Spearman rho               | 0.070  | 0.071     |
 
 See `score_attention_correlation.png`. The correlation is **negative at every layer**, with the strongest anti-correlation in early layers (rho ~ -0.25 at layers 2-3) and weaker anti-correlation in later layers (rho ~ -0.10 at layers 8-15). M1 and M3 curves are virtually indistinguishable.
 
@@ -51,9 +51,9 @@ Layer-by-layer pattern:
 
 See `eviction_regret.png`.
 
-| Metric | M1 | M3 cs1024 |
-|--------|-----|-----------|
-| Mean total regret (all layers) | 0.070 | 0.067 |
+| Metric                         | M1    | M3 cs1024 |
+| ------------------------------ | ----- | --------- |
+| Mean total regret (all layers) | 0.070 | 0.067     |
 
 Total regret peaks in early layers (0-3) where attention is broadest and more tokens carry non-trivial attention mass. Later layers have lower regret as attention becomes more focused on fewer tokens. M3 shows marginally lower regret than M1 across most layers.
 
@@ -90,11 +90,11 @@ The hypothesis predicted M3 would show higher NAMM-attention alignment after fin
 
 ### Connection to other reports
 
-| Report | Finding | Implication for Report 6 |
-|--------|---------|--------------------------|
-| 1 (Sensitivity) | M3 matches M1 on aggregate F1 | The negative alignment doesn't hurt — NAMM's anti-correlated eviction strategy works |
-| 4 (LoRA weights) | Orthogonal subspaces, M3 norms larger | M3's LoRA doesn't optimise toward NAMM alignment |
-| 5 (Attention) | M3 has higher entropy, lower sinks | M3 broadens attention pre-emptively rather than aligning with NAMM |
+| Report           | Finding                               | Implication for Report 6                                                             |
+| ---------------- | ------------------------------------- | ------------------------------------------------------------------------------------ |
+| 1 (Sensitivity)  | M3 matches M1 on aggregate F1         | The negative alignment doesn't hurt — NAMM's anti-correlated eviction strategy works |
+| 4 (LoRA weights) | Orthogonal subspaces, M3 norms larger | M3's LoRA doesn't optimise toward NAMM alignment                                     |
+| 5 (Attention)    | M3 has higher entropy, lower sinks    | M3 broadens attention pre-emptively rather than aligning with NAMM                   |
 
 ### Implications for the paper
 

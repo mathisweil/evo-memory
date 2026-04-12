@@ -17,23 +17,23 @@ truncation controls, ablations, and experimental treatments. Evaluation uses
 two held-out splits: **test** (n=70) and **extended_test** (n=224). All F1
 figures in this report are **test-set micro F1** unless noted otherwise.
 
-| Label | LoRA | Eviction | KV Cache | Test Micro F1 |
-|-------|------|----------|----------|------:|
-| **B0** (plain Llama) | No | None | Full | 22.41 |
-| **B1/cs1024** (recency eviction) | No | Recency | 1024 | 12.45 |
-| **B1/cs2048** (recency eviction) | No | Recency | 2048 | 13.78 |
-| **M1** (LoRA only) | Yes (rank 8) | None | Full | 31.14 |
-| **M2/cs1024** (NAMM only) | No | NAMM (CMA-ES) | 1024 | 20.30 |
-| **M2/cs2048** (NAMM only) | No | NAMM (CMA-ES) | 2048 | 17.40 |
-| **M3/cs1024** (LoRA + frozen NAMM) | Yes (rank 8) | NAMM (frozen) | 1024 | 32.28 |
-| **M3/cs2048** (LoRA + frozen NAMM) | Yes (rank 8) | NAMM (frozen) | 2048 | 31.06 |
-| **Trunc/plain_1024** (truncation) | No | Truncation | 1024 | 18.21 |
-| **Trunc/plain_2048** (truncation) | No | Truncation | 2048 | 18.26 |
-| **Trunc/lora_m1_1024** (M1 LoRA + trunc) | Yes (M1's) | Truncation | 1024 | 26.90 |
-| **Trunc/lora_m1_2048** (M1 LoRA + trunc) | Yes (M1's) | Truncation | 2048 | 28.87 |
-| **M1_recency/cs1024** (M1 LoRA + recency) | Yes (M1's) | Recency | 1024 | 0.00 (broken) |
-| **A4/cs1024** (M3 LoRA, NAMM off) | Yes (M3 cs1024's) | None | Full | 28.82 |
-| **A4/cs2048** (M3 LoRA, NAMM off) | Yes (M3 cs2048's) | None | Full | 33.91 |
+| Label                                     | LoRA              | Eviction      | KV Cache | Test Micro F1 |
+| ----------------------------------------- | ----------------- | ------------- | -------- | ------------: |
+| **B0** (plain Llama)                      | No                | None          | Full     |         22.41 |
+| **B1/cs1024** (recency eviction)          | No                | Recency       | 1024     |         12.45 |
+| **B1/cs2048** (recency eviction)          | No                | Recency       | 2048     |         13.78 |
+| **M1** (LoRA only)                        | Yes (rank 8)      | None          | Full     |         31.14 |
+| **M2/cs1024** (NAMM only)                 | No                | NAMM (CMA-ES) | 1024     |         20.30 |
+| **M2/cs2048** (NAMM only)                 | No                | NAMM (CMA-ES) | 2048     |         17.40 |
+| **M3/cs1024** (LoRA + frozen NAMM)        | Yes (rank 8)      | NAMM (frozen) | 1024     |         32.28 |
+| **M3/cs2048** (LoRA + frozen NAMM)        | Yes (rank 8)      | NAMM (frozen) | 2048     |         31.06 |
+| **Trunc/plain_1024** (truncation)         | No                | Truncation    | 1024     |         18.21 |
+| **Trunc/plain_2048** (truncation)         | No                | Truncation    | 2048     |         18.26 |
+| **Trunc/lora_m1_1024** (M1 LoRA + trunc)  | Yes (M1's)        | Truncation    | 1024     |         26.90 |
+| **Trunc/lora_m1_2048** (M1 LoRA + trunc)  | Yes (M1's)        | Truncation    | 2048     |         28.87 |
+| **M1_recency/cs1024** (M1 LoRA + recency) | Yes (M1's)        | Recency       | 1024     | 0.00 (broken) |
+| **A4/cs1024** (M3 LoRA, NAMM off)         | Yes (M3 cs1024's) | None          | Full     |         28.82 |
+| **A4/cs2048** (M3 LoRA, NAMM off)         | Yes (M3 cs2048's) | None          | Full     |         33.91 |
 
 The dataset comprises 306 train / 64 val / 70 test samples (4096-6500 tokens
 each) plus 224 extended_test samples (6500-8192 tokens), with a divide between
@@ -83,14 +83,14 @@ M1.
 
 **Per-task test F1 for key conditions:**
 
-| Task | B0 | B1/cs1024 | M1 | M2/cs1024 | M3/cs1024 | M3/cs2048 | Trunc/plain_1024 | Trunc/lora_m1_1024 | A4/cs1024 | A4/cs2048 |
-|------|---:|----------:|---:|----------:|----------:|----------:|------------------:|-------------------:|----------:|----------:|
-| Qasper | 25.85 | 22.29 | 45.03 | 28.30 | 29.30 | 39.68 | 29.80 | 26.35 | 46.19 | 43.56 |
-| 2WikiMQA | 26.52 | 10.42 | 10.00 | 27.56 | 44.23 | 25.00 | 26.52 | 26.52 | 25.00 | 38.89 |
-| Qasper-E | 6.06 | 7.26 | 35.62 | 8.09 | 26.56 | 30.47 | 13.99 | 27.20 | 28.12 | 34.63 |
-| HotpotQA-E | 44.56 | 17.65 | 30.51 | 17.50 | 43.45 | 35.51 | 9.38 | 33.89 | 26.67 | 35.80 |
-| 2WikiMQA-E | 17.46 | 6.55 | 30.16 | 24.16 | 22.79 | 24.60 | 12.50 | 21.43 | 17.46 | 17.46 |
-| **Micro F1** | **22.41** | **12.45** | **31.14** | **20.30** | **32.28** | **31.06** | **18.21** | **26.90** | **28.82** | **33.91** |
+| Task         |        B0 | B1/cs1024 |        M1 | M2/cs1024 | M3/cs1024 | M3/cs2048 | Trunc/plain_1024 | Trunc/lora_m1_1024 | A4/cs1024 | A4/cs2048 |
+| ------------ | --------: | --------: | --------: | --------: | --------: | --------: | ---------------: | -----------------: | --------: | --------: |
+| Qasper       |     25.85 |     22.29 |     45.03 |     28.30 |     29.30 |     39.68 |            29.80 |              26.35 |     46.19 |     43.56 |
+| 2WikiMQA     |     26.52 |     10.42 |     10.00 |     27.56 |     44.23 |     25.00 |            26.52 |              26.52 |     25.00 |     38.89 |
+| Qasper-E     |      6.06 |      7.26 |     35.62 |      8.09 |     26.56 |     30.47 |            13.99 |              27.20 |     28.12 |     34.63 |
+| HotpotQA-E   |     44.56 |     17.65 |     30.51 |     17.50 |     43.45 |     35.51 |             9.38 |              33.89 |     26.67 |     35.80 |
+| 2WikiMQA-E   |     17.46 |      6.55 |     30.16 |     24.16 |     22.79 |     24.60 |            12.50 |              21.43 |     17.46 |     17.46 |
+| **Micro F1** | **22.41** | **12.45** | **31.14** | **20.30** | **32.28** | **31.06** |        **18.21** |          **26.90** | **28.82** | **33.91** |
 
 **Key findings:**
 
@@ -164,10 +164,10 @@ cs2048 CV=0.000).
 M1 and M3 learn in **near-orthogonal** LoRA subspaces (mean cosine overlap
 ~0.18):
 
-| Metric | q_proj | v_proj |
-|--------|--------|--------|
-| M3/M1 norm ratio | 1.93x | 1.50x |
-| Subspace overlap | 0.19 | 0.17 |
+| Metric           | q_proj | v_proj |
+| ---------------- | ------ | ------ |
+| M3/M1 norm ratio | 1.93x  | 1.50x  |
+| Subspace overlap | 0.19   | 0.17   |
 
 M3 norms increase with layer depth (peaking at 2.6x in layer 14), indicating
 later layers bear the heaviest adaptation burden. The near-orthogonality means
@@ -184,11 +184,11 @@ appears to be a *better* path.
 On **full-context** inputs (no eviction at inference), M3 shows measurably
 different attention:
 
-| Metric | M1 | M3 |
-|--------|-----|-----|
-| Mean entropy | 1.912 | 1.992 (+4.2%) |
+| Metric             | M1    | M3            |
+| ------------------ | ----- | ------------- |
+| Mean entropy       | 1.912 | 1.992 (+4.2%) |
 | Mean sink fraction | 0.574 | 0.568 (-1.0%) |
-| Sharper layers | -- | 3/16 |
+| Sharper layers     | --    | 3/16          |
 
 M3 distributes attention more broadly and relies less on attention sinks. The
 entropy shifts are concentrated in specific layer-head pairs (max |diff| =
@@ -205,10 +205,10 @@ weights (Spearman rho = -0.14). M1 and M3 show nearly identical alignment
 (-0.137 vs -0.136), meaning M3 fine-tuning does not reshape attention to agree
 with NAMM.
 
-| Metric | M1 | M3 |
-|--------|-----|-----|
-| Mean Spearman rho | -0.137 | -0.136 |
-| Mean eviction regret | 7.0% | 6.7% |
+| Metric               | M1     | M3     |
+| -------------------- | ------ | ------ |
+| Mean Spearman rho    | -0.137 | -0.136 |
+| Mean eviction regret | 7.0%   | 6.7%   |
 
 The negative correlation means NAMM operates on a **complementary signal** to
 attention -- its spectrogram-based scoring captures temporal patterns across the
@@ -220,11 +220,11 @@ effective even though they do not match attention importance.
 
 CKA between M1 and M3 is **very high (0.979-1.0) but not identical**:
 
-| Layer | CKA |
-|-------|-----|
-| Embedding | 1.000 |
+| Layer         | CKA   |
+| ------------- | ----- |
+| Embedding     | 1.000 |
 | Layer 3 (min) | 0.979 |
-| Mean (all) | 0.992 |
+| Mean (all)    | 0.992 |
 
 The CKA dip at layer 3 identifies it as the point of maximum representational
 divergence. The cross-layer heatmap reveals a block structure with a transition
@@ -314,23 +314,23 @@ simply reducing context length:
 
 **At 1024 tokens retained:**
 
-| Method | Micro F1 | Delta vs Trunc/plain |
-|--------|----------|---------------------|
-| Trunc/plain_1024 | 18.21 | -- |
-| B1/cs1024 (recency) | 12.45 | -5.76 |
-| M2/cs1024 (NAMM only) | 20.30 | +2.09 |
-| Trunc/lora_m1_1024 | 26.90 | +8.69 |
-| M3/cs1024 (LoRA + NAMM) | 32.28 | +14.07 |
+| Method                  | Micro F1 | Delta vs Trunc/plain |
+| ----------------------- | -------- | -------------------- |
+| Trunc/plain_1024        | 18.21    | --                   |
+| B1/cs1024 (recency)     | 12.45    | -5.76                |
+| M2/cs1024 (NAMM only)   | 20.30    | +2.09                |
+| Trunc/lora_m1_1024      | 26.90    | +8.69                |
+| M3/cs1024 (LoRA + NAMM) | 32.28    | +14.07               |
 
 **At 2048 tokens retained:**
 
-| Method | Micro F1 | Delta vs Trunc/plain |
-|--------|----------|---------------------|
-| Trunc/plain_2048 | 18.26 | -- |
-| B1/cs2048 (recency) | 13.78 | -4.48 |
-| M2/cs2048 (NAMM only) | 17.40 | -0.86 |
-| Trunc/lora_m1_2048 | 28.87 | +10.61 |
-| M3/cs2048 (LoRA + NAMM) | 31.06 | +12.80 |
+| Method                  | Micro F1 | Delta vs Trunc/plain |
+| ----------------------- | -------- | -------------------- |
+| Trunc/plain_2048        | 18.26    | --                   |
+| B1/cs2048 (recency)     | 13.78    | -4.48                |
+| M2/cs2048 (NAMM only)   | 17.40    | -0.86                |
+| Trunc/lora_m1_2048      | 28.87    | +10.61               |
+| M3/cs2048 (LoRA + NAMM) | 31.06    | +12.80               |
 
 Key observations:
 - **Recency eviction is worse than truncation** (B1 < Trunc/plain at both
@@ -353,11 +353,11 @@ Key observations:
 Multiple reports converge on the early-middle layers as the locus of M3's
 adaptation:
 
-| Report | Layer 3 Finding |
-|--------|-----------------|
-| Report 5 | Strong entropy increase (layers 3-4 among the most shifted) |
-| Report 7 | CKA minimum at layer 3 (0.979) -- maximum representational divergence |
-| Report 4 | q_proj norm ratio begins its upward trend at layers 3-4 |
+| Report   | Layer 3 Finding                                                                |
+| -------- | ------------------------------------------------------------------------------ |
+| Report 5 | Strong entropy increase (layers 3-4 among the most shifted)                    |
+| Report 7 | CKA minimum at layer 3 (0.979) -- maximum representational divergence          |
+| Report 4 | q_proj norm ratio begins its upward trend at layers 3-4                        |
 | Report 3 | NAMM retention drops sharply at layers 6, 8-9 (just after the adaptation zone) |
 
 This suggests a picture where M3's LoRA redirects information flow in layers
@@ -370,11 +370,11 @@ representations to survive the eviction that occurs a few layers later.
 The A4 results reveal an unexpected asymmetry between the cs1024 and cs2048
 LoRAs when NAMM is removed:
 
-| Condition | With NAMM | Without NAMM (A4) |
-|-----------|----------:|---------:|
-| M3/cs1024 | 32.28 | 28.82 |
-| M3/cs2048 | 31.06 | 33.91 |
-| M1 (reference) | -- | 31.14 |
+| Condition      | With NAMM | Without NAMM (A4) |
+| -------------- | --------: | ----------------: |
+| M3/cs1024      |     32.28 |             28.82 |
+| M3/cs2048      |     31.06 |             33.91 |
+| M1 (reference) |        -- |             31.14 |
 
 - **A4/cs2048 (33.91) is the highest-scoring condition in the entire
   experiment.** The cs2048 LoRA, trained under moderate eviction, produces the
@@ -403,12 +403,12 @@ variant.
 The B1, M2, and Trunc conditions establish the eviction hierarchy for the base
 model:
 
-| Method | cs1024 F1 | cs2048 F1 |
-|--------|----------:|----------:|
-| None (B0, full context) | 22.41 | 22.41 |
-| NAMM eviction (M2) | 20.30 | 17.40 |
-| Plain truncation (Trunc) | 18.21 | 18.26 |
-| Recency eviction (B1) | 12.45 | 13.78 |
+| Method                   | cs1024 F1 | cs2048 F1 |
+| ------------------------ | --------: | --------: |
+| None (B0, full context)  |     22.41 |     22.41 |
+| NAMM eviction (M2)       |     20.30 |     17.40 |
+| Plain truncation (Trunc) |     18.21 |     18.26 |
+| Recency eviction (B1)    |     12.45 |     13.78 |
 
 For the **base model** (no LoRA), NAMM eviction at cs1024 nearly preserves
 full-context quality (20.30 vs 22.41, only 2.11 points lost), substantially
@@ -432,16 +432,16 @@ from all comparative analyses. The `M1_recency/cs2048` run is still pending.
 
 ## 4. Summary Table
 
-| Report | Question | Answer (updated with corrected eval) |
-|--------|----------|--------------------------------------|
-| 0 | What are the tasks? | Two families: localised Qasper, distributed multi-hop |
-| 1 | Does M3 match M1 on test? | **Yes, M3 exceeds M1** -- M3/cs1024 (32.28) > M1 (31.14). A4/cs2048 (33.91) is the best overall condition |
-| 2 | How fast does M3 learn? | Same steps to peak as M1 on validation, despite lower starting point |
-| 3 | Is eviction uniform? | No -- layer-specific, stable, uncorrelated with F1 |
-| 4 | Are the LoRA weights similar? | No -- orthogonal subspaces, M3 norms 1.5-2.6x larger |
-| 5 | Are the attention patterns similar? | No -- M3 has +4% entropy, -1% sinks on full context |
-| 6 | Does M3 align with NAMM? | No -- same negative correlation as M1 (rho = -0.14) |
-| 7 | Are the representations similar? | Mostly -- CKA 0.979-1.0, dip at layer 3 |
+| Report | Question                            | Answer (updated with corrected eval)                                                                      |
+| ------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 0      | What are the tasks?                 | Two families: localised Qasper, distributed multi-hop                                                     |
+| 1      | Does M3 match M1 on test?           | **Yes, M3 exceeds M1** -- M3/cs1024 (32.28) > M1 (31.14). A4/cs2048 (33.91) is the best overall condition |
+| 2      | How fast does M3 learn?             | Same steps to peak as M1 on validation, despite lower starting point                                      |
+| 3      | Is eviction uniform?                | No -- layer-specific, stable, uncorrelated with F1                                                        |
+| 4      | Are the LoRA weights similar?       | No -- orthogonal subspaces, M3 norms 1.5-2.6x larger                                                      |
+| 5      | Are the attention patterns similar? | No -- M3 has +4% entropy, -1% sinks on full context                                                       |
+| 6      | Does M3 align with NAMM?            | No -- same negative correlation as M1 (rho = -0.14)                                                       |
+| 7      | Are the representations similar?    | Mostly -- CKA 0.979-1.0, dip at layer 3                                                                   |
 
 ---
 
@@ -450,16 +450,16 @@ from all comparative analyses. The `M1_recency/cs2048` run is still pending.
 The extended_test split (n=224, longer contexts 6500-8192 tokens) provides a
 robustness check. The main patterns hold but with attenuation:
 
-| Condition | test micro | extended_test micro |
-|-----------|----------:|---------:|
-| B0 | 22.41 | 22.30 |
-| M1 | 31.14 | 31.84 |
-| M3/cs1024 | 32.28 | 26.92 |
-| M3/cs2048 | 31.06 | 23.15 |
-| A4/cs1024 | 28.82 | 25.62 |
-| A4/cs2048 | 33.91 | 25.66 |
-| Trunc/lora_m1_1024 | 26.90 | 24.24 |
-| Trunc/lora_m1_2048 | 28.87 | 27.67 |
+| Condition          | test micro | extended_test micro |
+| ------------------ | ---------: | ------------------: |
+| B0                 |      22.41 |               22.30 |
+| M1                 |      31.14 |               31.84 |
+| M3/cs1024          |      32.28 |               26.92 |
+| M3/cs2048          |      31.06 |               23.15 |
+| A4/cs1024          |      28.82 |               25.62 |
+| A4/cs2048          |      33.91 |               25.66 |
+| Trunc/lora_m1_1024 |      26.90 |               24.24 |
+| Trunc/lora_m1_2048 |      28.87 |               27.67 |
 
 On extended_test, M1 (31.84) leads M3/cs1024 (26.92) by 4.92 points. The
 longer contexts (6500-8192 tokens) increase eviction pressure, and M3's

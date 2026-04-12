@@ -14,10 +14,10 @@ For each model, we computed:
 
 ### Attention Entropy
 
-| Metric | M1 | M3 cs1024 |
-|--------|-----|-----------|
-| Mean entropy (all layers, all heads) | 1.912 | 1.992 |
-| Layers where M3 entropy < M1 (sharper) | 3 / 16 | — |
+| Metric                                 | M1     | M3 cs1024 |
+| -------------------------------------- | ------ | --------- |
+| Mean entropy (all layers, all heads)   | 1.912  | 1.992     |
+| Layers where M3 entropy < M1 (sharper) | 3 / 16 | —         |
 
 See `attention_entropy.png` — M3 shows consistently higher entropy across most layers, meaning its attention is more distributed.
 
@@ -29,9 +29,9 @@ The entropy profile across layers:
 
 ### Attention Sinks
 
-| Metric | M1 | M3 cs1024 |
-|--------|-----|-----------|
-| Mean sink fraction (first 5 tokens) | 0.574 | 0.568 |
+| Metric                              | M1    | M3 cs1024 |
+| ----------------------------------- | ----- | --------- |
+| Mean sink fraction (first 5 tokens) | 0.574 | 0.568     |
 
 Over 56% of attention mass goes to the first 5 tokens across all layers — consistent with the attention sink phenomenon (Xiao et al., 2024). M3 shows a small but consistent reduction in sink reliance.
 
@@ -57,11 +57,11 @@ See `entropy_diff.png`. The M3−M1 difference shows a structured pattern:
 
 Report 4 showed M1 and M3 learn in near-orthogonal LoRA subspaces with M3 norms 1.5-2.6× larger. Report 7 shows CKA between M1 and M3 is 0.979–1.0 (very similar but not identical), with maximum divergence at layer 3. Together, these three reports paint a consistent picture:
 
-| Report | What it measures | M1 vs M3 on full context |
-|--------|-----------------|--------------------------|
-| 4 (LoRA weights) | Weight-space difference | **Orthogonal subspaces**, M3 norms 1.5-2.6× larger |
-| 5 (Attention) | Function-space difference (attention) | **Measurably different**: M3 higher entropy (+4%), lower sinks |
-| 7 (CKA) | Function-space difference (representations) | **Very similar but not identical**: CKA 0.979-1.0 |
+| Report           | What it measures                            | M1 vs M3 on full context                                       |
+| ---------------- | ------------------------------------------- | -------------------------------------------------------------- |
+| 4 (LoRA weights) | Weight-space difference                     | **Orthogonal subspaces**, M3 norms 1.5-2.6× larger             |
+| 5 (Attention)    | Function-space difference (attention)       | **Measurably different**: M3 higher entropy (+4%), lower sinks |
+| 7 (CKA)          | Function-space difference (representations) | **Very similar but not identical**: CKA 0.979-1.0              |
 
 The weight-space divergence (Report 4) translates into measurable function-space differences in both attention (this report) and hidden representations (Report 7), even on full context.
 

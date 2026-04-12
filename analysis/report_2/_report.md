@@ -13,12 +13,12 @@ This analysis compares the learning dynamics of M1 (LoRA fine-tuning with full c
 
 ## Conditions and Baselines
 
-| Condition  | WandB Run(s)                         | Baseline F1 | Best Val F1 | Best Step | Total Steps |
-|------------|--------------------------------------|-------------|-------------|-----------|-------------|
-| M1         | kz6vqo2o, x9a4smmf, qfoxxi2m         | 22.59       | 45.48       | 336       | 682         |
-| M3 cs1024  | ovosogkj                             | 19.96       | 45.59       | 340       | 608         |
-| M3 cs2048  | m4knrhmr                             | 24.84       | 46.39       | 354       | 370         |
-| M3 cs3072  | 4sgkswa6                             | 30.56       | 41.38       | 70        | 116         |
+| Condition | WandB Run(s)                 | Baseline F1 | Best Val F1 | Best Step | Total Steps |
+| --------- | ---------------------------- | ----------- | ----------- | --------- | ----------- |
+| M1        | kz6vqo2o, x9a4smmf, qfoxxi2m | 22.59       | 45.48       | 336       | 682         |
+| M3 cs1024 | ovosogkj                     | 19.96       | 45.59       | 340       | 608         |
+| M3 cs2048 | m4knrhmr                     | 24.84       | 46.39       | 354       | 370         |
+| M3 cs3072 | 4sgkswa6                     | 30.56       | 41.38       | 70        | 116         |
 
 The baseline F1 is the zero-shot performance of the base model under each condition's inference setup (full context for M1, evicted context for M3). Each condition's own baseline was used for normalisation.
 
@@ -26,12 +26,12 @@ The baseline F1 is the zero-shot performance of the base model under each condit
 
 The table below shows the number of gradient steps required for each condition to first reach 50%, 75%, and 90% of its own best validation F1.
 
-| Condition  | 50% Threshold | 75% Threshold | 90% Threshold |
-|------------|---------------|---------------|---------------|
-| M1         | 2             | 102           | 258           |
-| M3 cs1024  | 16            | 214           | 246           |
-| M3 cs2048  | 4             | 150           | 238           |
-| M3 cs3072  | 2             | 2             | 54            |
+| Condition | 50% Threshold | 75% Threshold | 90% Threshold |
+| --------- | ------------- | ------------- | ------------- |
+| M1        | 2             | 102           | 258           |
+| M3 cs1024 | 16            | 214           | 246           |
+| M3 cs2048 | 4             | 150           | 238           |
+| M3 cs3072 | 2             | 2             | 54            |
 
 See `steps_to_threshold.png`.
 
@@ -76,12 +76,12 @@ The overfitting gap is defined as `train_F1 - val_F1`. Positive values indicate 
 
 All conditions show a consistently *negative* gap, meaning validation F1 exceeds training F1 throughout training. This likely reflects a methodological difference between how training and validation F1 are computed (e.g. different evaluation subsets or answer extraction methodology).
 
-| Condition  | Mean Gap | Std  | Final Gap (last 10 evals) |
-|------------|----------|------|--------------------------|
-| M1         | -5.74    | 3.05 | -10.68                    |
-| M3 cs1024  | -2.24    | 4.24 | -2.86                    |
-| M3 cs2048  | -3.98    | 4.18 | -11.18                    |
-| M3 cs3072  | -5.46    | 2.50 | -1.82                    |
+| Condition | Mean Gap | Std  | Final Gap (last 10 evals) |
+| --------- | -------- | ---- | ------------------------- |
+| M1        | -5.74    | 3.05 | -10.68                    |
+| M3 cs1024 | -2.24    | 4.24 | -2.86                     |
+| M3 cs2048 | -3.98    | 4.18 | -11.18                    |
+| M3 cs3072 | -5.46    | 2.50 | -1.82                     |
 
 ### Does eviction act as regularisation?
 
@@ -96,7 +96,7 @@ The evidence for eviction-as-regularisation is mixed.
 ## Convergence Speed: Does Larger Cache = Faster Convergence?
 
 | Cache Size | Baseline F1 | Steps to 75% | Steps to 90% |
-|------------|-------------|--------------|--------------|
+| ---------- | ----------- | ------------ | ------------ |
 | cs1024     | 19.96       | 214          | 246          |
 | cs2048     | 24.84       | 150          | 238          |
 | cs3072     | 30.56       | 2            | 54           |
