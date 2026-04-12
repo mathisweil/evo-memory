@@ -373,6 +373,14 @@ class LoRAGradTrainer:
                         "(initialize_buffers / reset_kv_cache / reset). "
                         "Proceeding without KV-cache reset."
                     )
+            # The preceding baseline eval (via evaluate_lb) sets
+            # _flat_param_idxs per-chunk to a length equal to the last chunk
+            # size. Training uses batch_size=1, but the stale batch_idxs
+            # would make get_additional_shared_params return a tensor sized
+            # for the eval chunk, not this step's batch. Reset to match the
+            # actual per-step batch.
+            self.memory_policy.set_params_batch_idxs(
+                np.zeros([input_ids.shape[0]], dtype=np.int64))
             past_key_values = None
 
         if cfg.namm_active:

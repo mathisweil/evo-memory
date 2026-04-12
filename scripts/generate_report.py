@@ -29,6 +29,16 @@ from experiment_utils import load_manifest, normalize_name, EXPERIMENTS_DIR
 
 MANIFEST_PATH = os.path.join(EXPERIMENTS_DIR, "manifest.json")
 
+# FAIR-01 5-task QA subset. Macro-F1 across these 5 is the main results
+# table number for M1–M4 / B0 / B1.
+FAIR01_TASKS = (
+    "lb/qasper",
+    "lb/2wikimqa",
+    "lb/qasper_e",
+    "lb/hotpotqa_e",
+    "lb/2wikimqa_e",
+)
+
 
 def collect_runs(experiment_dir):
     """Walk experiment_dir/method/run_name/ and collect results.
@@ -85,7 +95,21 @@ def collect_runs(experiment_dir):
 
 
 def _extract_scores(results):
-    """Extract final and baseline score dicts from a results dict."""
+    """Extract (final_scores, baseline_scores, training) from a results dict.
+
+    Supports three schemas:
+      - Flat (eval.md rule, run_eval.py joint per-loop entries):
+            {f1, exact_match, num_samples, cache_size, method}
+        Returns ({"_aggregate": f1}, {}, {}).
+      - Nested eval-only:
+            {type: "eval", config: {...}, scores: {lb/qasper: ..., ...}}
+      - Nested training:
+            {full_eval: {scores}, baseline_eval: {scores}, training: {...}}
+    """
+    if ("f1" in results
+            and "scores" not in results
+            and "full_eval" not in results):
+        return {"_aggregate": results["f1"]}, {}, {}
     if results.get("type") == "eval":
         return results.get("scores", {}), {}, {}
     full_eval = results.get("full_eval", {})
@@ -94,9 +118,25 @@ def _extract_scores(results):
     return full_eval.get("scores", {}), baseline.get("scores", {}), training
 
 
-def _get_qasper_f1(scores):
-    """Get qasper F1 from a scores dict, or None if not present."""
-    return scores.get("lb/qasper")
+def _get_mean_f1(scores):
+    """Macro-mean F1 across the FAIR-01 5-task subset.
+
+    Resolution order:
+      1. ``_aggregate`` — set by the flat-schema branch of _extract_scores
+         when the results dict has no per-task breakdown.
+      2. Macro-mean over the 5 FAIR-01 tasks if all five are present.
+      3. Mean over whatever ``lb/*`` keys are present (partial-eval fallback).
+      4. ``None`` if nothing matches.
+    """
+    if "_aggregate" in scores:
+        return scores["_aggregate"]
+    fair01 = [scores[t] for t in FAIR01_TASKS if t in scores]
+    if len(fair01) == len(FAIR01_TASKS):
+        return sum(fair01) / len(fair01)
+    lb_values = [v for k, v in scores.items() if k.startswith("lb/")]
+    if lb_values:
+        return sum(lb_values) / len(lb_values)
+    return None
 
 
 def build_summary(runs, run_statuses=None):
@@ -105,12 +145,16 @@ def build_summary(runs, run_statuses=None):
     rows = []
     for run in runs:
         r = run["results"]
-        is_eval_only = r.get("type") == "eval"
-        config = r.get("config", {})
+        is_flat = ("f1" in r
+                   and "scores" not in r
+                   and "full_eval" not in r)
+        is_eval_only = is_flat or r.get("type") == "eval"
+        # Flat schema stores scalar fields at the top level; nested under config.
+        config = r if is_flat else r.get("config", {})
         final_scores, baseline_scores, training = _extract_scores(r)
 
-        final_f1 = _get_qasper_f1(final_scores)
-        baseline_f1 = _get_qasper_f1(baseline_scores)
+        final_f1 = _get_mean_f1(final_scores)
+        baseline_f1 = _get_mean_f1(baseline_scores)
 
         run_key = f"{run['method']}/{run['run_name']}"
         status_info = run_statuses.get(run_key, {})
@@ -207,16 +251,20 @@ def generate_plots(experiment_dir, runs):
     for method, method_runs in sorted(methods.items()):
         for run in method_runs:
             r = run["results"]
-            is_eval_only = r.get("type") == "eval"
+            is_flat = ("f1" in r
+                       and "scores" not in r
+                       and "full_eval" not in r)
+            is_eval_only = is_flat or r.get("type") == "eval"
             final_scores, baseline_scores, _ = _extract_scores(r)
 
-            f1 = _get_qasper_f1(final_scores)
+            f1 = _get_mean_f1(final_scores)
             if f1 is not None:
+                label_config = r if is_flat else r.get("config", {})
                 label = _pretty_run_label(method, run["run_name"],
-                                          r.get("config", {}), is_eval_only)
+                                          label_config, is_eval_only)
                 all_labels.append(label)
                 all_final.append(f1)
-                all_baseline.append(_get_qasper_f1(baseline_scores) or 0)
+                all_baseline.append(_get_mean_f1(baseline_scores) or 0)
                 all_types.append("eval" if is_eval_only else "training")
                 colors_final.append(method_colors.get(method, "gray"))
 
@@ -232,8 +280,8 @@ def generate_plots(experiment_dir, runs):
                     fontsize=8, fontweight="bold")
         ax.set_yticks(y)
         ax.set_yticklabels(all_labels, fontsize=8)
-        ax.set_xlabel("Qasper F1 Score")
-        ax.set_title("Qasper F1: Effect of Eviction Policy and Cache Size")
+        ax.set_xlabel("Mean F1 (FAIR-01 5-task subset)")
+        ax.set_title("Mean F1: Effect of Eviction Policy and Cache Size")
         # Build legend with method colors + baseline
         from matplotlib.patches import Patch
         legend_handles = [Patch(facecolor="lightgray", label="Pre-training baseline")]
@@ -279,7 +327,7 @@ def generate_plots(experiment_dir, runs):
                 ax.plot(iters, means, linewidth=2, label=label,
                         color=color, linestyle=ls)
         ax.set_xlabel("ES Iteration")
-        ax.set_ylabel("Mean Reward (Qasper F1, 0-1)")
+        ax.set_ylabel("Mean Reward (5-task macro-F1, 0-1)")
         ax.set_title("ES Training Reward per Iteration")
         ax.legend(fontsize=8, loc="upper left")
         ax.grid(True, alpha=0.3)
