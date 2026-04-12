@@ -19,14 +19,14 @@ PR #12 merged test-set evaluations for all conditions across two splits: **test*
 
 The initial test numbers (2026-04-11) were computed without the chat template on eval prompts and without protecting the answer-bearing tail during truncation. Corrected test micro-F1 (old → new):
 
-| Condition | Old test micro | New test micro | Delta |
-|-----------|---------------|---------------|-------|
-| B0 | 19.28 | 22.41 | +3.13 |
-| M1 | 31.14 | 31.14 | 0.00 |
-| M2/cs1024 | 16.84 | 20.30 | +3.46 |
-| M4/cs1024 | 25.87 | 32.28 | +6.41 |
-| A4/cs1024 | 30.58 | 28.82 | -1.76 |
-| A4/cs2048 | 21.81 | 33.91 | +12.10 |
+| Condition | Old test micro | New test micro | Delta  |
+| --------- | -------------- | -------------- | ------ |
+| B0        | 19.28          | 22.41          | +3.13  |
+| M1        | 31.14          | 31.14          | 0.00   |
+| M2/cs1024 | 16.84          | 20.30          | +3.46  |
+| M4/cs1024 | 25.87          | 32.28          | +6.41  |
+| A4/cs1024 | 30.58          | 28.82          | -1.76  |
+| A4/cs2048 | 21.81          | 33.91          | +12.10 |
 
 New truncation baselines: Trunc/plain_1024 (18.21), Trunc/plain_2048 (18.26), Trunc/lora_m1_1024 (26.90), Trunc/lora_m1_2048 (28.87). M1_recency/cs1024 is broken (all zeros).
 
