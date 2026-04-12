@@ -240,9 +240,10 @@ def main():
         print(f"  Swapped to classic Recency policy (last-{cs} tokens)")
 
     # ── Load NAMM checkpoint or use init params (recency baseline) ──────────
-    if args.use_classic_recency:
-        # Already handled above. Skip the NAMM/init-param branches entirely
-        # because Recency has no learnable params and no scoring net.
+    if args.use_classic_recency or args.truncate_input_to is not None:
+        # Already handled above (classic recency or truncation swap).
+        # Skip the NAMM/init-param branches — the active policy is a
+        # parameter-free Recency with no scoring net.
         pass
     elif args.namm_checkpoint:
         print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
@@ -284,7 +285,7 @@ def main():
 
     # Recency has no learnable params / no batch idxs / no per-step stat
     # buffers — skip the DynamicMemoryPolicy bookkeeping in that case.
-    if not args.use_classic_recency:
+    if not args.use_classic_recency and args.truncate_input_to is None:
         batch_idxs = np.zeros([1])
         memory_policy.set_params_batch_idxs(batch_idxs)
         memory_policy.record_eval_stats = True
@@ -368,11 +369,17 @@ def main():
         # Note: this is set up here, BEFORE the task sampler is built.
         # The sampler builds prompts lazily, so we'll apply the truncation
         # inside a hook on get_lb_request_strings (see below).
-        eval_mode = (eval_mode + "+trunc"
-                     if eval_mode != "recency_baseline" else "trunc")
+        # Swap the memory policy to a no-op so NAMM's STFT/scoring/topk
+        # pipeline is never invoked. Recency(cache_size=None) returns the
+        # KV cache unchanged — no eviction, no overhead.
+        from namm.policy.base import Recency
+        noop_policy = Recency(cache_size=None)
+        memory_evaluator.swap_memory_policy(noop_policy)
+        memory_policy = noop_policy
+        eval_mode = "trunc"
         print(f"  Will truncate every prompt to its last "
-              f"{args.truncate_input_to} tokens (no cache eviction, no monkey "
-              f"patching of the model path).")
+              f"{args.truncate_input_to} tokens. NAMM deactivated "
+              f"(swapped to no-op policy, no eviction).")
 
     # ── Create task sampler with EXACT same filtering/splits as run_namm.py ─
     print("Creating task sampler (replicating run_namm.py filtering)...")
