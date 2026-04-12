@@ -143,6 +143,97 @@ JOBS = [
         ),
     },
     {
+        "src": "trunc_plain_1024_5t",
+        "dst": "Trunc/plain_1024",
+        "name": "Plain Llama, input truncated to last 1024 tokens",
+        "desc": "Naive tail-only baseline: every prompt is decoded from its "
+                "last 1024 token ids before the model sees it. No KV cache "
+                "eviction, no policy hooks — the model simply runs on a "
+                "shorter input. The cleanest 'StreamingLLM rolling-window' "
+                "comparison: how much can we recover with no learned policy?",
+        "cmd": (
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --truncate_input_to 1024 \\\n"
+            "    --filter_by_length 8192 --cache_size 8192 --batch_size 8 \\\n"
+            "    --splits test extended_test --run_label trunc \\\n"
+            "    --output_dir eval_results/trunc_plain_1024_5t"
+        ),
+    },
+    {
+        "src": "trunc_plain_2048_5t",
+        "dst": "Trunc/plain_2048",
+        "name": "Plain Llama, input truncated to last 2048 tokens",
+        "desc": "Same as Trunc/plain_1024 but with double the input budget.",
+        "cmd": (
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --truncate_input_to 2048 \\\n"
+            "    --filter_by_length 8192 --cache_size 8192 --batch_size 8 \\\n"
+            "    --splits test extended_test --run_label trunc \\\n"
+            "    --output_dir eval_results/trunc_plain_2048_5t"
+        ),
+    },
+    {
+        "src": "trunc_lora_m1_1024_5t",
+        "dst": "Trunc/lora_m1_1024",
+        "name": "M1 LoRA, input truncated to last 1024 tokens",
+        "desc": "M1 LoRA evaluated on its last-1024-token input. Pairs with "
+                "Trunc/plain_1024 to isolate how much the LoRA recovers under "
+                "naive truncation, and pairs with M2/M4 to see how learned "
+                "eviction compares to the simplest possible baseline at the "
+                "same budget.",
+        "cmd": (
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --truncate_input_to 1024 \\\n"
+            "    --lora_checkpoint results/rh_m1_lora_instruct_5t/42/best_ckpt.pt \\\n"
+            "    --filter_by_length 8192 --cache_size 8192 --batch_size 8 \\\n"
+            "    --splits test extended_test --run_label trunc \\\n"
+            "    --output_dir eval_results/trunc_lora_m1_1024_5t"
+        ),
+    },
+    {
+        "src": "trunc_lora_m1_2048_5t",
+        "dst": "Trunc/lora_m1_2048",
+        "name": "M1 LoRA, input truncated to last 2048 tokens",
+        "desc": "Same as Trunc/lora_m1_1024 but with double the input budget.",
+        "cmd": (
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --truncate_input_to 2048 \\\n"
+            "    --lora_checkpoint results/rh_m1_lora_instruct_5t/42/best_ckpt.pt \\\n"
+            "    --filter_by_length 8192 --cache_size 8192 --batch_size 8 \\\n"
+            "    --splits test extended_test --run_label trunc \\\n"
+            "    --output_dir eval_results/trunc_lora_m1_2048_5t"
+        ),
+    },
+    {
+        "src": "lora_m1_recency_cs1024_5t",
+        "dst": "M1_recency/cs1024",
+        "name": "M1 LoRA + recency eviction, cache_size=1024",
+        "desc": "M1 LoRA (trained with full cache) evaluated under a fixed "
+                "recency policy at cs=1024. Tests how much of M1's gain "
+                "survives aggressive cache compression with a naive eviction "
+                "heuristic (no learned policy).",
+        "cmd": (
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --lora_checkpoint results/rh_m1_lora_instruct_5t/42/best_ckpt.pt \\\n"
+            "    --filter_by_length 8192 --cache_size 1024 --batch_size 8 \\\n"
+            "    --splits test extended_test --run_label ext \\\n"
+            "    --output_dir eval_results/lora_m1_recency_cs1024_5t"
+        ),
+    },
+    {
+        "src": "lora_m1_recency_cs2048_5t",
+        "dst": "M1_recency/cs2048",
+        "name": "M1 LoRA + recency eviction, cache_size=2048",
+        "desc": "Same as M1_recency cs1024 but with double the cache budget.",
+        "cmd": (
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --lora_checkpoint results/rh_m1_lora_instruct_5t/42/best_ckpt.pt \\\n"
+            "    --filter_by_length 8192 --cache_size 2048 --batch_size 8 \\\n"
+            "    --splits test extended_test --run_label ext \\\n"
+            "    --output_dir eval_results/lora_m1_recency_cs2048_5t"
+        ),
+    },
+    {
         "src": "lora_m4_cs1024_5t_ablation",
         "dst": "A4/cs1024_no_namm",
         "name": "A4 — M4 (cs1024) LoRA, NAMM disabled (full cache)",
@@ -176,12 +267,21 @@ TASKS = ["lb/qasper", "lb/2wikimqa", "lb/qasper_e", "lb/hotpotqa_e", "lb/2wikimq
 
 
 def latest_ext_run(src_dir: Path) -> Optional[Path]:
-    """Return the most recent ext_<ts>/ subdir containing results.json, or None."""
+    """Return the most recent eval-run subdir containing results.json, or None.
+
+    Accepts any subdir whose name starts with one of the run-label prefixes
+    used by eval_namm_splits.py: ext, trunc, classic, smoke. The latest by
+    mtime wins, so re-running with a new label automatically supersedes the
+    older run.
+    """
     if not src_dir.exists():
         return None
+    accepted_prefixes = ("ext", "trunc", "classic", "smoke")
     candidates = [
         d for d in src_dir.iterdir()
-        if d.is_dir() and d.name.startswith("ext") and (d / "results.json").exists()
+        if d.is_dir()
+        and d.name.startswith(accepted_prefixes)
+        and (d / "results.json").exists()
     ]
     if not candidates:
         return None
@@ -279,23 +379,24 @@ def write_leaf(job: dict, run_dir: Optional[Path]) -> dict:
         )
         return {}
 
-    # Copy artifacts
+    # Copy artifacts as REGULAR files (not symlinks) so the leaf is
+    # self-contained and survives git checkouts on a fresh clone.
     src_results = run_dir / "results.json"
     shutil.copy2(src_results, leaf / "results.json")
-    # Eviction traces are large; symlink to save space
     traces = run_dir / "eviction_traces.npz"
     if traces.exists():
-        link = leaf / "eviction_traces.npz"
-        if link.exists() or link.is_symlink():
-            link.unlink()
-        os.symlink(traces.resolve(), link)
-    # Per-prompt generations sidecar — symlink (also potentially large)
+        dst = leaf / "eviction_traces.npz"
+        # Remove any prior symlink/file before copying so shutil.copy2 doesn't
+        # follow a stale link to write into the source.
+        if dst.exists() or dst.is_symlink():
+            dst.unlink()
+        shutil.copy2(traces, dst)
     gens = run_dir / "generations.json"
     if gens.exists():
-        link = leaf / "generations.json"
-        if link.exists() or link.is_symlink():
-            link.unlink()
-        os.symlink(gens.resolve(), link)
+        dst = leaf / "generations.json"
+        if dst.exists() or dst.is_symlink():
+            dst.unlink()
+        shutil.copy2(gens, dst)
 
     # Extract scores for the README
     with open(src_results) as f:
