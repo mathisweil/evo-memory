@@ -45,13 +45,10 @@ venv/
 es_smoke_test*/
 .env
 
-# uv / Makefile generated files
+# uv generated files
 .venv/
-.make/
 .uv_cache/
 .pip_cache/
-activate.sh
-activate.csh
 
 namm_efficiency_audit_report.md
 namm_efficiency_benchmark_report.md

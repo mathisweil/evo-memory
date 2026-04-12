@@ -68,6 +68,7 @@ from experiment_utils import (
     EXPERIMENTS_DIR,
 )
 from joint_metrics import JointMetricsTracker
+from utils.hydra_helpers import assert_fair01_test_size
 
 
 # ── NAMM ↔ model helpers ────────────────────────────────────────────────
@@ -164,14 +165,17 @@ def parse_args():
     parser.add_argument("--adapter_type", type=str, required=True,
                         choices=["es", "lora"],
                         help="Adapter training method")
-    parser.add_argument("--num_outer_loops", type=int, default=5,
-                        help="K: number of Stage A → Stage B cycles")
-    parser.add_argument("--namm_iterations_per_stage", type=int, default=50,
-                        help="N: CMA-ES iterations per NAMM stage")
+    parser.add_argument("--num_outer_loops", type=int, default=2,
+                        help="K: number of Stage A → Stage B cycles "
+                             "(FAIR-01 M4: 2)")
+    parser.add_argument("--namm_iterations_per_stage", type=int, default=100,
+                        help="N: CMA-ES iterations per NAMM stage "
+                             "(FAIR-01 M4: 100, total = 200 = M2 budget)")
     parser.add_argument("--adapter_iterations_per_stage", type=int, default=25,
                         help="M: ES iterations per adapter stage (ES path)")
-    parser.add_argument("--lora_epochs_per_stage", type=int, default=1,
-                        help="Epochs per adapter stage (LoRA path)")
+    parser.add_argument("--lora_epochs_per_stage", type=int, default=75,
+                        help="Epochs per adapter stage (LoRA path) "
+                             "(FAIR-01 M4: 75, total = 150 = M1 budget)")
     parser.add_argument("--eval_after_each_loop",
                         action=argparse.BooleanOptionalAction, default=True,
                         help="Run full evaluation after each outer loop")
@@ -182,7 +186,8 @@ def parse_args():
 
     # NAMM config
     parser.add_argument("--run_config", type=str,
-                        default="namm_bam_i1_llama32_1b")
+                        default="namm_bam_i1_llama32_1b_5t",
+                        help="Hydra run config (FAIR-01 M4: 5-task variant)")
     parser.add_argument("--namm_checkpoint", type=str, default=None,
                         help="Initial NAMM checkpoint (null = from scratch)")
     parser.add_argument("--cache_size", type=int, default=None)
@@ -210,12 +215,21 @@ def parse_args():
     parser.add_argument("--warmup_ratio", type=float, default=0.03)
     parser.add_argument("--gradient_accumulation_steps", type=int, default=16)
     parser.add_argument("--max_seq_len", type=int, default=3500)
-    parser.add_argument("--sft_mode", action="store_true", default=False)
+    parser.add_argument("--sft_mode",
+                        action=argparse.BooleanOptionalAction, default=True,
+                        help="FAIR-01 M4: true (chat-template, answer-only loss)")
 
-    # Data
-    parser.add_argument("--train_split", type=float, default=0.8)
-    parser.add_argument("--val_split", type=float, default=0.1)
+    # Data (FAIR-01 fixed)
+    parser.add_argument("--train_split", type=float, default=0.7)
+    parser.add_argument("--val_split", type=float, default=0.15)
     parser.add_argument("--split_seed", type=int, default=42)
+    parser.add_argument("--min_conditioning_length", type=int, default=4096,
+                        help="Drop prompts shorter than this (FAIR-01: 4096)")
+    parser.add_argument("--max_conditioning_length", type=int, default=6500,
+                        help="Drop prompts longer than this (FAIR-01: 6500)")
+    parser.add_argument("--max_answer_tokens", type=int, default=64,
+                        help="Drop samples whose shortest answer exceeds "
+                             "this token count (FAIR-01: 64)")
     parser.add_argument("--filter_by_tokens", type=int, default=None)
     parser.add_argument("--filter_answers_by_tokens", type=int, default=64)
 
@@ -301,6 +315,9 @@ def main():
     print(f"  train_split       : {args.train_split}")
     print(f"  val_split         : {args.val_split}")
     print(f"  split_seed        : {args.split_seed}")
+    print(f"  min_cond_length   : {args.min_conditioning_length}")
+    print(f"  max_cond_length   : {args.max_conditioning_length}")
+    print(f"  max_answer_tokens : {args.max_answer_tokens}")
     print("  -- Memory --")
     print(f"  cache_size        : {args.cache_size}")
     print("=" * 60)
@@ -342,10 +359,28 @@ def main():
     task_sampler.filter_answers_by_token_count(
         memory_evaluator.tokenizer, args.filter_answers_by_tokens)
 
-    # LoRA path needs 3-way split for training
-    if args.adapter_type == "lora":
-        task_sampler.apply_train_val_test_split(
-            train_frac=args.train_split, val_frac=args.val_split)
+    # Apply the 3-way split used by M1/M2/M3 — passing length filters and
+    # the tokenizer is load-bearing: without them the splitter ignores the
+    # FAIR-01 prompt-length bounds and joint training sees a different
+    # eligible set than the other conditions.
+    task_sampler.apply_train_val_test_split(
+        train_frac=args.train_split,
+        val_frac=args.val_split,
+        max_conditioning_length=args.max_conditioning_length,
+        min_conditioning_length=args.min_conditioning_length,
+        tokenizer=memory_evaluator.tokenizer,
+    )
+    n_test = assert_fair01_test_size(
+        task_sampler,
+        run_config=args.run_config,
+        train_frac=args.train_split,
+        val_frac=args.val_split,
+        min_conditioning_length=args.min_conditioning_length,
+        max_conditioning_length=args.max_conditioning_length,
+    )
+    test_idxs = task_sampler.get_split_indices('test')
+    print(f"  Test split size: {n_test} prompts across "
+          f"{len(test_idxs)} tasks (FAIR-01 target: 69)")
 
     # MemoryTrainer expects these attributes on the task_sampler (it reads
     # training_tasks_subset / test_tasks_subset directly).  TaskSampler
@@ -402,16 +437,15 @@ def main():
             lora_alpha=args.lora_alpha,
             lora_dropout=args.lora_dropout,
         )
+        alpha_effective = (args.lora_alpha
+                           if args.lora_alpha is not None
+                           else 2 * args.lora_rank)
         print(f"LoRA applied: rank={args.lora_rank}, "
               f"targets={args.lora_target_modules}, "
-              f"alpha={args.lora_alpha or args.lora_rank}")
+              f"alpha={alpha_effective}")
         # Freeze LoRA for the first NAMM stage
         n_frozen = freeze_lora_params(memory_model)
         print(f"  Froze {n_frozen} LoRA parameter tensors for Stage A")
-
-        # Build tokenizer for LoRA trainer
-        with torch.no_grad():
-            tokenizer = hydra.utils.call(cfg.tokenizer)
 
     # ── 6. Prepare ES components if needed ───────────────────────────────
 
@@ -450,6 +484,9 @@ def main():
         "train_split": args.train_split,
         "val_split": args.val_split,
         "split_seed": args.split_seed,
+        "min_conditioning_length": args.min_conditioning_length,
+        "max_conditioning_length": args.max_conditioning_length,
+        "max_answer_tokens": args.max_answer_tokens,
     }
     if args.adapter_type == "es":
         config_dict.update({
@@ -560,7 +597,7 @@ def main():
 
         elif args.adapter_type == "lora":
             _run_lora_stage(
-                args, k, cfg, memory_model, tokenizer,
+                args, k, cfg, memory_model, memory_evaluator.tokenizer,
                 memory_evaluator, task_sampler, memory_policy,
                 experiment_name, adapter_stage_dir, device_str)
 
@@ -707,6 +744,9 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
         sft_mode=args.sft_mode,
         train_frac=args.train_split,
         val_frac=args.val_split,
+        max_conditioning_length=args.max_conditioning_length,
+        min_conditioning_length=args.min_conditioning_length,
+        max_answer_tokens=args.max_answer_tokens,
     )
 
     lora_wandb_config = WandbConfig(

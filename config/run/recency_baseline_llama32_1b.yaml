@@ -1,20 +1,20 @@
 # @package _global_
-# Recency baseline for LLaMA 3.2-1B: keep only the last `cache_size` tokens.
-# Identical cache budget (256 default) as the trained NAMM — apples-to-apples comparison.
+# B1 baseline for LLaMA 3.2-1B: keep only the last `cache_size` tokens.
+# FAIR-01 default cache budget = 1024, matching the M1–M4 eval setting.
 #
-# Override cache_size from the CLI to match any NAMM eval budget, e.g.:
+# Override cache_size from the CLI for any non-FAIR-01 budget sweeps, e.g.:
 #   torchrun ... scripts/run_namm.py run@_global_=recency_baseline_llama32_1b.yaml cache_size=512
 defaults:
   - override /model/wrapped_llm@_global_: llama32-1b
-  - override /task@_global_: lb_3subset_eval
+  - override /task@_global_: rh_multi_qa_5t
   - override /evolution@_global_: dummy
   - override /policy@_global_: none
   - override /typing@_global_: half_attn
   - override /auxiliary_loss@_global_: none
   - _self_
 
-# Must match the NAMM eval cache_size for a fair comparison
-cache_size: 256
+# B1 (FAIR-01): 1024 token cache, recency policy.
+cache_size: 1024
 max_new_tokens: 128
 
 batch_size: 4
