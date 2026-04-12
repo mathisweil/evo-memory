@@ -6,7 +6,7 @@
 
 ### Setup
 
-- **Checkpoints:** M1 (LoRA full-context, best val F1 45.48) and M3 cs1024 (LoRA + frozen NAMM, best val F1 45.59), both using the same NAMM checkpoint from M2 cs1024 training.
+- **Checkpoints:** M1 (LoRA full-context, best val F1 45.48, test micro 31.14) and M3 cs1024 (LoRA + frozen NAMM, best val F1 45.59, test micro 32.28), both using the same NAMM checkpoint from M2 cs1024 training.
 - **Test data:** 3 samples per task from the 5-task test set (15 samples total).
 - **Cache size:** 1024 tokens.
 
