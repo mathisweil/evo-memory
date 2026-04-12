@@ -190,6 +190,11 @@ def main():
     if args.cache_size is not None:
         overrides.append(f"cache_size={args.cache_size}")
         overrides.append(f"max_memory_length={args.cache_size}")
+    # Protect the chat template tail from NAMM eviction. The generation
+    # prompt (<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n)
+    # is 5 tokens. Without protection, NAMM evicts these 100% of the time,
+    # causing the model to produce verbose, non-stopping outputs.
+    overrides.append("+protected_tail_n=5")
     if args.task_config is not None:
         overrides.append(f"task@_global_={args.task_config}")
 
@@ -416,6 +421,14 @@ def main():
           f"max_conditioning_length={max_cond}")
     if ext_max_cond is not None:
         print(f"  extended_max_conditioning_length={ext_max_cond}")
+
+    # Wrap prompts in the Llama 3 Instruct chat template so the model
+    # sees the same framing it was instruction-tuned on. Without this, the
+    # instruct model treats the input as raw text completion and doesn't
+    # stop at <|eot_id|>, producing verbose outputs that depress F1.
+    # This matches run_lora.py:276 which applies the same template during
+    # LoRA training and eval.
+    task_sampler.apply_chat_template_to_prompts(tokenizer)
 
     # Show per-task sample counts
     for task_n, n in task_sampler.num_prompts_per_lb_task.items():
