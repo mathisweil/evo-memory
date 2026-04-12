@@ -86,7 +86,17 @@ def stochasticity_setup(cfg, seed_offset=0, log_prefix=''):
 
 # ── Model / task instantiation ────────────────────────────────────────────────
 
-def make_eval_model(cfg, log_prefix='...'):
+def make_eval_model(cfg, log_prefix='...', namm_active=True, cache_size=None):
+    """Instantiate the eval-time model bundle.
+
+    When ``namm_active=False`` the NAMM scoring network is still constructed
+    from ``cfg`` (so checkpoints can be loaded against the same parameter
+    layout) but is then swapped out for a passthrough ``Recency`` policy.
+    Without this swap an A4 NAMM-off arm or a baseline run that pointed at
+    a NAMM Hydra config would silently use a randomly-initialised NAMM
+    instead of the full cache. ``cache_size`` is forwarded to ``Recency``;
+    pass ``None`` for "no eviction".
+    """
     print(log_prefix + 'Instantialting llm...')
     pretrained_llm = hydra.utils.call(cfg.pretrained_llm, _convert_="object")
     tokenizer = hydra.utils.call(cfg.tokenizer)
@@ -149,6 +159,27 @@ def make_eval_model(cfg, log_prefix='...'):
                                                  memory_policy=memory_policy)
     else:
         auxiliary_loss = None
+
+    if not namm_active:
+        # Replace the just-constructed NAMM with a passthrough Recency
+        # policy. evolution_algorithm and auxiliary_loss are unused at
+        # eval time, so they remain bound to the NAMM-shaped objects —
+        # this matches the previous in-script swap pattern.
+        from namm.policy.base import Recency
+        recency_policy = Recency(cache_size=cache_size)
+        memory_evaluator.swap_memory_policy(recency_policy)
+        memory_policy = recency_policy
+        # The Hydra config (e.g. namm_bam_i1_llama32_1b_5t) tunes
+        # max_memory_length and batch_size for the small NAMM cache.
+        # Without eviction the KV cache grows to the full prompt length,
+        # so widen the buffer and clamp auto batch sizing.
+        memory_evaluator.max_memory_length = (
+            memory_evaluator.max_conditioning_length)
+        if memory_evaluator.batch_size == "auto":
+            memory_evaluator.batch_size = 1
+        print(log_prefix + f'NAMM disabled; swapped to Recency '
+              f'(cache_size={cache_size}, '
+              f'eval_batch_size={memory_evaluator.batch_size}).')
 
     print(log_prefix + 'Finished instantiations.')
     return (memory_policy, memory_model, memory_evaluator, evolution_algorithm,

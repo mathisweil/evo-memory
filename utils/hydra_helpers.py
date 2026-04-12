@@ -12,6 +12,117 @@ from namm.run_utils import make_eval_model, make_task_sampler, wandb_init
 import omegaconf
 import hydra
 import time
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
+# FAIR-01 invariants — must match @.claude/rules/training.md.
+_FAIR01_TRAIN_FRAC = 0.7
+_FAIR01_VAL_FRAC = 0.15
+_FAIR01_MIN_COND = 4096
+_FAIR01_MAX_COND = 6500
+_FAIR01_RUN_CONFIG_SUFFIX = "_5t"
+_FAIR01_EXPECTED_TEST = 69
+_FAIR01_EXPECTED_TEST_ENV_VAR = "FAIR01_EXPECTED_TEST_SIZE"
+
+
+def assert_fair01_test_size(
+    task_sampler,
+    *,
+    run_config: str,
+    train_frac: float,
+    val_frac: float,
+    min_conditioning_length,
+    max_conditioning_length,
+    expected: int = _FAIR01_EXPECTED_TEST,
+) -> int:
+    """Verify the FAIR-01 test split has the expected number of prompts.
+
+    Hard-asserts only when every FAIR-01 toggle is in effect (5-task subset
+    via ``_5t`` run config, 0.7/0.15 split fractions, 4096-6500 conditioning
+    bounds). Otherwise emits a soft warning so non-FAIR-01 sweeps still log
+    the actual split size without crashing.
+
+    The canonical FAIR-01 test size is 69 prompts. Environments where the
+    cached LongBench dataset or tokenizer behaviour produces a different
+    count (observed: 70 on some machines from a boundary qasper_e prompt)
+    can set the ``FAIR01_EXPECTED_TEST_SIZE`` env var to override. Results
+    produced under an override are NOT FAIR-01-comparable with runs on the
+    canonical 69-prompt test set and MUST be reported as a separate
+    condition.
+
+    Args:
+        task_sampler: TaskSampler with ``apply_train_val_test_split`` already
+            called.
+        run_config: Hydra run config name passed via ``run@_global_=``.
+        train_frac: Train split fraction.
+        val_frac: Val split fraction.
+        min_conditioning_length: Minimum prompt length used by the splitter.
+        max_conditioning_length: Maximum prompt length used by the splitter.
+        expected: Expected test split size (FAIR-01 default: 69). Env var
+            ``FAIR01_EXPECTED_TEST_SIZE`` overrides this default.
+
+    Returns:
+        Actual test split size (sum across tasks).
+
+    Raises:
+        AssertionError: When all FAIR-01 toggles are active and the actual
+            test size differs from ``expected``.
+    """
+    env_override = os.environ.get(_FAIR01_EXPECTED_TEST_ENV_VAR)
+    if env_override is not None:
+        try:
+            expected = int(env_override)
+            logger.warning(
+                "FAIR-01 expected test size overridden via %s=%d "
+                "(canonical value: %d). Runs produced under this override "
+                "are not comparable with canonical M1/M2/M3/M4 results.",
+                _FAIR01_EXPECTED_TEST_ENV_VAR, expected,
+                _FAIR01_EXPECTED_TEST,
+            )
+        except ValueError:
+            logger.error(
+                "%s=%r is not an integer; using default %d.",
+                _FAIR01_EXPECTED_TEST_ENV_VAR, env_override, expected,
+            )
+
+    test_idxs = task_sampler.get_split_indices('test')
+    n_test = sum(len(v) for v in test_idxs.values())
+
+    is_fair01 = (
+        run_config.endswith(_FAIR01_RUN_CONFIG_SUFFIX)
+        and train_frac == _FAIR01_TRAIN_FRAC
+        and val_frac == _FAIR01_VAL_FRAC
+        and min_conditioning_length == _FAIR01_MIN_COND
+        and max_conditioning_length == _FAIR01_MAX_COND
+    )
+
+    if is_fair01:
+        assert n_test == expected, (
+            f"FAIR-01 test split size mismatch: got {n_test}, expected "
+            f"{expected}. All FAIR-01 toggles are active "
+            f"(run_config={run_config!r}, train_frac={train_frac}, "
+            f"val_frac={val_frac}, min={min_conditioning_length}, "
+            f"max={max_conditioning_length}) — a divergent split size means "
+            f"the training/eval data does not match M1/M2/M3/M4 and any F1 "
+            f"comparison is invalid. If this machine's LongBench cache has "
+            f"drifted from the canonical 69-prompt calibration, set the "
+            f"{_FAIR01_EXPECTED_TEST_ENV_VAR} env var to acknowledge the "
+            f"drift explicitly — runs under an override are NOT "
+            f"FAIR-01-comparable with past M1-M4 results and MUST be "
+            f"reported as a separate condition."
+        )
+    elif n_test != expected:
+        logger.warning(
+            "Test split size %d != FAIR-01 target %d "
+            "(run_config=%r, train_frac=%s, val_frac=%s, min=%s, max=%s) — "
+            "this run is not FAIR-01-comparable.",
+            n_test, expected, run_config, train_frac, val_frac,
+            min_conditioning_length, max_conditioning_length,
+        )
+    return n_test
 
 
 # File containing imports to be used in hydra configs/for instantiating hydra

@@ -7,15 +7,17 @@ run_name: null          # (required) Name for this run
 experiment: null        # Experiment ID; null = most recent active or create new
 
 # ── Joint training ──────────────────────────────────────────────────────
+# M4 (FAIR-01): 2 outer loops × (100 NAMM gens + 75 LoRA epochs)
+# = 200 NAMM gens + 150 LoRA epochs, matching M1 + M2 compute budgets.
 adapter_type: es        # "es" or "lora"
-num_outer_loops: 5      # K: number of alternating Stage A → Stage B cycles
-namm_iterations_per_stage: 50   # N: CMA-ES iterations for NAMM per outer loop
+num_outer_loops: 2      # K: number of alternating Stage A → Stage B cycles
+namm_iterations_per_stage: 100  # N: CMA-ES iterations for NAMM per outer loop
 adapter_iterations_per_stage: 25  # M: ES iterations per Stage B (ignored for LoRA)
-lora_epochs_per_stage: 1          # Epochs per Stage B for LoRA (ignored for ES)
+lora_epochs_per_stage: 75         # Epochs per Stage B for LoRA (ignored for ES)
 eval_after_each_loop: true        # Run full evaluation after each outer loop
 
 # ── NAMM config ─────────────────────────────────────────────────────────
-run_config: namm_bam_i1_llama32_1b  # Hydra run config (eviction policy + model)
+run_config: namm_bam_i1_llama32_1b_5t  # Hydra run config (5-task QA subset for FAIR-01)
 namm_checkpoint: null   # Path to initial NAMM checkpoint; null = train from scratch
 cache_size: null        # KV cache token budget; null = use run_config default
 namm_eval_interval: 100 # NAMM eval interval within each stage (set high to skip)
@@ -31,7 +33,7 @@ mini_batch_size: 16     # Questions sampled per fitness evaluation
 # ── LoRA hyperparameters (adapter_type=lora) ────────────────────────────
 lora_rank: 8
 lora_target_modules: [q_proj, v_proj]
-lora_alpha: null        # null = defaults to rank
+lora_alpha: 16          # FAIR-01 convention: alpha = 2 * rank
 lora_dropout: 0.0
 learning_rate: 2e-4
 weight_decay: 0.01
@@ -39,12 +41,15 @@ max_grad_norm: 1.0
 warmup_ratio: 0.03
 gradient_accumulation_steps: 16
 max_seq_len: 3500
-sft_mode: false
+sft_mode: true          # FAIR-01: chat-template answer-only loss
 
-# ── Data ────────────────────────────────────────────────────────────────
-train_split: 0.8
-val_split: 0.1
+# ── Data (FAIR-01 fixed splits and length filters) ──────────────────────
+train_split: 0.7
+val_split: 0.15
 split_seed: 42
+min_conditioning_length: 4096
+max_conditioning_length: 6500
+max_answer_tokens: 64
 filter_by_tokens: null
 filter_answers_by_tokens: 64
 
