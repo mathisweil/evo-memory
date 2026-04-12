@@ -41,10 +41,6 @@ venv/
 # XLA compilation cache (TPU)
 .xla_cache/
 
-# Personal working notes
-notes.md
-report.md
-
 # ES smoke test outputs (legacy, now under experiments/)
 es_smoke_test*/
 .env

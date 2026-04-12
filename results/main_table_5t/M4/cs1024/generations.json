@@ -3,7 +3,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": " 3\n\nQuestion: What is the average f-score of the UTCNN model on the FBFans dataset?\n\nAnswer: 21.5\n\nQuestion: What is the average f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 22.5\n\nQuestion: What is the average f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 22.5\n\nQuestion: What is the average f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 22.5\n\nQuestion: What is the average f-score of the UTCNN model on the CreateDe",
+        "pred": "2",
         "answers": [
           "eight layers"
         ],
@@ -12,7 +12,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " Flickr dataset",
+        "pred": "flickr dataset",
         "answers": [
           " the same datasets as BIBREF7",
           "same datasets as BIBREF7"
@@ -22,7 +22,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " MEDDOCAN 2019 shared task dataset and NUBes-PHI dataset.",
+        "pred": "MEDDOCAN 2019 and MEDDOCAN 2019 shared task dataset",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -32,7 +32,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " None.",
+        "pred": "Unanswerable",
         "answers": [
           "Unanswerable"
         ],
@@ -41,7 +41,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Automatic and human evaluation experiments.",
+        "pred": "No",
         "answers": [
           "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
         ],
@@ -50,7 +50,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " It replaces the self-attention in the Transformer encoder with a new attention mechanism that captures directional features.",
+        "pred": "Gaussian-masked directional multi-head attention is a self-attention mechanism that uses a Gaussian mask to weight the directional information of the input sequences.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " Facebook, Twitter, and Reddit.\n\nQuestion: What was the task of the study?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing",
+        "pred": "Unanswerable",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -70,7 +70,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " text classification, sentiment analysis, topic modeling, named entity recognition, and information retrieval.",
+        "pred": "text classification",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -79,7 +79,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " larger",
+        "pred": "Yes",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " 1000 sentences\n\nQuestion: What is the accuracy of the Stanford CRF model on the OurNepali dataset?\n\nAnswer: 90.5%",
+        "pred": "Unanswerable",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " MLP, s2sL, Eusboost, MWMote, WEKA, and other models/frameworks.",
+        "pred": "MLP (Modified Recurrent Neural Network)",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -109,7 +109,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Yes"
@@ -119,7 +119,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -129,7 +129,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " Penn Treebank, Penn CoreNLP, Penn POS Tagger, Stanford CoreNLP, and Penn Treebank with POS tags.",
+        "pred": "Unanswerable",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -141,7 +141,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": " Ajman, UAE",
+        "pred": "Ajman",
         "answers": [
           "Abu Dhabi"
         ],
@@ -150,7 +150,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " Ottensen, Germany.",
+        "pred": "Batavia",
         "answers": [
           "Prenzlau"
         ],
@@ -159,7 +159,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " Brooklyn, New York.",
+        "pred": "Brooklyn",
         "answers": [
           "Pozna\u0144"
         ],
@@ -168,7 +168,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " London, England.",
+        "pred": "London",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -177,7 +177,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Forbidden Daughters",
+        "pred": "Forbidden Daughters",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -186,7 +186,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " Bogdan \u021a\u0103ru\u0219",
+        "pred": "Bogdan \u021a\u0103ru\u0219",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -195,7 +195,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " From Corleone To Brooklyn",
+        "pred": "From Corleone To Brooklyn",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -204,7 +204,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " Parkinson's disease.",
+        "pred": "Parkinson",
         "answers": [
           "Parkinson"
         ],
@@ -213,7 +213,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Richard De Beauchamp, 13th Earl of Somerset.",
+        "pred": "Richard de Beauchamp, 13th Earl of Warwick",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -222,7 +222,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " Italia-Germania 4-3",
+        "pred": "Italia-Germania 4-3",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -231,7 +231,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Marshall, Indiana",
+        "pred": "Milan",
         "answers": [
           "Milan"
         ],
@@ -240,7 +240,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " Fredrikstad.",
+        "pred": "Fredrikstad",
         "answers": [
           "K\u00f6ln"
         ],
@@ -251,7 +251,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": " By estimating the importance of words in the model's output.",
+        "pred": "Answer:",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -261,7 +261,7 @@
       },
       {
         "prompt_idx": 164,
-        "pred": " no",
+        "pred": "Yes",
         "answers": [
           "No"
         ],
@@ -270,7 +270,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Europarl dataset.",
+        "pred": "News in Europe",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -280,7 +280,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "No",
           "No"
@@ -290,7 +290,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " A second order co-ocurrence matrix is a matrix where the entry at row i and column j represents the number of times the bigram pair (i, j) appears in the corpus.",
+        "pred": "A second-order co-ocurrence matrix is a matrix that contains the co-occurrence of two terms in a dataset.",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -300,7 +300,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " F1 score, accuracy, and precision.",
+        "pred": "F1 score, accuracy",
         "answers": [
           "precision, recall, F1 and accuracy",
           "precision, recall, F1 , accuracy "
@@ -310,7 +310,7 @@
       },
       {
         "prompt_idx": 169,
-        "pred": " No",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -320,7 +320,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": " They use a routing system to match annotators to instances, based on the predicted difficulty of the instance.\n\nQuestion: What is the predicted difficulty of the most difficult instances?\n\nAnswer: The predicted difficulty of the 600 most difficult articles reaches 68.1%, which is close to the performance when re-annotating 100% of the 600 most difficult articles.\n\nQuestion: What is the predicted difficulty of the remaining 400 instances?\n\nAnswer: The predicted difficulty of the remaining 400 instances is not explicitly stated, but it is implied that the system uses a combination of expert and crowd annotations to predict the difficulty of these instances.\n\nQuestion",
+        "pred": "by re-annotating",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -329,7 +329,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " 10,000\n\nQuestion: What is the mode of the dataset?\n\nAnswer: 1,000\n\nQuestion: What is the average accuracy of the models?\n\nAnswer: 0.85\n\nQuestion: What is the average accuracy of the models on yes/no questions?\n\nAnswer: 0.75\n\nQuestion: What is the average accuracy of the models on text questions?\n\nAnswer: 0.85\n\nQuestion: What is the average accuracy of the models on commonsense questions?\n\nAnswer: 0.85\n\nQuestion: What is the average accuracy of the models on text questions?\n\nAnswer: 0.85\n\nQuestion:",
+        "pred": "32,000",
         "answers": [
           "13,939"
         ],
@@ -338,7 +338,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Yes"
@@ -348,7 +348,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " yes",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Yes"
@@ -358,7 +358,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " ROGUE-1 Recall, ROGUE-1 Precision, ROGUE-1 F1 score, ROGUE-1 InlineForm0, ROGUE-1 InlineForm1, ROGUE-1 InlineForm2, ROGUE-1 InlineForm3, ROGUE-1 InlineForm4, ROGUE-1 InlineForm5, ROGUE-1 InlineForm6, ROGUE-1 InlineForm7, ROGUE-1 InlineForm8, ROGUE-1 InlineForm9, ROGUE-1 InlineForm10, ROGUE-1 Inline",
+        "pred": "ROGUE metric",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -368,7 +368,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " 59.4%",
+        "pred": "Unanswerable",
         "answers": [
           "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
         ],
@@ -377,7 +377,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Word embeddings BIBREF9, Word embeddings BIBREF16, Word embeddings BIBREF17, Word embeddings BIBREF18, Word embeddings BIBREF19, Word embeddings BIBREF20, Word embeddings BIBREF21, Word embeddings BIBREF22, Word embeddings BIBREF23, Word embeddings BIBREF24, Word embeddings BIBREF25, Word embeddings BIBREF26, Word embeddings BIBREF27, Word embeddings BIBREF28, Word embeddings BIBREF29, Word embeddings BIBREF30, Word embeddings BIBREF31, Word embeddings BIBREF32, Word embeddings",
+        "pred": "Yes",
         "answers": [
           "Skip\u2013gram, CBOW",
           "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
@@ -387,7 +387,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " The authors show that the psr model can be improved by increasing the size of the training dataset.",
+        "pred": "Yes",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -397,7 +397,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " F1 score, precision, recall, and accuracy.\n\nQuestion: How many teams participated in the task?\n\nAnswer: 13 teams.\n\nQuestion: What is the name of the task?\n\nAnswer: Sentence-level classification.\n\nQuestion: What is the name of the task description paper?\n\nAnswer: BIBREF4.",
+        "pred": "F1 score",
         "answers": [
           "precision, recall , F1 score"
         ],
@@ -406,7 +406,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " 2K\n\nQuestion: What is the quality of the articles?\n\nAnswer: Wikipedia\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer:",
+        "pred": "arXiv dataset",
         "answers": [
           "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
         ],
@@ -415,7 +415,7 @@
       },
       {
         "prompt_idx": 183,
-        "pred": " No",
+        "pred": "Yes",
         "answers": [
           "No",
           "No"
@@ -427,7 +427,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": " No, both are French.",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " Jaffrey.",
+        "pred": "Jaffrey",
         "answers": [
           "Marlborough"
         ],
@@ -445,7 +445,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -454,7 +454,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": " Aichryson has more species.",
+        "pred": "Polypodium",
         "answers": [
           "Polypodium"
         ],
@@ -472,7 +472,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": " None",
+        "pred": "Noel",
         "answers": [
           "Albert"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": " A&M Records",
+        "pred": "Free Music Archive",
         "answers": [
           "A1 Recordings"
         ],
@@ -490,7 +490,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": " 83.",
+        "pred": "83",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -499,7 +499,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " Vodka.",
+        "pred": "Vodka",
         "answers": [
           "lime"
         ],
@@ -508,7 +508,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " George Abbott was the director of the Broadway play \"Broadway\" and the play \"Secrets of a Charmer\" and the play \"Secrets of a",
+        "pred": "George Abbott was a playwright and director, best known for his work on the Broadway play \"Broadway Bound\" and the film \"Broadway Melody of ",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -517,7 +517,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " Scotland.",
+        "pred": "Scotland",
         "answers": [
           "Scotland"
         ],
@@ -526,7 +526,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " 12 times per year.",
+        "pred": "12",
         "answers": [
           "13"
         ],
@@ -537,7 +537,7 @@
     "lb/2wikimqa_e": [
       {
         "prompt_idx": 107,
-        "pred": " Yes",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -546,7 +546,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " Stein Erik Hagen",
+        "pred": "Kiplangat Sang",
         "answers": [
           "Kiplangat Sang"
         ],
@@ -555,7 +555,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " London, UK",
+        "pred": "Tel Aviv",
         "answers": [
           "Sydney, Australia"
         ],
@@ -564,7 +564,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " 1343.",
+        "pred": "6 May 1343",
         "answers": [
           "6 August 1272"
         ],
@@ -573,7 +573,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -582,7 +582,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " Lassie Come Home",
+        "pred": "Lassie Come Home",
         "answers": [
           "Prairie Thunder"
         ],
@@ -591,7 +591,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " 1570.",
+        "pred": "1601",
         "answers": [
           "8 April 1643"
         ],
@@ -600,7 +600,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " Ireland",
+        "pred": "Hood Museum of Art",
         "answers": [
           "Israeli"
         ],
@@ -609,7 +609,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " The Thing About My Folks",
+        "pred": "The Thing About My Folks",
         "answers": [
           "The Thing About My Folks"
         ],
@@ -618,7 +618,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " Hubba bint Hillel, wife of Hillel ibn Salul, daughter of Salul ibn Hillel, son of Hille",
+        "pred": "Hubba",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],
@@ -627,7 +627,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " American",
+        "pred": "American",
         "answers": [
           "Canadian"
         ],
@@ -636,7 +636,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " 1980",
+        "pred": "Pune",
         "answers": [
           "Nice"
         ],
@@ -645,7 +645,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " Ramiro I of Aragon",
+        "pred": "Alfonso VII of Le\u00f3n",
         "answers": [
           "Urraca of Le\u00f3n"
         ],
@@ -654,7 +654,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " The Carnegie Institute of Technology",
+        "pred": "The University of Toledo",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -667,7 +667,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": " 3\n\nQuestion: What is the average f-score of the UTCNN model on the FBFans dataset?\n\nAnswer: 21.5\n\nQuestion: What is the average f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 22.5\n\nQuestion: What is the average f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 22.5\n\nQuestion: What is the average f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 22.5\n\nQuestion: What is the average f-score of the UTCNN model on the CreateDe",
+        "pred": "2",
         "answers": [
           "eight layers"
         ],
@@ -676,7 +676,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " Flickr dataset.",
+        "pred": "flickr dataset",
         "answers": [
           " the same datasets as BIBREF7",
           "same datasets as BIBREF7"
@@ -686,7 +686,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " NUBes-PHI, MEDDOCAN 2019 shared task dataset.",
+        "pred": "No",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -696,7 +696,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " None.",
+        "pred": "Unanswerable",
         "answers": [
           "Unanswerable"
         ],
@@ -705,7 +705,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Automatic and human evaluation experiments.",
+        "pred": "No",
         "answers": [
           "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
         ],
@@ -714,7 +714,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " It replaces the self-attention in the Transformer encoder with a new attention mechanism that captures directional features.",
+        "pred": "Gaussian-masked directional multi-head attention is a self-attention mechanism that uses a Gaussian mask to weight the directional information of the input sequences.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -724,7 +724,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " Facebook, Twitter, and Reddit.\n\nQuestion: What was the task of the study?\n\nQuestion: What was the main goal of the study?\n\nQuestion: What was the best performing model for causal explanation identification?\n\nQuestion: What was the best performing model for causality prediction?\n\nQuestion: What was the most accurate model for predicting causal explanations?\n\nQuestion: What was the most accurate model for predicting causality?\n\nQuestion: What was the most accurate model for predicting causality?\n\nQuestion: What was the most accurate model for predicting causality?\n\nQuestion: What was the most accurate model for predicting causality?\n\nQuestion: What was the most accurate model for",
+        "pred": "Unanswerable",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -734,7 +734,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " text classification, sentiment analysis, topic modeling, named entity recognition, and information retrieval.",
+        "pred": "text classification, sentiment analysis",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " larger",
+        "pred": "Yes",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -753,7 +753,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " 1000 sentences\n\nQuestion: What is the accuracy of the Stanford CRF model?\n\nAnswer: 90.5%",
+        "pred": "Unanswerable",
         "answers": [
           "3606",
           "6946"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " MLP, s2sL, Eusboost, MWMote, WEKA\n\nQuestion: Which task is the Anger/Happy emotion classification task?\n\nAnswer: Anger/Happy emotion classification task\n\nQuestion: Which dataset is used for the Anger/Happy emotion classification task?\n\nAnswer: Berlin Emotion Dataset\n\nQuestion: Which dataset is used for the Anger/Happy emotion classification task?\n\nAnswer: EUSPEECH dataset\n\nQuestion: Which dataset is used for the Anger/Happy emotion classification task?\n\nAnswer: Berlin Emotion Dataset\n\nQuestion: Which dataset is used for the Anger/Happy emotion classification task?\n\n",
+        "pred": "MLP (Modified Neural Network)",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -773,7 +773,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Yes"
@@ -783,7 +783,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -793,7 +793,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " Penn Treebank, Penn CoreNLP, Penn POS Tagger, Stanford CoreNLP, and Penn Treebank with POS tags.\n\nQuestion: What is the objective of the study?\n\nAnswer: To evaluate the performance of the proposed approach on POS tagging and dependency parsing tasks.\n\nQuestion: What is the main contribution of the study?\n\nAnswer: The main contribution of the study is the development of a novel approach to generate syntactic structures from continuous word representations, which can be used for unsupervised learning of syntactic structures.\n\nQuestion: What is the key insight of the study?\n\nAnswer: The key insight of the study is that the continuous",
+        "pred": "Wall Street Journal",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -803,7 +803,7 @@
       },
       {
         "prompt_idx": 7,
-        "pred": " CNN/DailyMail, NYT, XSum\n\nQuestion: What is the objective of the summarization task?\n\nAnswer: To generate a summary of the given document.\n\nQuestion: What is the performance metric used to evaluate the summarization models?\n\nAnswer: ROUGE-1, ROUGE-2, ROUGE-L, ROUGE-LL\n\nQuestion: What is the type of summarization model used in the study?\n\nAnswer: Abstractive summarization model.\n\nQuestion: What is the type of summarization model used in the study?\n\nAnswer: Extractive summarization model.\n\nQuestion: What is the type of summarization model used in",
+        "pred": "CNN/DailyMail dataset, NYT dataset, XSum dataset",
         "answers": [
           "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
           "the CNN/DailyMail news highlights dataset BIBREF24, the New York Times Annotated Corpus (NYT; BIBREF25), XSum BIBREF22"
@@ -813,7 +813,7 @@
       },
       {
         "prompt_idx": 19,
-        "pred": " The model uses a sparse attention mechanism, which reduces the number of parameters and improves interpretability.",
+        "pred": "## Step 1: Understand the question\nThe question asks how the adaptively sparse Transformer model improves interpretability compared to softmax transformers.\n\n## Step 2: Recall the properties of softmax transformers\nSoftmax transformers are known for their ability to learn complex representations of input data, but they can be difficult to interpret due to their non-linear nature.\n\n## Step 3: Understand the adaptively sparse Transformer model\nThe adaptively sparse Transformer model is a variant of the Transformer model that uses a sparse attention mechanism to selectively attend to important parts of the input data.\n\n## Step 4: Analyze the benefits of the adaptively sparse Transformer model",
         "answers": [
           "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
           "We introduce sparse attention into the Transformer architecture"
@@ -823,7 +823,7 @@
       },
       {
         "prompt_idx": 22,
-        "pred": " ASR encoder\n\nQuestion: What is the subword-level alignment module?\n\nAnswer: Subword-level alignment module\n\nQuestion: What is the subword-level alignment module?\n\nAnswer: Subword-level alignment module\n\nQuestion: What is the subword-level alignment module?\n\nAnswer: Subword-level alignment module\n\nQuestion: What is the subword-level alignment module?\n\nAnswer: Subword-level alignment module\n\nQuestion: What is the subword-level alignment module?\n\nAnswer: Subword-level alignment module\n\nQuestion: What is the subword-level alignment module?\n\nAnswer: Subword-level alignment module\n\nQuestion: What is the subword-level alignment module",
+        "pred": "Pre-trained model: ASR model",
         "answers": [
           "the model is pre-trained on CTC-based ASR task and MT task in the pre-training stage."
         ],
@@ -832,7 +832,7 @@
       },
       {
         "prompt_idx": 30,
-        "pred": " IWS, IWS2, IWS3, IWS4, IWS5, IWS6, IWS7, IWS8, IWS9, IWS10, IWS11, IWS12, IWS13, IWS14, IWS15, IWS16, IWS17, IWS18, IWS19, IWS20, IWS21, IWS22, IWS23, IWS24, IWS25, IWS26, IWS27, IWS28, IWS29, IWS30, IWS31, IWS32, I",
+        "pred": "I can only provide a yes/no answer to this question. Here is the answer:\n\nYes",
         "answers": [
           "four machine translation tasks: German -> English, Japanese -> English, Romanian -> English, English -> German",
           " four machine translation tasks, IWSLT 2017 German $\\rightarrow $ English BIBREF27, KFTT Japanese $\\rightarrow $ English BIBREF28, WMT 2016 Romanian $\\rightarrow $ English BIBREF29, WMT 2014 English $\\rightarrow $ German BIBREF30"
@@ -842,7 +842,7 @@
       },
       {
         "prompt_idx": 36,
-        "pred": " Human judgements were assembled by the human evaluators",
+        "pred": "Question: What was the final score of the translation model?\n\nAnswer: The final score of the translation model was 0.8.",
         "answers": [
           "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
           "adequacy, precision and ranking values"
@@ -852,7 +852,7 @@
       },
       {
         "prompt_idx": 40,
-        "pred": " Book, Cell Phone, Restaurant, Movie, Beauty\n\nQuestion: What is the task?\n\nQuestion: What are the results of the experiments?\n\nQuestion: What are the CNN filters learned by NaiveNN, FANN, and DAS?\n\nQuestion: What are the top 10 most related CNN filters for predicting positive sentiment in the source domain?\n\nQuestion: What are the top 10 most related CNN filters for predicting negative sentiment in the source domain?\n\nQuestion: What are the top 10 most related CNN filters for predicting target sentiment in the target domain?\n\nQuestion: What are the top 10 most related CNN filters for predicting target sentiment in",
+        "pred": "Source Domain: Book Reviews\nTarget Domain: Movie Reviews",
         "answers": [
           "Book, electronics, beauty, music, IMDB, Yelp, cell phone, baby, DVDs, kitchen",
           "we use set 1 of the source domain as the only source with sentiment label information during training, and we evaluate the trained model on set 1 of the target domain, Book (BK), Electronics (E), Beauty (BT), and Music (M)"
@@ -862,7 +862,7 @@
       },
       {
         "prompt_idx": 51,
-        "pred": " Wikipedia and Wikipedia's own talk pages.",
+        "pred": "The two datasets are Wikipedia and Reddit.",
         "answers": [
           " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
           "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
@@ -872,7 +872,7 @@
       },
       {
         "prompt_idx": 63,
-        "pred": " a strong baseline",
+        "pred": "Unanswerable",
         "answers": [
           "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
           "M2M Transformer"
@@ -882,7 +882,7 @@
       },
       {
         "prompt_idx": 77,
-        "pred": " Multilayer perceptron, logistic regression, decision trees, neural networks, support vector machines, random forests, and deep learning models.",
+        "pred": "Answer: Logistic regression, Random Forest, Neural Network.",
         "answers": [
           "probabilistic model",
           "Logistic Regression, Multilayer Perceptron"
@@ -892,7 +892,7 @@
       },
       {
         "prompt_idx": 87,
-        "pred": " The proposed framework has a high level of complexity and includes various features such as supporting sentences, supporting questions, supporting entities, supporting relations, supporting actions, supporting locations, supporting times, supporting scales, supporting modalities, supporting entities' properties, supporting entities' relationships, supporting entities' attributes, supporting entities' properties' attributes, supporting entities' relationships' attributes, supporting entities' properties' attributes' attributes, supporting entities' relationships' attributes' attributes, supporting entities' properties' attributes' attributes' attributes, supporting entities' relationships' attributes' attributes' attributes, supporting entities' properties' attributes' attributes' attributes' attributes, supporting entities'",
+        "pred": "The proposed framework for characterizing machine reading comprehension gold standards is as follows:\n\n1. Lexical overlap: The framework identifies the presence of lexical cues that indicate the presence of a question or the need for a specific type of answer.\n2. Question typing: The framework identifies the presence of question types that require a specific type of answer, such as \"What is the capital of France?\"\n3. Entity typing: The framework identifies the presence of entity types that require a specific type of answer, such as \"Who is the CEO of Google?\"\n4. Concrete overlap patterns: The framework identifies patterns of overlap between entities and concepts that require a specific",
         "answers": [
           "The resulting taxonomy of the framework is shown in Figure FIGREF10",
           "FIGREF10"
@@ -902,7 +902,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " Vanilla ST baseline, Pre-training baseline, Multi-task learning baseline, TCEN baseline, TCEN+pretrain baseline, TCEN+multi-task baseline, TCEN+curriculum learning baseline, TCEN+attention-passing baseline, TCEN+knowledge distillation baseline, TCEN+knowledge distillation+pretrain baseline, TCEN+knowledge distillation+multi-task baseline, TCEN+knowledge distillation+curriculum learning baseline, TCEN+knowledge distillation+attention-passing baseline, TCEN+knowledge distillation+knowledge distillation+pretrain baseline, TCEN+knowledge distillation+knowledge distillation+multi",
+        "pred": "Vanilla ST baseline, many-to-many ST baseline, multi-task learning baseline, pre-training baseline, and fine-tuning baseline.",
         "answers": [
           "Vanilla ST baseline, encoder pre-training, in which the ST encoder is initialized from an ASR model, decoder pre-training, in which the ST decoder is initialized from an MT model, encoder-decoder pre-training, where both the encoder and decoder are pre-trained, many-to-many multi-task model where the encoders and decoders are derived from pre-trained ASR and MT models, Triangle+pre-train: BIBREF18 DBLP:conf/naacl/AnastasopoulosC18 proposed a triangle multi-task strategy for speech translation",
           "Vanilla ST baseline, Pre-training baselines, Multi-task baselines, Many-to-many+pre-training, Triangle+pre-train",
@@ -913,7 +913,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Text classification, sentiment analysis, topic modeling, etc.",
+        "pred": "Word subspace can represent the semantic meaning of words in a text.",
         "answers": [
           "Word vectors, usually in the context of others within the same class"
         ],
@@ -922,7 +922,7 @@
       },
       {
         "prompt_idx": 114,
-        "pred": " KBQA system consists of a KB (Knowledge Base) and a relation detection module.",
+        "pred": "KBQA stands for Knowledge-Based Question Answering, which is a subfield of artificial intelligence that deals with the interaction between knowledge bases and question-answering systems.",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -932,7 +932,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " No",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -942,7 +942,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " The article does not explicitly mention how the political bias of different sources is included in the model. However, it mentions that the model is able to distinguish between mainstream and disinformation news, suggesting that the model is able to capture the political bias of different sources.",
+        "pred": "The model includes the size of the network, the size of the associated layers, the size of the quotes, the size of the retweets, the size of the mentions, the size of the retweets of retweets, the size of the mentions of retweets, the size of the retweets of retweets of retweets, the size of the mentions of retweets of retweets of retweets, the size of the mentions of retweets of retweets of retweets of retweets, the size of the mentions of retweets of retweets of retweets of retweets, the size of the mentions of retweets of ret",
         "answers": [
           "By assigning a political bias label to each news article and training only on left-biased or right-biased outlets of both disinformation and mainstream domains",
           "we also account for political biases inherent to different news sources, referring to the procedure proposed in BIBREF2 to label different outlets. Overall we show that we are able to classify credible vs non-credible diffusion networks (and consequently news articles) with high accuracy (AUROC up to 94%), even when accounting for the political bias of sources (and training only on left-biased or right-biased articles). We observe that the layer of mentions alone conveys useful information for the classification, denoting a different usage of this functionality when sharing news belonging to the two news domains. We also show that most discriminative features, which are relative to the breadth and depth of largest cascades in different layers, are the same across the two countries."
@@ -952,7 +952,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " CNN, SVM, SVM, SVM, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN, CNN,",
+        "pred": "Baseline CNN features",
         "answers": [
           " The features extracted from CNN."
         ],
@@ -961,7 +961,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " The question classification model was compared to the baseline model, the WordNet model, and the Probase model.",
+        "pred": "## Step 1: Identify the question type\nThe question is asking about the performance of a question classification model compared to a baseline model.\n\n## Step 2: Determine the baseline model\nThe baseline model is not explicitly mentioned in the article, but it is likely a pre-trained model that is used as a comparison point.\n\n## Step 3: Identify the comparison point\nThe comparison point is a pre-trained model that is used to evaluate the performance of the question classification model.\n\n## Step 4: Determine the type of comparison\nThe comparison is a performance comparison between the question classification model and the baseline model.\n\n## Step 5:",
         "answers": [
           "bag-of-words model, CNN"
         ],
@@ -970,7 +970,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " WebQSP, SimpleQuestions\n\nKBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KBQA Enhanced KBQA KB",
+        "pred": "KBQA systems, including our proposed HR-BiLSTM model, achieve state-of-the-art results on both WebQSP and SimpleQuestions.",
         "answers": [
           "SimpleQuestions, WebQSP",
           "WebQSP, SimpleQuestions"
@@ -982,7 +982,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": " Ajman, UAE",
+        "pred": "Ajman",
         "answers": [
           "Abu Dhabi"
         ],
@@ -991,7 +991,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " Ottensen, Germany.",
+        "pred": "Batum",
         "answers": [
           "Prenzlau"
         ],
@@ -1000,7 +1000,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " Brooklyn, New York.",
+        "pred": "Brooklyn",
         "answers": [
           "Pozna\u0144"
         ],
@@ -1009,7 +1009,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " London, England.",
+        "pred": "London",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -1018,7 +1018,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Forbidden Daughters",
+        "pred": "Forbidden Daughters",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -1027,7 +1027,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " Bogdan \u021a\u0103ru\u0219",
+        "pred": "Bogdan \u021a\u0103ru\u0219",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -1036,7 +1036,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " From Corleone To Brooklyn",
+        "pred": "From Corleone To Brooklyn",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -1045,7 +1045,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " Parkinson's disease.",
+        "pred": "Parkinson",
         "answers": [
           "Parkinson"
         ],
@@ -1054,7 +1054,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Richard De Berkeley, 13th Earl of Hertford.",
+        "pred": "Richard de Beauchamp, 13th Earl of Warwick",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -1063,7 +1063,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " Italia-Germania 4-3",
+        "pred": "Italia-Germania 4-3",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -1072,7 +1072,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Marshall, Indiana",
+        "pred": "Milan",
         "answers": [
           "Milan"
         ],
@@ -1081,7 +1081,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " Fredrikstad",
+        "pred": "Fredrikstad",
         "answers": [
           "K\u00f6ln"
         ],
@@ -1090,7 +1090,7 @@
       },
       {
         "prompt_idx": 0,
-        "pred": " Buda, Hungary.",
+        "pred": "Ottoman Empire",
         "answers": [
           "Ozalj"
         ],
@@ -1099,7 +1099,7 @@
       },
       {
         "prompt_idx": 1,
-        "pred": " Merlin Holland",
+        "pred": "Oscar Wilde",
         "answers": [
           "John the Baptist"
         ],
@@ -1108,7 +1108,7 @@
       },
       {
         "prompt_idx": 3,
-        "pred": " 1480.",
+        "pred": "28 September 1485",
         "answers": [
           "1510"
         ],
@@ -1117,7 +1117,7 @@
       },
       {
         "prompt_idx": 4,
-        "pred": " Abd al-Muttalib ibn Hashim al-Qurayshi",
+        "pred": "Abraham de Sondes",
         "answers": [
           "Edward Watson"
         ],
@@ -1126,7 +1126,7 @@
       },
       {
         "prompt_idx": 5,
-        "pred": " 24 September 1275",
+        "pred": "1275",
         "answers": [
           "16 September 1360"
         ],
@@ -1135,7 +1135,7 @@
       },
       {
         "prompt_idx": 7,
-        "pred": " Bob Jones University.",
+        "pred": "Bob Jones University",
         "answers": [
           "Bob Jones University"
         ],
@@ -1144,7 +1144,7 @@
       },
       {
         "prompt_idx": 11,
-        "pred": " United States",
+        "pred": "United States",
         "answers": [
           "America"
         ],
@@ -1153,7 +1153,7 @@
       },
       {
         "prompt_idx": 22,
-        "pred": " Hashim ibn Abd al-Muttalib",
+        "pred": "Abdul Muttalib",
         "answers": [
           "Leustach R\u00e1t\u00f3t"
         ],
@@ -1162,7 +1162,7 @@
       },
       {
         "prompt_idx": 23,
-        "pred": " Patna, Bihar, India",
+        "pred": "Bhaktapur, Nepal",
         "answers": [
           "Nepal"
         ],
@@ -1171,7 +1171,7 @@
       },
       {
         "prompt_idx": 24,
-        "pred": " Archibald Acheson, 3rd Earl of Gosford",
+        "pred": "Archibald Acheson, 3rd Earl of Gosford",
         "answers": [
           "Archibald Acheson, 2nd Earl of Gosford"
         ],
@@ -1180,7 +1180,7 @@
       },
       {
         "prompt_idx": 29,
-        "pred": " The Longshot",
+        "pred": "The Longshot",
         "answers": [
           "Blue Blood And Red"
         ],
@@ -1189,7 +1189,7 @@
       },
       {
         "prompt_idx": 31,
-        "pred": " Y\u0131ld\u0131z Palace, Istanbul.",
+        "pred": "Istanbul",
         "answers": [
           "Constantinople"
         ],
@@ -1198,7 +1198,7 @@
       },
       {
         "prompt_idx": 32,
-        "pred": " Worms, Germany",
+        "pred": "Lyon",
         "answers": [
           "East Francia"
         ],
@@ -1207,7 +1207,7 @@
       },
       {
         "prompt_idx": 34,
-        "pred": " All-American Co-Ed",
+        "pred": "All-American Co-Ed",
         "answers": [
           "All-American Co-Ed"
         ],
@@ -1216,7 +1216,7 @@
       },
       {
         "prompt_idx": 41,
-        "pred": " 1698",
+        "pred": "26 May 1669",
         "answers": [
           "May 19, 1669"
         ],
@@ -1225,7 +1225,7 @@
       },
       {
         "prompt_idx": 51,
-        "pred": " American\n\nQuestion: What nationality is the performer of song You Can?\nAnswer: German",
+        "pred": "United States",
         "answers": [
           "Sweden"
         ],
@@ -1234,7 +1234,7 @@
       },
       {
         "prompt_idx": 53,
-        "pred": " Ladies Love Danger",
+        "pred": "Ladies Love Danger",
         "answers": [
           "Melody Of The World"
         ],
@@ -1243,7 +1243,7 @@
       },
       {
         "prompt_idx": 59,
-        "pred": " France",
+        "pred": "Portugal",
         "answers": [
           "La Trinit\u00e9"
         ],
@@ -1252,7 +1252,7 @@
       },
       {
         "prompt_idx": 60,
-        "pred": " King Frederick William IV of Prussia",
+        "pred": "King Frederick William IV of Prussia",
         "answers": [
           "Prince Albert of Prussia"
         ],
@@ -1261,7 +1261,7 @@
       },
       {
         "prompt_idx": 67,
-        "pred": " Closely Watched Trains",
+        "pred": "Det Sande Ansigt",
         "answers": [
           "Det Sande Ansigt"
         ],
@@ -1270,7 +1270,7 @@
       },
       {
         "prompt_idx": 68,
-        "pred": " Bomgay",
+        "pred": "Il Gaucho",
         "answers": [
           "Bomgay"
         ],
@@ -1279,7 +1279,7 @@
       },
       {
         "prompt_idx": 69,
-        "pred": " Plasencia, Spain",
+        "pred": "Belgrade",
         "answers": [
           "Preslav"
         ],
@@ -1288,7 +1288,7 @@
       },
       {
         "prompt_idx": 72,
-        "pred": " Irish",
+        "pred": "American",
         "answers": [
           "America"
         ],
@@ -1297,7 +1297,7 @@
       },
       {
         "prompt_idx": 75,
-        "pred": " Louis of Bourbon, Duke of Bourbon.",
+        "pred": "John III, Duke of Brabant",
         "answers": [
           "John I, Duke of Bourbon"
         ],
@@ -1306,7 +1306,7 @@
       },
       {
         "prompt_idx": 77,
-        "pred": " Gertrude of Bavaria",
+        "pred": "Jacques Dutronc",
         "answers": [
           "Fran\u00e7oise Hardy"
         ],
@@ -1315,7 +1315,7 @@
       },
       {
         "prompt_idx": 83,
-        "pred": " Death from a heart attack.",
+        "pred": "Heonjong of Goryeo's father died of illness.",
         "answers": [
           "illness"
         ],
@@ -1324,7 +1324,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " 1740-01-01\n\nQuestion: When was Antoine Philippe, Duke Of Montpensier's father born?\nAnswer: 1740-01",
+        "pred": "Marie-Th\u00e9r\u00e8se de Bourbon, Duchess of Orl\u00e9ans",
         "answers": [
           "13 March 1753"
         ],
@@ -1333,7 +1333,7 @@
       },
       {
         "prompt_idx": 95,
-        "pred": " Alkohol came out earlier.",
+        "pred": "Night Of Dark Shadows",
         "answers": [
           "Alkohol"
         ],
@@ -1342,7 +1342,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " F The Prom",
+        "pred": "F The Prom",
         "answers": [
           "The Comedians Of Comedy"
         ],
@@ -1351,7 +1351,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Tombstone Rashomon",
+        "pred": "Tombstone Rashomon",
         "answers": [
           "Tombstone Rashomon"
         ],
@@ -1360,7 +1360,7 @@
       },
       {
         "prompt_idx": 103,
-        "pred": " Bomma Borusa",
+        "pred": "Dhuen Ki Lakeer",
         "answers": [
           "Dhuen Ki Lakeer"
         ],
@@ -1369,7 +1369,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " Dudley Russell was born first.",
+        "pred": "Juan Ren\u00e9 Serrano was born first.",
         "answers": [
           "Dudley Russell"
         ],
@@ -1378,7 +1378,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " Samarra, Iraq",
+        "pred": "Karachi",
         "answers": [
           "Morocco"
         ],
@@ -1387,7 +1387,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " Solemn Promise",
+        "pred": "Tarzan The Magnificent",
         "answers": [
           "Tarzan The Magnificent"
         ],
@@ -1396,7 +1396,7 @@
       },
       {
         "prompt_idx": 116,
-        "pred": " Dublin, Ireland.",
+        "pred": "Irish.",
         "answers": [
           "Gura Humorului"
         ],
@@ -1405,7 +1405,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " Abdul Muttalib",
+        "pred": "Abdul Muttalib",
         "answers": [
           "Adolf II of Berg"
         ],
@@ -1414,7 +1414,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " Jim Wilson",
+        "pred": "Jim Wilson",
         "answers": [
           "F\u00e9lix Leclerc"
         ],
@@ -1423,7 +1423,7 @@
       },
       {
         "prompt_idx": 125,
-        "pred": " Louis I, Duke of Savoy.",
+        "pred": "Jean d'Armagnac, Duke of Nemours",
         "answers": [
           "Jacques"
         ],
@@ -1432,7 +1432,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " German\n\nQuestion: What is the name of Princess Feodora of Saxe-Meiningen's mother?\nAnswer: Princess Caroline of Hesse-Kassel",
+        "pred": "German",
         "answers": [
           "Duchy of Saxe-Gotha-Altenburg"
         ],
@@ -1441,7 +1441,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " Forl\u00ec",
+        "pred": "Lombardy",
         "answers": [
           "Italy"
         ],
@@ -1450,7 +1450,7 @@
       },
       {
         "prompt_idx": 144,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -1459,7 +1459,7 @@
       },
       {
         "prompt_idx": 153,
-        "pred": " Albertus Seba",
+        "pred": "Ali Dinar",
         "answers": [
           "Albertus Seba"
         ],
@@ -1470,7 +1470,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": " By estimating the importance of words in the model's output.",
+        "pred": "Answer:",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -1480,7 +1480,7 @@
       },
       {
         "prompt_idx": 164,
-        "pred": " no",
+        "pred": "Yes",
         "answers": [
           "No"
         ],
@@ -1489,7 +1489,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Europarl dataset.",
+        "pred": "News in Europe",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -1499,7 +1499,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " yes\n\nQuestion: What is the name of the dataset used for the experiment?\n\nAnswer: FBFans, CreateDebate\n\nQuestion: What is the topic of the dataset?\n\nAnswer: Anti-nuclear movement\n\nQuestion: What is the stance for which the model was trained?\n\nAnswer: Neutral\n\nQuestion: What is the stance for which the model was tested?\n\nAnswer: Unsupportive\n\nQuestion: What is the topic of the dataset?\n\nAnswer: Anti-nuclear movement\n\nQuestion: What is the stance for which the model was tested?\n\nAnswer: Supportive\n\nQuestion: What is the topic of the dataset?\n\nAnswer: Anti-n",
+        "pred": "Yes",
         "answers": [
           "No",
           "No"
@@ -1509,7 +1509,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " A second order co-ocurrence matrix is a matrix where the entry at row i and column j represents the number of times the bigram pair (i, j) appears in the corpus.",
+        "pred": "A second-order co-occurrence matrix is a matrix where the entry at row i and column j represents the number of times that the terms i and j appear together in the corpus.",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -1519,7 +1519,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " F1 score, accuracy, and precision.",
+        "pred": "F1 score, accuracy",
         "answers": [
           "precision, recall, F1 and accuracy",
           "precision, recall, F1 , accuracy "
@@ -1529,7 +1529,7 @@
       },
       {
         "prompt_idx": 169,
-        "pred": " No",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -1539,7 +1539,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": " They use a routing system to match annotators to instances, based on the predicted difficulty of the instance.\n\nQuestion: What is the predicted difficulty of the most difficult instances?\n\nAnswer: The predicted difficulty of the 600 most difficult instances reaches 68.1%, which is close to the performance when re-annotating 1000 random instances.\n\nQuestion: What is the predicted difficulty of the 1000 most difficult instances?\n\nAnswer: The predicted difficulty of the 1000 most difficult instances reaches 68.1%, which is close to the performance when re-annotating 1000 random instances.\n\nQuestion: What is the predicted difficulty",
+        "pred": "by re-annotating the difficult subset with expert annotations",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -1548,7 +1548,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " 1,000\n\nYes/No: unanswerable",
+        "pred": "32",
         "answers": [
           "13,939"
         ],
@@ -1557,7 +1557,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Yes"
@@ -1567,7 +1567,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Yes"
@@ -1577,7 +1577,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " ROGUE-1 Recall, ROGUE-1 Precision, ROGUE-1 F1 score, ROGUE-1 INLINEFORM0, ROGUE-2 Recall, ROGUE-2 Precision, ROGUE-2 F1 score, ROGUE-2 INLINEFORM0, ROGUE-3 Recall, ROGUE-3 Precision, ROGUE-3 F1 score, ROGUE-3 INLINEFORM0, ROGUE-4 Recall, ROGUE-4 Precision, ROGUE-4 F1 score, ROGUE-4 INLINEFORM0,",
+        "pred": "ROGUE metric",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -1587,7 +1587,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " 59.4%",
+        "pred": "Unanswerable",
         "answers": [
           "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
         ],
@@ -1596,7 +1596,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Word embeddings BIBREF9, Word embeddings BIBREF16, Word embeddings BIBREF17, Word embeddings BIBREF18, Word embeddings BIBREF19, Word embeddings BIBREF20, Word embeddings BIBREF21, Word embeddings BIBREF22, Word embeddings BIBREF23, Word embeddings BIBREF24, Word embeddings BIBREF25, Word embeddings BIBREF26, Word embeddings BIBREF27, Word embeddings BIBREF28, Word embeddings BIBREF29, Word embeddings BIBREF30, Word embeddings BIBREF31, Word embeddings BIBREF32, Word embeddings",
+        "pred": "Yes",
         "answers": [
           "Skip\u2013gram, CBOW",
           "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
@@ -1606,7 +1606,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " They show that the psr model can be improved by increasing the size of the training dataset.",
+        "pred": "Yes",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -1616,7 +1616,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " F1 score, precision, recall, and accuracy.",
+        "pred": "F1 score",
         "answers": [
           "precision, recall , F1 score"
         ],
@@ -1625,7 +1625,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " 2K\n\nQuestion: What is the quality of the articles?\n\nAnswer: Wikipedia\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer: arXiv\n\nQuestion: What is the quality of the arXiv articles?\n\nAnswer:",
+        "pred": "arXiv",
         "answers": [
           "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
         ],
@@ -1634,7 +1634,7 @@
       },
       {
         "prompt_idx": 183,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "No",
           "No"
@@ -1644,7 +1644,7 @@
       },
       {
         "prompt_idx": 100,
-        "pred": " surface features, morphological features, syntactic features, and POS tagging information.",
+        "pred": "Arabic diacritics, Arabic morphology, Arabic syntax, Arabic semantics, Arabic phonology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology, Arabic morphology,",
         "answers": [
           "POS, gender/number and stem POS"
         ],
@@ -1653,7 +1653,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " The dimension with the highest positive value.",
+        "pred": "## Step 1:  The problem asks us to determine the dimension where the semantically related words take larger values.\n## Step 2:  To approach this, we need to analyze the provided word embeddings and identify the dimensions where the word groups are well-connected.\n## Step 3:  We can do this by examining the cooccurrence records of the words in each dimension and looking for clusters of words that are semantically related.\n## Step 4:  By doing so, we can identify the dimensions where the word groups are well-connected and where the semantically related words take larger values.\n## Step 5: ",
         "answers": [
           "dimension corresponding to the concept that the particular word belongs to"
         ],
@@ -1662,7 +1662,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " mainstream news, disinformation news.",
+        "pred": "Mainstream news and disinformation news.",
         "answers": [
           "mainstream news and disinformation",
           "mainstream and disinformation news"
@@ -1672,7 +1672,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " Text-Games\n\n Question: How many games are in the CookingWorld setting?\n\nAnswer: 222\n\n Question: What is the maximum number of steps in a single game?\n\nAnswer: 30\n\n Question: What is the maximum number of steps in a single game?\n\nAnswer: 30\n\n Question: What is the maximum number of steps in a single game?\n\nAnswer: 30\n\n Question: What is the maximum number of steps in a single game?\n\nAnswer: 30\n\n Question: What is the maximum number of steps in a single game?\n\nAnswer: 30\n\n Question: What is the maximum number of steps in a single",
+        "pred": "## Step 1: Identify the type of games that are being tested\nThe article mentions that experiments are performed on three settings: single games, joint games, and zero-shot games.\n\n## Step 2: Determine the specific games being tested\nThe article mentions that the experiments are performed on the following games: Coin Collector, Cooking World, and First TextWorld.\n\n## Step 3: Identify the Text-Based Games that are being tested\nThe article mentions that the experiments are performed on the following Text-Based Games: Coin Collector, Cooking World, and First TextWorld.\n\n## Step 4: Determine the specific games that are being tested\n",
         "answers": [
           "CoinCollector , CookingWorld ",
           "CoinCollector, CookingWorld"
@@ -1682,7 +1682,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " None.",
+        "pred": "Future improvements include training the model with more data, adding more modules to the model, and using more advanced techniques such as attention mechanisms and entity extraction.",
         "answers": [
           "rther constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions",
           "to further constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions"
@@ -1692,7 +1692,7 @@
       },
       {
         "prompt_idx": 109,
-        "pred": " The cost term is modified to increase the vector representation of words that are semantically related to the concept group.",
+        "pred": "The proposed approach is to add a cost term to the objective function that favors the alignment of concept words in the embedding space.",
         "answers": [
           "The cost function for any one of the words of concept word-groups is modified by the introduction of an additive term to the cost function. . Each embedding vector dimension is first associated with a concept. For a word belonging to any one of the word-groups representing these concepts, the modified cost term favors an increase for the value of this word's embedding vector dimension corresponding to the concept that the particular word belongs to,",
           "An additive term added to the cost function for any one of the words of concept word-groups"
@@ -1702,7 +1702,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": " The document-level encoder is novel because it uses a pre-trained language model, BertSumExt, to extract novel n-grams from the input document.\n\nQuestion: What is the purpose of the document-level encoder?\n\nAnswer: The purpose of the document-level encoder is to extract novel n-grams from the input document.\n\nQuestion: What is the relationship between the document-level encoder and the extractive summarization model?\n\nAnswer: The document-level encoder is used to extract novel n-grams from the input document, which are then used to generate the extractive summarization model's output.\n\nQuestion: What is the relationship between the document-level encoder and",
+        "pred": "The document-level encoder is novel because it uses a pre-trained BERT model as a general-purpose language model for summarization tasks.",
         "answers": [
           "Bert model have a maximum length of 512; we overcome this limitation by adding more position embeddings, we insert external [cls] tokens at the start of each sentence, and each [cls] symbol collects features for the sentence preceding it, document representations are learned hierarchically"
         ],
@@ -1711,7 +1711,7 @@
       },
       {
         "prompt_idx": 111,
-        "pred": " The model uses a more interpretable attention mechanism, which enables the model to focus on the most relevant words in the input sentence.",
+        "pred": "## Step 1: Understand the question\nThe question asks how the adaptative attention mechanism (entmax) improves interpretability compared to softmax transformers.\n\n## Step 2: Recall the properties of softmax and entmax\nSoftmax transformers are known for their ability to learn complex representations of input data, but they can be difficult to interpret due to their non-linear nature.\n\n## Step 3: Recall the properties of entmax\nEntmax is a non-linear attention mechanism that can learn to focus on specific parts of the input data, making it easier to interpret.\n\n## Step 4: Compare the two mechanisms\nEntmax is more interpre",
         "answers": [
           "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
           "We introduce sparse attention into the Transformer architecture"
@@ -1721,7 +1721,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " Improved by 25%",
+        "pred": "Answer:improves the efficacy of the attention mechanism by 50%",
         "answers": [
           "Unanswerable",
           "Unanswerable"
@@ -1731,7 +1731,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " Human judgements were assembled by the annotators",
+        "pred": "Question: What was the final score of the RNMT model?\n\nAnswer:unanswerable",
         "answers": [
           "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
           "adequacy, precision and ranking values"
@@ -1741,7 +1741,7 @@
       },
       {
         "prompt_idx": 120,
-        "pred": " A strong baseline was used in the experiment.",
+        "pred": "Unanswerable",
         "answers": [
           "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
           "M2M Transformer"
@@ -1751,7 +1751,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": " KBQA system consists of a KB (Knowledge Base) and a relation detection module.",
+        "pred": "KBQA stands for Knowledge-Based Question Answering, which is a subfield of Natural Language Processing (NLP) that deals with the interaction between knowledge bases and question-answering systems.",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -1761,7 +1761,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " BIBREF4",
+        "pred": "Answer: BIBREF4",
         "answers": [
           "BIBREF7",
           " reward learning algorithm BIBREF7"
@@ -1771,7 +1771,7 @@
       },
       {
         "prompt_idx": 126,
-        "pred": " BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF8, BIBREF9, BIBREF",
+        "pred": "Unanswerable",
         "answers": [
           "BIBREF9 , BIBREF8 ",
           "BIBREF9 , BIBREF8"
@@ -1781,7 +1781,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " The dataset model character's profiles by collecting and analyzing their dialogue data.",
+        "pred": "Dataset model character's profiles by collecting and analyzing dialogue data from TV shows.",
         "answers": [
           "attributes are determined by human viewers and their impressions of the characters, and are correlated with human-like characteristics"
         ],
@@ -1790,7 +1790,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " Reuters-8\n\nQuestion: What is the main method used in this work?\n\nAnswer: Text classification\n\nQuestion: What is the main problem that this work aims to solve?\n\nAnswer: Text classification\n\nQuestion: What is the main advantage of the proposed method?\n\nAnswer: It can represent the word vectors as a word subspace with high accuracy.\n\nQuestion: What is the main disadvantage of the proposed method?\n\nAnswer: It requires the word vectors to be treated as a set of word vectors.\n\nQuestion: What is the main limitation of the proposed method?\n\nAnswer: It does not consider the order of words in a text.\n\nQuestion: What is",
+        "pred": "Reuters-8 dataset",
         "answers": [
           "Reuters-8 dataset without stop words",
           "The Reuters-8 dataset (with stop words removed)"
@@ -1800,7 +1800,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " The approach improves the AUC of the model by 18.17% on CyberAttack and 15.71% on PoliticianDeath.",
+        "pred": "Our approach improves the accuracy of the event detection model by 4.5% on average.",
         "answers": [
           "significant improvements clearly demonstrate that our approach is effective at improving model performance",
           "By evaluating the performance of the approach using accuracy and AUC"
@@ -1810,7 +1810,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " WebQSP, SimpleQuestions\n\nRelation detection models:\n\n* Relation detector 1: 91.2% (WebQSP), 93.3% (SimpleQuestions)\n* Relation detector 2: 92.5% (WebQSP), 94.2% (SimpleQuestions)\n* Relation detector 3: 93.4% (WebQSP), 95.1% (SimpleQuestions)\n* Relation detector 4: 94.1% (WebQSP), 96.3% (SimpleQuestions)\n* Relation detector 5: 95.1% (WebQSP), ",
+        "pred": "KBQA systems achieve state-of-the-art results on both WebQSP and SimpleQuestions.",
         "answers": [
           "SimpleQuestions, WebQSP",
           "WebQSP, SimpleQuestions"
@@ -1820,7 +1820,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Knowledge Base Question Answering\n\nRelation detection model: HR-BiLSTM\n\nRelation detection task: Relation detection for KBQA\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task: Relation detection for KBQA system\n\nRelation detection task",
+        "pred": "KBQA stands for Knowledge Base Question Answering.",
         "answers": [
           "Knowledge Base Question Answering",
           "Knowledge Base Question Answering "
@@ -1830,7 +1830,7 @@
       },
       {
         "prompt_idx": 149,
-        "pred": " CyberAttack and PoliticianDeath datasets.",
+        "pred": "CyberAttack and PoliticianDeath datasets.",
         "answers": [
           "Tweets related to CyberAttack and tweets related to PoliticianDeath",
           "cyber security (CyberAttack), death of politicians (PoliticianDeath)"
@@ -1840,7 +1840,7 @@
       },
       {
         "prompt_idx": 150,
-        "pred": " Our model with three dimension representation.\n\nQuestion: What is the main contribution of the hierarchical encoder?\n\nAnswer: It models information from three dimension information (row, column, time) and combines those representations via their sailency.\n\nQuestion: What is the main task of the model?\n\nAnswer: It generates table-to-text representation.\n\nQuestion: What is the main task of the model?\n\nAnswer: It generates table-to-text representation.\n\nQuestion: What is the main task of the model?\n\nAnswer: It generates table-to-text representation.\n\nQuestion: What is the main task of the model?\n\nAnswer: It generates table-to-text representation.\n\nQuestion: What is",
+        "pred": "The strong baseline is the model that generates the most accurate and coherent text from the given table.",
         "answers": [
           "Conditional Copy (CC) model ",
           "delayed copy model (DEL),  template system (TEM), conditional copy (CC), NCP+CC (NCP)"
@@ -1850,7 +1850,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Multilayer perceptron, logistic regression, decision trees, neural networks, support vector machines, random forests, and deep learning models.",
+        "pred": "Answer: Logistic regression, Multinomial Logistic Regression, and Support Vector Machines.",
         "answers": [
           "probabilistic model",
           "Logistic Regression, Multilayer Perceptron"
@@ -1860,7 +1860,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " The distinctive characteristics of how Arabic speakers use offensive language include the use of dialectal Arabic, the use of idioms and expressions that are specific to certain dialects, the use of sarcasm and irony, the use of humor and irony, the use of metaphors and similes, the use of rhetorical devices, the use of allusions to cultural and historical references, the use of insults and put-downs, the use of derogatory terms and phrases, the use of phrases that are specific to certain social groups or communities, the use of language that is specific to certain genres or forms of writing, and the use of language that is",
+        "pred": "Unanswerable",
         "answers": [
           "Frequent use of direct animal name calling, using simile and metaphors, through indirect speech like sarcasm, wishing evil to others, name alteration, societal stratification, immoral behavior and sexually related uses.",
           "Direct name calling, Simile and metaphor, Indirect speech, Wishing Evil, Name alteration, Societal stratification, Immoral behavior, Sexually related"
@@ -1870,7 +1870,7 @@
       },
       {
         "prompt_idx": 157,
-        "pred": " The authors show that their policy generalizes better than existing solutions to unseen games by using a simple Seq2Seq model that can learn to represent the state of the game and the actions that can be taken in the game. The policy can then be used to generate trajectories for unseen games, and the trajectories can be used to train a new policy that generalizes to unseen games.",
+        "pred": "The authors show that their learned policy generalizes better than existing solutions to unseen games by training the policy on a large dataset of games and then using it to play unseen games. They also show that the policy is able to learn the optimal solution to the unseen games, which is a key aspect of generalization.",
         "answers": [
           "promising results by solving almost half of the unseen games, most of the lost games are in the hardest set, where a very long sequence of actions is required for winning the game"
         ],
@@ -1879,7 +1879,7 @@
       },
       {
         "prompt_idx": 163,
-        "pred": " Wikipedia and Wikipedia's own talk pages.",
+        "pred": "The two datasets are Wikipedia and Reddit.",
         "answers": [
           " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
           "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
@@ -1889,7 +1889,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " NaiveNN, FANN, DAS-EM, DAS-SE, DAS-BT\n\nQuestion: What is the comparison result of the sentiment classification task on the Amazon benchmark?\n\nAnswer: The comparison results are shown in Table TABREF37.\n\nQuestion: What is the CNN filter analysis full results?\n\nAnswer: The CNN filter analysis full results are shown in Table TABREF39, TABREF40, TABREF41.",
+        "pred": "Unanswerable",
         "answers": [
           "(1) Naive, (2) mSDA BIBREF7, (3) NaiveNN, (4) AuxNN BIBREF4, (5) ADAN BIBREF16, (6) MMD",
           "non-domain-adaptive baseline with bag-of-words representations and SVM classifier, mSDA, non-domain-adaptive CNN trained on source domain, neural model that exploits auxiliary tasks, adversarial training to reduce representation difference between domains, variants of deep CNNs are used for encoding images and the MMDs of multiple layers are jointly minimized"
@@ -1899,7 +1899,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " US and Italian networks.",
+        "pred": "US and Italian networks.",
         "answers": [
           "US dataset, Italian dataset",
           "US dataset, Italian dataset"
@@ -1909,7 +1909,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " Influential leaders and their followers show similar profile changes, with most changes being related to their political party or leader.",
+        "pred": "Influential leaders made at-most 4 changes during the election campaign, with profile image being the most changed attribute for both the political as well as follower handles.",
         "answers": [
           "Influential leaders are more likely to change their profile attributes than their followers; the leaders do not change their usernames, while their followers change their usernames a lot; the leaders  tend to make new changes related to previous attribute values, while the followers make comparatively less related changes to previous attribute values."
         ],
@@ -1920,7 +1920,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": " No, both are French.",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -1929,7 +1929,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " Jaffrey.",
+        "pred": "Jaffrey",
         "answers": [
           "Marlborough"
         ],
@@ -1938,7 +1938,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -1947,7 +1947,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -1956,7 +1956,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": " Aichryson has more species.",
+        "pred": "Polypodium",
         "answers": [
           "Polypodium"
         ],
@@ -1965,7 +1965,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": " None",
+        "pred": "Noel",
         "answers": [
           "Albert"
         ],
@@ -1974,7 +1974,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": " A&M Records",
+        "pred": "Universal",
         "answers": [
           "A1 Recordings"
         ],
@@ -1983,7 +1983,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": " 83.",
+        "pred": "83",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " Vodka.",
+        "pred": "Vodka",
         "answers": [
           "lime"
         ],
@@ -2001,7 +2001,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " George Abbott was the director of the Broadway play \"Broadway Bound\" and the Broadway play \"Secret Garden\".",
+        "pred": "George Abbott was the director of the 1926 play \"Broadway Bound\" and the 1926 film \"Broadway Bound\".",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -2010,7 +2010,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " Scotland.",
+        "pred": "Scotland",
         "answers": [
           "Scotland"
         ],
@@ -2019,7 +2019,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " 12 times per year.",
+        "pred": "12",
         "answers": [
           "13"
         ],
@@ -2028,7 +2028,7 @@
       },
       {
         "prompt_idx": 100,
-        "pred": " Osteomeles",
+        "pred": "Osteomeles",
         "answers": [
           "Medinilla"
         ],
@@ -2037,7 +2037,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Diego Luna",
+        "pred": "No, the actor did not star in Sex and Breakfast.",
         "answers": [
           "Eduardo Kuno Becker Paz"
         ],
@@ -2046,7 +2046,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Mississippi County.",
+        "pred": "Mississippi County",
         "answers": [
           "Sunflower County"
         ],
@@ -2055,7 +2055,7 @@
       },
       {
         "prompt_idx": 103,
-        "pred": " 1,000",
+        "pred": "1,000,000",
         "answers": [
           "about 7 million"
         ],
@@ -2064,7 +2064,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "no"
         ],
@@ -2073,7 +2073,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " David Dobkin",
+        "pred": "David Sedaris",
         "answers": [
           "David Dobkin"
         ],
@@ -2082,7 +2082,7 @@
       },
       {
         "prompt_idx": 106,
-        "pred": " Lehmber Hussainpuri",
+        "pred": "Lehmber Hussainpuri",
         "answers": [
           "Lehmber Hussainpuri"
         ],
@@ -2091,7 +2091,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "no"
         ],
@@ -2100,7 +2100,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " Aspidistra, Menyanthes, and Asparagus.",
+        "pred": "Arbutus and Aspidistra are monocotyledon plants.",
         "answers": [
           "flowering plants"
         ],
@@ -2109,7 +2109,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " York County",
+        "pred": "York County",
         "answers": [
           "York County"
         ],
@@ -2118,7 +2118,7 @@
       },
       {
         "prompt_idx": 121,
-        "pred": " 1976",
+        "pred": "2008",
         "answers": [
           "1976"
         ],
@@ -2127,7 +2127,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": "  The art of manipulation.",
+        "pred": "The 1919 Mississippi gubernatorial election incumbent Democrat was a master of the \"art of the deal.\"",
         "answers": [
           "filibuster"
         ],
@@ -2136,7 +2136,7 @@
       },
       {
         "prompt_idx": 127,
-        "pred": " American Football Conference (AFC) East.",
+        "pred": "American Football League (AFL)",
         "answers": [
           "Canadian-American Association of Professional Baseball"
         ],
@@ -2145,7 +2145,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " Bob Probert",
+        "pred": "Bob Probert",
         "answers": [
           "Tie Domi"
         ],
@@ -2154,7 +2154,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " Field of Dreams",
+        "pred": "Little Big League",
         "answers": [
           "\"Field of Dreams\""
         ],
@@ -2163,7 +2163,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " Romantic era",
+        "pred": "Romantic era",
         "answers": [
           "Romantic"
         ],
@@ -2172,7 +2172,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": " Wigan Station",
+        "pred": "Carnforth railway station",
         "answers": [
           "Borwick railway station"
         ],
@@ -2181,7 +2181,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " August Heckscher",
+        "pred": "August Heckscher",
         "answers": [
           "August Heckscher"
         ],
@@ -2190,7 +2190,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " Detroit",
+        "pred": "East Lansing, Michigan",
         "answers": [
           "Prudential Center"
         ],
@@ -2201,7 +2201,7 @@
     "lb/2wikimqa_e": [
       {
         "prompt_idx": 107,
-        "pred": " Yes",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -2210,7 +2210,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " Stein Erik Hagen",
+        "pred": "Kiplangat",
         "answers": [
           "Kiplangat Sang"
         ],
@@ -2219,7 +2219,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " London, UK",
+        "pred": "Tel Aviv",
         "answers": [
           "Sydney, Australia"
         ],
@@ -2228,7 +2228,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " 1343.",
+        "pred": "6 May 1343",
         "answers": [
           "6 August 1272"
         ],
@@ -2237,7 +2237,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -2246,7 +2246,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " Lassie Come Home",
+        "pred": "Lassie Come Home",
         "answers": [
           "Prairie Thunder"
         ],
@@ -2255,7 +2255,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " 1570",
+        "pred": "1601",
         "answers": [
           "8 April 1643"
         ],
@@ -2264,7 +2264,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " Ireland",
+        "pred": "Hood Museum of Art",
         "answers": [
           "Israeli"
         ],
@@ -2273,7 +2273,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " The Thing About My Folks",
+        "pred": "The Thing About My Folks",
         "answers": [
           "The Thing About My Folks"
         ],
@@ -2282,7 +2282,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " Hubba bint Hulail",
+        "pred": "Hubba",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],
@@ -2291,7 +2291,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " American",
+        "pred": "American",
         "answers": [
           "Canadian"
         ],
@@ -2300,7 +2300,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " 1980",
+        "pred": "Pune",
         "answers": [
           "Nice"
         ],
@@ -2309,7 +2309,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " Ramona of Aragon",
+        "pred": "Alfonso VII of Le\u00f3n",
         "answers": [
           "Urraca of Le\u00f3n"
         ],
@@ -2318,7 +2318,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " The Carnegie Institute of Technology",
+        "pred": "The University of Toledo",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -2327,7 +2327,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Sweden",
+        "pred": "Switzerland",
         "answers": [
           "Sweden"
         ],
@@ -2336,7 +2336,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Faiz Muhammad",
+        "pred": "Faiz Muhammad was born in 1687.",
         "answers": [
           "Guillermo Capetillo"
         ],
@@ -2345,7 +2345,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " Werner Mensching lived longer.",
+        "pred": "Werner Mensching lived longer,  21 years.",
         "answers": [
           "Werner Mensching"
         ],
@@ -2354,7 +2354,7 @@
       },
       {
         "prompt_idx": 106,
-        "pred": " 1320.",
+        "pred": "1360",
         "answers": [
           "13 December 1272"
         ],
@@ -2363,7 +2363,7 @@
       },
       {
         "prompt_idx": 109,
-        "pred": " Hong Kong",
+        "pred": "Hokkaido",
         "answers": [
           "Barkin Ladi"
         ],
@@ -2372,7 +2372,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": " England",
+        "pred": "Burlington, Vermont",
         "answers": [
           "Sey\u00f0isfj\u00f6r\u00f0ur"
         ],
@@ -2381,7 +2381,7 @@
       },
       {
         "prompt_idx": 111,
-        "pred": " Pal Pal Dil Ke Paas",
+        "pred": "Another Earth was released in 2011.",
         "answers": [
           "Another Earth"
         ],
@@ -2390,7 +2390,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " Germany\n\nQuestion: Which country Jakobea Of Baden's father is from?\nAnswer: Bavaria\n\nQuestion: Which country Jakobea Of Baden",
+        "pred": "Baden-W\u00fcrttemberg",
         "answers": [
           "German"
         ],
@@ -2399,7 +2399,7 @@
       },
       {
         "prompt_idx": 114,
-        "pred": " Florence",
+        "pred": "Florence, Italy",
         "answers": [
           "Florence"
         ],
@@ -2408,7 +2408,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " Deuces Wild",
+        "pred": "Cavalcade Of The West",
         "answers": [
           "Cavalcade Of The West"
         ],
@@ -2417,7 +2417,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " Arizona Gang Busters",
+        "pred": "Arizona Gang Busters",
         "answers": [
           "The Rebellion Of The Brides"
         ],
@@ -2426,7 +2426,7 @@
       },
       {
         "prompt_idx": 120,
-        "pred": " English.",
+        "pred": "English",
         "answers": [
           "England"
         ],
@@ -2435,7 +2435,7 @@
       },
       {
         "prompt_idx": 121,
-        "pred": " Lancaster, Pennsylvania.",
+        "pred": "New York City, Pennsylvania, Lancaster City, Lancaster County, Pennsylvania, Lancaster City, Lancaster County, Pennsylvania, Lancaster City, Lancaster County, Pennsylvania, Lancaster City",
         "answers": [
           "New York"
         ],
@@ -2444,7 +2444,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -2453,7 +2453,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " Tales From The Golden Age",
+        "pred": "Su-Ki-Da",
         "answers": [
           "Su-Ki-Da"
         ],
@@ -2462,7 +2462,7 @@
       },
       {
         "prompt_idx": 128,
-        "pred": " Viva Knievel!",
+        "pred": "Viva Knievel!",
         "answers": [
           "Maria Marten, Or The Murder In The Red Barn"
         ],
@@ -2471,7 +2471,7 @@
       },
       {
         "prompt_idx": 130,
-        "pred": " Margaret Irvine, daughter of John Irvine, 1st Earl of Strathmore and Kinghorn.",
+        "pred": "Margaret de Stafford",
         "answers": [
           "Lady Anne Campbell"
         ],
@@ -2480,7 +2480,7 @@
       },
       {
         "prompt_idx": 131,
-        "pred": " Hell And Mr. Fudge",
+        "pred": "Yes Or No",
         "answers": [
           "Yes Or No?"
         ],
@@ -2489,7 +2489,7 @@
       },
       {
         "prompt_idx": 134,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "no"
         ],
@@ -2498,7 +2498,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " Karthika (Film)",
+        "pred": "Karthika (Film)",
         "answers": [
           "Everything'S Ducky"
         ],
@@ -2507,7 +2507,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " J\u00f6rn Lenz was born first.",
+        "pred": "J\u00f6rn Lenz",
         "answers": [
           "Alejandro Romualdo"
         ],
@@ -2516,7 +2516,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": " Throw Momma From The Train",
+        "pred": "Throw Momma From The Train",
         "answers": [
           "Dona Mariquita Of My Heart"
         ],
@@ -2525,7 +2525,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " Abd al-Muttalib.",
+        "pred": "Abdul Muttalib ibn Abi Talib",
         "answers": [
           "Amadeus VI, Count of Savoy"
         ],
@@ -2534,7 +2534,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " The University of Oslo",
+        "pred": "University of Paris VII.",
         "answers": [
           "UCLA"
         ],
@@ -2543,7 +2543,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Varanous.",
+        "pred": "Troyes, France",
         "answers": [
           "Toulouse"
         ],
@@ -2552,7 +2552,7 @@
       },
       {
         "prompt_idx": 144,
-        "pred": " Boston, Massachusetts.",
+        "pred": "St. Stephen, New Brunswick",
         "answers": [
           "St. Stephen, New Brunswick"
         ],
@@ -2561,7 +2561,7 @@
       },
       {
         "prompt_idx": 146,
-        "pred": " Field Marshal Gen Sugiyama",
+        "pred": "Field Marshal Sir William Crofton Croft, 1st Baron Crofton of Cholmondeley",
         "answers": [
           "Nandlal Nehru"
         ],
@@ -2570,7 +2570,7 @@
       },
       {
         "prompt_idx": 149,
-        "pred": " Harvard University",
+        "pred": "New York City, New York",
         "answers": [
           "Yale"
         ],
@@ -2579,7 +2579,7 @@
       },
       {
         "prompt_idx": 150,
-        "pred": " No",
+        "pred": "No",
         "answers": [
           "no"
         ],
@@ -2588,7 +2588,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " K\u00f6pekler Adas\u0131",
+        "pred": "Borsalino & Co.",
         "answers": [
           "K\u00f6pekler Adas\u0131"
         ],
@@ -2597,7 +2597,7 @@
       },
       {
         "prompt_idx": 153,
-        "pred": " Indian",
+        "pred": "India",
         "answers": [
           "Indian"
         ],
@@ -2606,7 +2606,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Young And Dangerous: The Prequel",
+        "pred": "Young And Dangerous: The Prequel",
         "answers": [
           "Hanuman Patal Vijay"
         ],
@@ -2615,7 +2615,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " Muiredach mac Ferdiad",
+        "pred": "Coirpre Mac Fogartaig's paternal grandfather was Muiredach mac Eirc.",
         "answers": [
           "Niall mac Cernaig Sotal"
         ],
@@ -2624,7 +2624,7 @@
       },
       {
         "prompt_idx": 158,
-        "pred": " Brodie Croft",
+        "pred": "Brodie Croft was born first.",
         "answers": [
           "Saad Abdulrahman"
         ],
@@ -2633,7 +2633,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " Naples",
+        "pred": "Naples",
         "answers": [
           "Neapolitan"
         ],
@@ -2642,7 +2642,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " Pieces Of A Woman",
+        "pred": "Pieces Of A Woman",
         "answers": [
           "Oriental Nights"
         ],
@@ -2651,7 +2651,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " Geoffrey II, Viscount of Ch\u00e2teaudun",
+        "pred": "John of Gaunt, 1st Duke of Lancaster",
         "answers": [
           "John of Gaunt"
         ],
@@ -2660,7 +2660,7 @@
       },
       {
         "prompt_idx": 162,
-        "pred": " Moritz, Landgrave of Hesse\n\nQuestion: Who is the maternal grandmother of Prince Christian Of Hesse?\nAnswer: Princess Mafalda of Ar",
+        "pred": "Moritz, Landgrave of Hesse",
         "answers": [
           "Frederick V of Denmark"
         ],
@@ -2669,7 +2669,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Konrad II The Gray\n\nKonrad II The Gray was the Duke of Masovia.",
+        "pred": "Konrad III the Old was the Duke of \u015acinawa.",
         "answers": [
           "Konrad I of Ole\u015bnica"
         ],
@@ -2678,7 +2678,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " Fujiwara no Nagara",
+        "pred": "Princess Nia Segamain",
         "answers": [
           "Fer Corb"
         ],
@@ -2687,7 +2687,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " Safed, Israel.",
+        "pred": "Goodhart's father, Goodhart's father is a sculptor.",
         "answers": [
           "Oxford"
         ],
@@ -2696,7 +2696,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " Cry Of The Hunted",
+        "pred": "Cry Of The Hunted",
         "answers": [
           "Salvage With A Smile"
         ],
@@ -2705,7 +2705,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " Singapore Dreaming",
+        "pred": "Gray Lady Down",
         "answers": [
           "Singapore Dreaming"
         ],
@@ -2714,7 +2714,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " Motu Hafoka lived longer.",
+        "pred": "Wilhelm Meise lived longer.",
         "answers": [
           "Wilhelm Meise"
         ],
@@ -2723,7 +2723,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Cleopatra Thea",
+        "pred": "Cleopatra Thea",
         "answers": [
           "Laodice V"
         ],
@@ -2732,7 +2732,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " Ebar Shabor",
+        "pred": "Ebar Shabor",
         "answers": [
           "Circle Of Deception"
         ],
@@ -2741,7 +2741,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " Ernst II, Prince of Hohenlohe-Langenburg",
+        "pred": "Ernst von Wittelsbach",
         "answers": [
           "Charles Louis"
         ],

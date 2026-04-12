@@ -102,11 +102,36 @@ class DynamicSelection(SelectionNetwork):
     
     def get_cache_size(self,) -> Optional[int]:
         return self.cache_size
-    
+
     def net_param_size(self,) -> int:
         return 1
-    
+
     def get_param_scaling(self,) -> Optional[Union[str, Tuple[float, float]]]:
+        return 'exp'
+
+
+class FixedThresholdSelection(DynamicSelection):
+    """DynamicSelection with the threshold frozen at its initial value.
+
+    The threshold is NOT included in the CMA-ES parameter vector (net_param_size=0),
+    so CMA-ES only evolves the scoring network. The fixed threshold is stored as
+    self._fixed_thresh (set from the config's dynamic_thresh, default 0).
+
+    Use this to match the original NAMM paper's setup where the threshold is
+    static at 0 and only the scoring head is learned.
+    """
+
+    def net_param_size(self) -> int:
+        return 0  # threshold is not a CMA-ES parameter
+
+    def select_new_tokens(self, parameters, token_scores, **kwargs):
+        # `parameters` is empty (size 0) because net_param_size=0.
+        # Build a scalar threshold tensor from the config init value.
+        fixed = torch.tensor(
+            self.initializer, dtype=token_scores.dtype,
+            device=token_scores.device)
+        return super().select_new_tokens(
+            parameters=fixed, token_scores=token_scores, **kwargs)
         
         
         return 'exp'
@@ -218,11 +243,12 @@ class BinarySelection(SelectionNetwork):
 class TopKSelection(SelectionNetwork):
     '''Simply collects the top K scores with no thesholding'''
     def __init__(self,
-                
-                
-                
+
+
+
                  cache_size: Optional[int],
-                
+                 protected_tail_n: int = 0,
+
                  ):
         SelectionNetwork.__init__(
             self,
@@ -239,6 +265,7 @@ class TopKSelection(SelectionNetwork):
             buffer_names=[],
             )
         self.cache_size = cache_size
+        self.protected_tail_n = protected_tail_n
 
     def select_new_tokens(
         self,
@@ -253,7 +280,7 @@ class TopKSelection(SelectionNetwork):
         ) -> torch.Tensor:
         '''Produces indexes for the selected KV cache tokens and a selection
            mask.'''
-        
+
         num_samples = token_scores.shape[-1]
         if self.cache_size is not None and num_samples > self.cache_size:
             min_value = torch.finfo(token_scores.dtype).min
@@ -261,6 +288,14 @@ class TopKSelection(SelectionNetwork):
                 attn_mask.bool(), token_scores, min_value)
             masked_full_scores = _apply_cache_validity_mask(
                 masked_full_scores, kwargs.get('cache_validity_mask'))
+            # Protect the last N positions (e.g. chat template tail) from
+            # eviction by setting their scores to +inf. This guarantees
+            # they survive topk selection without changing the learned
+            # scoring policy or requiring retraining.
+            if self.protected_tail_n > 0:
+                max_value = torch.finfo(token_scores.dtype).max
+                tail_start = max(0, num_samples - self.protected_tail_n)
+                masked_full_scores[..., tail_start:] = max_value
             _, retained_idxs = torch.topk(
                 masked_full_scores, k=self.cache_size, sorted=False, dim=-1)
             retained_idxs, _ = retained_idxs.sort(descending=False, dim=-1,)
