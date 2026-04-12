@@ -2,18 +2,18 @@
 
 Same as M2 cs1024 but using a NAMM checkpoint trained at cache_size=2048 by a collaborator.
 
-**Source run:** `eval_results/namm_cs2048_5t/ext_20260411_150302/`
+**Source run:** `eval_results/namm_cs2048_5t/ext_20260412_141757/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 9.65 | 11.18 |
-| lb/2wikimqa | 25.00 | 14.96 |
-| lb/qasper_e | 6.61 | 8.65 |
-| lb/hotpotqa_e | 25.79 | 32.78 |
-| lb/2wikimqa_e | 13.61 | 19.92 |
-| **mean F1** | **16.13** | **17.50** |
+| lb/qasper | 26.79 | 20.20 |
+| lb/2wikimqa | 25.00 | 20.90 |
+| lb/qasper_e | 6.06 | 10.14 |
+| lb/hotpotqa_e | 18.45 | 24.71 |
+| lb/2wikimqa_e | 15.18 | 20.49 |
+| **mean F1** | **18.30** | **19.29** |
 
 ## Command
 
