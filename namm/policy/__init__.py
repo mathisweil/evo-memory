@@ -17,7 +17,7 @@ from .deep_embedding import (
 from .deep_scoring import (
     MLPScoring, GeneralizedScoring, make_scaled_one_hot_init, TCNScoring)
 from .deep_selection import (
-    DynamicSelection, TopKSelection, BinarySelection)
+    DynamicSelection, FixedThresholdSelection, TopKSelection, BinarySelection)
 from .base_deep_components import (
     EMAParams, ComponentOutputParams, wrap_torch_initializer,
     DeepMemoryPolicyComponent, TokenEmbedding, JointEmbeddings,
