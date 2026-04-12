@@ -20,25 +20,25 @@ We computed:
 
 ### Layer-wise CKA
 
-| Layer | CKA |
-|-------|-----|
-| Embedding | 1.000 |
-| Layer 0 | 1.000 |
-| Layer 1 | 1.000 |
-| Layer 2 | 0.996 |
+| Layer       | CKA       |
+| ----------- | --------- |
+| Embedding   | 1.000     |
+| Layer 0     | 1.000     |
+| Layer 1     | 1.000     |
+| Layer 2     | 0.996     |
 | **Layer 3** | **0.979** |
-| Layer 4 | 0.988 |
-| Layer 5 | 0.990 |
-| Layer 6 | 0.993 |
-| Layer 7 | 0.993 |
-| Layer 8 | 0.993 |
-| Layer 9 | 0.991 |
-| Layer 10 | 0.989 |
-| Layer 11 | 0.991 |
-| Layer 12 | 0.990 |
-| Layer 13 | 0.990 |
-| Layer 14 | 0.995 |
-| Layer 15 | 0.994 |
+| Layer 4     | 0.988     |
+| Layer 5     | 0.990     |
+| Layer 6     | 0.993     |
+| Layer 7     | 0.993     |
+| Layer 8     | 0.993     |
+| Layer 9     | 0.991     |
+| Layer 10    | 0.989     |
+| Layer 11    | 0.991     |
+| Layer 12    | 0.990     |
+| Layer 13    | 0.990     |
+| Layer 14    | 0.995     |
+| Layer 15    | 0.994     |
 
 See `cka_by_layer.png`. All layers show CKA > 0.97, with a dip at layer 3.
 
@@ -67,11 +67,11 @@ The CKA minimum at layer 3 (0.979) is notable. This is in the early-middle layer
 
 ### Connection to other reports
 
-| Report | What it measures | M1 vs M3 on full context |
-|--------|-----------------|--------------------------|
-| 4 (LoRA weights) | Weight-space difference | **Orthogonal subspaces**, M3 norms 1.5-2.6× larger |
-| 5 (Attention) | Function-space difference (attention) | **Measurably different**: M3 higher entropy (+4%), lower sinks |
-| 7 (CKA) | Function-space difference (representations) | **Very similar but not identical**: CKA 0.979-1.0 |
+| Report           | What it measures                            | M1 vs M3 on full context                                       |
+| ---------------- | ------------------------------------------- | -------------------------------------------------------------- |
+| 4 (LoRA weights) | Weight-space difference                     | **Orthogonal subspaces**, M3 norms 1.5-2.6× larger             |
+| 5 (Attention)    | Function-space difference (attention)       | **Measurably different**: M3 higher entropy (+4%), lower sinks |
+| 7 (CKA)          | Function-space difference (representations) | **Very similar but not identical**: CKA 0.979-1.0              |
 
 This is a coherent picture: M1 and M3 differ in weight space (Report 4), and this translates to small but measurable differences in both attention patterns (Report 5) and hidden representations (Report 7) even on full context. The adaptation is not fully dormant — it produces a functional signature that may serve as a form of pre-adaptation, readying the model for the distribution shift caused by eviction.
 
