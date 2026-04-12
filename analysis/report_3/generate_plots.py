@@ -6,7 +6,7 @@ Produces four plots in analysis/report_3/:
   retention_vs_f1.png          -- Scatter: mean retention vs val F1 (cs1024)
   retention_over_training.png  -- Mean retention + val F1 dual-axis (cs1024)
 
-Also writes report.md with findings.
+Also writes _report.md with findings.
 """
 
 import os
@@ -278,7 +278,7 @@ def compute_layer_stats(all_data):
 
 
 def write_report(all_data, layer_stats, scatter_result, out_dir):
-    """Write analysis report as report.md."""
+    """Write analysis report as _report.md."""
     lines = []
 
     # ── Compute summary numbers ──
@@ -497,7 +497,7 @@ def write_report(all_data, layer_stats, scatter_result, out_dir):
     lines.append("- `retention_vs_f1.png` -- Scatter: mean retention vs val F1 for M3 cs1024")
     lines.append("- `retention_over_training.png` -- Mean retention and val F1 over training for M3 cs1024")
 
-    report_path = os.path.join(out_dir, "report.md")
+    report_path = os.path.join(out_dir, "_report.md")
     with open(report_path, "w") as f:
         f.write("\n".join(lines) + "\n")
     print(f"  Saved {report_path}")
@@ -550,7 +550,7 @@ def main():
     layer_stats = compute_layer_stats(all_data)
 
     # ── Write report ──
-    print("\nWriting report.md...")
+    print("\nWriting _report.md...")
     write_report(all_data, layer_stats, scatter_result, OUT_DIR)
 
     print(f"\nDone. All outputs saved to: {OUT_DIR}")
