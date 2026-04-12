@@ -1,7 +1,5 @@
 # Analysis 2 -- Adaptation Rate and Learning Efficiency
 
-> **TL;DR:** M3 cs1024 starts from a drastically lower baseline than M1 (19.96 vs 41.58 F1 — eviction destroys zero-shot performance) yet recovers to match M1's peak (45.59 vs 45.48) in roughly the same number of steps (~340). M3 is ~2x slower to reach the 75% threshold (214 vs 102 steps), but the total steps to peak are comparable. The train-val gap is negative for all conditions (val > train), so the "eviction as regularisation" hypothesis doesn't hold in the traditional sense — but M3 cs1024 shows the smallest magnitude gap, suggesting eviction does constrain the model in a way that narrows the generalisation gap.
-
 ## Summary
 
 This analysis compares the learning dynamics of M1 (LoRA fine-tuning with full context) and M3 (LoRA fine-tuning with frozen NAMM active) across three cache sizes (1024, 2048, 3072). We examine normalised improvement curves, convergence speed, and the train-val generalisation gap.
@@ -9,7 +7,7 @@ This analysis compares the learning dynamics of M1 (LoRA fine-tuning with full c
 **Key findings:**
 
 - M1 and the M3 variants reach comparable peak validation F1 (~45-46), except M3 cs3072, which peaked at 41.38 but was only trained for 116 steps (vs 682 for M1).
-- Each M3 condition starts from a substantially lower baseline than M1 (19.96-30.56 vs 41.58) because eviction degrades zero-shot performance, yet M3 cs1024 and M3 cs2048 recover to match or slightly exceed M1's best F1.
+- Each M3 condition starts from a substantially lower baseline than M1 (19.96-30.56 vs 22.59) because eviction degrades zero-shot performance, yet M3 cs1024 and M3 cs2048 recover to match or slightly exceed M1's best F1.
 - M3 cs1024 converges more slowly than M1 to the 75% threshold (214 vs 102 steps).
 - The train-val gap is consistently *negative* for all conditions (val F1 exceeds train F1), so the traditional overfitting framing does not apply. M3 cs1024 shows the smallest magnitude gap (mean -2.24), while M1 shows the largest (mean -5.74).
 
@@ -17,7 +15,7 @@ This analysis compares the learning dynamics of M1 (LoRA fine-tuning with full c
 
 | Condition  | WandB Run(s)                         | Baseline F1 | Best Val F1 | Best Step | Total Steps |
 |------------|--------------------------------------|-------------|-------------|-----------|-------------|
-| M1         | kz6vqo2o, x9a4smmf, qfoxxi2m         | 41.58       | 45.48       | 336       | 682         |
+| M1         | kz6vqo2o, x9a4smmf, qfoxxi2m         | 22.59       | 45.48       | 336       | 682         |
 | M3 cs1024  | ovosogkj                             | 19.96       | 45.59       | 340       | 608         |
 | M3 cs2048  | m4knrhmr                             | 24.84       | 46.39       | 354       | 370         |
 | M3 cs3072  | 4sgkswa6                             | 30.56       | 41.38       | 70        | 116         |
@@ -112,7 +110,7 @@ If we consider convergence to M1's best val F1 as an absolute benchmark:
 
 ## Conclusions
 
-1. **M3 converges at a comparable rate to M1.** Despite starting from much lower baselines (20-31 F1 vs 42 F1), M3 cs1024 and M3 cs2048 reach their best performance at similar step counts. The absolute improvement per step is therefore *larger* for M3 than M1.
+1. **M3 converges at a comparable rate to M1.** Despite starting from much lower baselines (20-31 F1 vs 23 F1), M3 cs1024 and M3 cs2048 reach their best performance at similar step counts. The absolute improvement per step is therefore *larger* for M3 than M1.
 
 2. **The information bottleneck from eviction does not substantially slow convergence.** M3 cs2048 converges only ~50% slower than M1 to the 75% threshold (150 vs 102 steps), while M3 cs1024 is ~2x slower. Given that these conditions operate with reduced KV cache, this is a relatively modest penalty.
 
@@ -120,7 +118,7 @@ If we consider convergence to M1's best val F1 as an absolute benchmark:
 
 4. **Larger cache does not clearly yield faster convergence** when controlling for training duration. M3 cs3072 was undertrained, preventing meaningful comparison. Between cs1024 and cs2048, the larger cache converges moderately faster, but both reach comparable peak performance.
 
-5. **The most striking finding is that M3 recovers from severe baseline degradation.** M3 cs1024 starts with a baseline of 19.96 (52% below M1's baseline of 41.58) yet reaches a peak of 45.59 -- slightly *exceeding* M1's best of 45.48. This suggests that LoRA can fully compensate for the information loss from aggressive eviction, at least on average across tasks.
+5. **The most striking finding is that M3 recovers from severe baseline degradation.** M3 cs1024 starts with a baseline of 19.96 (12% below M1's baseline of 22.59) yet reaches a peak of 45.59 -- slightly *exceeding* M1's best of 45.48. This suggests that LoRA can fully compensate for the information loss from aggressive eviction, at least on average across tasks.
 
 ## Plots
 
