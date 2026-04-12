@@ -3,7 +3,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": " 3\n\nQuestion: What is the name of the model that uses user embeddings for author stance classification?\n\nAnswer: UTCNN\n\nQuestion: What is the name of the model that uses topic embeddings for author stance classification?\n\nAnswer: PSL\n\nQuestion: What is the name of the model that uses comment embeddings for author stance classification?\n\nAnswer: PSL\n\nQuestion: What is the name of the model that uses topic embeddings for author stance classification?\n\nAnswer: PSL\n\nQuestion: What is the name of the model that uses topic embeddings for author stance classification?\n\nAnswer: PSL\n\nQuestion: What is the name of the model that",
+        "pred": "unanswerable",
         "answers": [
           "eight layers"
         ],
@@ -12,7 +12,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " unanswerable\n\nQuestion: what is the main contribution of this paper?\n\nAnswer: to propose a model to learn geographic location embeddings using Flickr tags, numerical environmental features, and categorical information.\n\nQuestion: what is the main topic of this paper?\n\nAnswer: geographic location embeddings\n\nQuestion: what is the main method used in this paper?\n\nAnswer: learning geographic location embeddings using Flickr tags, numerical environmental features, and categorical information.\n\nQuestion: what is the main contribution of this paper?\n\nAnswer: to propose a model to learn geographic location embeddings using Flickr tags, numerical environmental features, and categorical information.\n\nQuestion: what is the main topic of this",
+        "pred": "unanswerable",
         "answers": [
           " the same datasets as BIBREF7",
           "same datasets as BIBREF7"
@@ -22,7 +22,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " NUBes-PHI and MEDDOCAN 2019 shared task dataset.\n\nQuestion: What is the main goal of the paper?\n\nAnswer: To evaluate the performance of BERT-based sequence labeling models for clinical data anonymization.\n\nQuestion: What is the main advantage of using BERT-based models for clinical data anonymization?\n\nAnswer: The main advantage is that they can achieve high recall without requiring any adaptation or domain-specific engineering.\n\nQuestion: What is the main disadvantage of using BERT-based models for clinical data anonymization?\n\nAnswer: The main disadvantage is that they may not perform well when the training data is scarce.\n\nQuestion: What is",
+        "pred": "The paper uses the following clinical datasets:\n\n1. NUBes-PHI (a corpus of Spanish clinical reports)\n2. MEDDOCAN 2019 (a shared task dataset for medical document classification)",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -32,7 +32,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " They used linguistic features, including readability and word count features, in addition to gaze features.",
+        "pred": "They used linguistic features such as unigrams, bigrams, and trigrams, as well as gaze features like eye movement patterns and fixation duration.",
         "answers": [
           "Unanswerable"
         ],
@@ -41,7 +41,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Additional experiments are conducted on the transformation from ironic sentences to non-ironic sentences.\n\nQuestion: What is the result of the experiments?\n\nAnswer: The results are similar to those of the transformation from non-ironic sentences to ironic sentences.\n\nQuestion: What is the outcome of the experiments?\n\nAnswer: The model still can achieve the second-best results in sentiment and content preservation.\n\nQuestion: What is the direction of the future work?\n\nAnswer: The direction of the future work is to explore directions and models that can model ironies more effectively.",
+        "pred": "unanswerable",
         "answers": [
           "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
         ],
@@ -50,7 +50,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " Gaussian-masked directional multi-head attention is a variant of self-attention that replaces the standard self-attention with a more directional and efficient attention mechanism. It uses a Gaussian mask to mask the attention weights, which helps to focus on the most relevant information and reduce the impact of irrelevant information. The mask is applied to the attention weights in a way that prioritizes the most directional and relevant information, while minimizing the impact of the most irrelevant information. This results in a more efficient and effective attention mechanism that can capture the localness and directional information of the input data.",
+        "pred": "Gaussian-masked directional multi-head attention is a variant of self-attention that replaces the standard self-attention with a directional mask and a Gaussian mask.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " They considered both causality prediction and causal explanation identification.\n\nQuestion: What was the result of their pipeline?\n\nAnswer: They achieved an $F1=0.868$ at identifying discourse arguments that are causal explanations.\n\nQuestion: What was the main limitation of their study?\n\nAnswer: The study was limited by the availability of a large dataset, which made it difficult to train more complex models.",
+        "pred": "unanswerable",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -70,7 +70,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " They consider unsupervised learning, semi-supervised learning, and active learning.\n\nQuestion: What is the main problem they address?\n\nAnswer: The main problem they address is how to leverage prior knowledge robustly in learning models.\n\nQuestion: What are the three regularization terms they propose?\n\nAnswer: The three regularization terms they propose are incorporating neutral features, maximum entropy regularization, and KL divergence.\n\nQuestion: What is the main advantage of incorporating neutral features?\n\nAnswer: The main advantage of incorporating neutral features is that it doesn't require any modification of the existing model.\n\nQuestion: What is the main advantage of maximum entropy regularization?\n\nAnswer: The main advantage",
+        "pred": "They consider text classification, sentiment analysis, and topic modeling tasks.",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -79,7 +79,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " Larger.",
+        "pred": "unanswerable",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " unanswerable\n\nQuestion: What is the name of the dataset used for training the model?\n\nAnswer: OurNepali dataset\n\nQuestion: What is the name of the model architecture used for training the model?\n\nAnswer: BiLSTM+CNN(grapheme-level)\n\nQuestion: What is the name of the model architecture used for training the model?\n\nAnswer: BiLSTM+CNN(G)+POS\n\nQuestion: What is the name of the model architecture used for training the model?\n\nAnswer: BiLSTM+CNN(grapheme-level)\n\nQuestion: What is the name of the model architecture used for training the model?\n\nAnswer: BiL",
+        "pred": "unanswerable",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " MLP, s2s, Eusboost, MWMote, WEKA, opensmile, and others.\n\nQuestion: What is the main task of the models/frameworks?\n\nAnswer: Emotion recognition.\n\nQuestion: What is the main difference between s2s and MLP?\n\nAnswer: s2s uses multiple samples, while MLP uses a single sample.\n\nQuestion: What is the main goal of the models/frameworks?\n\nAnswer: To recognize emotions.\n\nQuestion: What is the main advantage of s2s?\n\nAnswer: It can handle imbalanced data.\n\nQuestion: What is the main disadvantage of s2s?\n\nAnswer: It can",
+        "pred": "unanswerable",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -109,7 +109,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " yes, their NER model learns NER from both text and images.",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Yes"
@@ -119,7 +119,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " yes, they only evaluate on English datasets.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -129,7 +129,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " None\n\nQuestion: What is the main contribution of the article?\n\nAnswer: The main contribution of the article is the definition of a novel generative approach to leverage continuous word representations for unsupervised learning of syntactic structure.\n\nQuestion: What is the main task of the article?\n\nAnswer: The main task of the article is to evaluate the effectiveness of a novel generative approach on POS induction and unsupervised dependency parsing tasks.\n\nQuestion: What is the main goal of the article?\n\nAnswer: The main goal of the article is to demonstrate the effectiveness of the novel generative approach.\n\nQuestion: What is the main focus of the article?\n\n",
+        "pred": "unanswerable",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -141,7 +141,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": " Ajman.",
+        "pred": "Ajman",
         "answers": [
           "Abu Dhabi"
         ],
@@ -150,7 +150,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " Batley, Yorkshire.",
+        "pred": "Batley",
         "answers": [
           "Prenzlau"
         ],
@@ -159,7 +159,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " Brooklyn, New York.",
+        "pred": "Brooklyn, New York",
         "answers": [
           "Pozna\u0144"
         ],
@@ -168,7 +168,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " London.",
+        "pred": "London",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -177,7 +177,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Forbidden Daughters.",
+        "pred": "Forbidden Daughters",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -186,7 +186,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " Bogdan \u021a\u0103ru\u0219.",
+        "pred": "Bogdan \u021a\u0103ru\u0219",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -195,7 +195,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " From Corleone To Brooklyn.",
+        "pred": "From Corleone To Brooklyn",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -204,7 +204,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " Parkinson's disease.",
+        "pred": "I cannot verify the cause of death of the director of the film I Will, I Will... For Now.",
         "answers": [
           "Parkinson"
         ],
@@ -213,7 +213,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Maurice De Berkeley, 4Th Baron Berkeley.",
+        "pred": "Thomas De Berkeley",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -222,7 +222,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " Italia-Germania 4-3.",
+        "pred": "Italia-Germania 4-3",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -231,7 +231,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Marshall, Indiana.",
+        "pred": "I cannot verify the birthplace of the director of the film Love At First Sight (1985).",
         "answers": [
           "Milan"
         ],
@@ -240,7 +240,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " Peter Levin died in 2010.",
+        "pred": "I cannot verify where the director of the 1938 film Nanon died.",
         "answers": [
           "K\u00f6ln"
         ],
@@ -251,7 +251,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": " They use the estimated word importance to detect under-translated words.",
+        "pred": "unanswerable",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -261,7 +261,7 @@
       },
       {
         "prompt_idx": 164,
-        "pred": " yes, they collected their own data.",
+        "pred": "unanswerable",
         "answers": [
           "No"
         ],
@@ -270,7 +270,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Europarl corpus.\n\nQuestion: what is the effect of using a target language model?\n\nAnswer: the quality of the translation improves.\n\nQuestion: what is the effect of using a copy of the target sentence?\n\nAnswer: the quality of the translation improves.\n\nQuestion: what is the effect of using a copy of the target sentence with GANs?\n\nAnswer: the quality of the translation improves.\n\nQuestion: what is the effect of using a copy of the target sentence with GANs on the domain adaptation?\n\nAnswer: the quality of the translation improves.\n\nQuestion: what is the effect of using a copy of the target sentence with GANs",
+        "pred": "unanswerable",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -280,7 +280,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " yes, they did.\n\nQuestion: What is the name of the model that they proposed?\n\nAnswer: UTCNN.\n\nQuestion: What is the name of the dataset that they used for training?\n\nAnswer: FBFans.\n\nQuestion: What is the name of the dataset that they used for testing?\n\nAnswer: CreateDebate.\n\nQuestion: What is the name of the model that they proposed for author stance classification?\n\nAnswer: Hasan and Ng's model.\n\nQuestion: What is the name of the model that they proposed for user stance classification?\n\nAnswer: UTCNN.\n\nQuestion: What is the name of the model that they proposed for topic classification",
+        "pred": "Yes",
         "answers": [
           "No",
           "No"
@@ -290,7 +290,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " A second order co-ocurrence matrix is a matrix that represents the co-occurrence of pairs of words in a corpus.\n\nQuestion: What is the purpose of integrating semantic similarity measures into a second order co-ocurrence matrix?\n\nAnswer: The purpose is to improve the correlation with human judgments.\n\nQuestion: What is the threshold cutoff used to include only those term pairs that obtained a sufficiently large level of similarity?\n\nAnswer: The threshold cutoff is not explicitly mentioned in the article, but it is mentioned that eliminating less similar pairs improves the overall results.\n\nQuestion: What are some potential future directions for this research?\n\nAnswer: Some potential future directions",
+        "pred": "unanswerable",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -300,7 +300,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " accuracy, F1 score, and precision.\n\nQuestion: what is the most common reason for failed samples?\n\nAnswer: anonymity.\n\nQuestion: what is the name of the proposed neural model?\n\nAnswer: AutoJudge.\n\nQuestion: what is the name of the proposed framework?\n\nAnswer: Legal Reading Comprehension.\n\nQuestion: what is the name of the dataset used for evaluation?\n\nAnswer: divorce proceedings.\n\nQuestion: what is the most general and larger dataset that can be used for evaluation?\n\nAnswer: a more general and larger dataset.\n\nQuestion: what is the most critical aspect of judgment prediction?\n\nAnswer: managing various judgment forms.\n\nQuestion: what is",
+        "pred": "unanswerable",
         "answers": [
           "precision, recall, F1 and accuracy",
           "precision, recall, F1 , accuracy "
@@ -310,7 +310,7 @@
       },
       {
         "prompt_idx": 169,
-        "pred": " yes, the authors report results only on English data.\n\nQuestion: What is the purpose of the proposed evaluation metric?\n\nAnswer: The proposed evaluation metric is to evaluate the quality of scientific summaries.\n\nQuestion: What is the main difference between the proposed evaluation metric and existing evaluation metrics?\n\nAnswer: The main difference is that the proposed evaluation metric is more comprehensive and includes linguistic quality, whereas existing evaluation metrics focus only on content quality.\n\nQuestion: What is the name of the proposed evaluation metric?\n\nAnswer: The name of the proposed evaluation metric is Summarization Evaluation by Relevance Analysis (Sera).\n\nQuestion: What is the main advantage of the proposed",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -320,7 +320,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": " They match annotators to instances based on their difficulty.\n\nAnswer the question as concisely as possible, using a single phrase or sentence if possible. If the question cannot be answered based on the information in the article, write \"unanswerable\". If the question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not provide any explanation.\n\nQuestion: How do they match annotators to instances?\n\nAnswer: They match annotators to instances based on their difficulty.\n\nQuestion: How do they match annotators to instances?\n\nAnswer: They match annotators to instances based on their difficulty.\n\nQuestion:",
+        "pred": "They match annotators to instances based on their predicted difficulty scores.",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -329,7 +329,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " unanswerable\n\nQuestion: what is the name of the dataset?\n\nAnswer: MCScript\n\nQuestion: what is the purpose of the dataset?\n\nAnswer: to assess the contribution of script knowledge for computational models of language understanding in a real-world evaluation scenario.\n\nQuestion: what is the source of the dataset?\n\nAnswer: available at http://www.sfb1102.uni-saarland.de/?page_id=2582\n\nQuestion: what is the funding source of the dataset?\n\nAnswer: German Research Foundation (DFG) as part of SFB 1102 `Information Density and Linguistic Encoding' and EXC 284 `Multim",
+        "pred": "unanswerable",
         "answers": [
           "13,939"
         ],
@@ -338,7 +338,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\n",
+        "pred": "Question: What is the name of the model used to extract medication regimen tags?\n\nAnswer: Medication Regimen (MR) extraction task of extracting dosage and frequency for medications mentioned in a doctor-patient conversation transcript.",
         "answers": [
           "Yes",
           "Yes"
@@ -348,7 +348,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " yes, they use pretrained embeddings.\n\nQuestion: What is the name of the model?\n\nAnswer: the name of the model is not explicitly mentioned in the article.\n\nQuestion: What is the name of the dataset?\n\nAnswer: the name of the dataset is not explicitly mentioned in the article.\n\nQuestion: What is the name of the model that performs the task?\n\nAnswer: the name of the model that performs the task is not explicitly mentioned in the article.\n\nQuestion: What is the name of the model that generates natural language descriptions from structured data?\n\nAnswer: the name of the model that generates natural language descriptions from structured data is not explicitly mentioned in",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Yes"
@@ -358,7 +358,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " ROGUE.\n\nQuestion: What is the main goal of the article?\n\nAnswer: To develop a full-fledged pipeline using AMR for summarization.\n\nQuestion: What is the main contribution of the article?\n\nAnswer: The main contribution is the development of a new method for extracting summary graph using AMR.\n\nQuestion: What is the main problem with the current summarization methods?\n\nAnswer: The main problem is that most of the summarization methods are extractive, meaning they select sentences from the text and then concatenate them to form a summary.\n\nQuestion: What is the main goal of the article?\n\nAnswer: To develop a new method for",
+        "pred": "unanswerable",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -368,7 +368,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " 59.4% (Joint model) and 90.7% (Inception model) (over Wikipedia) and 100% (over arXiv) (over arXiv cs.ai and cs.cl) (over arXiv araii and araii) (over arXiv araii and araii) (over arXiv araii and araii) (over arXiv araii and araii) (over arXiv araii and araii) (over arXiv araii and araii) (over arXiv",
+        "pred": "unanswerable",
         "answers": [
           "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
         ],
@@ -377,7 +377,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Word embeddings, specifically the use of word embeddings to quantify semantic relatedness and similarity.",
+        "pred": "unanswerable",
         "answers": [
           "Skip\u2013gram, CBOW",
           "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
@@ -387,7 +387,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " They show there is space for further improvement by exploring the hyperparameter space and selecting the best performing models.",
+        "pred": "unanswerable",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -397,7 +397,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " The metrics used in evaluation are the F1 score, precision, recall, and accuracy.\n\nQuestion: What is the main goal of the research?\n\nAnswer: The main goal of the research is to develop a method for identifying sentence fragments in a corpus of text.\n\nQuestion: What is the main problem in the research?\n\nAnswer: The main problem in the research is the lack of a method for identifying sentence fragments in a corpus of text, which can lead to false positives and false negatives.\n\nQuestion: What is the main contribution of the research?\n\nAnswer: The main contribution of the research is the development of a method for identifying sentence fragments in a",
+        "pred": "unanswerable",
         "answers": [
           "precision, recall , F1 score"
         ],
@@ -406,7 +406,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " unanswerable\n\nQuestion: What is the accuracy of their model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their joint model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their visual-only model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their text-only model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their joint model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their joint model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their joint model?\n\nAnswer: unanswerable\n\nQuestion: What is",
+        "pred": "unanswerable",
         "answers": [
           "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
         ],
@@ -415,7 +415,7 @@
       },
       {
         "prompt_idx": 183,
-        "pred": " Yes, they recommend translating the premise and hypothesis together.\n\nQuestion: What is the main reason for the cross-lingual gap?\n\nAnswer: The main reason for the cross-lingual gap is the loss of performance when generalizing from English to the rest of languages.\n\nQuestion: What is the effect of using machine translated premises and hypotheses in different languages?\n\nAnswer: The effect of using machine translated premises and hypotheses in different languages is that it reduces the superficial patterns between them.\n\nQuestion: What is the main reason for the improvement in the Translate-Test approach?\n\nAnswer: The main reason for the improvement in the Translate-Test approach is that",
+        "pred": "Yes, they recommend translating the premise and hypothesis together.",
         "answers": [
           "No",
           "No"
@@ -427,7 +427,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": " No, both Cynthia Mort and George Archainbaud are French.",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " East Jaffrey Historic District.",
+        "pred": "Jaffrey",
         "answers": [
           "Marlborough"
         ],
@@ -445,7 +445,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " Yes.",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -454,7 +454,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": " Yes.",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": " Aichryson has more species.",
+        "pred": "Aichryson",
         "answers": [
           "Polypodium"
         ],
@@ -472,7 +472,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "  Ray Romano",
+        "pred": "I cannot verify the middle name of the actor who hosted the 24th People's Choice Awards with Reba McEntire.",
         "answers": [
           "Albert"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": " Patari.",
+        "pred": "Napalm Records",
         "answers": [
           "A1 Recordings"
         ],
@@ -490,7 +490,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": " 83\n\nNote: The passage does not mention the city, but rather the township.",
+        "pred": "83",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -499,7 +499,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " Cointreau\n\nQuestion: What is the name of the bartender who created the Cuba Libre?\nAnswer: R\u00e9gine Deforges\n\nQuestion: What is the",
+        "pred": "Vodka",
         "answers": [
           "lime"
         ],
@@ -508,7 +508,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " George Abbott was the director of the drama film Heat Lightning, which was released in 1931.",
+        "pred": "George Abbott was a playwright and director, and his first big hit was the drama film Heat Lightning (1926), which starred Tallulah Bankhead.",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -517,7 +517,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " Scotland.",
+        "pred": "Scotland",
         "answers": [
           "Scotland"
         ],
@@ -526,7 +526,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " 1.",
+        "pred": "1",
         "answers": [
           "13"
         ],
@@ -537,7 +537,7 @@
     "lb/2wikimqa_e": [
       {
         "prompt_idx": 107,
-        "pred": " Yes. Both directors are Romanian.",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -546,7 +546,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " Stein Erik Hagen.",
+        "pred": "Kiplangat Sang",
         "answers": [
           "Kiplangat Sang"
         ],
@@ -555,7 +555,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " London United Film Festival.",
+        "pred": "London",
         "answers": [
           "Sydney, Australia"
         ],
@@ -564,7 +564,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " 10 May 1348.",
+        "pred": "There is no information about Andrew, Duke of Slavonia's father's date of death in the given passages.",
         "answers": [
           "6 August 1272"
         ],
@@ -573,7 +573,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": " No. Father'S Day (1996 Film) is American and The Pursuit Of Happiness (1971 Film) is Dutch.",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -582,7 +582,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " Prairie Thunder.",
+        "pred": "Lassie Come Home",
         "answers": [
           "Prairie Thunder"
         ],
@@ -591,7 +591,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " 1601.",
+        "pred": "1601",
         "answers": [
           "8 April 1643"
         ],
@@ -600,7 +600,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " Ireland.",
+        "pred": "I cannot verify the birthplace of the director of film The Messenger (2009 Film).",
         "answers": [
           "Israeli"
         ],
@@ -609,7 +609,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " Morchha.",
+        "pred": "The Thing About My Folks",
         "answers": [
           "The Thing About My Folks"
         ],
@@ -618,7 +618,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " Hubba bint Hulail.",
+        "pred": "Hubbah",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],
@@ -627,7 +627,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " American.",
+        "pred": "American",
         "answers": [
           "Canadian"
         ],
@@ -636,7 +636,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " S. N. Mathur died in 1980.",
+        "pred": "I cannot verify the cause of death of the director of the film Temptation (1959 film).",
         "answers": [
           "Nice"
         ],
@@ -645,7 +645,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " Alfonso VII of Le\u00f3n.",
+        "pred": "Sancha Of Castile, Queen Of Aragon's paternal grandmother was Alfonso VII of Castile.",
         "answers": [
           "Urraca of Le\u00f3n"
         ],
@@ -654,7 +654,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " Carnegie Mellon University.",
+        "pred": "Long Wharf University",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -667,7 +667,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": " 3\n\nQuestion: What is the best f-score of the UTCNN model on the FBFans dataset?\n\nAnswer: 25.0\n\nQuestion: What is the best f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 21.0\n\nQuestion: What is the best f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 21.0\n\nQuestion: What is the best f-score of the UTCNN model on the CreateDebate dataset?\n\nAnswer: 21.0\n\nQuestion: What is the best f-score of the UTCNN model on the CreateDe",
+        "pred": "unanswerable",
         "answers": [
           "eight layers"
         ],
@@ -676,7 +676,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " N/A (unanswerable)\n\nQuestion: what is the name of the model proposed in this paper?\n\nAnswer: EGEL (Embedding GEographic Location)\n\nQuestion: what is the name of the method proposed in this paper?\n\nAnswer: EGEL-All\n\nQuestion: what is the name of the baselines used in this paper?\n\nAnswer: BOW-Tags, BOW-KL(Tags), BOW-All\n\nQuestion: what is the name of the method proposed in this paper that uses bag-of-words representation?\n\nAnswer: BOW-Tags\n\nQuestion: what is the name of the method proposed in this paper",
+        "pred": "unanswerable",
         "answers": [
           " the same datasets as BIBREF7",
           "same datasets as BIBREF7"
@@ -686,7 +686,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " NUBes-PHI and MEDDOCAN 2019 shared task dataset.\n\nQuestion: What is the main goal of the paper?\n\nAnswer: To evaluate the performance of BERT-based sequence labeling models for clinical data anonymization.\n\nQuestion: What is the main advantage of using BERT-based models for clinical data anonymization?\n\nAnswer: The main advantage is that they can achieve high recall without requiring adaptation or domain-specific fine-tuning.\n\nQuestion: What is the main disadvantage of using BERT-based models for clinical data anonymization?\n\nAnswer: The main disadvantage is that they may not perform well when the training data is scarce.\n\nQuestion: What",
+        "pred": "The paper uses the following clinical datasets:\n\n1. NUBes-PHI (a corpus of annotated clinical reports in Spanish)\n2. MEDDOCAN 2019 (a shared task dataset for medical document classification)",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -696,7 +696,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " They used linguistic features, including ungrammatical words, word order, and grammatical complexity.",
+        "pred": "They used linguistic features such as unigrams, bigrams, and trigrams, as well as gaze features like eye movement patterns and gaze duration.",
         "answers": [
           "Unanswerable"
         ],
@@ -705,7 +705,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Additional experiments are conducted on the transformation from ironic sentences to non-ironic sentences.\n\nQuestion: What is the result of the experiments?\n\nAnswer: The results are similar to those of the transformation from non-ironic sentences to ironic sentences.\n\nQuestion: What is the outcome of the experiments?\n\nAnswer: The model still can achieve the second-best results in sentiment and content preservation.\n\nQuestion: What is the direction of the future work?\n\nAnswer: The direction of the future work is to explore directions and models that can model ironies more effectively.",
+        "pred": "unanswerable",
         "answers": [
           "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
         ],
@@ -714,7 +714,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " Gaussian-masked directional multi-head attention is a variant of self-attention that replaces the standard self-attention with a more directional and efficient attention mechanism. It uses a Gaussian mask to mask the attention weights, which helps to focus on the most relevant information and reduce the impact of irrelevant information. The mask is applied to the attention weights in a way that prioritizes the most important information, while also allowing the model to capture the directional features of the input data. This results in a more efficient and effective attention mechanism that can be used for a variety of natural language processing tasks.",
+        "pred": "Gaussian-masked directional multi-head attention is a variant of self-attention that replaces the standard self-attention with a Gaussian-masked directional attention mechanism, which captures directional features and improves the ability to capture localness.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -724,7 +724,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " They considered both causality prediction and causal explanation identification over social media text.\n\nQuestion: What was the result of their pipeline?\n\nAnswer: The pipeline achieved an $F1=0.868$ at identifying discourse arguments that are causal explanations.\n\nQuestion: What was the main limitation of their study?\n\nAnswer: The main limitation of their study was the size of their dataset, which was limited by the availability of a causality dataset over social media.",
+        "pred": "unanswerable",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -734,7 +734,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " They consider unsupervised learning, semi-supervised learning, and active learning.\n\nQuestion: What is the main problem they are trying to solve?\n\nAnswer: The main problem they are trying to solve is how to leverage prior knowledge robustly in learning models.\n\nQuestion: What are the three regularization terms they propose?\n\nAnswer: The three regularization terms they propose are incorporating neutral features, maximum entropy regularization, and KL divergence.\n\nQuestion: What is the main advantage of incorporating neutral features?\n\nAnswer: The main advantage of incorporating neutral features is that it does not require any modification of the existing model.\n\nQuestion: What is the main disadvantage of incorporating neutral features",
+        "pred": "They consider text classification, sentiment analysis, and topic modeling tasks.",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " Larger.",
+        "pred": "The training sets of the ELMo contextual embeddings for seven languages (Croatian, Estonian, Finnish, Latvian, Lithuanian, Slovenian, and Swedish) are larger than the previous ones.",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -753,7 +753,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " unanswerable\n\nQuestion: What is the name of the dataset used in the study?\n\nAnswer: OurNepali dataset\n\nQuestion: What is the name of the model used in the study?\n\nAnswer: BiLSTM+CNN(grapheme-level)\n\nQuestion: What is the name of the model used in the study?\n\nAnswer: BiLSTM+CNN(G)+POS\n\nQuestion: What is the name of the model used in the study?\n\nAnswer: BERT\n\nQuestion: What is the name of the model used in the study?\n\nAnswer: ELMo\n\nQuestion: What is the name of the model used in the study",
+        "pred": "unanswerable",
         "answers": [
           "3606",
           "6946"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " MLP, s2s, Eusboost, MWMote, WEKA, and others.\n\nQuestion: What is the main task of the models/frameworks?\n\nAnswer: Emotion recognition.\n\nQuestion: What is the main difference between s2s and MLP?\n\nAnswer: s2s uses multiple samples, while MLP uses a single sample.\n\nQuestion: What is the main goal of the article?\n\nAnswer: To compare the performance of different models/frameworks for emotion recognition.\n\nQuestion: What is the main focus of the article?\n\nAnswer: Emotion recognition.\n\nQuestion: What is the main comparison made in the article?\n\nAnswer: Comparison of",
+        "pred": "unanswerable",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -773,7 +773,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " yes, their NER model learns NER from both text and images.",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Yes"
@@ -783,7 +783,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " no, they evaluate on both English and non-English datasets.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -793,7 +793,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " POS induction and unsupervised dependency parsing tasks.\n\nQuestion: What is the main contribution of the article?\n\nAnswer: The main contribution of the article is the definition of a novel generative approach to leverage continuous word representations for unsupervised learning of syntactic structure.\n\nQuestion: What is the focus of the article?\n\nAnswer: The focus of the article is on unsupervised learning of syntactic structure.\n\nQuestion: What is the main goal of the article?\n\nAnswer: The main goal of the article is to evaluate the effectiveness of a novel generative approach for unsupervised learning of syntactic structure.\n\nQuestion: What is the main contribution",
+        "pred": "unanswerable",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -803,7 +803,7 @@
       },
       {
         "prompt_idx": 7,
-        "pred": " CNN/DailyMail and NYT datasets.\n\nQuestion: What is the purpose of the proposed document-level encoder?\n\nAnswer: The purpose of the proposed document-level encoder is to summarize documents into a concise summary.\n\nQuestion: What is the main difference between the proposed model and the Lead baseline?\n\nAnswer: The main difference between the proposed model and the Lead baseline is that the proposed model uses a pretrained Bert encoder, while the Lead baseline uses a pre-trained language model.\n\nQuestion: What is the significance of the results in the QA evaluation setting?\n\nAnswer: The results in the QA evaluation setting are statistically significant, indicating that the proposed model outperforms the",
+        "pred": "The datasets used for evaluation are:\n\n* CNN/DailyMail\n* NYT\n* XSum\n\nQuestion: What is the main contribution of the paper?\n\nAnswer: The main contribution of the paper is the introduction of a novel document-level encoder and a general framework for both abstractive and extractive summarization using pretrained Bert.",
         "answers": [
           "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
           "the CNN/DailyMail news highlights dataset BIBREF24, the New York Times Annotated Corpus (NYT; BIBREF25), XSum BIBREF22"
@@ -813,7 +813,7 @@
       },
       {
         "prompt_idx": 19,
-        "pred": " The model improves interpretability by using a more interpretable representation of the input data, such as a sparse representation, which allows for easier understanding of the relationships between different features.",
+        "pred": "The model improves interpretability by using a more interpretable representation of the input data, such as a piecewise linear function, which allows for easier understanding of the relationships between the input features and the output. This is in contrast to softmax transformers, which use a continuous representation of the input data and can be more difficult to interpret. The use of a piecewise linear function also allows for the identification of specific features that contribute to the output, making it easier to understand the model's behavior.",
         "answers": [
           "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
           "We introduce sparse attention into the Transformer architecture"
@@ -823,7 +823,7 @@
       },
       {
         "prompt_idx": 22,
-        "pred": " The attention module pretrained on is not explicitly mentioned in the article.",
+        "pred": "Question: What is the proposed method for end-to-end speech translation?\n\nAnswer: The proposed method is an end-to-end method for speech translation that reuses every sub-net and keeps the role of sub-net consistent between pre-training and fine-tuning.",
         "answers": [
           "the model is pre-trained on CTC-based ASR task and MT task in the pre-training stage."
         ],
@@ -832,7 +832,7 @@
       },
       {
         "prompt_idx": 30,
-        "pred": " The tasks used for evaluation are IWSLT, WMT, and WMT4.\n\nQuestion: What is the name of the first Transformer model?\n\nAnswer: The first Transformer model is BERT.\n\nQuestion: What is the name of the first Transformer model that uses a self-attention mechanism?\n\nAnswer: The first Transformer model that uses a self-attention mechanism is BERT.\n\nQuestion: What is the name of the first Transformer model that uses a multi-head attention mechanism?\n\nAnswer: The first Transformer model that uses a multi-head attention mechanism is BERT.\n\nQuestion: What is the name of the first Transformer model that uses a positional encoding",
+        "pred": "The final answer is: $\\boxed{Evaluation}$",
         "answers": [
           "four machine translation tasks: German -> English, Japanese -> English, Romanian -> English, English -> German",
           " four machine translation tasks, IWSLT 2017 German $\\rightarrow $ English BIBREF27, KFTT Japanese $\\rightarrow $ English BIBREF28, WMT 2016 Romanian $\\rightarrow $ English BIBREF29, WMT 2014 English $\\rightarrow $ German BIBREF30"
@@ -842,7 +842,7 @@
       },
       {
         "prompt_idx": 36,
-        "pred": " The human judgements were assembled by the annotators.",
+        "pred": "Question: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer",
         "answers": [
           "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
           "adequacy, precision and ranking values"
@@ -852,7 +852,7 @@
       },
       {
         "prompt_idx": 40,
-        "pred": " The source domain is Book, the target domain is Beauty, and the source domain is Electronics, the target domain is Kitchen.\n\nQuestion: What is the task?\n\nAnswer: Sentiment classification.\n\nQuestion: What is the baseline method?\n\nAnswer: NaiveNN.\n\nQuestion: What is the proposed method?\n\nAnswer: DAS.\n\nQuestion: What is the full set of sentiment labels?\n\nAnswer: Positive, Negative, Neutral.\n\nQuestion: What is the number of positive and negative reviews in each domain?\n\nAnswer: 1000 positive, 1000 negative in Book, 4000 positive, 4000 negative in Kitchen.\n\nQuestion: What",
+        "pred": "Source Domain: Book Reviews\nTarget Domain: Movie Reviews\n\nUnanswerable.",
         "answers": [
           "Book, electronics, beauty, music, IMDB, Yelp, cell phone, baby, DVDs, kitchen",
           "we use set 1 of the source domain as the only source with sentiment label information during training, and we evaluate the trained model on set 1 of the target domain, Book (BK), Electronics (E), Beauty (BT), and Music (M)"
@@ -862,7 +862,7 @@
       },
       {
         "prompt_idx": 51,
-        "pred": " Wikipedia and CMV.\n\nQuestion: What is the average time a warning is given to a conversation that derails?\n\nAnswer: 3 hours.\n\nQuestion: What is the AUPR of the system?\n\nAnswer: 0.7.\n\nQuestion: What is the recall of the system?\n\nAnswer: 0.65.\n\nQuestion: What is the threshold for the system to be considered useful?\n\nAnswer: 0.65.\n\nQuestion: What is the type of forecasting task being addressed?\n\nAnswer: Antisocial behavior.\n\nQuestion: What is the type of model being used?\n\nAnswer: Neural network.\n\nQuestion: What is the goal of",
+        "pred": "The two datasets are Wikipedia and CMV.",
         "answers": [
           " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
           "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
@@ -872,7 +872,7 @@
       },
       {
         "prompt_idx": 63,
-        "pred": " unanswerable",
+        "pred": "Question: what was the multistage fine-tuning approach?\n\nAnswer: multilingual multistage fine-tuning approach.",
         "answers": [
           "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
           "M2M Transformer"
@@ -882,7 +882,7 @@
       },
       {
         "prompt_idx": 77,
-        "pred": " Weakly supervised learning methods.\n\nQuestion: What is the main goal of the proposed approach?\n\nAnswer: To improve the performance of event detection models.\n\nQuestion: What type of data is used in the proposed approach?\n\nAnswer: Real-world datasets.\n\nQuestion: What is the main advantage of the proposed approach?\n\nAnswer: It is particularly useful for detecting events where relevant microposts are semantically complex.\n\nQuestion: What is the main disadvantage of the proposed approach?\n\nAnswer: It is not scalable to large datasets.\n\nQuestion: What is the main limitation of the proposed approach?\n\nAnswer: It is not parallelizable.\n\nQuestion: What is the main",
+        "pred": "Question: What is the main goal of the proposed approach?\n\nAnswer: To improve the performance of event detection models by leveraging the joint power of the crowd and the model in expectation inference.",
         "answers": [
           "probabilistic model",
           "Logistic Regression, Multilayer Perceptron"
@@ -892,7 +892,7 @@
       },
       {
         "prompt_idx": 87,
-        "pred": " Proposed qualitative annotation schema looks like a framework to characterise machine reading comprehension gold standards.",
+        "pred": "The proposed qualitative annotation schema looks like this:\n\n* Lexical overlap: words that occur in the same sentence and question\n* Question type: identifying the type of question (e.g. open-ended, multiple choice, etc.)\n* Entity typing: identifying the type of entity mentioned in the text (e.g. person, organization, etc.)\n* Concrete overlap: identifying the overlap between the text and the gold standard\n\nThis schema is designed to provide a qualitative analysis of the gold standard, allowing for the identification of issues with the factual correctness, semantics, and other aspects of the gold standard.",
         "answers": [
           "The resulting taxonomy of the framework is shown in Figure FIGREF10",
           "FIGREF10"
@@ -902,7 +902,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " Vanilla ST baseline, many-to-one baselines, triangle baselines, and pre-training baselines.\n\nQuestion: What is the proposed method?\n\nAnswer: End-to-end method for ST.\n\nQuestion: What is the main advantage of the proposed method?\n\nAnswer: It significantly outperforms baselines.\n\nQuestion: What is the main disadvantage of the proposed method?\n\nAnswer: None mentioned.\n\nQuestion: What is the main contribution of the proposed method?\n\nAnswer: It alleviates the gap between pre-training and fine-tuning in previous methods.\n\nQuestion: What is the main goal of the proposed method?\n\nAnswer: To improve the ST performance.\n\nQuestion:",
+        "pred": "Question: What is the proposed method?\n\nAnswer:concurrent speech translation (CST) and end-to-end speech translation (EST) models.\n\nQuestion: What is the proposed method's advantage?\n\nAnswer:reusing every sub-net and keeping the role of sub-net consistent between pre-training and fine-tuning.\n\nQuestion: What is the proposed method's disadvantage?\n\nAnswer:unanswerable.\n\nQuestion: What is the proposed method's performance on the IWSLT 2018 dataset?\n\nAnswer:unanswerable.\n\nQuestion: What is the proposed method's performance on the TED 2018 dataset?\n\nAnswer:unanswerable.\n\nQuestion:",
         "answers": [
           "Vanilla ST baseline, encoder pre-training, in which the ST encoder is initialized from an ASR model, decoder pre-training, in which the ST decoder is initialized from an MT model, encoder-decoder pre-training, where both the encoder and decoder are pre-trained, many-to-many multi-task model where the encoders and decoders are derived from pre-trained ASR and MT models, Triangle+pre-train: BIBREF18 DBLP:conf/naacl/AnastasopoulosC18 proposed a triangle multi-task strategy for speech translation",
           "Vanilla ST baseline, Pre-training baselines, Multi-task baselines, Many-to-many+pre-training, Triangle+pre-train",
@@ -913,7 +913,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Word subspace can represent the semantic meaning of words in a text.\n\nQuestion: What is the best method for text classification?\n\nAnswer: The best method for text classification is the TF weighted word subspace with MSM.\n\nQuestion: What is the main limitation of the word subspace model?\n\nAnswer: The main limitation of the word subspace model is that it does not consider the order of the words in a text.\n\nQuestion: What is the future direction of the word subspace model?\n\nAnswer: The future direction of the word subspace model is to encode word order and model dynamic context change.",
+        "pred": "Question: What is the main advantage of using word subspace in text classification?\n\nAnswer:unanswerable\n\nQuestion: What is the main disadvantage of using word subspace in text classification?\n\nAnswer:unanswerable\n\nQuestion: What is the main advantage of using term-frequency weighted word subspace?\n\nAnswer:unanswerable\n\nQuestion: What is the main disadvantage of using term-frequency weighted word subspace?\n\nAnswer:unanswerable\n\nQuestion: What is the main advantage of using TF weighted word subspace?\n\nAnswer:unanswerable\n\nQuestion: What is the main disadvantage of using TF weighted word subspace?\n\nAnswer:unanswer",
         "answers": [
           "Word vectors, usually in the context of others within the same class"
         ],
@@ -922,7 +922,7 @@
       },
       {
         "prompt_idx": 114,
-        "pred": " HR-BiLSTM.",
+        "pred": "The core component for KBQA is the relation detection model, which is a hierarchical matching between questions and KB relations.",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -932,7 +932,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " yes, they report results only on English data.",
+        "pred": "Yes, they report results only on English data.",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -942,7 +942,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " The political bias of different sources is included in the model by considering the size of the network associated with each layer, which is a measure of the size of the largest cascade in that layer. The size of the largest cascade in a layer is a measure of the extent to which the information is being shared among the users in that layer, and it is a key factor in determining the political bias of the source.",
+        "pred": "The political bias of different sources is included in the model by considering the size of the network associated with each source. The larger the network, the more influential the source is likely to be. This is because larger networks are more likely to be associated with mainstream news, which is considered to be more credible and trustworthy. The model also considers the type of content shared by each source, which is used to determine the level of bias. For example, sources that share more factual information are likely to be less biased, while sources that share more opinion-based content are likely to be more biased. By considering both the size and type of network, the",
         "answers": [
           "By assigning a political bias label to each news article and training only on left-biased or right-biased outlets of both disinformation and mainstream domains",
           "we also account for political biases inherent to different news sources, referring to the procedure proposed in BIBREF2 to label different outlets. Overall we show that we are able to classify credible vs non-credible diffusion networks (and consequently news articles) with high accuracy (AUROC up to 94%), even when accounting for the political bias of sources (and training only on left-biased or right-biased articles). We observe that the layer of mentions alone conveys useful information for the classification, denoting a different usage of this functionality when sharing news belonging to the two news domains. We also show that most discriminative features, which are relative to the breadth and depth of largest cascades in different layers, are the same across the two countries."
@@ -952,7 +952,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " Baseline features are pre-trained CNN architecture.\n\nQuestion: What are the pre-trained features?\n\nAnswer: Pre-trained features are sentiment, emotion, and personality models.\n\nQuestion: What are the most useful features for sarcasm detection?\n\nAnswer: Sentiment and emotion features are the most useful features.\n\nQuestion: What is the generalizability of the proposed method?\n\nAnswer: The proposed method generalizes well to unseen data.\n\nQuestion: What is the relation between personality features among themselves and with other pre-trained features?\n\nAnswer: Personality features are highly correlated with each other.\n\nQuestion: What is the future direction of the research?\n\nAnswer: The future direction",
+        "pred": "The network's baseline features are pre-trained CNN architecture.",
         "answers": [
           " The features extracted from CNN."
         ],
@@ -961,7 +961,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " The model is compared to the Li and Roth BIBREF6 model, which is a benchmark for question classification tasks.",
+        "pred": "Previous methods compared to the proposed model are the Li and Roth BIBREF6 model and the baseline model.",
         "answers": [
           "bag-of-words model, CNN"
         ],
@@ -970,7 +970,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " HR-BiLSTM achieves the state of the art on both WebQSP and SimpleQuestions.",
+        "pred": "KBQA systems, including our proposed HR-BiLSTM model, achieve state-of-the-art results on both WebQSP and SimpleQuestions. Specifically, our system outperforms the previous methods on KB relation detection tasks and allows our KBQA system to achieve state-of-the-arts.",
         "answers": [
           "SimpleQuestions, WebQSP",
           "WebQSP, SimpleQuestions"
@@ -982,7 +982,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": " Ajman.",
+        "pred": "Ajman",
         "answers": [
           "Abu Dhabi"
         ],
@@ -991,7 +991,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " Batley, Yorkshire.",
+        "pred": "I cannot answer the question as the name of the place of birth is not mentioned in the passage.",
         "answers": [
           "Prenzlau"
         ],
@@ -1000,7 +1000,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " Brooklyn, New York.",
+        "pred": "Brooklyn, New York",
         "answers": [
           "Pozna\u0144"
         ],
@@ -1009,7 +1009,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " London.",
+        "pred": "London",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -1018,7 +1018,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Forbidden Daughters.",
+        "pred": "Forbidden Daughters",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -1027,7 +1027,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " Bogdan \u021a\u0103ru\u0219.",
+        "pred": "Bogdan \u021a\u0103ru\u0219",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -1036,7 +1036,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " From Corleone To Brooklyn.",
+        "pred": "From Corleone To Brooklyn",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -1045,7 +1045,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " Parkinson's disease.",
+        "pred": "I cannot verify the cause of death of the director of the film I Will, I Will... For Now.",
         "answers": [
           "Parkinson"
         ],
@@ -1054,7 +1054,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " John Smyth of Nibley.",
+        "pred": "Thomas De Berkeley",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -1063,7 +1063,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " Italia-Germania 4-3 was released earlier.",
+        "pred": "Italia-Germania 4-3",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -1072,7 +1072,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Marshall, Indiana.",
+        "pred": "I cannot verify the birthplace of the director of the film Love At First Sight (1985).",
         "answers": [
           "Milan"
         ],
@@ -1081,7 +1081,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " Olav Aaraas.",
+        "pred": "I cannot verify where the director of the 1938 film Nanon died.",
         "answers": [
           "K\u00f6ln"
         ],
@@ -1090,7 +1090,7 @@
       },
       {
         "prompt_idx": 0,
-        "pred": " Izmit, Ottoman Empire.",
+        "pred": "Ozolani.",
         "answers": [
           "Ozalj"
         ],
@@ -1099,7 +1099,7 @@
       },
       {
         "prompt_idx": 1,
-        "pred": " Princess Elizabeth of Great Britain.",
+        "pred": "Christopher Merlin Vyvyan Holland is Sobe's grandchild.",
         "answers": [
           "John the Baptist"
         ],
@@ -1108,7 +1108,7 @@
       },
       {
         "prompt_idx": 3,
-        "pred": " 1480.",
+        "pred": "Answer: 1480.",
         "answers": [
           "1510"
         ],
@@ -1117,7 +1117,7 @@
       },
       {
         "prompt_idx": 4,
-        "pred": " Abd al-Muttalib.",
+        "pred": "Abdul Latif Edward Watson, Viscount Sondes's paternal grandfather.",
         "answers": [
           "Edward Watson"
         ],
@@ -1126,7 +1126,7 @@
       },
       {
         "prompt_idx": 5,
-        "pred": " 24 September 1275.",
+        "pred": "Answer: 1176.",
         "answers": [
           "16 September 1360"
         ],
@@ -1135,7 +1135,7 @@
       },
       {
         "prompt_idx": 7,
-        "pred": " The International Congress of Motion Picture and Television School Directors.",
+        "pred": "The director of film Wine Of Morning works at the University of Southern California.",
         "answers": [
           "Bob Jones University"
         ],
@@ -1144,7 +1144,7 @@
       },
       {
         "prompt_idx": 11,
-        "pred": " United States.",
+        "pred": "United States.",
         "answers": [
           "America"
         ],
@@ -1153,7 +1153,7 @@
       },
       {
         "prompt_idx": 22,
-        "pred": " Abd al-Muttalib.",
+        "pred": "Abd al-Muttalib",
         "answers": [
           "Leustach R\u00e1t\u00f3t"
         ],
@@ -1162,7 +1162,7 @@
       },
       {
         "prompt_idx": 23,
-        "pred": " Belfast.",
+        "pred": "Templeton's Botanic Garden, Belfast.",
         "answers": [
           "Nepal"
         ],
@@ -1171,7 +1171,7 @@
       },
       {
         "prompt_idx": 24,
-        "pred": " Thomas Stewart, Master of Mar.",
+        "pred": "Archibald Acheson, 4th Earl of Gosford's paternal grandfather was Thomas Stewart, Master of Mar.",
         "answers": [
           "Archibald Acheson, 2nd Earl of Gosford"
         ],
@@ -1180,7 +1180,7 @@
       },
       {
         "prompt_idx": 29,
-        "pred": " The Longshot.",
+        "pred": "The Longshot",
         "answers": [
           "Blue Blood And Red"
         ],
@@ -1189,7 +1189,7 @@
       },
       {
         "prompt_idx": 31,
-        "pred": " Kuru\u00e7ah\u0131msaray, Istanbul.",
+        "pred": "The place of death of Kamures Kad\u0131n's husband was in Kuru\u00e7e\u015fme, where he settled after Mehmed V's death.",
         "answers": [
           "Constantinople"
         ],
@@ -1198,7 +1198,7 @@
       },
       {
         "prompt_idx": 32,
-        "pred": " Naudesing, Germany.",
+        "pred": "Naudingen (Switzerland)",
         "answers": [
           "East Francia"
         ],
@@ -1207,7 +1207,7 @@
       },
       {
         "prompt_idx": 34,
-        "pred": " Lagu Kenangan.",
+        "pred": "Lagu Kenangan",
         "answers": [
           "All-American Co-Ed"
         ],
@@ -1216,7 +1216,7 @@
       },
       {
         "prompt_idx": 41,
-        "pred": " 26 March 1670",
+        "pred": "Answer: 20 March 1690",
         "answers": [
           "May 19, 1669"
         ],
@@ -1225,7 +1225,7 @@
       },
       {
         "prompt_idx": 51,
-        "pred": " German.",
+        "pred": "Astrid North",
         "answers": [
           "Sweden"
         ],
@@ -1234,7 +1234,7 @@
       },
       {
         "prompt_idx": 53,
-        "pred": " Ladies Love Danger.",
+        "pred": "Melody Of The World",
         "answers": [
           "Melody Of The World"
         ],
@@ -1243,7 +1243,7 @@
       },
       {
         "prompt_idx": 59,
-        "pred": " France.",
+        "pred": "The performer of song \u00c9g\u00e9rie (Song) was born in France.",
         "answers": [
           "La Trinit\u00e9"
         ],
@@ -1252,7 +1252,7 @@
       },
       {
         "prompt_idx": 60,
-        "pred": " King Frederick William IV of Prussia.",
+        "pred": "Duke William of Mecklenburg-Schwerin is the father-in-law of King Frederick William IV of Prussia.",
         "answers": [
           "Prince Albert of Prussia"
         ],
@@ -1261,7 +1261,7 @@
       },
       {
         "prompt_idx": 67,
-        "pred": " Closely Watched Trains.",
+        "pred": "Det Sande Ansigt (The Sand in the Eyes) came out earlier.",
         "answers": [
           "Det Sande Ansigt"
         ],
@@ -1270,7 +1270,7 @@
       },
       {
         "prompt_idx": 68,
-        "pred": " Bomgay.",
+        "pred": "Il Gaucho",
         "answers": [
           "Bomgay"
         ],
@@ -1279,7 +1279,7 @@
       },
       {
         "prompt_idx": 69,
-        "pred": " POB (Place of Birth)",
+        "pred": "The place of death of Maria (Wife Of Boris I Of Bulgaria)'s husband was Preslav.",
         "answers": [
           "Preslav"
         ],
@@ -1288,7 +1288,7 @@
       },
       {
         "prompt_idx": 72,
-        "pred": " American.",
+        "pred": "The director of the film Postmortem (1998) is not specified in the given passages.",
         "answers": [
           "America"
         ],
@@ -1297,7 +1297,7 @@
       },
       {
         "prompt_idx": 75,
-        "pred": " Louis I, Duke of Bourbon.",
+        "pred": "Charles I, Duke of Bourbon.",
         "answers": [
           "John I, Duke of Bourbon"
         ],
@@ -1306,7 +1306,7 @@
       },
       {
         "prompt_idx": 77,
-        "pred": " Gertrude of Bavaria.",
+        "pred": "Gertrude of Bavaria.",
         "answers": [
           "Fran\u00e7oise Hardy"
         ],
@@ -1315,7 +1315,7 @@
       },
       {
         "prompt_idx": 83,
-        "pred": " He was poisoned.",
+        "pred": "Heonjong of Goryeo's father died of a stroke.",
         "answers": [
           "illness"
         ],
@@ -1324,7 +1324,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " Elizabeth Hastings, 16th Baroness Botenham\n\nQuestion: What was the name of the inn where Antoine Philippe died?\nAnswer: Salt Hill, near",
+        "pred": "I don't have enough information to answer the question. Can you provide more context or details about Antoine Philippe, Duke of Montpensier?",
         "answers": [
           "13 March 1753"
         ],
@@ -1333,7 +1333,7 @@
       },
       {
         "prompt_idx": 95,
-        "pred": " Alkohol came out earlier.",
+        "pred": "Alkohol (1919) came out earlier than Night of Dark Shadows (1971).",
         "answers": [
           "Alkohol"
         ],
@@ -1342,7 +1342,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " F The Prom.",
+        "pred": "The Comedians Of Comedy came out first.",
         "answers": [
           "The Comedians Of Comedy"
         ],
@@ -1351,7 +1351,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Tombstone Rashomon.",
+        "pred": "Tombstone Rashomon.",
         "answers": [
           "Tombstone Rashomon"
         ],
@@ -1360,7 +1360,7 @@
       },
       {
         "prompt_idx": 103,
-        "pred": " Bomma Borusa",
+        "pred": "Dhuen Ki Lakeer",
         "answers": [
           "Dhuen Ki Lakeer"
         ],
@@ -1369,7 +1369,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " Juan Ren\u00e9 Serrano was born first.",
+        "pred": "Juan Ren\u00e9 Serrano was born first.",
         "answers": [
           "Dudley Russell"
         ],
@@ -1378,7 +1378,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " Samarra, Iraq.",
+        "pred": "The father of Muhammad Al-Nasir was born in 1983.",
         "answers": [
           "Morocco"
         ],
@@ -1387,7 +1387,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " Solemn Promise.",
+        "pred": "Tarzan The Magnificent",
         "answers": [
           "Tarzan The Magnificent"
         ],
@@ -1396,7 +1396,7 @@
       },
       {
         "prompt_idx": 116,
-        "pred": " Brian Kennedy was born in Ireland.",
+        "pred": "Brian Kennedy was born in Ireland.",
         "answers": [
           "Gura Humorului"
         ],
@@ -1405,7 +1405,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " John Wesley.",
+        "pred": "John Wesley",
         "answers": [
           "Adolf II of Berg"
         ],
@@ -1414,7 +1414,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " Jim Wilson.",
+        "pred": "Jim Wilson",
         "answers": [
           "F\u00e9lix Leclerc"
         ],
@@ -1423,7 +1423,7 @@
       },
       {
         "prompt_idx": 125,
-        "pred": " Louis d'Armagnac, Duke of Nemours.",
+        "pred": "Henri Ii, Duke Of Nemours's paternal grandfather was Louis d'Armagnac, Duke of Nemours.",
         "answers": [
           "Jacques"
         ],
@@ -1432,7 +1432,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " German\n\nQuestion: What nationality is Princess Feodora Of Saxe-Meiningen's husband?\nAnswer: Greek\n\nQuestion: What nationality is Princess Marie",
+        "pred": "Princess Charlotte of Saxe-Meiningen's husband is a German prince.",
         "answers": [
           "Duchy of Saxe-Gotha-Altenburg"
         ],
@@ -1441,7 +1441,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " Sparta.",
+        "pred": "The passage does not mention the father of Teobaldo II Ordelaffi. It only mentions that Teobaldo II was the son of Giorgio",
         "answers": [
           "Italy"
         ],
@@ -1450,7 +1450,7 @@
       },
       {
         "prompt_idx": 144,
-        "pred": " No.",
+        "pred": "No.",
         "answers": [
           "yes"
         ],
@@ -1459,7 +1459,7 @@
       },
       {
         "prompt_idx": 153,
-        "pred": " Albertus Seba died first.",
+        "pred": "Albertus Seba died first.",
         "answers": [
           "Albertus Seba"
         ],
@@ -1470,7 +1470,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": " They use word importance to detect under-translated words.\n\nQuestion: What is the relationship between the word importance and the syntactic categories of the input sentences?\n\nAnswer: The word importance is related to the syntactic categories, with content words being more important than content-free words.\n\nQuestion: How do they analyze the distribution of syntactic categories and word fertility on the same language pairs with reverse directions?\n\nAnswer: They analyze the distribution of syntactic categories and word fertility, with the word importance being related to the syntactic categories.\n\nQuestion: What is the relationship between the word fertility and the null-aligned fertility on the same language pairs with reverse directions",
+        "pred": "unanswerable",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -1480,7 +1480,7 @@
       },
       {
         "prompt_idx": 164,
-        "pred": " yes, they collected their own data.",
+        "pred": "The question \"did they collect their own data?\" is a yes/no question. The answer is \"yes\".",
         "answers": [
           "No"
         ],
@@ -1489,7 +1489,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Europarl corpus.\n\nQuestion: what is the effect of using a target language model?\n\nAnswer: the quality of the model improves.\n\nQuestion: what is the effect of using a copy of the target language?\n\nAnswer: the quality of the model improves.\n\nQuestion: what is the effect of using a copy of the target language with GANs?\n\nAnswer: the quality of the model improves.\n\nQuestion: what is the effect of using a copy of the target language with GANs on domain adaptation?\n\nAnswer: the model is better at domain adaptation.\n\nQuestion: what is the effect of using a copy of the target language with GANs",
+        "pred": "unanswerable",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -1499,7 +1499,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " yes, they did.\n\nQuestion: What is the name of the model that they proposed?\n\nAnswer: UTCNN.\n\nQuestion: What is the name of the dataset that they used for training?\n\nAnswer: FBFans.\n\nQuestion: What is the name of the dataset that they used for testing?\n\nAnswer: CreateDebate.\n\nQuestion: What is the name of the model that they proposed for author stance classification?\n\nAnswer: Hasan and Ng's model.\n\nQuestion: What is the name of the model that they proposed for user stance classification?\n\nAnswer: UTCNN.\n\nQuestion: What is the name of the model that they proposed for topic classification",
+        "pred": "Yes",
         "answers": [
           "No",
           "No"
@@ -1509,7 +1509,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " A second order co-ocurrence matrix is a matrix that represents the co-occurrence of pairs of words in a corpus.\n\nQuestion: What is the purpose of integrating semantic similarity measures into a second order co-ocurrence matrix?\n\nAnswer: The purpose is to improve the correlation with human judgments.\n\nQuestion: What is the threshold cutoff used to include only those term pairs that obtained a sufficiently large level of similarity?\n\nAnswer: The threshold cutoff is not explicitly stated in the article, but it is mentioned that eliminating less similar pairs improves the overall results.\n\nQuestion: What are some potential future directions for this research?\n\nAnswer: The potential future directions",
+        "pred": "unanswerable",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -1519,7 +1519,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " accuracy, F1 score, and precision.\n\nQuestion: what is the main problem in the article?\n\nAnswer: the main problem is that the model is not able to predict judgments of civil cases, and the evaluation metrics are not satisfactory.\n\nQuestion: what is the proposed solution?\n\nAnswer: the proposed solution is the Legal Reading Comprehension framework, which incorporates law articles for judgment prediction.\n\nQuestion: what is the main advantage of the proposed solution?\n\nAnswer: the main advantage of the proposed solution is that it can handle multiple and complex textual inputs.\n\nQuestion: what is the main limitation of the proposed solution?\n\nAnswer: the main limitation of the",
+        "pred": "unanswerable",
         "answers": [
           "precision, recall, F1 and accuracy",
           "precision, recall, F1 , accuracy "
@@ -1529,7 +1529,7 @@
       },
       {
         "prompt_idx": 169,
-        "pred": " yes, the authors report results only on English data.\n\nQuestion: What is the purpose of the proposed evaluation metric Sera?\n\nAnswer: The purpose of the proposed evaluation metric Sera is to evaluate the quality of scientific summaries.\n\nQuestion: What is the main difference between the proposed evaluation metric Sera and existing summarization evaluation metrics?\n\nAnswer: The main difference between the proposed evaluation metric Sera and existing summarization evaluation metrics is that Sera evaluates the relevance of the summary to the original text, whereas existing metrics may evaluate other aspects of the summary.\n\nQuestion: What is the significance of the proposed evaluation metric Sera?\n\nAnswer: The significance",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -1539,7 +1539,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": " They match annotators to instances based on their difficulty.\n\nAnswer the question as concisely as possible, using a single phrase or sentence if possible. If the question cannot be answered based on the information in the article, write \"unanswerable\". If the question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not provide any explanation.\n\nQuestion: How do they match annotators to instances?\n\nAnswer: They match annotators to instances based on their difficulty.\n\nQuestion: How do they match annotators to instances?\n\nAnswer: They match annotators to instances based on their difficulty.\n\nQuestion:",
+        "pred": "They match annotators to instances based on their predicted difficulty scores.",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -1548,7 +1548,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " unanswerable\n\nQuestion: what is the name of the dataset?\n\nAnswer: MCScript\n\nQuestion: what is the purpose of the dataset?\n\nAnswer: to assess the contribution of script knowledge for computational models of language understanding in a real-world evaluation scenario.\n\nQuestion: what is the source of the dataset?\n\nAnswer: available at http://www.sfb1102.uni-saarland.de/?page_id=2582\n\nQuestion: what is the funding source of the dataset?\n\nAnswer: German Research Foundation (DFG) as part of SFB 1102 `Information Density and Linguistic Encoding' and EXC 284 `Multim",
+        "pred": "unanswerable",
         "answers": [
           "13,939"
         ],
@@ -1557,7 +1557,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\nAnswer: yes\n\nQuestion: Is the data de-identified?\n\n",
+        "pred": "Question: What is the name of the model used to extract medication regimen tags?\n\nAnswer: Medication Regimen (MR) extraction task of extracting dosage and frequency for medications mentioned in a doctor-patient conversation transcript.",
         "answers": [
           "Yes",
           "Yes"
@@ -1567,7 +1567,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " yes, they use pretrained embeddings.\n\nQuestion: What is the name of the model?\n\nAnswer: the name of the model is not explicitly mentioned in the article.\n\nQuestion: What is the name of the dataset?\n\nAnswer: the name of the dataset is not explicitly mentioned in the article.\n\nQuestion: What is the name of the model that performs the task?\n\nAnswer: the name of the model that performs the task is not explicitly mentioned in the article.\n\nQuestion: What is the name of the model that generates natural language descriptions from structured data?\n\nAnswer: the name of the model that generates natural language descriptions from structured data is not explicitly mentioned in",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Yes"
@@ -1577,7 +1577,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " ROGUE.\n\nQuestion: What is the purpose of the proposed algorithm?\n\nAnswer: To extract summary graph.\n\nQuestion: What is the main problem with the CNN-Dailymail corpus?\n\nAnswer: The main problem is that the information is concentrated in the first few sentences.\n\nQuestion: What is the natural direction for improving the algorithm?\n\nAnswer: Joining AMR graphs of multiple sentences that are similar.\n\nQuestion: What is the main problem with the ROGUE metric?\n\nAnswer: ROGUE can't be used for evaluating abstractive summaries because it considers exact words and not the stems of the words.\n\nQuestion: What is the",
+        "pred": "unanswerable",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -1587,7 +1587,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " 59.4% (Joint model) and 59.7% (biLSTM model) on Wikipedia, and 59.4% (Joint model) and 59.7% (Inception model) on arXiv.\n\nQuestion: What is the Joint model's performance on arXiv?\n\nAnswer: Joint model achieves a 59.4% accuracy on arXiv, which is competitive with or surpasses the state-of-the-art approach.\n\nQuestion: What is the Joint model's performance on arXiv?\n\nAnswer: Joint model achieves a 59.4% accuracy on arXiv, which is",
+        "pred": "unanswerable",
         "answers": [
           "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
         ],
@@ -1596,7 +1596,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Word embeddings, specifically the use of word embeddings to quantify semantic relatedness and similarity.",
+        "pred": "unanswerable",
         "answers": [
           "Skip\u2013gram, CBOW",
           "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
@@ -1606,7 +1606,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " They show there is space for further improvement by exploring the hyperparameter space and selecting the best performing models.",
+        "pred": "unanswerable",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -1616,7 +1616,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " The metrics used in evaluation are the F1 score, precision, recall, and accuracy.\n\nQuestion: What is the main goal of the research?\n\nAnswer: The main goal of the research is to develop a method for identifying sentence fragments in a corpus of text.\n\nQuestion: What is the main problem in the research?\n\nAnswer: The main problem in the research is the lack of a method for identifying sentence fragments in a corpus of text, which can lead to false positives and false negatives.\n\nQuestion: What is the main contribution of the research?\n\nAnswer: The main contribution of the research is the development of a method for identifying sentence fragments in a",
+        "pred": "unanswerable",
         "answers": [
           "precision, recall , F1 score"
         ],
@@ -1625,7 +1625,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " unanswerable\n\nQuestion: What is the accuracy of their model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their joint model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their visual-only model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their text-only model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their joint model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their joint model?\n\nAnswer: unanswerable\n\nQuestion: What is the accuracy of their joint model?\n\nAnswer: unanswerable\n\nQuestion: What is",
+        "pred": "unanswerable",
         "answers": [
           "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
         ],
@@ -1634,7 +1634,7 @@
       },
       {
         "prompt_idx": 183,
-        "pred": " Yes, they recommend translating the premise and hypothesis together.\n\nQuestion: Is the phenomenon of translation artifacts relevant to cross-lingual transfer learning?\n\nAnswer: Yes, it is.\n\nQuestion: What is the main reason for the improvement in the state-of-the-art in XNLI?\n\nAnswer: The main reason is that the model is trained on translated data, not the target language.\n\nQuestion: What is the main reason for the improvement in the state-of-the-art in XNLI?\n\nAnswer: The main reason is that the model is trained on translated data, not the target language.\n\nQuestion: What is the main reason for the improvement in",
+        "pred": "Yes, they recommend translating the premise and hypothesis together.",
         "answers": [
           "No",
           "No"
@@ -1644,7 +1644,7 @@
       },
       {
         "prompt_idx": 100,
-        "pred": " surface, morphological, syntactic, and phonological features.",
+        "pred": "The article discusses a feature-rich DNN approach for MSA CW and CE recovery, which uses various linguistic features such as surface, morphological, and syntactic features.",
         "answers": [
           "POS, gender/number and stem POS"
         ],
@@ -1653,7 +1653,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " The semantically related words take larger values along the dimension that is densely spanned by the words in the lexical source.",
+        "pred": "The semantically related words take larger values along the dimension of semantic coherence.",
         "answers": [
           "dimension corresponding to the concept that the particular word belongs to"
         ],
@@ -1662,7 +1662,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " Disinformation and mainstream news.\n\nQuestion: Which of the following is a feature observed at given layers?\n\nAnswer: Mention, Retweet, and Likes.\n\nQuestion: Which of the following is a feature observed at all layers?\n\nAnswer: Mention.\n\nQuestion: Which of the following is a feature observed at only one layer?\n\nAnswer: Likes.\n\nQuestion: Which of the following is a feature observed at all layers?\n\nAnswer: Mention.\n\nQuestion: Which of the following is a feature observed at only one layer?\n\nAnswer: Likes.\n\nQuestion: Which of the following is a feature observed at all layers?\n\nAnswer: Mention.\n\nQuestion: Which of the following",
+        "pred": "The two news domains are country-independent.",
         "answers": [
           "mainstream news and disinformation",
           "mainstream and disinformation news"
@@ -1672,7 +1672,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " In the hard setting (mode 2), each room on the path to the coin has two distractor rooms, and the level (e.g. 30) indicates the shortest path from the starting point to the coin room.",
+        "pred": "Text-Based Games are experiments performed on the following games:\n\n* Coin Collector\n* Cooking World\n* Zork I\n* Z-Machine games\n\nThese games are used to test the performance of the algorithms and models proposed in the article.",
         "answers": [
           "CoinCollector , CookingWorld ",
           "CoinCollector, CookingWorld"
@@ -1682,7 +1682,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " None. The article only discusses the current model and its performance.",
+        "pred": "Future improvements:\n\n* Incorporating entity extraction modules\n* Dynamic updating of encoding across the generation process\n* Incorporating Content Ordering (CO) and Content Selection (CS) metrics\n* Reducing the number of parameters used\n* Using recent operation-guided networks (BIBREF39, BIBREF40)",
         "answers": [
           "rther constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions",
           "to further constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions"
@@ -1692,7 +1692,7 @@
       },
       {
         "prompt_idx": 109,
-        "pred": " The additive modification to the objective function is the cost term that encourages the alignment of words with predefined concepts, which is added to the original cost function of GloVe.",
+        "pred": "The additive modification to the objective function is the addition of a cost term to the original objective function of the word embedding algorithm, which aims to increase interpretability.",
         "answers": [
           "The cost function for any one of the words of concept word-groups is modified by the introduction of an additive term to the cost function. . Each embedding vector dimension is first associated with a concept. For a word belonging to any one of the word-groups representing these concepts, the modified cost term favors an increase for the value of this word's embedding vector dimension corresponding to the concept that the particular word belongs to,",
           "An additive term added to the cost function for any one of the words of concept word-groups"
@@ -1702,7 +1702,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": " Novel n-grams.\n\nQuestion: What is the name of the dataset used for the abstractive summarization?\n\nAnswer: XSum.\n\nQuestion: What is the name of the model used for the extractive summarization?\n\nAnswer: BertSumExt.\n\nQuestion: What is the name of the model used for the abstractive summarization?\n\nAnswer: BertSumExt.\n\nQuestion: What is the name of the model used for the extractive summarization?\n\nAnswer: BertSumExt.\n\nQuestion: What is the name of the model used for the abstractive summarization?\n\nAnswer: BertSumExt.\n\nQuestion: What is the name",
+        "pred": "The document-level encoder is novel because it is a new approach to document encoding that is not based on traditional sentence-level or word-level encoding methods.",
         "answers": [
           "Bert model have a maximum length of 512; we overcome this limitation by adding more position embeddings, we insert external [cls] tokens at the start of each sentence, and each [cls] symbol collects features for the sentence preceding it, document representations are learned hierarchically"
         ],
@@ -1711,7 +1711,7 @@
       },
       {
         "prompt_idx": 111,
-        "pred": " The model improves interpretability by using a more interpretable representation of the input data, such as a sparse representation, which allows for easier understanding of the relationships between different features.",
+        "pred": "The model improves interpretability by using a more interpretable representation of the input data, such as a piecewise linear function, which allows for easier understanding of the model's predictions. This is in contrast to softmax transformers, which use a continuous representation of the input data, making it more difficult to interpret the model's predictions. The use of a piecewise linear function also allows for more efficient and accurate modeling of complex relationships between input features.",
         "answers": [
           "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
           "We introduce sparse attention into the Transformer architecture"
@@ -1721,7 +1721,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " They improve the efficacy of the attention mechanism by 50%",
+        "pred": "The model improves the efficacy of the attention mechanism by 50%",
         "answers": [
           "Unanswerable",
           "Unanswerable"
@@ -1731,7 +1731,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " The human judgements were assembled by the annotators through a process of annotation, where they were asked to label the sentences with their corresponding judgements.\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer: The main purpose of the morphological segmentation is to enable the translation system to understand the structure of the input sentences, which is essential for generating accurate translations.\n\nQuestion: What is the main advantage of using a morphological segmentation?\n\nAnswer: The main advantage of using a morphological segmentation is that it enables the translation system to understand the structure of the input sentences, which is essential for generating accurate translations.\n\nQuestion: What",
+        "pred": "Question: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer:unanswerable\n\nQuestion: What is the main purpose of the morphological segmentation?\n\nAnswer",
         "answers": [
           "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
           "adequacy, precision and ranking values"
@@ -1741,7 +1741,7 @@
       },
       {
         "prompt_idx": 120,
-        "pred": " unanswerable",
+        "pred": "Question: what was the multistage fine-tuning approach?\n\nAnswer: multilingual multistage fine-tuning approach.",
         "answers": [
           "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
           "M2M Transformer"
@@ -1751,7 +1751,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": " The core component for KBQA is the relation detection model, specifically the HR-BiLSTM model.",
+        "pred": "The core component for KBQA is the relation detection model, which is a hierarchical matching between questions and KB relations.",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -1761,7 +1761,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " Yes, the algorithm is adapted from the RL literature to the context of joint data manipulation learning and model training.",
+        "pred": "unanswerable",
         "answers": [
           "BIBREF7",
           " reward learning algorithm BIBREF7"
@@ -1771,7 +1771,7 @@
       },
       {
         "prompt_idx": 126,
-        "pred": " unanswerable\n\nQuestion: What are the pre-trained features used in the proposed method?\n\nAnswer: yes\n\nQuestion: What are the pre-trained models used in the proposed method?\n\nAnswer: yes\n\nQuestion: What are the pre-trained models used in the proposed method?\n\nAnswer: yes\n\nQuestion: What are the pre-trained models used in the proposed method?\n\nAnswer: yes\n\nQuestion: What are the pre-trained models used in the proposed method?\n\nAnswer: yes\n\nQuestion: What are the pre-trained models used in the proposed method?\n\nAnswer: yes\n\nQuestion: What are the pre-trained models used in the proposed method?\n\nAnswer:",
+        "pred": "Question: What are the features used for sarcasm detection?\n\nAnswer: Sentiment, emotion, and personality features.\n\nQuestion: What is the best performance of the proposed method?\n\nAnswer: 76.78% F1-score.\n\nQuestion: What is the generalizability of the proposed method?\n\nAnswer: The proposed method performs well on a large corpus and other domain-dependent corpora.\n\nQuestion: What are the pre-trained features used for sarcasm detection?\n\nAnswer: Sentiment, emotion, and personality features.\n\nQuestion: What is the correlation between personality features?\n\nAnswer: The features are highly correlated with each other.\n\nQuestion: What is the",
         "answers": [
           "BIBREF9 , BIBREF8 ",
           "BIBREF9 , BIBREF8"
@@ -1781,7 +1781,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " The article does not provide information on how the dataset models character's profiles.",
+        "pred": "The article does not provide information on how the dataset models character's profiles.",
         "answers": [
           "attributes are determined by human viewers and their impressions of the characters, and are correlated with human-like characteristics"
         ],
@@ -1790,7 +1790,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " Reuters-8.\n\nQuestion: What is the main goal of the proposed method?\n\nAnswer: To classify text into different classes.\n\nQuestion: What is the main contribution of the proposed method?\n\nAnswer: The proposed method uses word subspace under the MSM framework to improve the accuracy of text classification.\n\nQuestion: What is the main limitation of the proposed method?\n\nAnswer: The method does not consider the order of the words in a text.\n\nQuestion: What is the main direction for future work?\n\nAnswer: To extend the word subspace concept to encode word order and model dynamic context change.",
+        "pred": "The Reuters-8 dataset has been used in this work.",
         "answers": [
           "Reuters-8 dataset without stop words",
           "The Reuters-8 dataset (with stop words removed)"
@@ -1800,7 +1800,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " The accuracy merits of the approach are demonstrated by the results of the evaluation on real-world datasets, which show that the approach significantly outperforms the state of the art.",
+        "pred": "The accuracy merits of the approach are demonstrated by the results of the evaluation, which show that the approach outperforms the state of the art and is particularly useful for detecting events where relevant microposts are semantically complex, e.g., the death of a politician.",
         "answers": [
           "significant improvements clearly demonstrate that our approach is effective at improving model performance",
           "By evaluating the performance of the approach using accuracy and AUC"
@@ -1810,7 +1810,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " HR-BiLSTM achieves the state of the art on both WebQSP and SimpleQuestions.",
+        "pred": "KBQA systems, including our proposed HR-BiLSTM model, achieve state-of-the-art results on both WebQSP and SimpleQuestions.",
         "answers": [
           "SimpleQuestions, WebQSP",
           "WebQSP, SimpleQuestions"
@@ -1820,7 +1820,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Knowledge-Based Question Answering\n\nQuestion: What is the main contribution of the HR-BiLSTM model in the article?\n\nAnswer: The main contribution of the HR-BiLSTM model is to perform hierarchical matching between questions and KB relations.\n\nQuestion: What is the main task of KBQA\n\nAnswer: The main task of KBQA is to answer questions based on the knowledge base.\n\nQuestion: What is the main difference between KBQA and general relation extraction tasks\n\nAnswer: The main difference between KBQA and general relation extraction tasks is that KBQA involves answering questions based on a knowledge base, whereas general relation extraction tasks involve extracting relationships",
+        "pred": "KBQA stands for Knowledge-Based Question Answering. It is a subfield of artificial intelligence that deals with the interaction between a knowledge base and a question-answering system. The goal of KBQA is to provide accurate and relevant answers to user queries, while also ensuring the integrity and accuracy of the knowledge base.",
         "answers": [
           "Knowledge Base Question Answering",
           "Knowledge Base Question Answering "
@@ -1830,7 +1830,7 @@
       },
       {
         "prompt_idx": 149,
-        "pred": " CyberAttack and PoliticianDeath datasets.\n\nQuestion: What is the main goal of the proposed approach?\n\nAnswer: To improve the performance of event detection models by leveraging the joint power of the crowd and the model.\n\nQuestion: What is the main advantage of the proposed approach?\n\nAnswer: It significantly outperforms the state of the art and is particularly useful for detecting events where relevant microposts are semantically complex.\n\nQuestion: What is the main limitation of the proposed approach?\n\nAnswer: It requires parallelizing the crowdsourcing tasks and optimizing the pipeline.\n\nQuestion: What is the main advantage of the proposed approach?\n\nAnswer: It significantly out",
+        "pred": "unanswerable\n\nQuestion: What is the main goal of the human-AI loop approach?\n\nAnswer:unanswerable\n\nQuestion: What is the main advantage of the human-AI loop approach?\n\nAnswer:unanswerable\n\nQuestion: What is the main application of the human-AI loop approach?\n\nAnswer:unanswerable\n\nQuestion: What is the main technique used in the human-AI loop approach?\n\nAnswer:unanswerable\n\nQuestion: What is the main advantage of the human-AI loop approach?\n\nAnswer:unanswerable\n\nQuestion: What is the main application of the human-AI loop approach?\n\nAnswer:un",
         "answers": [
           "Tweets related to CyberAttack and tweets related to PoliticianDeath",
           "cyber security (CyberAttack), death of politicians (PoliticianDeath)"
@@ -1840,7 +1840,7 @@
       },
       {
         "prompt_idx": 150,
-        "pred": " The strong baseline is the model that achieves the new state-of-the-art performance on the ROTOWIRE dataset.\n\nQuestion: What is the main contribution of this paper?\n\nAnswer: The main contribution of this paper is the development of a hierarchical encoder for table-to-text generation that learns table representations from row, column and time dimension.\n\nQuestion: What is the main problem addressed in this paper?\n\nAnswer: The main problem addressed in this paper is the task of generating text from tables, specifically the task of extracting information from tables and using it to generate coherent text.\n\nQuestion: What is the main goal of this paper?\n\nAnswer: The main goal of",
+        "pred": "The strong baseline is Wiseman's model, which is a document-scale data-to-text dataset, consisting of long text with more redundant records, which requires the model to select important information to generate.",
         "answers": [
           "Conditional Copy (CC) model ",
           "delayed copy model (DEL),  template system (TEM), conditional copy (CC), NCP+CC (NCP)"
@@ -1850,7 +1850,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Weakly supervised learning methods.\n\nQuestion: What is the main goal of the proposed approach?\n\nAnswer: To improve the performance of event detection models.\n\nQuestion: What type of data is used in the proposed approach?\n\nAnswer: Real-world datasets.\n\nQuestion: What is the main advantage of the proposed approach?\n\nAnswer: It is particularly useful for detecting events where relevant microposts are semantically complex.\n\nQuestion: What is the main disadvantage of the proposed approach?\n\nAnswer: It is not scalable to large datasets.\n\nQuestion: What is the main limitation of the proposed approach?\n\nAnswer: It is not parallelizable.\n\nQuestion: What is the main",
+        "pred": "Question: What is the main goal of the proposed approach?\n\nAnswer: To improve the performance of event detection models by leveraging the joint power of the crowd and the model in expectation inference.",
         "answers": [
           "probabilistic model",
           "Logistic Regression, Multilayer Perceptron"
@@ -1860,7 +1860,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " The distinctive characteristics of how Arabic speakers use offensive language include the use of dialectal Arabic, ambiguity, heavy use of dialectal cues, and the use of specific expressions that are only offensive within the context of a particular target.",
+        "pred": "The distinctive characteristics of how Arabic speakers use offensive language include:\n\n* Heavy use of dialectal Arabic\n* Ambiguity\n* Heavy use of dialectal cues\n* Lack of specificity in targeting certain groups or topics\n* Use of special tags for vulgar tweets and hate speech\n* Common modes of offensiveness\n* Gender distribution of authors\n\nUnanswerable.",
         "answers": [
           "Frequent use of direct animal name calling, using simile and metaphors, through indirect speech like sarcasm, wishing evil to others, name alteration, societal stratification, immoral behavior and sexually related uses.",
           "Direct name calling, Simile and metaphor, Indirect speech, Wishing Evil, Name alteration, Societal stratification, Immoral behavior, Sexually related"
@@ -1870,7 +1870,7 @@
       },
       {
         "prompt_idx": 157,
-        "pred": " The authors use a Seq2Seq model to map observations to actions, which allows the policy to generalize better than existing solutions.",
+        "pred": "The authors show that their learned policy generalizes better than existing solutions to unseen games by using a simple Seq2Seq model that maps observations to actions, and by iteratively learning a policy to sample actions while exploring with the learned policy. This approach allows the policy to learn from the observed actions and adapt to new situations, leading to better generalization.",
         "answers": [
           "promising results by solving almost half of the unseen games, most of the lost games are in the hardest set, where a very long sequence of actions is required for winning the game"
         ],
@@ -1879,7 +1879,7 @@
       },
       {
         "prompt_idx": 163,
-        "pred": " Wikipedia and CMV.\n\nQuestion: What is the average time a warning is given to a conversation that derails?\n\nAnswer: 3 hours.\n\nQuestion: What is the AUPR of the system?\n\nAnswer: 0.7.\n\nQuestion: What is the recall of the system?\n\nAnswer: 0.65.\n\nQuestion: What is the threshold for the system to be considered useful?\n\nAnswer: 0.65.\n\nQuestion: What is the type of feature used to model conversational context?\n\nAnswer: Order-sensitive.\n\nQuestion: What is the type of feature used to model conversational context?\n\nAnswer: Order-sensitive.\n\nQuestion:",
+        "pred": "The two datasets are Wikipedia and CMV.",
         "answers": [
           " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
           "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
@@ -1889,7 +1889,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " Unanswerable\n\nQuestion: What is the main objective of the proposed framework DAS?\n\nAnswer: To jointly perform feature adaptation and semi-supervised learning.\n\nQuestion: What is the target domain in the experiments?\n\nAnswer: Beauty\n\nQuestion: What is the source domain in the experiments?\n\nAnswer: Electronics\n\nQuestion: What is the task in the experiments?\n\nAnswer: Sentiment classification\n\nQuestion: What is the binary classification task in the experiments?\n\nAnswer: Predict whether a review is positive or negative on the target domain.\n\nQuestion: What is the dataset used in the experiments?\n\nAnswer: Amazon Benchmark\n\nQuestion: What is the number of labeled",
+        "pred": "Question: What are the results of the CNN filter analysis?\n\nAnswer:assistant\n\nQuestion: What are the baseline methods that were used in the experiment?\n\nAnswer:assistant\n\nQuestion: What are the results of the CNN filter analysis on NaiveNN, FANN, and DAS?\n\nAnswer:assistant\n\nQuestion: What are the sentiment labels used in the experiment?\n\nAnswer:assistant\n\nQuestion: What are the results of the CNN filter analysis on the target domain (beauty)?\n\nAnswer:assistant\n\nQuestion: What are the baseline methods that were used in the experiment?\n\nAnswer:assistant\n\nQuestion: What are the results of the CNN filter",
         "answers": [
           "(1) Naive, (2) mSDA BIBREF7, (3) NaiveNN, (4) AuxNN BIBREF4, (5) ADAN BIBREF16, (6) MMD",
           "non-domain-adaptive baseline with bag-of-words representations and SVM classifier, mSDA, non-domain-adaptive CNN trained on source domain, neural model that exploits auxiliary tasks, adversarial training to reduce representation difference between domains, variants of deep CNNs are used for encoding images and the MMDs of multiple layers are jointly minimized"
@@ -1899,7 +1899,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " The two large-scale datasets used are the Twitter dataset and the Italian dataset.\n\nQuestion: What is the classification performance of the baseline classifier?\n\nAnswer: The classification performance of the baseline classifier is unanswerable.\n\nQuestion: What is the classification performance of the multi-layer classifier?\n\nAnswer: The classification performance of the multi-layer classifier is unanswerable.\n\nQuestion: What is the classification performance of the single-layer classifier?\n\nAnswer: The classification performance of the single-layer classifier is unanswerable.\n\nQuestion: What is the temporal analysis of the classification performance?\n\nAnswer: The temporal analysis of the classification performance shows that the multi-layer classifier can accurately classify mainstream",
+        "pred": "The two large-scale datasets used in the article are:\n\n1. Twitter dataset (US and Italy)\n2. Mainstream and disinformation news datasets\n\nThese datasets are used to train and test the classification models.",
         "answers": [
           "US dataset, Italian dataset",
           "US dataset, Italian dataset"
@@ -1909,7 +1909,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " Influential leaders and their followers show similar profile changes, with most users making at-most 4 changes, and the majority of changes being related to the party name.",
+        "pred": "The article discusses how profile changes vary for influential leaders and their followers over the social movement. It shows that influential leaders tend to make more changes to their profile attributes, with a focus on going back and forth to the same attribute, while followers tend to make changes related to the election campaign. The article also suggests that the presence of party name in the profile attribute can be considered an organic behavior, while the addition of election campaign related keywords to the profile is a form of inorganic behavior.",
         "answers": [
           "Influential leaders are more likely to change their profile attributes than their followers; the leaders do not change their usernames, while their followers change their usernames a lot; the leaders  tend to make new changes related to previous attribute values, while the followers make comparatively less related changes to previous attribute values."
         ],
@@ -1920,7 +1920,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": " No, both Cynthia Mort and George Archainbaud are French.",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -1929,7 +1929,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " East Jaffrey Historic District.",
+        "pred": "Jaffrey",
         "answers": [
           "Marlborough"
         ],
@@ -1938,7 +1938,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " Yes.",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -1947,7 +1947,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": " Yes.",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -1956,7 +1956,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": " Aichryson.",
+        "pred": "Aichryson",
         "answers": [
           "Polypodium"
         ],
@@ -1965,7 +1965,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "  Ray Romano",
+        "pred": "I cannot verify the middle name of the actor who hosted the 24th People's Choice Awards with Reba McEntire.",
         "answers": [
           "Albert"
         ],
@@ -1974,7 +1974,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": " Patari.",
+        "pred": "Napalm Records",
         "answers": [
           "A1 Recordings"
         ],
@@ -1983,7 +1983,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": " 83\n\nNote: The passage does not mention the city, but rather the township.",
+        "pred": "83",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " Vodka.",
+        "pred": "Vodka",
         "answers": [
           "lime"
         ],
@@ -2001,7 +2001,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " George Abbott was the director of the drama film Heat Lightning, which was released in 1931.",
+        "pred": "George Abbott was a playwright and director, and his first big hit was the 1926 play \"Secrets\", which was adapted into a film in 193",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -2010,7 +2010,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " Scotland.",
+        "pred": "Scotland",
         "answers": [
           "Scotland"
         ],
@@ -2019,7 +2019,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " 1.",
+        "pred": "12",
         "answers": [
           "13"
         ],
@@ -2028,7 +2028,7 @@
       },
       {
         "prompt_idx": 100,
-        "pred": " Osteomeles.",
+        "pred": "Osteomeles.",
         "answers": [
           "Medinilla"
         ],
@@ -2037,7 +2037,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Jaime Camil.",
+        "pred": "Kuno Becker.",
         "answers": [
           "Eduardo Kuno Becker Paz"
         ],
@@ -2046,7 +2046,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Mississippi County.",
+        "pred": "Mississippi County.",
         "answers": [
           "Sunflower County"
         ],
@@ -2055,7 +2055,7 @@
       },
       {
         "prompt_idx": 103,
-        "pred": " 500.",
+        "pred": "The answer is 8 million.",
         "answers": [
           "about 7 million"
         ],
@@ -2064,7 +2064,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " No. According to the passage, Moondance began in 1924, and Holland's began in 1876.",
+        "pred": "Yes.",
         "answers": [
           "no"
         ],
@@ -2073,7 +2073,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " David Dobkin.",
+        "pred": "The writer who worked on both The Ice Cream Man and and a 2007 fantasy comedy loosely based on a Donald Henkel poem is Alan Ball.",
         "answers": [
           "David Dobkin"
         ],
@@ -2082,7 +2082,7 @@
       },
       {
         "prompt_idx": 106,
-        "pred": " Lehmber Hussainpuri.",
+        "pred": "Lehmber Hussainpuri",
         "answers": [
           "Lehmber Hussainpuri"
         ],
@@ -2091,7 +2091,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " No. \nQuestion: What is the name of the novel by Stanley Elkin that won the 1995 National Book Critics Circle Award in the fiction category?",
+        "pred": "No.",
         "answers": [
           "no"
         ],
@@ -2100,7 +2100,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " Menzies campion and Menzies catchfly.",
+        "pred": "Arbutus and Aspidistra are dioecious plants.",
         "answers": [
           "flowering plants"
         ],
@@ -2109,7 +2109,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " York County.",
+        "pred": "Kennebunk",
         "answers": [
           "York County"
         ],
@@ -2118,7 +2118,7 @@
       },
       {
         "prompt_idx": 121,
-        "pred": " 1976.",
+        "pred": "2020.",
         "answers": [
           "1976"
         ],
@@ -2127,7 +2127,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": " term-limited.",
+        "pred": "The 1919 Mississippi gubernatorial election Incumbent Democrat was a master of the \"Porsche politician in a state that was predominantly white\".",
         "answers": [
           "filibuster"
         ],
@@ -2136,7 +2136,7 @@
       },
       {
         "prompt_idx": 127,
-        "pred": " The Pittsburgh Panthers.",
+        "pred": "The answer is American Football.",
         "answers": [
           "Canadian-American Association of Professional Baseball"
         ],
@@ -2145,7 +2145,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " Woody Dumart.",
+        "pred": "Woody Dumart.",
         "answers": [
           "Tie Domi"
         ],
@@ -2154,7 +2154,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " Field of Dreams",
+        "pred": "The answer is: Field of Dreams.",
         "answers": [
           "\"Field of Dreams\""
         ],
@@ -2163,7 +2163,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " The Grieg crater is named for a Norwegian composer who composed during the 19th century.",
+        "pred": "The Grieg crater is named for a Norwegian composer who composed during the 19th century.",
         "answers": [
           "Romantic"
         ],
@@ -2172,7 +2172,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": " The station is Carnforth.",
+        "pred": "The answer is Carnforth.",
         "answers": [
           "Borwick railway station"
         ],
@@ -2181,7 +2181,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " August Heckscher.",
+        "pred": "August Heckscher",
         "answers": [
           "August Heckscher"
         ],
@@ -2190,7 +2190,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " Detroit.",
+        "pred": "Detroit",
         "answers": [
           "Prudential Center"
         ],
@@ -2201,7 +2201,7 @@
     "lb/2wikimqa_e": [
       {
         "prompt_idx": 107,
-        "pred": " Yes, both films were directed by Jean Negulescu.",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -2210,7 +2210,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " Stein Erik Hagen.",
+        "pred": "Kiplangat Sang",
         "answers": [
           "Kiplangat Sang"
         ],
@@ -2219,7 +2219,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " London United Film Festival.",
+        "pred": "London",
         "answers": [
           "Sydney, Australia"
         ],
@@ -2228,7 +2228,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " 10 May 1348.",
+        "pred": "There is no information about Andrew, Duke of Slavonia's father's date of death in the given passages.",
         "answers": [
           "6 August 1272"
         ],
@@ -2237,7 +2237,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": " No. Father'S Day (1996 Film) is American and The Pursuit Of Happiness (1971 Film) is Dutch.",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -2246,7 +2246,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " Prairie Thunder.",
+        "pred": "Lassie Come Home",
         "answers": [
           "Prairie Thunder"
         ],
@@ -2255,7 +2255,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " 1601.",
+        "pred": "1601",
         "answers": [
           "8 April 1643"
         ],
@@ -2264,7 +2264,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " Ireland.",
+        "pred": "I cannot verify the birthplace of the director of film The Messenger (2009 Film).",
         "answers": [
           "Israeli"
         ],
@@ -2273,7 +2273,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " Morchha.",
+        "pred": "The Thing About My Folks",
         "answers": [
           "The Thing About My Folks"
         ],
@@ -2282,7 +2282,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " Hubba bint Hulail.",
+        "pred": "Hubbah",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],
@@ -2291,7 +2291,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " American.",
+        "pred": "American",
         "answers": [
           "Canadian"
         ],
@@ -2300,7 +2300,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " S. N. Mathur died in 1980.",
+        "pred": "I cannot verify the cause of death of the director of the 1959 film Temptation.",
         "answers": [
           "Nice"
         ],
@@ -2309,7 +2309,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " Alfonso VII of Le\u00f3n.",
+        "pred": "Sancha Of Castile, Queen Of Aragon's paternal grandmother was Alfonso VII of Castile.",
         "answers": [
           "Urraca of Le\u00f3n"
         ],
@@ -2318,7 +2318,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " Carnegie Mellon University.",
+        "pred": "The director of film Defilada, Andrzej Fidyk, graduated from the University of Warsaw.",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -2327,7 +2327,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Sweden.",
+        "pred": "Spain.",
         "answers": [
           "Sweden"
         ],
@@ -2336,7 +2336,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Faiz Muhammad was born later, Guillermo Capetillo was born earlier.",
+        "pred": "Faiz Muhammad was born later, Guillermo Capetillo was born earlier.",
         "answers": [
           "Guillermo Capetillo"
         ],
@@ -2345,7 +2345,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " Werner Mensching lived longer.",
+        "pred": "Werner Mensching lived longer, Werner Mensching lived longer, Werner Mensching lived longer, Werner Mensching lived longer, Werner Mensching lived longer, Werner",
         "answers": [
           "Werner Mensching"
         ],
@@ -2354,7 +2354,7 @@
       },
       {
         "prompt_idx": 106,
-        "pred": " 1366\n\nQuestion: What is the name of the party that won the 2017 election?\nAnswer: Labour Party\n\nQuestion: What is the name",
+        "pred": "21 December 1320",
         "answers": [
           "13 December 1272"
         ],
@@ -2363,7 +2363,7 @@
       },
       {
         "prompt_idx": 109,
-        "pred": " Hong Kong.",
+        "pred": "Hong Kong.",
         "answers": [
           "Barkin Ladi"
         ],
@@ -2372,7 +2372,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": " He was born in Indiana, USA.",
+        "pred": "I do not have access to the information you requested.",
         "answers": [
           "Sey\u00f0isfj\u00f6r\u00f0ur"
         ],
@@ -2381,7 +2381,7 @@
       },
       {
         "prompt_idx": 111,
-        "pred": " Another Earth was released earlier.",
+        "pred": "Another Earth was released earlier, in 2011.",
         "answers": [
           "Another Earth"
         ],
@@ -2390,7 +2390,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " France.",
+        "pred": "Answer: Germany.",
         "answers": [
           "German"
         ],
@@ -2399,7 +2399,7 @@
       },
       {
         "prompt_idx": 114,
-        "pred": " Athens, Greece.",
+        "pred": "The final answer is: Florence.",
         "answers": [
           "Florence"
         ],
@@ -2408,7 +2408,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " Deuces Wild.",
+        "pred": "Cavalcade Of The West.",
         "answers": [
           "Cavalcade Of The West"
         ],
@@ -2417,7 +2417,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " The Rebellion Of The Brides.",
+        "pred": "The Rebellion of the Brides (serial)",
         "answers": [
           "The Rebellion Of The Brides"
         ],
@@ -2426,7 +2426,7 @@
       },
       {
         "prompt_idx": 120,
-        "pred": " English.",
+        "pred": "English.",
         "answers": [
           "England"
         ],
@@ -2435,7 +2435,7 @@
       },
       {
         "prompt_idx": 121,
-        "pred": " Beaulieu-sur-Loire.",
+        "pred": "Beaulieu-sur-Loire.",
         "answers": [
           "New York"
         ],
@@ -2444,7 +2444,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": " No.",
+        "pred": "Yes, both films have the directors from the same country.",
         "answers": [
           "yes"
         ],
@@ -2453,7 +2453,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " Su-Ki-Da.",
+        "pred": "Su-Ki-Da came out first.",
         "answers": [
           "Su-Ki-Da"
         ],
@@ -2462,7 +2462,7 @@
       },
       {
         "prompt_idx": 128,
-        "pred": " Viva Knievel!",
+        "pred": "Viva Knievel! was directed by Gordon Douglas, born in 1908, while Maria Marten, Or The Murder In The Red Barn was directed",
         "answers": [
           "Maria Marten, Or The Murder In The Red Barn"
         ],
@@ -2471,7 +2471,7 @@
       },
       {
         "prompt_idx": 130,
-        "pred": " Margaret de Stafford.",
+        "pred": "Margaret Stafford.",
         "answers": [
           "Lady Anne Campbell"
         ],
@@ -2480,7 +2480,7 @@
       },
       {
         "prompt_idx": 131,
-        "pred": " Hell And Mr. Fudge.",
+        "pred": "Hell And Mr. Fudge was released in 1985. Yes Or No was released in 1986.",
         "answers": [
           "Yes Or No?"
         ],
@@ -2489,7 +2489,7 @@
       },
       {
         "prompt_idx": 134,
-        "pred": " No.",
+        "pred": "The answer is: No, they are not from the same country.",
         "answers": [
           "no"
         ],
@@ -2498,7 +2498,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " Karthika (Film)",
+        "pred": "Karthika (Film)",
         "answers": [
           "Everything'S Ducky"
         ],
@@ -2507,7 +2507,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " J\u00f6rn Lenz was born first.",
+        "pred": "Alejandro Romualdo was born first.",
         "answers": [
           "Alejandro Romualdo"
         ],
@@ -2516,7 +2516,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": " Throw Momma From The Train.",
+        "pred": "Throw Momma From The Train was directed by Danny DeVito. Dona Mariquita Of My Heart was directed by Joaqu\u00edn Pardav\u00e9.",
         "answers": [
           "Dona Mariquita Of My Heart"
         ],
@@ -2525,7 +2525,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " John Mackay.",
+        "pred": "Abdul Muttalib",
         "answers": [
           "Amadeus VI, Count of Savoy"
         ],
@@ -2534,7 +2534,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " The film's director, Ian Barrow, studied at the University of Edinburgh.",
+        "pred": "The director of film Crd (Film) studied at the University of Oslo.",
         "answers": [
           "UCLA"
         ],
@@ -2543,7 +2543,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Tyre.",
+        "pred": "The place of death of Amaury De Montfort (Died 1241)'s father was Tyre.",
         "answers": [
           "Toulouse"
         ],
@@ -2552,7 +2552,7 @@
       },
       {
         "prompt_idx": 144,
-        "pred": " Boston, Massachusetts.",
+        "pred": "St. Stephen, New Brunswick.",
         "answers": [
           "St. Stephen, New Brunswick"
         ],
@@ -2561,7 +2561,7 @@
       },
       {
         "prompt_idx": 146,
-        "pred": " Viscount Ogawa Mataji.",
+        "pred": "Ogawa Mataji",
         "answers": [
           "Nandlal Nehru"
         ],
@@ -2570,7 +2570,7 @@
       },
       {
         "prompt_idx": 149,
-        "pred": " At the University of Buffalo.",
+        "pred": "I do not have enough information to answer the question. The passage does not mention Francis W. Rockwell's father or where he studied.",
         "answers": [
           "Yale"
         ],
@@ -2579,7 +2579,7 @@
       },
       {
         "prompt_idx": 150,
-        "pred": " No.",
+        "pred": "No.",
         "answers": [
           "no"
         ],
@@ -2588,7 +2588,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Borsalino & Co.",
+        "pred": "Borsalino & Co.",
         "answers": [
           "K\u00f6pekler Adas\u0131"
         ],
@@ -2597,7 +2597,7 @@
       },
       {
         "prompt_idx": 153,
-        "pred": " Indian.",
+        "pred": "John Donatich\nJohn Donatich is the Director of Yale University Press.",
         "answers": [
           "Indian"
         ],
@@ -2606,7 +2606,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Young And Dangerous: The Prequel.",
+        "pred": "Young And Dangerous: The Prequel was directed by Andrew Lau.",
         "answers": [
           "Hanuman Patal Vijay"
         ],
@@ -2615,7 +2615,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " Shaybah ibn H\u0101shim.",
+        "pred": "Abdul Muttalib",
         "answers": [
           "Niall mac Cernaig Sotal"
         ],
@@ -2624,7 +2624,7 @@
       },
       {
         "prompt_idx": 158,
-        "pred": " Brodie Croft.",
+        "pred": "Saad Abdulrahman was born first.",
         "answers": [
           "Saad Abdulrahman"
         ],
@@ -2633,7 +2633,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " Naples.",
+        "pred": "The final answer is: 20 July 1368.",
         "answers": [
           "Neapolitan"
         ],
@@ -2642,7 +2642,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " Pieces Of A Woman.",
+        "pred": "Pieces Of A Woman was directed by Korn\u00e9l Mundrucz\u00f3. Oriental Nights was directed by Heinz Paul.",
         "answers": [
           "Oriental Nights"
         ],
@@ -2651,7 +2651,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " Rotrou I, Viscount of Ch\u00e2teaudun.",
+        "pred": "Rotrou de Ch\u00e2teaudun.",
         "answers": [
           "John of Gaunt"
         ],
@@ -2660,7 +2660,7 @@
       },
       {
         "prompt_idx": 162,
-        "pred": " Christian of Oliva.",
+        "pred": "Moritz, Landgrave of Prussia",
         "answers": [
           "Frederick V of Denmark"
         ],
@@ -2669,7 +2669,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Janusz III of Masovia.",
+        "pred": "Poland\nThe answer is Poland. According to the passage, Janusz III belonged to the haplogroup R1b.",
         "answers": [
           "Konrad I of Ole\u015bnica"
         ],
@@ -2678,7 +2678,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " Rudraige mac Sithrig (Irish: Ruadh mac Sithirg), High King of Ireland.\n\nQuestion: Who is the paternal grandfather of Fujiw",
+        "pred": "The answer is: Fujiwara no Nagara.",
         "answers": [
           "Fer Corb"
         ],
@@ -2687,7 +2687,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " The Pennsylvania Academy of Fine Arts.",
+        "pred": "The passage does not mention Philip Goodhart's father's occupation. It only mentions that Philip Goodhart's father is a sculptor.",
         "answers": [
           "Oxford"
         ],
@@ -2696,7 +2696,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " Cry Of The Hunted.",
+        "pred": "Cry Of The Hunted\nSalvage With A Smile",
         "answers": [
           "Salvage With A Smile"
         ],
@@ -2705,7 +2705,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " Singapore Dreaming.",
+        "pred": "Singapore Dreaming was released in 2006. Gray Lady Down was released in 2009. Therefore, Singapore Dreaming was released more recently.",
         "answers": [
           "Singapore Dreaming"
         ],
@@ -2714,7 +2714,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " Motu Hafoka lived longer.",
+        "pred": "Motu Hafoka lived longer.",
         "answers": [
           "Wilhelm Meise"
         ],
@@ -2723,7 +2723,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Cleopatra Thea.",
+        "pred": "Cleopatra Thea",
         "answers": [
           "Laodice V"
         ],
@@ -2732,7 +2732,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " Circle Of Deception.",
+        "pred": "Ebar Shabor",
         "answers": [
           "Circle Of Deception"
         ],
@@ -2741,7 +2741,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " Guillaume Wittouck.",
+        "pred": "Hermann, Prince of Hohenlohe-Langenburg's paternal grandfather was Guillaume Wittouck.",
         "answers": [
           "Charles Louis"
         ],
