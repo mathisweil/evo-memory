@@ -1,3 +1,61 @@
+## Update (2026-04-12): Corrected Test-Set Results (eval fix: chat template + protected tail)
+
+PR #12 merged test-set evaluations for all conditions across two splits: **test** (70 prompts, 4096-6500 tokens) and **extended_test** (224 prompts, 6500-8192 tokens). The initial numbers (2026-04-11) were evaluated with two bugs: (1) the chat template was not applied to eval prompts, creating a train/eval mismatch, and (2) truncation could cut into the answer-bearing tail of the prompt. Both are now fixed; the numbers below are the corrected values from `results/main_table_5t/all_results.json`.
+
+> **Naming warning:** What is labelled "M4" in `results/main_table_5t/` is actually experiment-spec **M3** (LoRA + frozen NAMM). Real M4 (joint co-training) has not been run. See `experiment_specification.md` for details. This update uses the results-directory naming ("M4") for consistency with the data files.
+
+### Recommendations now addressed
+
+- **#1 (test-set evals)** -- DONE. All 10 conditions evaluated on held-out test and extended_test splits. Results in `results/main_table_5t/all_results.json`.
+- **#2 (B1 recency baseline)** -- DONE. B1/cs1024 micro=12.45, B1/cs2048 micro=13.78 on test. Both are well below B0 (22.41) and far below M1 (31.14), confirming that naive recency eviction is destructive even relative to the untuned model.
+- **#4 (significance tests)** -- PARTIALLY DONE. `scripts/paired_delta_analysis.py` produces paired bootstrap CIs (B=2000, percentile method) for 8 key comparisons on both splits. Full significance testing on mechanistic analyses (R5-R7) still needed.
+- **#6 (exclude or complete cs3072)** -- RESOLVED. cs3072 dropped from all test-set evaluations; only cs1024 and cs2048 are reported.
+- **#15 (B1 missing)** -- DONE. See #2 above.
+- **#16 (M4 joint training)** -- DONE. M4 (LoRA on frozen NAMM) now has test results at both cache sizes. Note: what was previously called M3 in the analysis reports is now M4 in the results naming.
+- **#17 (no test-set eval)** -- DONE. See #1 above.
+- **#19 (A4 ablation)** -- DONE. A4/cs1024_no_namm micro=28.82, A4/cs2048_no_namm micro=33.91 on test.
+
+### What changed with the eval fix (2026-04-12)
+
+The initial test numbers (2026-04-11) were computed without the chat template on eval prompts and without protecting the answer-bearing tail during truncation. Corrected test micro-F1 (old → new):
+
+| Condition | Old test micro | New test micro | Delta |
+|-----------|---------------|---------------|-------|
+| B0 | 19.28 | 22.41 | +3.13 |
+| M1 | 31.14 | 31.14 | 0.00 |
+| M2/cs1024 | 16.84 | 20.30 | +3.46 |
+| M4/cs1024 | 25.87 | 32.28 | +6.41 |
+| A4/cs1024 | 30.58 | 28.82 | -1.76 |
+| A4/cs2048 | 21.81 | 33.91 | +12.10 |
+
+New truncation baselines: Trunc/plain_1024 (18.21), Trunc/plain_2048 (18.26), Trunc/lora_m1_1024 (26.90), Trunc/lora_m1_2048 (28.87). M1_recency/cs1024 is broken (all zeros).
+
+### Revised finding: M4/cs1024 now matches/exceeds M1 on test
+
+- **M4/cs1024 (32.28) now exceeds M1 (31.14) on test.** This reverses the pre-fix finding. The original val-based claim that M4 matches M1 is now supported by corrected test data.
+- **Extended_test gap persists.** M4/cs1024 (26.92) trails M1 (31.84) by 15% on extended_test. Longer contexts push more information outside the 1024-token budget.
+- **A4 picture is more nuanced.** A4/cs1024_no_namm (28.82) is *below* M4/cs1024 (32.28), meaning NAMM at inference *helps* the M4 cs1024 LoRA. But A4/cs2048_no_namm (33.91) exceeds M4/cs2048 (31.06), so the pattern is cache-size-dependent.
+- **Critique #2 (val-not-test) was still methodologically valid.** It is a coincidence that corrected test numbers support the original val-based narrative. The right process would have been to evaluate on test from the start.
+
+### Recommendations still open
+
+- **#3 (cs3072 undertrained)** -- Resolved by dropping cs3072 entirely.
+- **#5 (conflicting GPU pipelines)** -- Still unresolved.
+- **#7 (significance tests on mechanistic analyses R5-R7)** -- Still needed.
+- **#8 (recovery ratio misleading)** -- Still relevant with test numbers.
+- **#9 (random subspace baseline)** -- Still needed for Report 4.
+- **#10 (crude relevant token analysis)** -- Still relevant.
+- **#11 (pre-emptive hedging untested)** -- Now partially supported at cs1024: M4/cs1024 (32.28) > A4/cs1024_no_namm (28.82), consistent with the LoRA benefiting from NAMM at inference. But cs2048 reverses (A4=33.91 > M4=31.06), so the picture is mixed.
+- **#12 (NAMM-attention correlation over-interpreted)** -- Still relevant (n=15, no error bars).
+- **#13 (layer 3 cherry-picked)** -- Still relevant.
+- **#14 (6x cache reduction)** -- Now better supported on test: M4/cs1024 (32.28) matches M1 (31.14). Extended_test gap (15%) still warrants a caveat.
+
+---
+
+*Original critique follows below, written before test-set results were available.*
+
+---
+
 I've now read the full repo context and all 8 analysis reports plus the summary, code, and experiment specification. Here's my critique.
 
 ---

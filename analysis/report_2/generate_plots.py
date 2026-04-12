@@ -414,13 +414,13 @@ def main():
             gap = (sub["lora/train_lb_avg_f1"] - sub["lora/val_lb_avg_f1"]).mean()
             print(f"  {cond}: gap (all {len(sub)} points) = {gap:.2f}")
 
-    # ── Generate report.md ──
+    # ── Generate _report.md ──
     write_report(data, baselines, steps_data, OUT_DIR)
     print("\nDone. All plots saved to:", OUT_DIR)
 
 
 def write_report(data, baselines, steps_data, out_dir):
-    """Write the analysis report as report.md."""
+    """Write the analysis report as _report.md."""
     # Gather stats for the report
     stats = {}
     for cond in CONDITIONS:
@@ -657,7 +657,7 @@ def write_report(data, baselines, steps_data, out_dir):
     lines.append("- `steps_to_threshold.png` -- Steps to reach 50/75/90% of best val F1")
     lines.append("- `learning_curves_overlay.png` -- Raw val F1 with light smoothing")
 
-    report_path = os.path.join(out_dir, "report.md")
+    report_path = os.path.join(out_dir, "_report.md")
     with open(report_path, "w") as f:
         f.write("\n".join(lines) + "\n")
     print(f"  Saved {report_path}")
