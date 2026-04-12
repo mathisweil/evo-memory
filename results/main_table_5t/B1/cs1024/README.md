@@ -2,18 +2,18 @@
 
 Base model with a fixed recency policy (keep most recent, evict oldest). No learned policy, no training.
 
-**Source run:** `eval_results/recency_cs1024_5t/ext_rerun_20260411_173358/`
+**Source run:** `eval_results/recency_cs1024_5t/ext_20260412_141747/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 15.70 | 13.61 |
-| lb/2wikimqa | 7.94 | 7.37 |
-| lb/qasper_e | 15.16 | 10.02 |
-| lb/hotpotqa_e | 10.15 | 5.05 |
-| lb/2wikimqa_e | 9.12 | 8.17 |
-| **mean F1** | **11.62** | **8.84** |
+| lb/qasper | 22.29 | 15.36 |
+| lb/2wikimqa | 10.42 | 5.35 |
+| lb/qasper_e | 7.26 | 4.80 |
+| lb/hotpotqa_e | 17.65 | 14.24 |
+| lb/2wikimqa_e | 6.55 | 4.27 |
+| **mean F1** | **12.83** | **8.81** |
 
 ## Command
 

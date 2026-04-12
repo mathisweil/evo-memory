@@ -3,7 +3,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": " 2-10% (Source: Tang et al., 2017)",
+        "pred": "unanswerable",
         "answers": [
           "eight layers"
         ],
@@ -12,7 +12,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " Flickr\n\n## Step 1: Understand the problem\nThe problem is asking to find the main value of a scientific article that uses geographic coordinates to represent locations.\n\n## Step 2: Identify the key information\nThe article uses geographic coordinates to represent locations, which implies that the main value is likely related to the location itself.\n\n## Step 3: Determine the main value\nBased on the information provided, the main value of the article is likely to be the location itself, as it is represented using geographic coordinates.\n\n## Step 4: Provide the final answer\nThe final answer is: $\\boxed{location}$\n\nThe final answer is",
+        "pred": "unanswerable",
         "answers": [
           " the same datasets as BIBREF7",
           "same datasets as BIBREF7"
@@ -22,7 +22,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " unbalanced medical reports.\n\nThe final answer is: $\\boxed{unbalanced medical reports}$",
+        "pred": "unanswerable",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -32,7 +32,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " None. Sarcasm is not present in the text.",
+        "pred": "unanswerable",
         "answers": [
           "Unanswerable"
         ],
@@ -41,7 +41,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Experimental.\n\nThe final answer is: $\\boxed{Experimental}$",
+        "pred": "unanswerable",
         "answers": [
           "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
         ],
@@ -50,7 +50,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " Gaussian-masked directional encoder.",
+        "pred": "Gaussian-masked directional multi-head attention is a variant of multi-head attention that uses a Gaussian distribution to weight the attention weights.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " They used a feature-based model.\n\n## Step 1: Identify the type of model used\nThe problem states that the model used is a recursive neural network model.\n\n## Step 2: Determine the type of model\nThe model is a recursive neural network model, which is a type of deep learning model.\n\n## Step 3: Identify the specific type of model\nThe model is a recursive neural network model with distributed representation of discourse arguments.\n\n## Step 4: Determine the specific type of distributed representation\nThe model uses distributed representation of discourse arguments.\n\n## Step 5: Identify the specific type of distributed representation\nThe model uses a",
+        "pred": "unanswerable",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -70,7 +70,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " Sentiment classification.\n\n## Step 1: Understand the problem\nThe problem is to determine the most suitable method for sentiment classification, which involves predicting the sentiment of a piece of text.\n\n## Step 2: Review the options\nThere are several options for sentiment classification, including Naive Bayes, Logistic Regression, Support Vector Machines, and Random Forest.\n\n## Step 3: Evaluate the options\nNaive Bayes is a simple and interpretable model, but it can be slow and biased. Logistic Regression is a popular choice, but it can be sensitive to outliers and non-linear relationships. Support Vector Machines is a powerful model, but",
+        "pred": "unanswerable",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -79,7 +79,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " unanswerable",
+        "pred": "unanswerable",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " s2sL",
+        "pred": "unanswerable",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -109,7 +109,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " yes.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Yes"
@@ -119,7 +119,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -129,7 +129,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " POS induction.\n\n### Example 2: Dependency Parsing\n\nThe following is an example of a dependency parsing algorithm in Python:\n```python\nimport re\n\ndef parse_dependency(sentence):\n    # Tokenize the sentence\n    tokens = re.findall(r'\\w+|[^\\w\\s]', sentence)\n\n    # Initialize the dependency graph\n    graph = {}\n\n    # Iterate over the tokens\n    for token in tokens:\n        # If the token is a verb, add it to the graph\n        if token in ['I', 'you', 'he','she', 'it']:\n            graph[token] = []\n        # If the token is",
+        "pred": "unanswerable",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -141,7 +141,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": " Heilbronn, Germany.",
+        "pred": "I cannot find any information about a person named Nasser Al Qudwa.",
         "answers": [
           "Abu Dhabi"
         ],
@@ -150,7 +150,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " Larissa.",
+        "pred": "Dyrrhachium",
         "answers": [
           "Prenzlau"
         ],
@@ -159,7 +159,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " Dublin.",
+        "pred": "Dublin",
         "answers": [
           "Pozna\u0144"
         ],
@@ -168,7 +168,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " California\n\nAnswer the question based on the given passages. Only give the answer and do not include any additional information.\n\nPassage 1:\nJohn Angus \"B",
+        "pred": "California",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -177,7 +177,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Forbidden\n\nThe third kiss is a plot point in the film \"The Third Kiss\" (2003), where the main character, Alex, shares a romantic kiss",
+        "pred": "Forbidden Love II",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -186,7 +186,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " Bogdan\n\nPassage 3:\nGreg A. Hill is a Canadian-born First Nations artist and curator. He is Kanyen'keh\u00e0:ka",
+        "pred": "Borussia Dortmund",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -195,7 +195,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " From 1923 to 1930.\n\nPassage 5:\nThe film \"The Great Dictator\" (1940) was directed by Charlie Chaplin",
+        "pred": "From 1923",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -204,7 +204,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " Kennedy\n\nAnswer 2:\nPassage 3:\nPassage 4:\nPassage 5:\nPassage 6:\nPassage 7:\nPass",
+        "pred": "I couldn't find any information on a person named Richard T. Jones.",
         "answers": [
           "Parkinson"
         ],
@@ -213,7 +213,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Maurice Berkeley, 1st Baron Berkeley of Stratton.",
+        "pred": "Maurice Berkeley, 1st Baron Berkeley",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -222,7 +222,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " Prince\n\nNotes\nPassage 1:\nThe Wonderful World of Captain Kuhio\nCaptain Kuhio was a real-life hero who swindled over",
+        "pred": "Italo-Ancienti",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -231,7 +231,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Ireland.",
+        "pred": "Ireland",
         "answers": [
           "Milan"
         ],
@@ -240,7 +240,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " He was buried in a cemetery in Paris.",
+        "pred": "I am unable to find the information you are looking for.",
         "answers": [
           "K\u00f6ln"
         ],
@@ -251,7 +251,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": " They are not.",
+        "pred": "unanswerable.",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -261,7 +261,7 @@
       },
       {
         "prompt_idx": 164,
-        "pred": " yes",
+        "pred": "unanswerable",
         "answers": [
           "No"
         ],
@@ -270,7 +270,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -280,7 +280,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " yes.",
+        "pred": "unanswerable",
         "answers": [
           "No",
           "No"
@@ -290,7 +290,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " A single concept.\n\nThe final answer is: $\\boxed{1}$",
+        "pred": "unanswerable",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -300,7 +300,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " unanswerable.\n\nNote: The question \"unanswerable\" is a bit of a paradox, as it's a statement that can be true or false. In this case, the statement is true, as the question itself is a complex and open-ended one that cannot be answered definitively.",
+        "pred": "unanswerable",
         "answers": [
           "precision, recall, F1 and accuracy",
           "precision, recall, F1 , accuracy "
@@ -310,7 +310,7 @@
       },
       {
         "prompt_idx": 169,
-        "pred": " yes",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -320,7 +320,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": " They use a 10-fold validation like setting.",
+        "pred": "They use a 10-fold validation setting to train the model.",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -329,7 +329,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "13,939"
         ],
@@ -338,7 +338,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " unanswerable.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "pred": "Question: What is the best answer to the question \"What is the most common medical condition that can be diagnosed using a computer algorithm?\"\n\nA) Diabetes\nB) Hypertension\nC) Obesity\nD) All of the above\n\nAnswer: D) All of the above\n\nExplanation: The question asks for the most common medical condition that can be diagnosed using a computer algorithm. The correct answer is \"All of the above\" because many medical conditions can be diagnosed using computer algorithms, including diabetes, hypertension, and obesity. These conditions can be identified through various medical imaging, laboratory tests, and other diagnostic methods, and can be accurately",
         "answers": [
           "Yes",
           "Yes"
@@ -348,7 +348,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " yes.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Yes"
@@ -358,7 +358,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " ROGUE-1.\n\n## Step 1: Understand the problem\nThe problem is asking to generate a summary of a given text using a specific method.\n\n## Step 2: Identify the method\nThe method used in the problem is a sequence-to-sequence model, which is a type of neural network that can be used for sequence-to-sequence tasks such as machine translation.\n\n## Step 3: Determine the input and output\nThe input to the model is the given text, and the output is the generated summary.\n\n## Step 4: Train the model\nThe model is trained on a large dataset of text summaries and the",
+        "pred": "unanswerable",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -368,7 +368,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
         ],
@@ -377,7 +377,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Semantic similarity, relatedness, and information content.",
+        "pred": "unanswerable",
         "answers": [
           "Skip\u2013gram, CBOW",
           "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
@@ -387,7 +387,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " They are not.",
+        "pred": "unanswerable",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -397,7 +397,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " The cost of mislabeling one class is higher than that of mislabeling another.",
+        "pred": "unanswerable.",
         "answers": [
           "precision, recall , F1 score"
         ],
@@ -406,7 +406,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
         ],
@@ -415,7 +415,7 @@
       },
       {
         "prompt_idx": 183,
-        "pred": " Yes.",
+        "pred": "unanswerable.",
         "answers": [
           "No",
           "No"
@@ -427,7 +427,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": " No\n\nAnswer the question based on the given passages. Only give the answer and do not include any additional information.\n\nThe Big Brain\nThe Big Brain is a",
+        "pred": "No, the film \"The Brave One\" (2007) is a revenge film, not a biopic.",
         "answers": [
           "yes"
         ],
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " Marlborough\n\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough",
+        "pred": "Chatham",
         "answers": [
           "Marlborough"
         ],
@@ -445,7 +445,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " No\n\nAnswer to the question based on the given passages is: No\n\nNote: The question was not based on the given passages, but rather on the provided",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -454,7 +454,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": " A\n\nB.  Polypodium is a genus of ferns.\n\nC.  Polypodium is a genus of ferns that is native to the",
+        "pred": "Australe",
         "answers": [
           "Polypodium"
         ],
@@ -472,7 +472,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": " None\n\n## Step 1: Understand the problem\nThe problem is asking for the answer to a question about a song, specifically the song \"I'm a",
+        "pred": "I cannot provide the answer to the question.",
         "answers": [
           "Albert"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": " A1 Recordings, Freebandz, and Epic Records.",
+        "pred": "A1 Recordings",
         "answers": [
           "A1 Recordings"
         ],
@@ -490,7 +490,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": " 15,154\n\nAnswer: 15,154\nAnswer: 15,154\nAnswer: 15,154\nAnswer: 15,154",
+        "pred": "I don't have the information to answer this question.",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -499,7 +499,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " None\n\n## Step 1: Identify the problem\nThe problem is to determine the number of possible combinations of ingredients in a cocktail.\n\n## Step 2:",
+        "pred": "Coca-Cola",
         "answers": [
           "lime"
         ],
@@ -508,7 +508,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " None.",
+        "pred": "George Abbott and James Gleason wrote the play \"The Fall Guy\" in 1925.",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -517,7 +517,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " Scotland\n\nAnswer 2:\nThe Hatton Baronetage is a system of baronetcy in the United Kingdom, which is a hereditary title of nob",
+        "pred": "Scotland",
         "answers": [
           "Scotland"
         ],
@@ -526,7 +526,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " 2\n\nAnswer: 2\n\nExplanation: The definition of a non-sexual marriage is often broadened to include those where sexual intimacy occurs fewer than ten",
+        "pred": "2",
         "answers": [
           "13"
         ],
@@ -537,7 +537,7 @@
     "lb/2wikimqa_e": [
       {
         "prompt_idx": 107,
-        "pred": " Yes",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -546,7 +546,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " Kiplangat Sang\n\nKiplangat Sang (born 14 April 1981) is a Kenyan judoka. He competed in the men",
+        "pred": "Kiplangat Sang",
         "answers": [
           "Kiplangat Sang"
         ],
@@ -555,7 +555,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " Ireland\n\nAnswer the following questions about the passage:\n\n1. What is the name of the person who wrote the passage?\n2. What is the name of the",
+        "pred": "Ireland",
         "answers": [
           "Sydney, Australia"
         ],
@@ -564,7 +564,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " 6 April \u2013 6 November 1928.",
+        "pred": "I don't have any information about the second false Duke of Hungary.",
         "answers": [
           "6 August 1272"
         ],
@@ -573,7 +573,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": " No\n\nAnswer: No\n\nExplanation: The passage does not provide any information about the person's name, occupation, or any other personal details. It only provides",
+        "pred": "No.",
         "answers": [
           "yes"
         ],
@@ -582,7 +582,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " Lassie Come Home\n\nPassage 4:\nAbraham Lincoln\nAbraham Lincoln was the 16th President of the United States. He was born",
+        "pred": "Lassie Come Home",
         "answers": [
           "Prairie Thunder"
         ],
@@ -591,7 +591,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " 1358\n\nAnswer 2:\nPassage 3:\nGerald FitzGerald, 3rd Earl of Desmond\nGerald FitzGerald,",
+        "pred": "1356",
         "answers": [
           "8 April 1643"
         ],
@@ -600,7 +600,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " Sydney, Australia.",
+        "pred": "I cannot find any information about the author of the passage.",
         "answers": [
           "Israeli"
         ],
@@ -609,7 +609,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " The Thing from Another World\n\nThe Thing from Another World is a 1951 science fiction film directed by Christian Nyby, based on the 1938 nov",
+        "pred": "The Thing from Another World",
         "answers": [
           "The Thing About My Folks"
         ],
@@ -618,7 +618,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " Queen Mary II and Queen Anne.",
+        "pred": "Diana Hatoyama",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],
@@ -627,7 +627,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " Irish\n\nAnswer: Irish\n\nQuestion: What is the name of the famous Irish poet who wrote \"The Waste Land\"?\n\nAnswer: Yeats\n\nAnswer: Ye",
+        "pred": "Irish",
         "answers": [
           "Canadian"
         ],
@@ -636,7 +636,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " S. Spiegel Film and Television School, Jerusalem.",
+        "pred": "I cannot find any information about Dana Blankstein Cohen's personal life.",
         "answers": [
           "Nice"
         ],
@@ -645,7 +645,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " Alfonso VII of Castile\n\nAnswer 2:\nSancha of Castile, Queen of Aragon, married King Alfonso II of Ar",
+        "pred": "Bertrand.",
         "answers": [
           "Urraca of Le\u00f3n"
         ],
@@ -654,7 +654,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " None\n\nThe final answer is: $\\boxed{None}$",
+        "pred": "I couldn't find any information on a person named Olav Aaraas.",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -667,7 +667,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": " 2-10% (Source: Tang et al., 2018)",
+        "pred": "unanswerable",
         "answers": [
           "eight layers"
         ],
@@ -676,7 +676,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " Flickr\n\n## Step 1: Understand the problem\nThe problem is asking to find the main value of a scientific article that uses geographic coordinates to represent locations.\n\n## Step 2: Identify the key information\nThe article uses geographic coordinates to represent locations, and the main value is likely to be the location itself.\n\n## Step 3: Determine the main value\nBased on the information provided, the main value of the article is likely to be the location itself, which is represented by the geographic coordinates.\n\n## Step 4: Provide the final answer\nThe final answer is: $\\boxed{location}$\n\nThe final answer is: location",
+        "pred": "unanswerable",
         "answers": [
           " the same datasets as BIBREF7",
           "same datasets as BIBREF7"
@@ -686,7 +686,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " unbalanced medical reports.\n\nThe final answer is: $\\boxed{unbalanced medical reports}$",
+        "pred": "unanswerable",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -696,7 +696,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " None. Sarcasm is not present in the text.",
+        "pred": "unanswerable",
         "answers": [
           "Unanswerable"
         ],
@@ -705,7 +705,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Experimental.\n\nThe final answer is: $\\boxed{Experimental}$",
+        "pred": "unanswerable",
         "answers": [
           "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
         ],
@@ -714,7 +714,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " Gaussian-masked directional encoder.",
+        "pred": "Gaussian-masked directional multi-head attention is a variant of multi-head attention that uses a Gaussian distribution to weight the attention weights.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -724,7 +724,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " They used a feature-based model.\n\n## Step 2: Identify the type of model used\nThe problem states that the model used is a recursive neural network model.\n\n## Step 3: Describe the model\nThe model is a recursive neural network model that uses distributed representation of discourse arguments as its basis.\n\n## Step 4: Explain the distributed representation\nThe distributed representation is a way of representing the arguments in a way that allows them to be processed and analyzed in a more efficient and effective way.\n\n## Step 5: Describe the model's capabilities\nThe model's capabilities include the ability to process and analyze large amounts of text data,",
+        "pred": "unanswerable",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -734,7 +734,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " Text classification.\n\n## Step 1: Understand the problem\nThe problem is asking to determine the most suitable method for a given task, which is text classification. This involves classifying text into predefined categories.\n\n## Step 2: Identify the task\nText classification is a type of supervised learning problem, where the goal is to predict the category of a given text.\n\n## Step 3: Consider the options\nThere are several machine learning algorithms that can be used for text classification, including Naive Bayes, Logistic Regression, Decision Trees, Random Forest, Support Vector Machines, and Neural Networks.\n\n## Step 4: Evaluate the options\n",
+        "pred": "unanswerable",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -753,7 +753,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " unanswerable",
+        "pred": "unanswerable",
         "answers": [
           "3606",
           "6946"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " s2sL",
+        "pred": "unanswerable",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -773,7 +773,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " yes.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Yes"
@@ -783,7 +783,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -793,7 +793,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " POS induction.\n\n### Example 2: Dependency Parsing\n\nThe following example demonstrates a dependency parsing algorithm for a sentence with two clauses:\n\n```\nThe dog (THE) ran quickly (IN) around (IN) the (IN) park.\n```\n\nThe output of the algorithm would be:\n\n```\nThe dog ran quickly around the park.\n```\n\n### Example 3: Dependency Parsing with Named Entities\n\nThe following example demonstrates a dependency parsing algorithm for a sentence with two clauses, where the named entities are explicitly mentioned:\n\n```\nThe CEO (John Smith) (JANE) of (THE) company (COMPANY) (COMPANY",
+        "pred": "unanswerable",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -803,7 +803,7 @@
       },
       {
         "prompt_idx": 7,
-        "pred": " The article does not mention any specific model or system.",
+        "pred": "The article discusses the importance of summarization in natural language processing (NLP) and its applications in various fields, including machine learning, computer vision, and human-computer interaction.\n\nThe main points of the article are:\n\n* Summarization is a crucial task in NLP, as it enables the extraction of relevant information from large amounts of text data.\n* There are various techniques used for summarization, including statistical methods, machine learning algorithms, and rule-based approaches.\n* Summarization has many applications in NLP, including text summarization, question answering, and sentiment analysis.\n* The field of NLP is constantly evolving, with",
         "answers": [
           "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
           "the CNN/DailyMail news highlights dataset BIBREF24, the New York Times Annotated Corpus (NYT; BIBREF25), XSum BIBREF22"
@@ -813,7 +813,7 @@
       },
       {
         "prompt_idx": 19,
-        "pred": " The Transformer architecture uses a self-attention mechanism to process input sequences, allowing for efficient and effective information flow.",
+        "pred": "The question is whether the attention mechanism in the Transformer model is effective in capturing the relationships between different words in a sentence. The Transformer model uses self-attention mechanisms to weigh the importance of different words in a sentence, and the attention mechanism is designed to capture the relationships between different words.\n\nThe attention mechanism in the Transformer model is based on the idea of weighted dot products, where the weights are learned during training. The weights are used to compute the dot product between the query and key vectors, and the result is scaled by the temperature parameter. The scaled result is then used to compute the weighted sum of the value vectors.\n\nThe Transformer model uses",
         "answers": [
           "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
           "We introduce sparse attention into the Transformer architecture"
@@ -823,7 +823,7 @@
       },
       {
         "prompt_idx": 22,
-        "pred": " unanswerable.\n\n ::: End of Section 1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1",
+        "pred": "Question: What is the main difference between a speech-to-text system and a speech recognition system?\n\nSpeech-to-text systems are designed to transcribe spoken words into written text, whereas speech recognition systems are designed to recognize spoken words and convert them into text.\n\nSpeech-to-text systems typically require a large amount of training data to learn the patterns and structures of spoken language, whereas speech recognition systems can learn to recognize spoken words through machine learning algorithms.\n\nSpeech-to-text systems are often used for applications such as dictation, transcription, and captioning, whereas speech recognition systems are often used for applications such as voice assistants, voice-controlled interfaces, and voice-controlled",
         "answers": [
           "the model is pre-trained on CTC-based ASR task and MT task in the pre-training stage."
         ],
@@ -832,7 +832,7 @@
       },
       {
         "prompt_idx": 30,
-        "pred": " @START@$\\alpha$@END@\n\n## Step 1: Understand the problem\nThe problem asks us to analyze the given article about the Transformer model and identify the different attention heads used in the model.\n\n## Step 2: Identify the different attention heads\nThe article mentions that the Transformer model uses three different attention heads: softmax, sparsemax, and attention.\n\n## Step 3: Analyze the softmax attention head\nThe softmax attention head is used to compute the weighted sum of the input features. It is used to compute the attention weights for each input feature.\n\n## Step 4: Analyze the sparsemax attention head",
+        "pred": "The question is: \"What is the relationship between the different heads of the Transformer model?\"\n\nThe answer is: \"The different heads of the Transformer model are designed to capture different aspects of the input data, such as the input sequence, the context, and the attention mechanism.\"\n\nThe different heads of the Transformer model are:\n\n* Self-Attention Head: This head is responsible for attending to the context and the input sequence, and computing the weighted sum of the context and the input sequence.\n* Positional Encoding Head: This head is responsible for adding a fixed offset to the input sequence, which helps to preserve the order of the input sequence.\n",
         "answers": [
           "four machine translation tasks: German -> English, Japanese -> English, Romanian -> English, English -> German",
           " four machine translation tasks, IWSLT 2017 German $\\rightarrow $ English BIBREF27, KFTT Japanese $\\rightarrow $ English BIBREF28, WMT 2016 Romanian $\\rightarrow $ English BIBREF29, WMT 2014 English $\\rightarrow $ German BIBREF30"
@@ -842,7 +842,7 @@
       },
       {
         "prompt_idx": 36,
-        "pred": " The article was written in a style that is concise and to the point, with a clear and logical structure.",
+        "pred": "Question: What is the main difference between a neural network and a machine learning algorithm?\n\nA) Neural network architecture\nB) Machine learning algorithm architecture\nC) Training data\nD) Model complexity\n\nAnswer: A) Neural network architecture\n\nExplanation: Neural networks are a type of machine learning algorithm that uses artificial neural networks to learn patterns in data. The main difference between a neural network and a machine learning algorithm is the architecture of the neural network, which is the structure and organization of the network's components, such as the number of layers, the type of connections between nodes, and the activation functions used. This architecture determines how the network",
         "answers": [
           "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
           "adequacy, precision and ranking values"
@@ -852,7 +852,7 @@
       },
       {
         "prompt_idx": 40,
-        "pred": " Source domain, target domain.\n\n## Step 2: Understand the problem context\nThe problem is asking to find a way to transfer or adapt a sentiment analysis model from one domain to another, specifically from a source domain to a target domain. The goal is to transfer the model's ability to classify sentiment into the target domain.\n\n## Step 3: Identify the key challenge\nThe key challenge in this problem is to transfer the model's ability to classify sentiment from one domain to another. This requires finding a way to adapt the model's features and weights to the target domain.\n\n## Step 4: Consider the solution approach\nOne possible solution",
+        "pred": "Question: What is the main difference between a sentiment analysis and a sentiment classification?\n\nSentiment analysis is a task that involves automatically determining the emotional tone or attitude conveyed by a piece of text, while sentiment classification is a task that involves categorizing text into predefined sentiment categories (e.g. positive, negative, neutral).\n\nIn other words, sentiment analysis is about understanding the emotional content of a piece of text, while sentiment classification is about assigning a label to that content based on predefined rules.\n\nTo illustrate the difference, consider the following example:\n\n* Sentiment analysis: \"I love this product! It's amazing!\"\n* Sentiment classification: \"",
         "answers": [
           "Book, electronics, beauty, music, IMDB, Yelp, cell phone, baby, DVDs, kitchen",
           "we use set 1 of the source domain as the only source with sentiment label information during training, and we evaluate the trained model on set 1 of the target domain, Book (BK), Electronics (E), Beauty (BT), and Music (M)"
@@ -862,7 +862,7 @@
       },
       {
         "prompt_idx": 51,
-        "pred": " unanswerable.\n\n**Note:** This is a very concise answer, and the question is asking for a specific type of answer. In a real-world scenario, the answer would be a more detailed explanation of why the question is unanswerable.\n\n**Example Answer:** The reason why the question is unanswerable is that it is based on a false premise. The concept of \"unanswerable\" is a subjective term that implies a lack of knowledge or understanding. However, in reality, there are many questions that are unanswerable due to the limitations of our current understanding or the complexity of the subject matter. For example, the question",
+        "pred": "Two datasets are provided: one entirely new and one extending prior work. The new dataset is a collection of conversations that have not been previously analyzed. The extended dataset is a collection of conversations that have been previously analyzed, but with some modifications to the original dataset. The goal is to use these datasets to train a model that can predict the likelihood of a conversation being a success based on the characteristics of the conversation.",
         "answers": [
           " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
           "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
@@ -872,7 +872,7 @@
       },
       {
         "prompt_idx": 63,
-        "pred": " unanswerable",
+        "pred": "Question: What is the best answer to the question \"What is the most effective way to improve the translation quality of a low-resource language pair?\"\n\nA) Increase the amount of training data\nB) Use a multilingual model\nC) Improve the training data\nD) Use a multilingual model and improve the training data\n\nAnswer: D) Use a multilingual model and improve the training data\n\nExplanation: The question asks for the most effective way to improve the translation quality of a low-resource language pair. The correct answer is to use a multilingual model and improve the training data. This is because multilingual models can leverage the",
         "answers": [
           "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
           "M2M Transformer"
@@ -882,7 +882,7 @@
       },
       {
         "prompt_idx": 77,
-        "pred": " Yes.\n\nThe final answer is: $\\boxed{Yes}$",
+        "pred": "unanswered example is not provided as it is not a question.",
         "answers": [
           "probabilistic model",
           "Logistic Regression, Multilayer Perceptron"
@@ -892,7 +892,7 @@
       },
       {
         "prompt_idx": 87,
-        "pred": " Proposed framework for MRC gold standard analysis.\n\n### Problem\nThe problem is to develop a framework for evaluating the quality of gold standard datasets in the field of natural language processing (NLP). The framework should be able to assess the quality of the dataset based on various criteria, such as the accuracy of the annotations, the diversity of the data, and the relevance of the annotations.\n\n### Solution\nTo develop a framework for evaluating the quality of gold standard datasets in NLP, we can follow these steps:\n\n1. **Define the evaluation criteria**: Identify the key criteria that will be used to evaluate the quality of the dataset, such as accuracy",
+        "pred": "The given problem is a qualitative analysis of a scientific article. The article is about a new method for predicting the likelihood of a chemical reaction. The analysis is based on the article's content, and it provides a concise and accurate summary of the method's key points.",
         "answers": [
           "The resulting taxonomy of the framework is shown in Figure FIGREF10",
           "FIGREF10"
@@ -902,7 +902,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " unanswerable.",
+        "pred": "Question: What is the main difference between a speech-to-text system and a speech recognition system?\n\nSpeech-to-text systems are designed to transcribe spoken words into written text, while speech recognition systems are designed to recognize spoken words and convert them into text.\n\nSpeech-to-text systems typically require a large amount of training data to learn the patterns and structures of spoken language, whereas speech recognition systems can learn to recognize spoken words through machine learning algorithms.\n\nIn summary, speech-to-text systems are designed to transcribe spoken words into written text, while speech recognition systems are designed to recognize spoken words and convert them into text.",
         "answers": [
           "Vanilla ST baseline, encoder pre-training, in which the ST encoder is initialized from an ASR model, decoder pre-training, in which the ST decoder is initialized from an MT model, encoder-decoder pre-training, where both the encoder and decoder are pre-trained, many-to-many multi-task model where the encoders and decoders are derived from pre-trained ASR and MT models, Triangle+pre-train: BIBREF18 DBLP:conf/naacl/AnastasopoulosC18 proposed a triangle multi-task strategy for speech translation",
           "Vanilla ST baseline, Pre-training baselines, Multi-task baselines, Many-to-many+pre-training, Triangle+pre-train",
@@ -913,7 +913,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Contextual information.\n\nThe final answer is: $\\boxed{Contextual information}$",
+        "pred": "Word subspace is a representation of a text as a set of words that are related to each other. It is a way of organizing and analyzing text data to identify patterns and relationships between words. The word subspace is a fundamental concept in natural language processing and has many applications in areas such as text classification, sentiment analysis, and information retrieval.",
         "answers": [
           "Word vectors, usually in the context of others within the same class"
         ],
@@ -922,7 +922,7 @@
       },
       {
         "prompt_idx": 114,
-        "pred": " HR.\n\nThe final answer is: $\\boxed{HR}$",
+        "pred": "Question: What is the main difference between a question and a statement?\n\nAnswer: A question is a statement that seeks information, while a statement is a statement that makes a claim or assertion.\n\nExplanation: A question is a statement that is open-ended, seeking information or clarification, whereas a statement is a statement that is closed-ended, making a claim or assertion. This difference is reflected in the way questions are phrased, with questions often using words like \"what,\" \"where,\" \"when,\" and \"how,\" whereas statements often use words like \"I think,\" \"I believe,\" and \"I claim.\" Additionally, questions often have",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -932,7 +932,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -942,7 +942,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " The authors used a novel approach to classify disinformation and fake news, leveraging machine learning and natural language processing techniques.",
+        "pred": "The problem is to classify the articles into two categories: mainstream and non-mainstream. The classification is based on the fact that mainstream articles are those that are widely read and discussed in the media, while non-mainstream articles are those that are less widely read and discussed. The classification is based on the fact that mainstream articles are those that are published in reputable news sources, while non-mainstream articles are those that are published in smaller or alternative news sources. The classification is based on the fact that mainstream articles are those that are widely discussed in the media, while non-mainstream articles are those that are not widely discussed. The classification is based",
         "answers": [
           "By assigning a political bias label to each news article and training only on left-biased or right-biased outlets of both disinformation and mainstream domains",
           "we also account for political biases inherent to different news sources, referring to the procedure proposed in BIBREF2 to label different outlets. Overall we show that we are able to classify credible vs non-credible diffusion networks (and consequently news articles) with high accuracy (AUROC up to 94%), even when accounting for the political bias of sources (and training only on left-biased or right-biased articles). We observe that the layer of mentions alone conveys useful information for the classification, denoting a different usage of this functionality when sharing news belonging to the two news domains. We also show that most discriminative features, which are relative to the breadth and depth of largest cascades in different layers, are the same across the two countries."
@@ -952,7 +952,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " Baseline.\n\nThe final answer is: $\\boxed{Baseline}$",
+        "pred": "Question: What is the main difference between a sarcastic tone and a sarcastic comment?\n\nThe best answer is Tone. A sarcastic tone is characterized by a tone that is ironic, mocking, or contemptuous, whereas a sarcastic comment is a statement that is made in a way that is intended to be humorous or ironic, but may not necessarily be intended to be mocking or contemptuous.",
         "answers": [
           " The features extracted from CNN."
         ],
@@ -961,7 +961,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " The question classification models were trained on a large dataset of questions and answers, and were used to classify new questions as either correct or incorrect.",
+        "pred": "Previous work primarily intended for learned classifiers rather than hand-crafted rules. \n\nCurrent work is focused on developing a system that can classify questions based on their complexity and relevance to the field of study. The system uses a combination of natural language processing and machine learning techniques to analyze the question and provide a classification label. \n\nThe system is designed to be flexible and adaptable to different types of questions, and it can handle a wide range of questions in different fields of study. \n\nThe system is also designed to be scalable and can handle a large volume of questions in a short amount of time. \n\nOverall, the system has the potential to revolutionize",
         "answers": [
           "bag-of-words model, CNN"
         ],
@@ -970,7 +970,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " HR.",
+        "pred": "KBQA systems are designed to improve the accuracy and efficiency of natural language processing tasks, such as question answering and text classification. These systems typically involve a combination of natural language processing (NLP) and machine learning (ML) techniques.\n\nThe main components of a KBQA system include:\n\n1. **Knowledge Base**: A repository of knowledge that is used to answer questions and make predictions.\n2. **Question Representation**: A way of representing questions in a format that can be processed by the system.\n3. **Answer Generation**: A process that generates answers to questions based on the knowledge base and question representation.\n4. **Evaluation**: A process",
         "answers": [
           "SimpleQuestions, WebQSP",
           "WebQSP, SimpleQuestions"
@@ -982,7 +982,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": " Heilbronn, Germany.",
+        "pred": "I cannot find any information about a person named Nasser Al Qudwa.",
         "answers": [
           "Abu Dhabi"
         ],
@@ -991,7 +991,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " Larissa.",
+        "pred": "Dyrrhachium",
         "answers": [
           "Prenzlau"
         ],
@@ -1000,7 +1000,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " Dublin.",
+        "pred": "Dublin",
         "answers": [
           "Pozna\u0144"
         ],
@@ -1009,7 +1009,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " California\n\nAnswer the question based on the given passages. Only give the answer and do not include any additional information.\n\nPassage 1:\nJohn Angus \"B",
+        "pred": "California",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -1018,7 +1018,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Forbidden\n\nThe story of the three friends, Alex, Ben, and Chris, is a classic tale of friendship and adventure. The three friends were inseparable as",
+        "pred": "Forbidden Love II",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -1027,7 +1027,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " Bogdan\n\nPassage 3:\nJohn W. Smith (American football player)\nJohn William Smith (born 1977) is an American football player who",
+        "pred": "Borussia Dortmund",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -1036,7 +1036,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " From 1923 to 1930.\n\nPassage 5:\nThe film \"The Great Dictator\" (1940) was directed by Charlie Chaplin",
+        "pred": "From 1923",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -1045,7 +1045,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " Kennedy\n\nAnswer 2:\nPassage 3:\nPassage 4:\nPassage 5:\nPassage 6:\nPassage 7:\nPass",
+        "pred": "I couldn't find any information on a person named Richard T. Jones.",
         "answers": [
           "Parkinson"
         ],
@@ -1054,7 +1054,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Maurice Berkeley, 1st Baron Berkeley of Stratton.",
+        "pred": "Maurice Berkeley, 1st Baron Berkeley",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -1063,7 +1063,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " Prince\n\nNotes\nPassage 1:\nThe Wonderful World of Captain Kuhio\nCaptain Kuhio was a real-life hero who swindled over",
+        "pred": "Italo-Ancient Greek",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -1072,7 +1072,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Ireland.",
+        "pred": "Ireland",
         "answers": [
           "Milan"
         ],
@@ -1081,7 +1081,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " He was buried in a cemetery in Paris.",
+        "pred": "I am unable to find the information you are looking for.",
         "answers": [
           "K\u00f6ln"
         ],
@@ -1090,7 +1090,7 @@
       },
       {
         "prompt_idx": 0,
-        "pred": " Ayurveda\n\nAnswer 2:\nThe term \"Ayurveda\" is derived from the Sanskrit words \"Ayur\" meaning \"life\" and \"",
+        "pred": "Tudor dynasty (1485-1509) \n\nTudor kings (1485-1603) \n\nTudor queens (1485-",
         "answers": [
           "Ozalj"
         ],
@@ -1099,7 +1099,7 @@
       },
       {
         "prompt_idx": 1,
-        "pred": " Elizabeth Ramel Kjellgren\n\nNote: The passage is a response to the first question, and the answer is based on the information provided in the first",
+        "pred": "Elizabeth Ramel Kjellgren\nElizabeth Ramel Kjellgren is a Swedish actress, born on 18 July 1987. She is best",
         "answers": [
           "John the Baptist"
         ],
@@ -1108,7 +1108,7 @@
       },
       {
         "prompt_idx": 3,
-        "pred": " 1602\n\nAnswer: William Paulet, 3rd Marquess of Winchester\nAnswer: 1602\nAnswer: William Paulet, ",
+        "pred": "Answer: 1\n\nExplanation: The question asks for the answer to the first statement, which is \"Answer: 1\".",
         "answers": [
           "1510"
         ],
@@ -1117,7 +1117,7 @@
       },
       {
         "prompt_idx": 4,
-        "pred": " Roderick Watson, 1st Earl of Rockingham.",
+        "pred": "Edward Watson (dancer)\nEdward Watson (footballer)\nEdward Watson (musician)",
         "answers": [
           "Edward Watson"
         ],
@@ -1126,7 +1126,7 @@
       },
       {
         "prompt_idx": 5,
-        "pred": " 23 June 1374\n\nPassage 5:\nEleanor de Braose\nEleanor de Braose (c. 1220 \u2013 128",
+        "pred": "June 22, 2023\n\nThe following is the correct answer:\n\nThe correct answer is 22 June 2023.",
         "answers": [
           "16 September 1360"
         ],
@@ -1135,7 +1135,7 @@
       },
       {
         "prompt_idx": 7,
-        "pred": " The Sam Spiegel Film and Television School.",
+        "pred": "The final answer is: $\\boxed{The final answer is 30.}$",
         "answers": [
           "Bob Jones University"
         ],
@@ -1144,7 +1144,7 @@
       },
       {
         "prompt_idx": 11,
-        "pred": " Israel\n\nAnswer: Israel\n\nPassage 2:\nIn 2019, the United States and the United Kingdom announced a new partnership to provide $1 billion",
+        "pred": "Renzo Piano \n \n \n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n",
         "answers": [
           "America"
         ],
@@ -1153,7 +1153,7 @@
       },
       {
         "prompt_idx": 22,
-        "pred": " Abd al-Rahman ibn Muhammad al-Ghafir al-Qurashi.",
+        "pred": "Abraham Lincoln",
         "answers": [
           "Leustach R\u00e1t\u00f3t"
         ],
@@ -1162,7 +1162,7 @@
       },
       {
         "prompt_idx": 23,
-        "pred": " Nepal.",
+        "pred": "Kakshi Seizo Kaushalayam (Nepali: \u0915\u093e\u0915\u094d\u0937\u0940 \u0938\u0947\u0920\u094b \u0915\u094c\u0936\u0932\u094d\u092f\u093e\u092e) (N",
         "answers": [
           "Nepal"
         ],
@@ -1171,7 +1171,7 @@
       },
       {
         "prompt_idx": 24,
-        "pred": " Archibald Primrose, 4th Earl of Rosebery.",
+        "pred": "Arch\n\nLawrie\n\nLawrie\n\nLawrie\n\nLawrie\n\nLawrie\n\nLawrie\n\nLawrie\n\nLawrie\n\nLawrie\n\nLawrie\n\n",
         "answers": [
           "Archibald Acheson, 2nd Earl of Gosford"
         ],
@@ -1180,7 +1180,7 @@
       },
       {
         "prompt_idx": 29,
-        "pred": " Blue Blood and Raoul.",
+        "pred": "The final answer is: $\\boxed{The final answer is 1.}$",
         "answers": [
           "Blue Blood And Red"
         ],
@@ -1189,7 +1189,7 @@
       },
       {
         "prompt_idx": 31,
-        "pred": " Kamau, a village in Kenya.\n\nThe following are the names of places in the world:\n\n1. Africa\n2. Asia\n3. Australia\n4",
+        "pred": "The answer is: \"I don't know\"",
         "answers": [
           "Constantinople"
         ],
@@ -1198,7 +1198,7 @@
       },
       {
         "prompt_idx": 32,
-        "pred": " Obviate\n\nSynonyms for \"Obviate\" include:\n- Avoid\n- Avert\n- Defer\n- Delay\n- Postpone\n",
+        "pred": "Obi-Wan Kenobi\n\nAnakin Skywalker/Darth Vader\n\nLuke Skywalker\n\nChewbacca\n\nC-3PO\n\nR2-D2\n\n",
         "answers": [
           "East Francia"
         ],
@@ -1207,7 +1207,7 @@
       },
       {
         "prompt_idx": 34,
-        "pred": " All of the above.",
+        "pred": "All.",
         "answers": [
           "All-American Co-Ed"
         ],
@@ -1216,7 +1216,7 @@
       },
       {
         "prompt_idx": 41,
-        "pred": " 22 February 1820.",
+        "pred": "Answer: 2.5.",
         "answers": [
           "May 19, 1669"
         ],
@@ -1225,7 +1225,7 @@
       },
       {
         "prompt_idx": 51,
-        "pred": " Irish\n\nAnswer: Irish\n\nNote: The question is asking for a single word that is a common noun, and the answer is a proper noun (the name",
+        "pred": "No. 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,",
         "answers": [
           "Sweden"
         ],
@@ -1234,7 +1234,7 @@
       },
       {
         "prompt_idx": 53,
-        "pred": " Ladies, the answer is \"White\".",
+        "pred": "Mel\n\nThe answer is Mel.",
         "answers": [
           "Melody Of The World"
         ],
@@ -1243,7 +1243,7 @@
       },
       {
         "prompt_idx": 59,
-        "pred": " West Berlin, West Germany.",
+        "pred": "West Berlin, West Germany",
         "answers": [
           "La Trinit\u00e9"
         ],
@@ -1252,7 +1252,7 @@
       },
       {
         "prompt_idx": 60,
-        "pred": " Prince William, Duke of Cambridge\n\nAnswer 2:\nOgawa Mataji\nViscount Ogawa Mataji (\u5c0f\u5ddd Mataji, 16th",
+        "pred": "Prince Ludwig of Mecklenburg-Schwerin (1724\u20131782) was the eldest son of Christian August, Duke of Mecklenburg",
         "answers": [
           "Prince Albert of Prussia"
         ],
@@ -1261,7 +1261,7 @@
       },
       {
         "prompt_idx": 67,
-        "pred": " C\n\nB = 1\nC = 2\nD = 3\nE = 4\nF = 5\nG = 6\n",
+        "pred": "Detained\n\nThe film is about a man who is detained by the police after he is caught with a gun.",
         "answers": [
           "Det Sande Ansigt"
         ],
@@ -1270,7 +1270,7 @@
       },
       {
         "prompt_idx": 68,
-        "pred": " Bombe\n\nBombe is a type of cake that originated in the United States. It is a dense, moist cake made with a mixture of flour,",
+        "pred": "Il texto anterior de la respuesta es:\n\n\"Alfred Chester Beatty and Ireland 1950-1968: A study in cultural politics, Glendale Press",
         "answers": [
           "Bomgay"
         ],
@@ -1279,7 +1279,7 @@
       },
       {
         "prompt_idx": 69,
-        "pred": " Mother Russia.",
+        "pred": "The answer is: There is no answer. The question is not well-defined.",
         "answers": [
           "Preslav"
         ],
@@ -1288,7 +1288,7 @@
       },
       {
         "prompt_idx": 72,
-        "pred": " American\n\nThe best answer is American.",
+        "pred": "Israel. (Note: The question was not clear about the context, but based on the provided information, it can be inferred that the answer is \"Israel\".",
         "answers": [
           "America"
         ],
@@ -1297,7 +1297,7 @@
       },
       {
         "prompt_idx": 75,
-        "pred": " Philip the Good\nAnswer: Philip the Good\nAnswer: Philip the Good\nAnswer: Philip the Good\nAnswer: Philip the Good\nAnswer: Philip the",
+        "pred": "Isabella of Bourbon, Countess of Charolais, was a member of the House of Bourbon.",
         "answers": [
           "John I, Duke of Bourbon"
         ],
@@ -1306,7 +1306,7 @@
       },
       {
         "prompt_idx": 77,
-        "pred": " Gertrude Aznavour\n\nAnswer: Jacques Dutronc\n\nAnswer: Amandine Bourgeois\n\nAnswer: Amandine Bourgeois\n\nAnswer:",
+        "pred": "Gerard Depardieu",
         "answers": [
           "Fran\u00e7oise Hardy"
         ],
@@ -1315,7 +1315,7 @@
       },
       {
         "prompt_idx": 83,
-        "pred": " He was killed by a group of robbers.\n\nNote: The story is fictional and not based on any real events or people.",
+        "pred": "He was a 16-year-old boy.",
         "answers": [
           "illness"
         ],
@@ -1324,7 +1324,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " I am not sure of the date of my birth, but I was born in 1560.",
+        "pred": "I am unable to find the information you are looking for. Could you please provide more context or clarify what you are trying to find? I'll do my best",
         "answers": [
           "13 March 1753"
         ],
@@ -1333,7 +1333,7 @@
       },
       {
         "prompt_idx": 95,
-        "pred": " Al\n\nAnswer: A\nExplanation: The first letter of the first word of the passage is A, the first letter of the second word is A, and",
+        "pred": "Al was.",
         "answers": [
           "Alkohol"
         ],
@@ -1342,7 +1342,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " The Comedians of Comedy is a 1967 American comedy film directed by and starring Richard Burton.\n\nAnswer the question based on the passage.\n\nThe final answer",
+        "pred": "The Comedians in the United States (1969)",
         "answers": [
           "The Comedians Of Comedy"
         ],
@@ -1351,7 +1351,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Tomb Raider\n\nThe following are the answers to the questions posed in the text:\n\n* What is the name of the director of the film \"Repo Man\"?\n",
+        "pred": "Trevor Cox (1946-2012) was a British film director, producer, and screenwriter. He is best known for directing the films Repo",
         "answers": [
           "Tombstone Rashomon"
         ],
@@ -1360,7 +1360,7 @@
       },
       {
         "prompt_idx": 103,
-        "pred": " Bomma Boru\n\nBen Palmer is a British film and television director, born in 1976 in London, England. He is known for his work in",
+        "pred": "Dharmaputra (Dharmaputra) is a male Hindu name.",
         "answers": [
           "Dhuen Ki Lakeer"
         ],
@@ -1369,7 +1369,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " Juan Serrano\n\nNote: The passage is a response to a question about the person's name, and the answer is the person's name. The passage",
+        "pred": "Juan Serrano Serrano (born 19 January 1979) is a Spanish former professional footballer. He played as a midfielder for several clubs",
         "answers": [
           "Dudley Russell"
         ],
@@ -1378,7 +1378,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " Persia (modern-day Iran)\n\nAnswer 2:\nThe Almohad Caliphate was a Muslim state that existed from 1236 to 133",
+        "pred": "Persian Gulf\n\nAlgeria\n\nAngola\n\nAntigua and Barbuda\n\nArgentina\n\nAustralia\n\nAustria\n\nBahamas\n\nBahrain\n\nBangladesh",
         "answers": [
           "Morocco"
         ],
@@ -1387,7 +1387,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " Tar\n\nPassage 4:\nThe story of the three men who were stranded on a deserted island is a well-known tale. The three men were a sailor",
+        "pred": "Tar\n\nThe answer is Tar.",
         "answers": [
           "Tarzan The Magnificent"
         ],
@@ -1396,7 +1396,7 @@
       },
       {
         "prompt_idx": 116,
-        "pred": " Kennedy, Australia.\n\nAnswer: \nAs art director, Nathan Hertz was born in 1907 in New York City, USA. He was a renowned film",
+        "pred": "I don't have the information to answer that.",
         "answers": [
           "Gura Humorului"
         ],
@@ -1405,7 +1405,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " John von Berg\n\nAnswer: Bruno von Berg\n\nNote: The passage is a biography of Bruno von Berg, a German nobleman. The answer is the name",
+        "pred": "Matthew Wilhelm, 1868-1947. \n\nBruno von Porstendorf, 1868-1939. \n\nBruno II of Me",
         "answers": [
           "Adolf II of Berg"
         ],
@@ -1414,7 +1414,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " Obata Lerew\n\nObata Lerew is a Canadian actor, best known for his role as Martin in the 2008 film \"Un \u00e9t\u00e9 sans point",
+        "pred": "Anthony Lerew",
         "answers": [
           "F\u00e9lix Leclerc"
         ],
@@ -1423,7 +1423,7 @@
       },
       {
         "prompt_idx": 125,
-        "pred": " Louis d'Este\n\nAnswer: Nemours, the Duke of Nemours, was the son of Philippe, Duke of Nemours, and Charlotte d'Or",
+        "pred": "Henri I, Duke of Nemours (1533-1589) was the first holder of the title of Duke of Nemours. He was the son",
         "answers": [
           "Jacques"
         ],
@@ -1432,7 +1432,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " German\n\nAnswer: German\nQuestion: What is the first great-grandchild of the Duke of Saxe-Meiningen?\nAnswer: The Duke of S",
+        "pred": "Princess Charlotte of Saxe-Meining (1768-1842) was the daughter of Bernhard III, Duke of Saxe-Meining,",
         "answers": [
           "Duchy of Saxe-Gotha-Altenburg"
         ],
@@ -1441,7 +1441,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " For experimental garden.\n\nAnswer: Cranmore.",
+        "pred": "Forrest\n\n(John Templeton)",
         "answers": [
           "Italy"
         ],
@@ -1450,7 +1450,7 @@
       },
       {
         "prompt_idx": 144,
-        "pred": " No\n\nAnswer: Lara Porzak\n\nPassage 5:\nAlexandros Margaritis\nAlexandros Margaritis (Greek: \u0391\u03bb\u03ad",
+        "pred": "No.",
         "answers": [
           "yes"
         ],
@@ -1459,7 +1459,7 @@
       },
       {
         "prompt_idx": 153,
-        "pred": " Albert\n\nAnswer: Ali\n\nAnswer: Farzat\n\nAnswer: Farzat\n\nAnswer: Farzat\n\nAnswer: Farzat\n\nAnswer:",
+        "pred": "Albert Faris (1874-1954) was an American cartoonist and illustrator. He is best known for his work on the comic strip \"The Far",
         "answers": [
           "Albertus Seba"
         ],
@@ -1470,7 +1470,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": " They are not.",
+        "pred": "unanswerable.",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -1480,7 +1480,7 @@
       },
       {
         "prompt_idx": 164,
-        "pred": " yes",
+        "pred": "unanswerable",
         "answers": [
           "No"
         ],
@@ -1489,7 +1489,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -1499,7 +1499,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": " yes.",
+        "pred": "unanswerable",
         "answers": [
           "No",
           "No"
@@ -1509,7 +1509,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " A single concept.\n\nThe final answer is: $\\boxed{1}$",
+        "pred": "unanswerable",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -1519,7 +1519,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " unanswerable.\n\nNote: The question \"unanswerable\" is a bit of a mouthful, and it's not a straightforward answer. The correct answer is \"unanswerable\" because the question itself is a bit of a paradox, and it's not possible to provide a clear and concise answer.",
+        "pred": "unanswerable",
         "answers": [
           "precision, recall, F1 and accuracy",
           "precision, recall, F1 , accuracy "
@@ -1529,7 +1529,7 @@
       },
       {
         "prompt_idx": 169,
-        "pred": " yes",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -1539,7 +1539,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": " They use a 10-fold validation set.",
+        "pred": "They use a 10-fold validation setting to train the model.",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -1548,7 +1548,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "13,939"
         ],
@@ -1557,7 +1557,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " unanswerable.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "pred": "Question: What is the best answer to the question \"What is the most common medical condition that can be diagnosed using a computer algorithm?\"\n\nA) Diabetes\nB) Hypertension\nC) Obesity\nD) All of the above\n\nAnswer: D) All of the above\n\nExplanation: The question asks for the most common medical condition that can be diagnosed using a computer algorithm. The correct answer is \"All of the above\" because many medical conditions can be diagnosed using computer algorithms, including diabetes, hypertension, and obesity. These conditions can be identified through various medical imaging, laboratory tests, and other diagnostic methods, and can be accurately",
         "answers": [
           "Yes",
           "Yes"
@@ -1567,7 +1567,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": " yes.",
+        "pred": "unanswerable",
         "answers": [
           "Yes",
           "Yes"
@@ -1577,7 +1577,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " ROGUE-1.\n\n## Step 1: Understand the problem\nThe problem is asking to generate a summary of a given text using a specific method.\n\n## Step 2: Identify the method\nThe method used in the problem is a sequence-to-sequence model, which is a type of neural network that can be used for sequence-to-sequence tasks such as machine translation.\n\n## Step 3: Determine the input and output\nThe input to the model is the given text, and the output is the generated summary.\n\n## Step 4: Train the model\nThe model is trained on a large dataset of text summaries and the",
+        "pred": "unanswerable",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -1587,7 +1587,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
         ],
@@ -1596,7 +1596,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Semantic similarity, relatedness, and information content.",
+        "pred": "unanswerable",
         "answers": [
           "Skip\u2013gram, CBOW",
           "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
@@ -1606,7 +1606,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": " They are not.",
+        "pred": "unanswerable",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -1616,7 +1616,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " The cost of mislabeling one class is higher than that of mislabeling another.",
+        "pred": "unanswerable.",
         "answers": [
           "precision, recall , F1 score"
         ],
@@ -1625,7 +1625,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
         ],
@@ -1634,7 +1634,7 @@
       },
       {
         "prompt_idx": 183,
-        "pred": " Yes.",
+        "pred": "unanswerable.",
         "answers": [
           "No",
           "No"
@@ -1644,7 +1644,7 @@
       },
       {
         "prompt_idx": 100,
-        "pred": " character, word, morphological, syntactical, and contextual features.",
+        "pred": "unanswerable",
         "answers": [
           "POS, gender/number and stem POS"
         ],
@@ -1653,7 +1653,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " The original word embeddings.\n\nThe final answer is: $\\boxed{1}$",
+        "pred": "The given problem is related to the concept of word embeddings, which are used in natural language processing to represent words as vectors in a high-dimensional space. The goal is to capture the semantic meaning of words and phrases in a way that can be used for tasks such as text classification, sentiment analysis, and language translation.\n\nIn this problem, we are asked to analyze the relationship between two words, \"university\" and \"library\", and to determine whether they are related or not. We can represent these words as vectors in a high-dimensional space, where the x-axis represents the frequency of the word in a given corpus and the y-axis represents",
         "answers": [
           "dimension corresponding to the concept that the particular word belongs to"
         ],
@@ -1662,7 +1662,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " Disinformation.\n\nThe final answer is: $\\boxed{disinformation}$",
+        "pred": "unanswerable",
         "answers": [
           "mainstream news and disinformation",
           "mainstream and disinformation news"
@@ -1672,7 +1672,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " unanswerable.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "pred": "unanswerable",
         "answers": [
           "CoinCollector , CookingWorld ",
           "CoinCollector, CookingWorld"
@@ -1682,7 +1682,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " None.",
+        "pred": "Future Work\n\nThis research has the potential to improve the efficiency and effectiveness of data-to-text models. Future work could involve exploring different architectures and techniques for improving the performance of these models, such as using more advanced machine learning algorithms or incorporating more domain-specific knowledge. Additionally, future work could involve exploring the use of more advanced techniques for handling out-of-vocabulary words and other challenges associated with text-to-data conversion.",
         "answers": [
           "rther constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions",
           "to further constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions"
@@ -1692,7 +1692,7 @@
       },
       {
         "prompt_idx": 109,
-        "pred": " The proposed method is to use a combination of machine learning algorithms and natural language processing techniques to improve the interpretability of word embeddings.",
+        "pred": "The final answer is: $\\boxed{yes}$",
         "answers": [
           "The cost function for any one of the words of concept word-groups is modified by the introduction of an additive term to the cost function. . Each embedding vector dimension is first associated with a concept. For a word belonging to any one of the word-groups representing these concepts, the modified cost term favors an increase for the value of this word's embedding vector dimension corresponding to the concept that the particular word belongs to,",
           "An additive term added to the cost function for any one of the words of concept word-groups"
@@ -1702,7 +1702,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": " Novel.\n\nThe best answer is B.",
+        "pred": "The article discusses the importance of summarization in natural language processing (NLP) and its applications in various fields, including machine learning, computer vision, and human-computer interaction.",
         "answers": [
           "Bert model have a maximum length of 512; we overcome this limitation by adding more position embeddings, we insert external [cls] tokens at the start of each sentence, and each [cls] symbol collects features for the sentence preceding it, document representations are learned hierarchically"
         ],
@@ -1711,7 +1711,7 @@
       },
       {
         "prompt_idx": 111,
-        "pred": " The Transformer architecture uses a self-attention mechanism to process input sequences, allowing for efficient and effective information flow.",
+        "pred": "The question is whether the attention mechanism in the Transformer model is effective in capturing the relationships between different words in a sentence. The Transformer model uses self-attention mechanisms to weigh the importance of different words in a sentence, and the attention mechanism is designed to capture the relationships between different words.\n\nThe attention mechanism in the Transformer model is based on the idea of weighted dot products, where the weights are learned during training. The weights are used to compute the dot product between the query and key vectors, and the result is scaled by the temperature parameter. The scaled result is then used to compute the weighted sum of the value vectors.\n\nThe Transformer model uses",
         "answers": [
           "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
           "We introduce sparse attention into the Transformer architecture"
@@ -1721,7 +1721,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " unanswerable.",
+        "pred": "unanswerable",
         "answers": [
           "Unanswerable",
           "Unanswerable"
@@ -1731,7 +1731,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " The article was written in a style that is typical of a scientific article, with a formal tone and a focus on presenting research findings in a clear and concise manner.",
+        "pred": "Question: What is the main difference between a neural network and a machine learning algorithm?\n\nA) Neural network architecture\nB) Machine learning algorithm architecture\nC) Training data\nD) Model complexity\n\nAnswer: A) Neural network architecture\n\nExplanation: Neural networks are a type of machine learning algorithm that uses artificial neural networks to learn patterns in data. The main difference between a neural network and a machine learning algorithm is the architecture of the neural network, which is the structure and organization of the network's components, such as the number of layers, the type of connections between nodes, and the activation functions used. This architecture determines how the network",
         "answers": [
           "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
           "adequacy, precision and ranking values"
@@ -1741,7 +1741,7 @@
       },
       {
         "prompt_idx": 120,
-        "pred": " unanswerable",
+        "pred": "Question: What is the best answer to the question \"What is the most effective way to improve the translation quality of a low-resource language pair?\"\n\nA) Increase the amount of training data\nB) Use a multilingual model\nC) Improve the training data\nD) Use a multilingual model and improve the training data\n\nAnswer: D) Use a multilingual model and improve the training data\n\nExplanation: The question asks for the most effective way to improve the translation quality of a low-resource language pair. The correct answer is to use a multilingual model and improve the training data. This is because multilingual models can leverage the",
         "answers": [
           "pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17",
           "M2M Transformer"
@@ -1751,7 +1751,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": " HR.\n\nThe final answer is: $\\boxed{HR}$",
+        "pred": "Question: What is the main difference between a question and a statement?\n\nAnswer: A question is a statement that seeks information, while a statement is a statement that makes a claim or assertion.\n\nExplanation: A question is a statement that is open-ended, seeking information or clarification, whereas a statement is a statement that is closed-ended, making a claim or assertion. This difference is reflected in the way questions are phrased, with questions often using words like \"what,\" \"where,\" \"when,\" and \"how,\" whereas statements often use words like \"I think,\" \"I believe,\" and \"I claim.\" Additionally, questions often have",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -1761,7 +1761,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " \"Unanswerable\"",
+        "pred": "unanswerable ::: unanswerable\n\nunanswerable",
         "answers": [
           "BIBREF7",
           " reward learning algorithm BIBREF7"
@@ -1771,7 +1771,7 @@
       },
       {
         "prompt_idx": 126,
-        "pred": " Pre-trained models.\n\n### 2.1.1. **Sentiment Analysis**\n\nSentiment analysis is the process of determining the emotional tone or attitude conveyed by a piece of text. It involves analyzing the language, tone, and sentiment of the text to understand the author's or user's emotional state.\n\nSentiment analysis can be used in various applications, such as:\n\n* **Customer service**: to understand customer sentiment and respond accordingly.\n* **Marketing**: to analyze customer sentiment and adjust marketing strategies.\n* **Social media monitoring**: to track customer sentiment and sentiment of brand mentions.\n\n### 2.1.2. **Emotion Detection",
+        "pred": "The article discusses the importance of sentiment analysis in understanding human emotions and opinions. Sentiment analysis is the process of determining the emotional tone or attitude conveyed by a piece of text, such as a review or a social media post. By analyzing sentiment, researchers and developers can gain insights into the emotions and opinions of individuals and groups, which can be useful in a wide range of applications, including marketing, customer service, and social media monitoring.",
         "answers": [
           "BIBREF9 , BIBREF8 ",
           "BIBREF9 , BIBREF8"
@@ -1781,7 +1781,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " Unanswerable.",
+        "pred": "Unanswerable",
         "answers": [
           "attributes are determined by human viewers and their impressions of the characters, and are correlated with human-like characteristics"
         ],
@@ -1790,7 +1790,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " Reuters database.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "pred": "unanswerable\n\nconventionally\n\ntext classification methods\n\nconventional methods\n\ntext classification\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\nconventional methods\n\ncon",
         "answers": [
           "Reuters-8 dataset without stop words",
           "The Reuters-8 dataset (with stop words removed)"
@@ -1800,7 +1800,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " The article presents a human-AI loop approach for event detection, where a human expert is trained to detect events and a machine learning model is used to predict the likelihood of the event.",
+        "pred": "The article discusses the importance of understanding the context and nuances of the data when building machine learning models. It highlights the challenges of dealing with missing values, outliers, and imbalanced data, and provides strategies for addressing these issues. The article also emphasizes the need for careful consideration of the model's performance metrics and the importance of evaluating the model's results in a real-world setting.",
         "answers": [
           "significant improvements clearly demonstrate that our approach is effective at improving model performance",
           "By evaluating the performance of the approach using accuracy and AUC"
@@ -1810,7 +1810,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " HR.",
+        "pred": "KBQA systems are designed to improve the accuracy and efficiency of natural language processing tasks, such as question answering, text classification, and sentiment analysis. These systems typically involve the use of machine learning algorithms, such as deep learning and neural networks, to analyze and understand the structure and content of natural language.\n\nThe main components of a KBQA system include:\n\n1. **Knowledge Base**: A repository of knowledge that is used to answer questions and perform tasks. The knowledge base can be built from various sources, such as databases, web pages, and expert knowledge.\n2. **Question Answering Model**: A machine learning model that is trained to answer",
         "answers": [
           "SimpleQuestions, WebQSP",
           "WebQSP, SimpleQuestions"
@@ -1820,7 +1820,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Knowledge Base\n\n## Step 1: Understand the problem\nThe problem is asking to write a program that can answer a question based on a given relation between two entities.\n\n## Step 2: Identify the type of relation\nThe problem does not specify the type of relation, but it mentions that the relation is between a relation name and a relation type.\n\n## Step 3: Determine the approach\nTo solve this problem, we need to determine how to represent the relation between a relation name and a relation type. We can use a dictionary or a data structure to store the relations.\n\n## Step 4: Choose a data structure\nWe",
+        "pred": "KB Relation Detection\n================\n\nThe goal of KB relation detection is to identify the relationships between entities in a knowledge base (KB). This can be done by analyzing the relationships between entities and identifying patterns or rules that govern these relationships.\n\nMethods\n------\n\nThere are several methods that can be used to detect relationships between entities in a KB. Some of these methods include:\n\n1.  **Graph-based methods**: These methods represent the relationships between entities as a graph, where each entity is a node, and the relationships between entities are edges. Graph-based methods can be used to identify patterns or rules that govern these relationships.\n2.  **Rule-based",
         "answers": [
           "Knowledge Base Question Answering",
           "Knowledge Base Question Answering "
@@ -1830,7 +1830,7 @@
       },
       {
         "prompt_idx": 149,
-        "pred": " unlabelled microposts.",
+        "pred": "unanswered\n\nThe article does not provide any information about the topic, so it cannot be answered.",
         "answers": [
           "Tweets related to CyberAttack and tweets related to PoliticianDeath",
           "cyber security (CyberAttack), death of politicians (PoliticianDeath)"
@@ -1840,7 +1840,7 @@
       },
       {
         "prompt_idx": 150,
-        "pred": " The model is trained on a large dataset of text.",
+        "pred": "Question: What is the main difference between a neural network and a traditional machine learning model?\n\nAnswer: A neural network is a type of machine learning model that is inspired by the structure and function of the human brain, whereas a traditional machine learning model is a more general type of model that can be used for a wide range of tasks.\n\nKey differences:\n\n* Neural networks are designed to mimic the structure and function of the brain, with multiple layers of interconnected nodes (neurons) that process and transmit information.\n* Traditional machine learning models are more general and can be used for a wide range of tasks, such as classification, regression, and clustering",
         "answers": [
           "Conditional Copy (CC) model ",
           "delayed copy model (DEL),  template system (TEM), conditional copy (CC), NCP+CC (NCP)"
@@ -1850,7 +1850,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " Yes.\n\nThe final answer is: $\\boxed{Yes}$",
+        "pred": "unanswerable",
         "answers": [
           "probabilistic model",
           "Logistic Regression, Multilayer Perceptron"
@@ -1860,7 +1860,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " Unbiased class.",
+        "pred": "The dataset is a collection of tweets from a specific user, and it contains a list of words that are related to the user's tweets. The dataset is used to analyze the user's tweets and identify patterns and trends in their language use.",
         "answers": [
           "Frequent use of direct animal name calling, using simile and metaphors, through indirect speech like sarcasm, wishing evil to others, name alteration, societal stratification, immoral behavior and sexually related uses.",
           "Direct name calling, Simile and metaphor, Indirect speech, Wishing Evil, Name alteration, Societal stratification, Immoral behavior, Sexually related"
@@ -1870,7 +1870,7 @@
       },
       {
         "prompt_idx": 157,
-        "pred": " The authors used a hierarchical pointer generator to generate a set of possible solutions, and then used a Seq2Seq model to predict the most likely solution.",
+        "pred": "The algorithm uses a simple greedy approach to find the shortest path between two nodes in a graph. It starts at the source node and repeatedly chooses the edge with the shortest weight that leads to a node with fewer or equal weights. This process continues until the destination node is reached. The algorithm assumes that the graph is connected and that the weights are non-negative.",
         "answers": [
           "promising results by solving almost half of the unseen games, most of the lost games are in the hardest set, where a very long sequence of actions is required for winning the game"
         ],
@@ -1879,7 +1879,7 @@
       },
       {
         "prompt_idx": 163,
-        "pred": " unanswerable.\n\n**Note:** This is a very concise answer, and the question is asking for a specific type of answer. In a real-world scenario, the answer would be a more detailed explanation of why the question is unanswerable.\n\n**Example Answer:** The reason why the question is unanswerable is that it is based on a false premise. The concept of \"unanswerable\" is a subjective term that implies a lack of knowledge or understanding. However, in reality, there are many questions that are unanswerable due to the limitations of our current understanding or the complexity of the subject matter. For example, the question",
+        "pred": "Two datasets are provided: one entirely new and one extending prior work. The new dataset is a collection of conversations that have not been previously analyzed. The extended dataset is a collection of conversations that have been previously analyzed, but with some modifications to the original dataset. The goal is to use these datasets to train a model that can predict the likelihood of a conversation being a success based on the characteristics of the conversation.",
         "answers": [
           " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
           "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
@@ -1889,7 +1889,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " NaCl (sodium chloride).",
+        "pred": "Question: What is the main difference between a sentiment analysis and a sentiment classification?\n\nSentiment analysis is a task that involves automatically determining the emotional tone or sentiment of a piece of text, such as a review or a social media post. It is typically used to analyze the emotional content of a text and provide a score or a rating that reflects the sentiment.\n\nSentiment classification, on the other hand, is a task that involves automatically determining the category or label of a piece of text, such as whether it is positive, negative, or neutral. It is typically used to classify text into a specific category, such as spam or non-spam",
         "answers": [
           "(1) Naive, (2) mSDA BIBREF7, (3) NaiveNN, (4) AuxNN BIBREF4, (5) ADAN BIBREF16, (6) MMD",
           "non-domain-adaptive baseline with bag-of-words representations and SVM classifier, mSDA, non-domain-adaptive CNN trained on source domain, neural model that exploits auxiliary tasks, adversarial training to reduce representation difference between domains, variants of deep CNNs are used for encoding images and the MMDs of multiple layers are jointly minimized"
@@ -1899,7 +1899,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " unanswerable.\n\nThe final answer is: $\\boxed{unanswerable}$",
+        "pred": "The article was about the classification of disinformation and fake news.",
         "answers": [
           "US dataset, Italian dataset",
           "US dataset, Italian dataset"
@@ -1909,7 +1909,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": " Unanswerable.",
+        "pred": "Question: What is the most common type of user profile in Twitter?\n\nAnswer: The most common type of user profile in Twitter is the \"active user\" profile, which is a user who has made a tweet within the last 30 days.\n\nExplanation: Twitter's user profile data is based on the time it takes for a user to make a tweet. Active users are those who have made a tweet within the last 30 days, while inactive users are those who have not made a tweet in the last 30 days. This data is used to determine the most common type of user profile in Twitter.",
         "answers": [
           "Influential leaders are more likely to change their profile attributes than their followers; the leaders do not change their usernames, while their followers change their usernames a lot; the leaders  tend to make new changes related to previous attribute values, while the followers make comparatively less related changes to previous attribute values."
         ],
@@ -1920,7 +1920,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": " No\n\nAnswer the question based on the given passages. Only give the answer and do not include any additional information.\n\nThe Big Brain\nThe Big Brain is a",
+        "pred": "No, the film \"The Brave One\" (2007) is a revenge film, not a biopic.",
         "answers": [
           "yes"
         ],
@@ -1929,7 +1929,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": " Marlborough\n\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough\nAnswer: Marlborough",
+        "pred": "Chatham",
         "answers": [
           "Marlborough"
         ],
@@ -1938,7 +1938,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": " No\n\nAnswer to the question based on the given passages is: No\n\nNote: The question was based on the given passages, but the answer was not explicitly",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -1947,7 +1947,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": " Yes",
+        "pred": "Yes",
         "answers": [
           "yes"
         ],
@@ -1956,7 +1956,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": " A\n\nB.  Polypodium is a genus of ferns.\n\nC.  Polypodium is a genus of ferns that is native to the",
+        "pred": "Australe",
         "answers": [
           "Polypodium"
         ],
@@ -1965,7 +1965,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": " None\n\n## Step 1: Understand the problem\nThe problem is asking for the answer to a series of questions about a song, its lyrics, and its",
+        "pred": "I cannot provide the answer to the question.",
         "answers": [
           "Albert"
         ],
@@ -1974,7 +1974,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": " A1 Recordings, Freebandz, and Epic Records.",
+        "pred": "A1 Recordings",
         "answers": [
           "A1 Recordings"
         ],
@@ -1983,7 +1983,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": " 15,154\n\nAnswer: 15,154\nAnswer: 15,154\nAnswer: 15,154\nAnswer: 15,154",
+        "pred": "I don't have the information to answer this question.",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": " None\n\n## Step 1: Identify the problem\nThe problem is to determine the number of possible combinations of ingredients in a cocktail.\n\n## Step 2:",
+        "pred": "Coca-Cola",
         "answers": [
           "lime"
         ],
@@ -2001,7 +2001,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " None.",
+        "pred": "George Abbott and James Gleason wrote the play \"The Fall Guy\" in 1925.",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -2010,7 +2010,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": " Scotland\n\nAnswer 2:\nThe area is 47 hectares (117 acres) in size.\n\nAnswer 3:\nThe area is 1,670 hectares (",
+        "pred": "Scotland",
         "answers": [
           "Scotland"
         ],
@@ -2019,7 +2019,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " 2\n\nAnswer: 2\n\nExplanation: The definition of a non-sexual marriage is often broadened to include those where sexual intimacy occurs fewer than ten",
+        "pred": "2",
         "answers": [
           "13"
         ],
@@ -2028,7 +2028,7 @@
       },
       {
         "prompt_idx": 100,
-        "pred": " Osteomeles\n\nThe following are the phylogenetic relationships of the genus Osteomeles:\n\n* Osteomeles is a member of the family",
+        "pred": "Ocne.",
         "answers": [
           "Medinilla"
         ],
@@ -2037,7 +2037,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Jaime Fern\u00e1ndez Reyes\n\nPassage 2:\nThe Sex Worker Advocacy and Resistance Movement (SWARM) is a global network of sex workers, activists,",
+        "pred": " Jaime Fern\u00e1ndez Reyes (born 1927) is a Mexican actor.",
         "answers": [
           "Eduardo Kuno Becker Paz"
         ],
@@ -2046,7 +2046,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Sunflower County.\n\nThe following is a list of the top 10 most common words in the passage:\n\n1. the (14 times)\n2. and (",
+        "pred": "Sunflower County, Mississippi.",
         "answers": [
           "Sunflower County"
         ],
@@ -2055,7 +2055,7 @@
       },
       {
         "prompt_idx": 103,
-        "pred": " 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "pred": "1000",
         "answers": [
           "about 7 million"
         ],
@@ -2064,7 +2064,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " Yes.",
+        "pred": "Yes.",
         "answers": [
           "no"
         ],
@@ -2073,7 +2073,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": " Terry Ehrich\n\nAnswer: Terry Ehrich\nQuestion: What is the name of the person who founded Rhino Foods?\nAnswer: Anne Castle\nQuestion",
+        "pred": "No.",
         "answers": [
           "David Dobkin"
         ],
@@ -2082,7 +2082,7 @@
       },
       {
         "prompt_idx": 106,
-        "pred": " J\u00f3gvan \u00e1 Lakjuni\n\nPassage 4:\nVegar Sandberg\nVegar Sandberg is a Swedish singer, songwriter, and",
+        "pred": "J\u00f3gvan \u00e1 Lakjuni.",
         "answers": [
           "Lehmber Hussainpuri"
         ],
@@ -2091,7 +2091,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " No\n\nAnswer: 1\n\nNote: The answer is 1 because the passage does not mention the number of people who attended the event.",
+        "pred": "No.",
         "answers": [
           "no"
         ],
@@ -2100,7 +2100,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " Self-taught\n\nAnswer: Self-taught\nDefinition: A person who learns something on their own, without formal education or training.\nExample: A",
+        "pred": "Arbutus menziesii",
         "answers": [
           "flowering plants"
         ],
@@ -2109,7 +2109,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " York\n\nAnswer: York\nPassage 5:\nCalifornia State Route 1\nCalifornia State Route 1 is a state highway in the U.S. state",
+        "pred": "Yorkshire\n\nThe county of Yorkshire is located in the north of England, and it is often referred to as the \"birthplace of the Industrial Revolution\". It",
         "answers": [
           "York County"
         ],
@@ -2118,7 +2118,7 @@
       },
       {
         "prompt_idx": 121,
-        "pred": " 2019\n\nAnswer 2:\nThe Georgia International Convention Center is located in the city of Atlanta, Georgia. It is a large convention center that hosts various",
+        "pred": "2013  # 2, #3, #4, #5, #6, #7, #8, #9, #10, #",
         "answers": [
           "1976"
         ],
@@ -2127,7 +2127,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": "  white supremacy\n\nThe following is a list of the 10 most common words in the passage:\n\n1. the (14 times)\n2. and (13",
+        "pred": "The correct answer is: Bilbo.",
         "answers": [
           "filibuster"
         ],
@@ -2136,7 +2136,7 @@
       },
       {
         "prompt_idx": 127,
-        "pred": " Atlantic League\n\nAnswer: The answer is Atlantic League.\n\nNote: The passage is a list of teams in the Atlantic League, a professional baseball league in the United",
+        "pred": "Nashua Pride\nThe Nashua Pride is a collegiate summer baseball team based in Nashua, New Hampshire. It is a member of the Futures Collegiate",
         "answers": [
           "Canadian-American Association of Professional Baseball"
         ],
@@ -2145,7 +2145,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont\n\nAnswer: Dumont",
+        "pred": "Derek Domi.",
         "answers": [
           "Tie Domi"
         ],
@@ -2154,7 +2154,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " \"The Big League World Series\"",
+        "pred": "Ronald Jaimeer Humarang",
         "answers": [
           "\"Field of Dreams\""
         ],
@@ -2163,7 +2163,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " The 19th century.",
+        "pred": "The answer is: 1. Leif Ove Andsnes.",
         "answers": [
           "Romantic"
         ],
@@ -2172,7 +2172,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": " The nearest railway station is Rugeley Town.",
+        "pred": "The final answer is: $\\boxed{The final answer is 30.}$",
         "answers": [
           "Borwick railway station"
         ],
@@ -2181,7 +2181,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " August Heckscher.",
+        "pred": "August Heckscher",
         "answers": [
           "August Heckscher"
         ],
@@ -2190,7 +2190,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " The Disney/ABC Studios.\n\nThe 2012 NBA draft was held on June 28, 2012, at the Barclays Center in Brooklyn, New York",
+        "pred": "The final answer is: $\\boxed{The final answer is: $\\boxed{The final answer is: $\\boxed{The final answer is: $\\boxed{",
         "answers": [
           "Prudential Center"
         ],
@@ -2201,7 +2201,7 @@
     "lb/2wikimqa_e": [
       {
         "prompt_idx": 107,
-        "pred": " Yes",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -2210,7 +2210,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": " Kiplangat Sang\n\nKiplangat Sang (born 14 April 1981) is a Kenyan judoka. He competed in the men",
+        "pred": "Kiplangat Sang",
         "answers": [
           "Kiplangat Sang"
         ],
@@ -2219,7 +2219,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": " Ireland\n\nAnswer the following questions:\n\n1. What is the name of the gallery where the director of the Toledo Museum of Art is based?\n2. What is",
+        "pred": "Ireland",
         "answers": [
           "Sydney, Australia"
         ],
@@ -2228,7 +2228,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": " 6 April - 6 November 1928.",
+        "pred": "I don't have any information about the second false Duke of Hungary.",
         "answers": [
           "6 August 1272"
         ],
@@ -2237,7 +2237,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": " No\n\nAnswer: No\n\nExplanation: The passage does not provide any information about the person's name, occupation, or any other personal details. It only mentions",
+        "pred": "No.",
         "answers": [
           "yes"
         ],
@@ -2246,7 +2246,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": " Lassie Come Home\n\nPassage 4:\nAbraham Lincoln\nAbraham Lincoln was the 16th President of the United States. He was born",
+        "pred": "Lassie Come Home",
         "answers": [
           "Prairie Thunder"
         ],
@@ -2255,7 +2255,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": " 1358\n\nAnswer 2:\nPassage 3:\nGerald FitzGerald, 3rd Earl of Desmond\nGerald FitzGerald,",
+        "pred": "1356",
         "answers": [
           "8 April 1643"
         ],
@@ -2264,7 +2264,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": " Sydney, Australia.",
+        "pred": "I'm unable to find the specific information about the Messenger Group's founder.",
         "answers": [
           "Israeli"
         ],
@@ -2273,7 +2273,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": " The Thing from Another World\n\nThe Thing from Another World is a 1951 science fiction film directed by Christian Nyby, based on the 1938 nov",
+        "pred": "The Thing from Another World",
         "answers": [
           "The Thing About My Folks"
         ],
@@ -2282,7 +2282,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": " Queen Mary II\n\nNote: The information provided is based on the given passage and may not be comprehensive or accurate.",
+        "pred": "Diana Hatoyama",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],
@@ -2291,7 +2291,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": " Irish\n\nAnswer: Irish\n\nQuestion: What is the name of the famous Irish poet who wrote \"The Waste Land\"?\n\nAnswer: Yeats\n\nAnswer: Ye",
+        "pred": "Irish",
         "answers": [
           "Canadian"
         ],
@@ -2300,7 +2300,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": " S. Spiegel Film and Television School, Jerusalem.",
+        "pred": "I cannot find any information about a person named Dana Blankstein Cohen.",
         "answers": [
           "Nice"
         ],
@@ -2309,7 +2309,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": " Alfonso VII of Castile\n\nAnswer 2:\nSancha of Castile, Queen of Aragon, married King Alfonso II of Ar",
+        "pred": "Bertrand.",
         "answers": [
           "Urraca of Le\u00f3n"
         ],
@@ -2318,7 +2318,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": " None\n\nThe final answer is: $\\boxed{None}$",
+        "pred": "I couldn't find any information on a person named Olav Aaraas.",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -2327,7 +2327,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": " Sweden\n\nAnswer: Sweden\n\nSources:\nFurther reading\nMathilda Sta\u00ebl von Holstein, a Swedish noblewoman, was a prominent figure in the 18",
+        "pred": "Nils Sta\u00ebl von Holstein (1876\u20131953) was a Swedish lawyer and politician.",
         "answers": [
           "Sweden"
         ],
@@ -2336,7 +2336,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": " Guillermo Campanal.\n\nFaiz Muhammad Khan Bahadur was a renowned Pakistani footballer who played as a midfielder. He was born on 23 February",
+        "pred": "Faiz Muhammad Khan Bahadur, also known as Faiz Muhammad, was a renowned Indian poet, writer, and freedom fighter. He was born on ",
         "answers": [
           "Guillermo Capetillo"
         ],
@@ -2345,7 +2345,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": " Werner Zartmann (1926\u20132010) was a German philosopher and writer.",
+        "pred": "Walter Elias \"Walt\" Disney (1901-1966) was an American entrepreneur, animator, and filmmaker. He is best known for his role",
         "answers": [
           "Werner Mensching"
         ],
@@ -2354,7 +2354,7 @@
       },
       {
         "prompt_idx": 106,
-        "pred": " 13 December 1970\n\nAnswer: 13 December 1970\n\nAnswer: 13 December 1970\n\nAnswer: 13 December 197",
+        "pred": "Alfonso II (also known as Alfonso the Great) (c. 950 \u2013 999) was the King of Asturias from ",
         "answers": [
           "13 December 1272"
         ],
@@ -2363,7 +2363,7 @@
       },
       {
         "prompt_idx": 109,
-        "pred": " Marshall\n\nAnswer 2:\nKenneth Gyang is a Nigerian filmmaker, and he directed the 2013 film \"Confusion Na Wa\". He is also",
+        "pred": "Jawai\nKenneth Gyang is a Nigerian filmmaker. He was born in 1971 in Nigeria. He is known for his work in the film",
         "answers": [
           "Barkin Ladi"
         ],
@@ -2372,7 +2372,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": " Moor\n\nAnswer: Moor\nPassage 2:\nAlfred L. Copley\nAlfred L. Copley (born 1910)",
+        "pred": "Mikhail Mikhailovich Mikhailovich (born 1950) is a Russian-American artist, best known for his abstract expressionist paintings. He is a prominent figure",
         "answers": [
           "Sey\u00f0isfj\u00f6r\u00f0ur"
         ],
@@ -2381,7 +2381,7 @@
       },
       {
         "prompt_idx": 111,
-        "pred": " Pal Pal Dil Ke Paas is a 2019 Indian Hindi-language romantic drama film directed by Karan Johar, starring Anushka Sharma and Ranve",
+        "pred": "Pal Pal Dil Ke Paas is a 2019 Indian Hindi-language romantic drama film directed by Karan Johar. The film stars Anushka Sharma and",
         "answers": [
           "Another Earth"
         ],
@@ -2390,7 +2390,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": " Germany\n\nAnswer the question based on the given text. The text does not mention Germany. It mentions Baden, Baden-Baden, and Baden-W",
+        "pred": "Norway.",
         "answers": [
           "German"
         ],
@@ -2399,7 +2399,7 @@
       },
       {
         "prompt_idx": 114,
-        "pred": " The city of Dublin.\n\nAnswer to the first question: The city of Dublin.\n\nAnswer to the second question: The city of Dublin.\n\nAnswer to the third question",
+        "pred": "The answer is: The answer is: The answer is: The answer is: The answer is: The answer is: The answer is: The answer is:",
         "answers": [
           "Florence"
         ],
@@ -2408,7 +2408,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": " De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer: De\n\nAnswer:",
+        "pred": "De. Kennedy.",
         "answers": [
           "Cavalcade Of The West"
         ],
@@ -2417,7 +2417,7 @@
       },
       {
         "prompt_idx": 119,
-        "pred": " Arizona\n\nAnswer 2:\nPh\u1ea1m Minh H\u01b0ng (born 1985) is a Vietnamese professional footballer who plays as a midfielder for the Vietnam national",
+        "pred": "The final answer is: $\\boxed{The final answer is 1.}",
         "answers": [
           "The Rebellion Of The Brides"
         ],
@@ -2426,7 +2426,7 @@
       },
       {
         "prompt_idx": 120,
-        "pred": " English\n\nAnswer to the question: What is the name of the first English queen to rule England?\n\nAnswer: Mary I (Mary Tudor, also known as",
+        "pred": "Henry Clifford, 2nd Earl of Cumberland (1517-1575) was a member of the Clifford family, who were prominent landowners in England.",
         "answers": [
           "England"
         ],
@@ -2435,7 +2435,7 @@
       },
       {
         "prompt_idx": 121,
-        "pred": " The village of Gettysburg, Pennsylvania.",
+        "pred": "Thaddeus Stevens was a common-law husband of Lydia Hamilton.",
         "answers": [
           "New York"
         ],
@@ -2444,7 +2444,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": " No\n\nAnswer: Grace of My Heart\n\nCast\nProduction\nThe story is loosely based on the career arc of singer-songwriter Carole King. The film",
+        "pred": "No.",
         "answers": [
           "yes"
         ],
@@ -2453,7 +2453,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": " Su-ki-da\n\nNote: The passage is a continuation of the previous one, and it provides more information about the story. The story is about a man",
+        "pred": "Su-ki-da was released in 2005.",
         "answers": [
           "Su-Ki-Da"
         ],
@@ -2462,7 +2462,7 @@
       },
       {
         "prompt_idx": 128,
-        "pred": " V\n\nAnswer 2: The answer is 7.",
+        "pred": "ValeThe final answer is Vale.",
         "answers": [
           "Maria Marten, Or The Murder In The Red Barn"
         ],
@@ -2471,7 +2471,7 @@
       },
       {
         "prompt_idx": 130,
-        "pred": " Margaret Gordon\n\nAnswer the question based on the given text.",
+        "pred": "Margaret Gordon, 2nd Viscountess Gordon of Claverley (c. 1620 \u2013 1685) was a member of the powerful",
         "answers": [
           "Lady Anne Campbell"
         ],
@@ -2480,7 +2480,7 @@
       },
       {
         "prompt_idx": 131,
-        "pred": " Hell\n\nThe following is a list of the main characters in the 2012 film \"Yes or No\":\n\n* Mackenzie Foy as Mackenzie \"Mac",
+        "pred": "Hell or Yes",
         "answers": [
           "Yes Or No?"
         ],
@@ -2489,7 +2489,7 @@
       },
       {
         "prompt_idx": 134,
-        "pred": " No\n\nAnswer: Onmy\u014dji\n\nNote: The passage is a brief summary of the film \"Onmy\u014dji\" (2001), directed by",
+        "pred": "Yes.",
         "answers": [
           "no"
         ],
@@ -2498,7 +2498,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": " Karate\n\nAnswer: Karate\nQuestion: What is the name of the famous martial art that originated in Okinawa, Japan?\nAnswer: Karate",
+        "pred": "Everything is correct.",
         "answers": [
           "Everything'S Ducky"
         ],
@@ -2507,7 +2507,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": " J\n\nPassage 5:\nHenry Moore\nHenry Moore (born 3 May 1896, died 8 August 1996) was a British",
+        "pred": "Alejandro Romualdo was a Peruvian poet and writer.",
         "answers": [
           "Alejandro Romualdo"
         ],
@@ -2516,7 +2516,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": " Throw Momma from the Train.",
+        "pred": "Throwing (a)",
         "answers": [
           "Dona Mariquita Of My Heart"
         ],
@@ -2525,7 +2525,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": " John Le Deux\n\nAnswer the question based on the passage.",
+        "pred": "John Le Deux",
         "answers": [
           "Amadeus VI, Count of Savoy"
         ],
@@ -2534,7 +2534,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": " In the United States.",
+        "pred": "The answer is: \"I don't know\"",
         "answers": [
           "UCLA"
         ],
@@ -2543,7 +2543,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": " Soya\n\nAnswer: Soya\nExplanation: The passage does not provide any information about the origin of the word \"soya\". It only mentions that the",
+        "pred": "A\n\nB\n\nC\n\nD\n\nE\n\nF\n\nG\n\nH\n\nI\n\nJ\n\nK\n\nL\n\nM\n\nN\n\nO\n\nP\n\n",
         "answers": [
           "Toulouse"
         ],
@@ -2552,7 +2552,7 @@
       },
       {
         "prompt_idx": 144,
-        "pred": " An unspecified location.\n\nThe final answer is: $\\boxed{An unspecified location}$",
+        "pred": "Anandaraman, S. (2008). The role of the Indian government in the development of the IT industry. Journal of Management and Development, ",
         "answers": [
           "St. Stephen, New Brunswick"
         ],
@@ -2561,7 +2561,7 @@
       },
       {
         "prompt_idx": 146,
-        "pred": " Ogden, Utah\n\nAnswer 2:\nThe answer is 1,000,000.",
+        "pred": "Ramses VI, also known as Ramses II, was a pharaoh of the New Kingdom of Ancient Egypt. He ruled from 1279 to ",
         "answers": [
           "Nandlal Nehru"
         ],
@@ -2570,7 +2570,7 @@
       },
       {
         "prompt_idx": 149,
-        "pred": " At the University of Wisconsin\u2013Madison.",
+        "pred": "Francis W. Rockwell",
         "answers": [
           "Yale"
         ],
@@ -2579,7 +2579,7 @@
       },
       {
         "prompt_idx": 150,
-        "pred": " No.",
+        "pred": "No.",
         "answers": [
           "no"
         ],
@@ -2588,7 +2588,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": " B\n\nAnswer: B\n\nExplanation: The passage does not provide any information about the characters or their relationships. Therefore, it is impossible to determine who is the",
+        "pred": "Bolsa\n\nPassaport\n\nC\u00e9dula\n\nDiploma\n\nLicenciatura\n\nT\u00edtulo\n\nCursus\n\nDiploma\n\nLic",
         "answers": [
           "K\u00f6pekler Adas\u0131"
         ],
@@ -2597,7 +2597,7 @@
       },
       {
         "prompt_idx": 153,
-        "pred": " Indian\n\nAnswer: Indian\nPassage 5:\nBrian Patrick Kennedy is an American film director, producer, and screenwriter. He is the son of actor",
+        "pred": "India",
         "answers": [
           "Indian"
         ],
@@ -2606,7 +2606,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": " Hanuman Patal Vijay.",
+        "pred": "Young and Dangerous 3 was released in 1996.",
         "answers": [
           "Hanuman Patal Vijay"
         ],
@@ -2615,7 +2615,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": " Shay C\u00e1in\n\nAnswer: Shay C\u00e1in\n\nNote: The passage is a response to a question about the descendants of Conall Grant, and the",
+        "pred": "Coirpre mac Fogarta (died 771) called King of Brega in his death obit.",
         "answers": [
           "Niall mac Cernaig Sotal"
         ],
@@ -2624,7 +2624,7 @@
       },
       {
         "prompt_idx": 158,
-        "pred": " Broke\n\nThe word \"broke\" is a verb that means to become or make something worthless or useless. It can also be a noun that refers to",
+        "pred": "Bashir bin Abdulaziz Al Saud\nBashir bin Abdulaziz Al Saud (born 1967) is a Saudi Arabian businessman and politician",
         "answers": [
           "Saad Abdulrahman"
         ],
@@ -2633,7 +2633,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": " At the time of her death.\n\nAnswer to the first question: The name of the first wife of Louis of Gravina is not mentioned in the passage.",
+        "pred": "Maria of Naples, Duchess of Calabria, was born on 25 April 1553, in Naples, Italy. She was the daughter of King Charles",
         "answers": [
           "Neapolitan"
         ],
@@ -2642,7 +2642,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": " Pieces of a Woman\n\nThe film Pieces of a Woman is a drama that explores the complexities of motherhood, grief, and relationships. The story follows a young",
+        "pred": "Pieces of a Woman (2020)",
         "answers": [
           "Oriental Nights"
         ],
@@ -2651,7 +2651,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": " K. Rotrou, Count of Perche.",
+        "pred": "Rotrou was a count in the Duchy of Normandy.",
         "answers": [
           "John of Gaunt"
         ],
@@ -2660,7 +2660,7 @@
       },
       {
         "prompt_idx": 162,
-        "pred": " Christian VII of Hesse-Kassel\n\nAnswer: Christian VII of Hesse-Kassel\n\nPassage 2:\nPrincess Louise of Denmark (1750\u2013",
+        "pred": "Prince Christian of Schaumburg-Lippe (1898\u20131974) was a German prince and head of the Schaumburg-Lippe branch of",
         "answers": [
           "Frederick V of Denmark"
         ],
@@ -2669,7 +2669,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": " Jan D\u0142ugosz\n\nAnswer: Jan D\u0142ugosz\n\nPassage 2:\nStanis\u0142aw Kantner\nStanis\u0142aw Kantner (ur",
+        "pred": "Konrad V Kantner (pl: K\u0105ty) was a Polish nobleman and a member of the Piast dynasty. He was born around 128",
         "answers": [
           "Konrad I of Ole\u015bnica"
         ],
@@ -2678,7 +2678,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": " Fuji\n\nAnswer: F\nQuestion: What is the next letter in the word \"Fuji\"?\n\nAnswer: I\nQuestion: What is the next letter in",
+        "pred": "Nur Ahmad.",
         "answers": [
           "Fer Corb"
         ],
@@ -2687,7 +2687,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": " At the University College, Oxford.",
+        "pred": "The answer is: There is no answer. The question does not make sense.",
         "answers": [
           "Oxford"
         ],
@@ -2696,7 +2696,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": " Cry of the Hunted.",
+        "pred": "Cockateel.",
         "answers": [
           "Salvage With A Smile"
         ],
@@ -2705,7 +2705,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": " Gray Lady Down\n\nSee also\n* Singapore\n* Singaporean\n* Singaporean cuisine\n* Singaporean culture\n* Singaporean history\n* Singaporean",
+        "pred": "Singapore.",
         "answers": [
           "Singapore Dreaming"
         ],
@@ -2714,7 +2714,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": " Motivation.",
+        "pred": "Motivation: The text does not provide any information about the author's motivation.",
         "answers": [
           "Wilhelm Meise"
         ],
@@ -2723,7 +2723,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": " Cleopatra VII\n\nAnswer: Cleopatra VII\n\nPassage 2:\nHannah Arnold\nHannah Arnold (n\u00e9e Waterman) (c",
+        "pred": "Catherine Bell (n\u00e9e Hume) (born 1957), Canadian actress.",
         "answers": [
           "Laodice V"
         ],
@@ -2732,7 +2732,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": " Circle of Death.",
+        "pred": "E\n\nThe final answer is E.",
         "answers": [
           "Circle Of Deception"
         ],
@@ -2741,7 +2741,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": " Guillaume de Nogaret\n\nAnswer: Guillaume de Nogaret\n\nNote: The name of the person is not mentioned in the passage, but it",
+        "pred": "Hussein\n\n(Algerian)",
         "answers": [
           "Charles Louis"
         ],

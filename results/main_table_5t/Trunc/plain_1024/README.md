@@ -2,18 +2,18 @@
 
 Naive tail-only baseline: every prompt is decoded from its last 1024 token ids before the model sees it. No KV cache eviction, no policy hooks — the model simply runs on a shorter input. The cleanest 'StreamingLLM rolling-window' comparison: how much can we recover with no learned policy?
 
-**Source run:** `eval_results/trunc_plain_1024_5t/trunc_20260411_204759/`
+**Source run:** `eval_results/trunc_plain_1024_5t/trunc_20260412_141739/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 10.68 | 10.80 |
-| lb/2wikimqa | 27.96 | 17.43 |
-| lb/qasper_e | 12.38 | 13.00 |
-| lb/hotpotqa_e | 8.33 | 23.89 |
-| lb/2wikimqa_e | 14.29 | 14.11 |
-| **mean F1** | **14.73** | **15.85** |
+| lb/qasper | 29.80 | 23.36 |
+| lb/2wikimqa | 26.52 | 18.95 |
+| lb/qasper_e | 13.99 | 14.55 |
+| lb/hotpotqa_e | 9.38 | 23.52 |
+| lb/2wikimqa_e | 12.50 | 13.52 |
+| **mean F1** | **18.44** | **18.78** |
 
 ## Command
 

@@ -158,6 +158,11 @@ def main():
     if ext_max_cond is not None:
         print(f"  extended_max_conditioning_length={ext_max_cond}")
 
+    # Wrap prompts in the Llama 3 Instruct chat template (same as
+    # run_lora.py:276) so the model sees proper turn framing and stops
+    # at <|eot_id|> instead of producing verbose text completions.
+    task_sampler.apply_chat_template_to_prompts(tokenizer)
+
     # Show per-task sample counts
     for task_n, n in task_sampler.num_prompts_per_lb_task.items():
         print(f"  Task: {task_n}, total samples: {n}")
