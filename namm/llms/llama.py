@@ -595,11 +595,23 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
             output = (logits,) + outputs[1:]
             return (loss,) + output if loss is not None else output
 
+        # When skip_lm_head is True the caller only needs the last hidden
+        # state (for chunked CE in _train_step).  Returning the full
+        # outputs.hidden_states tuple would pin all 17 intermediate layer
+        # activations in memory, defeating gradient checkpointing (M1).
+        # Returning just (hidden_states,) lets the 16 intermediates be
+        # freed when this function returns -- saving ~460 MB for
+        # seq_len=7000.
+        if skip_lm_head and hidden_states is not None:
+            return_hidden = (hidden_states,)
+        else:
+            return_hidden = outputs.hidden_states
+
         return CausalMemoryLMOutputWithPast(
             loss=loss,
             logits=logits,
             past_key_values=outputs.past_key_values,
-            hidden_states=outputs.hidden_states,
+            hidden_states=return_hidden,
             attentions=outputs.attentions,
             query_states=outputs.query_states,
             position_ids=position_ids,

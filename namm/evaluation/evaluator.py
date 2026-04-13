@@ -722,6 +722,8 @@ class MemoryHFEvaluator():
                         retry_iter=retry_iter,
                     )
                     successful_generation = True
+                    if self.force_clear_cache:
+                        empty_gpu_cache()
                 except Exception as e:
                     if is_oom_exception(e):
                         retry_iter += 1
