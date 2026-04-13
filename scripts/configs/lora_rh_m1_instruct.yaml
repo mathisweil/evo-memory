@@ -1,3 +1,7 @@
+# DEPRECATED: This config uses a 6-task subset and the non-5t run_config.
+# For FAIR-01 compliant M1 runs, use lora_rh_m1_instruct_5t.yaml instead.
+# Kept for reproducibility of prior runs (WandB: rh_m1_5t_v2, kz6vqo2o etc).
+#
 # Usage:
 #   python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct.yaml --run_name rh_m1_test
 
