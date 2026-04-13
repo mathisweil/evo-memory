@@ -1,3 +1,7 @@
+# DEPRECATED: This config uses a 3-task subset and the non-5t run_config.
+# For FAIR-01 compliant M3 runs, use lora_rh_m4_instruct_5t.yaml instead.
+# Kept for reproducibility of prior runs (WandB: rh_m4_5t_cs1024, ovosogkj etc).
+#
 # Usage:
 #   python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct.yaml \
 #       --run_name rh_m4_test --namm_checkpoint path/to/namm_ckpt.pt

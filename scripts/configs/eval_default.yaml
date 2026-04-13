@@ -7,7 +7,7 @@ es_checkpoint: null     # Path to ES fine-tuned checkpoint; null = evaluate base
 namm_checkpoint: null   # Path to NAMM scoring network; "latest" for GCS; null = no NAMM
 
 # ── Model / eviction ───────────────────────────────────────────────────
-run_config: namm_bam_i1_llama32_1b  # Hydra run config name
+run_config: namm_bam_i1_llama32_1b_5t  # Hydra run config (FAIR-01 5-task subset)
 cache_size: null        # KV cache token budget; null = use run_config default
 
 # ── Data ────────────────────────────────────────────────────────────────
