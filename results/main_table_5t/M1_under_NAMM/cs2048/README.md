@@ -2,18 +2,18 @@
 
 Same as M1_under_NAMM/cs1024 but at cache_size=2048.
 
-**Source run:** `eval_results/lora_m1_namm_cs2048_5t/ext_20260412_205551/`
+**Source run:** `eval_results/lora_m1_namm_cs2048_5t/ext_20260413_090611/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 35.34 | 23.74 |
-| lb/2wikimqa | 27.56 | 20.10 |
-| lb/qasper_e | 27.20 | 21.60 |
-| lb/hotpotqa_e | 35.19 | 35.75 |
-| lb/2wikimqa_e | 32.65 | 25.28 |
-| **mean F1** | **31.59** | **25.29** |
+| lb/qasper | 35.34 | 24.26 |
+| lb/2wikimqa | 27.56 | 20.73 |
+| lb/qasper_e | 28.58 | 21.52 |
+| lb/hotpotqa_e | 35.19 | 34.32 |
+| lb/2wikimqa_e | 32.65 | 26.92 |
+| **mean F1** | **31.86** | **25.55** |
 
 ## Command
 

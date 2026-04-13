@@ -2,7 +2,7 @@
 
 Base Llama-3.2-1B-Instruct with no eviction, no fine-tuning. Performance ceiling for the 5-task QA subset.
 
-**Source run:** `eval_results/plain_baseline_5t/ext_20260412_142728/`
+**Source run:** `eval_results/plain_baseline_5t/ext_20260413_140734/`
 
 ## Results
 

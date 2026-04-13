@@ -2,18 +2,18 @@
 
 Trained NAMM eviction policy on top of the frozen base model. No LoRA, no fine-tuning of the LM weights.
 
-**Source run:** `eval_results/namm_cs1024_5t/ext_20260412_141755/`
+**Source run:** `eval_results/namm_cs1024_5t/ext_20260413_135808/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 28.30 | 19.49 |
-| lb/2wikimqa | 27.56 | 23.74 |
-| lb/qasper_e | 8.09 | 12.13 |
-| lb/hotpotqa_e | 17.50 | 26.36 |
-| lb/2wikimqa_e | 24.16 | 22.05 |
-| **mean F1** | **21.12** | **20.75** |
+| lb/qasper | 7.67 | 12.70 |
+| lb/2wikimqa | 19.23 | 19.01 |
+| lb/qasper_e | 9.03 | 13.38 |
+| lb/hotpotqa_e | 9.96 | 26.36 |
+| lb/2wikimqa_e | 9.87 | 22.05 |
+| **mean F1** | **11.15** | **18.70** |
 
 ## Command
 

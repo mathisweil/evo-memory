@@ -202,6 +202,31 @@ case "$IDX" in
         --output_dir eval_results/lora_m1_namm_cs2048_5t \
         2>&1 | tee "$LOG"
     ;;
+  50)
+    # M4 cs2048 with NEW best checkpoint (step 396, resumed training)
+    LABEL=lora_m4_cs2048_newbest
+    LOG="$PROJ/logs/eval_${LABEL}_${HOST}_${TS}.log"
+    echo "DISPATCH_LOG $LOG"
+    python scripts/eval_namm_splits.py \
+        --namm_checkpoint eval_results/namm_cs2048_friend/ckpt.pt \
+        --lora_checkpoint results/rh_m4_frozen_5t/42/best_ckpt.pt \
+        --filter_by_length 8192 --cache_size 2048 --batch_size 8 \
+        --splits test extended_test --run_label ext_newbest \
+        --output_dir eval_results/lora_m4_cs2048_5t \
+        2>&1 | tee "$LOG"
+    ;;
+  51)
+    # A4 cs2048 ablation with NEW best checkpoint
+    LABEL=lora_m4_cs2048_newbest_ablation
+    LOG="$PROJ/logs/eval_${LABEL}_${HOST}_${TS}.log"
+    echo "DISPATCH_LOG $LOG"
+    python scripts/eval_namm_splits.py \
+        --lora_checkpoint results/rh_m4_frozen_5t/42/best_ckpt.pt \
+        --filter_by_length 8192 --cache_size 8192 --batch_size 8 \
+        --splits test extended_test --run_label ext_newbest \
+        --output_dir eval_results/lora_m4_cs2048_5t_ablation \
+        2>&1 | tee "$LOG"
+    ;;
   30)
     LABEL=trunc_plain_1024
     LOG="$PROJ/logs/eval_${LABEL}_${HOST}_${TS}.log"

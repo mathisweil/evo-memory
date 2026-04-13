@@ -32,7 +32,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "They used linguistic features such as unigrams, bigrams, and trigrams, as well as gaze features like eye movement patterns and fixation duration.",
+        "pred": "They used linguistic features such as unigrams, bigrams, and trigrams, as well as gaze features like eye movement duration, fixation duration, and gaze direction.",
         "answers": [
           "Unanswerable"
         ],
@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "unanswerable",
+        "pred": "I cannot provide a detailed explanation of the types of social media systems that the authors considered. If the question cannot be answered based on the information in the article, write \"unanswerable\". If the question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not provide any explanation.\n\nHere's a possible solution:\n\n1. Identify the social media platform or system being considered.\n2. Determine the characteristics, features, and functionalities of the system.\n3. Evaluate the system's effectiveness, efficiency, and performance.\n\nThis approach can help identify the strengths and weaknesses of the system, and provide a more",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -79,7 +79,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "unanswerable",
+        "pred": "I'm happy to share this information with you.\n\nThe question is a bit tricky, but I'll try to explain it to you.\n\nThe question is a bit like a puzzle, and it's a good thing that it's a bit like a brain teaser.\n\nThe question is a bit like a puzzle, and it's a good thing that it's a bit like a brain teaser.\n\nThe question is a bit like a puzzle, and it's a good thing that it's a bit like a brain teaser.\n\nThe question is a bit like a puzzle, and it's a good thing that it's a bit like a brain teaser.\n\nThe",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "unanswerable",
+        "pred": "The answer to this question is a simple yes.",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "unanswerable",
+        "pred": "I can provide a detailed explanation of the models and frameworks that the researchers compare to.\n\nThe researchers are comparing various models and frameworks, including:\n\n* Deep learning frameworks (e.g. TensorFlow, PyTorch)\n* Specialized audio processing systems (e.g. Audio Processing, Audio Feature Extraction)\n* Audio feature extraction methods (e.g. Feature Extraction, Audio Feature Extraction)\n\nThe researchers are also comparing various models and frameworks, including:\n\n* Deep learning frameworks (e.g. TensorFlow, PyTorch)\n* Specialized audio processing systems (e.g. Audio Processing, Audio Feature Extraction)\n* Audio feature extraction methods (e.g. Feature",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -109,7 +109,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": "Yes",
+        "pred": "I cannot provide a response that includes a question about the NER model. \n\nLet's assume the NER model is designed to learn from both text and images, and that it has been successfully implemented in a real-world setting.\n\nIf you're interested in learning more about the NER model, I can provide some general information about multimodal NER tasks.\n\nMultimodal NER tasks involve combining multiple modalities, such as text, images, and audio, to perform a specific task.\n\nIn this case, the NER model is designed to learn from both text and images, and that it has been successfully implemented in a real-world",
         "answers": [
           "Yes",
           "Yes"
@@ -358,7 +358,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": "unanswerable",
+        "pred": "ROGUE metric",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -427,7 +427,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": "No",
+        "pred": "I cannot provide a response that includes both Cynthia Mort and George Archainbaud.",
         "answers": [
           "yes"
         ],
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Jaffrey",
+        "pred": "## The Answer\n\nThe New Hampshire Route 124, also known as the \"New Hampshire Turnpike\", is a four-lane highway that connects the cities of",
         "answers": [
           "Marlborough"
         ],
@@ -454,7 +454,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": "Yes",
+        "pred": "The answer is: \"Yes, Fabi\u00e1n Bielinsky and Nelson Pereira dos Santos are both directors.\"\n\nNote: The question is asking if the person",
         "answers": [
           "yes"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": "Aichryson",
+        "pred": "Here's the answer:\n\nAichryson or Polypodium\nAichryson or Polypodium\nAichryson or Polypodium\n",
         "answers": [
           "Polypodium"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "Napalm Records",
+        "pred": "Question: Used to This was included on the streaming version of the album released in 2017 on what label?\n\nAnswer: Rolling Stone magazine.",
         "answers": [
           "A1 Recordings"
         ],
@@ -499,7 +499,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Vodka",
+        "pred": "Answer:",
         "answers": [
           "lime"
         ],
@@ -508,7 +508,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": "George Abbott was a playwright and director, and his first big hit was the drama film Heat Lightning (1926), which starred Tallulah Bankhead.",
+        "pred": "George Abbott was a playwright and director, and his first big hit was the 1926 play \"Broadway,\" which was adapted into a film in 192",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -636,7 +636,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": "I cannot verify the cause of death of the director of the film Temptation (1959 film).",
+        "pred": "I cannot verify where the director of the 1959 film Temptation died.",
         "answers": [
           "Nice"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "The training sets of the ELMo contextual embeddings for seven languages (Croatian, Estonian, Finnish, Latvian, Lithuanian, Slovenian, and Swedish) are larger than the previous ones.",
+        "pred": "The question is a yes/no question, and the answer is \"yes\", \"no\", or \"unanswerable\".",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -753,7 +753,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "unanswerable",
+        "pred": "The dataset contains a large number of sentences, including the following sentence:\n\n\"How many sentences does the dataset contain?\"\n\nAnswer:",
         "answers": [
           "3606",
           "6946"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "unanswerable",
+        "pred": "I cannot provide information on which models/frameworks [MF] are compared to. [MF] are compared to [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [MF] [",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -813,7 +813,7 @@
       },
       {
         "prompt_idx": 19,
-        "pred": "The model improves interpretability by using a more interpretable representation of the input data, such as a piecewise linear function, which allows for easier understanding of the relationships between the input features and the output. This is in contrast to softmax transformers, which use a continuous representation of the input data and can be more difficult to interpret. The use of a piecewise linear function also allows for the identification of specific features that contribute to the output, making it easier to understand the model's behavior.",
+        "pred": "The model improves interpretability by using a more interpretable representation of the input data, such as a Tsallis entropy, which is a more robust and flexible way to represent the distribution of the input data. This allows for more accurate and reliable predictions, and also provides a more interpretable output. Additionally, the model uses a more flexible and adaptive approach to learning, which allows it to adapt to the specific input data and improve its performance over time. This results in a more accurate and reliable model that is better able to handle complex and high-dimensional input data.",
         "answers": [
           "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
           "We introduce sparse attention into the Transformer architecture"
@@ -823,7 +823,7 @@
       },
       {
         "prompt_idx": 22,
-        "pred": "Question: What is the proposed method for end-to-end speech translation?\n\nAnswer: The proposed method is an end-to-end method for speech translation that reuses every sub-net and keeps the role of sub-net consistent between pre-training and fine-tuning.",
+        "pred": "Question: What is the proposed method for end-to-end speech translation?\n\nAnswer: The proposed method is an end-to-end speech translation system that uses a pre-trained speech encoder and a pre-trained text-to-speech synthesis model to generate target sentences.",
         "answers": [
           "the model is pre-trained on CTC-based ASR task and MT task in the pre-training stage."
         ],
@@ -852,7 +852,7 @@
       },
       {
         "prompt_idx": 40,
-        "pred": "Source Domain: Book Reviews\nTarget Domain: Movie Reviews\n\nUnanswerable.",
+        "pred": "Source and target domains are the two sets of data used to train a sentiment classifier. The source domain is the set of reviews from the source domain (e.g. Book reviews), and the target domain is the set of reviews from the target domain (e.g. Book reviews).",
         "answers": [
           "Book, electronics, beauty, music, IMDB, Yelp, cell phone, baby, DVDs, kitchen",
           "we use set 1 of the source domain as the only source with sentiment label information during training, and we evaluate the trained model on set 1 of the target domain, Book (BK), Electronics (E), Beauty (BT), and Music (M)"
@@ -882,7 +882,7 @@
       },
       {
         "prompt_idx": 77,
-        "pred": "Question: What is the main goal of the proposed approach?\n\nAnswer: To improve the performance of event detection models by leveraging the joint power of the crowd and the model in expectation inference.",
+        "pred": "Question: What is the main goal of the proposed approach?\n\nAnswer: To improve the performance of event detection models by leveraging the joint power of the crowd and the model in expectation inference.\n\nQuestion: What type of datasets are used?\n\nAnswer: Real-world datasets.\n\nQuestion: What is the main advantage of the proposed approach?\n\nAnswer: It significantly outperforms the state of the art and is particularly useful for detecting events where relevant microposts are semantically complex.\n\nQuestion: What is the main goal of the future work?\n\nAnswer: To parallelize the crowdsourcing tasks and optimize the pipeline to use the event detection approach in real-time",
         "answers": [
           "probabilistic model",
           "Logistic Regression, Multilayer Perceptron"
@@ -892,7 +892,7 @@
       },
       {
         "prompt_idx": 87,
-        "pred": "The proposed qualitative annotation schema looks like this:\n\n* Lexical overlap: words that occur in the same sentence and question\n* Question type: identifying the type of question (e.g. open-ended, multiple choice, etc.)\n* Entity typing: identifying the type of entity mentioned in the text (e.g. person, organization, etc.)\n* Concrete overlap: identifying the overlap between the text and the gold standard\n\nThis schema is designed to provide a qualitative analysis of the gold standard, allowing for the identification of issues with the factual correctness, semantics, and other aspects of the gold standard.",
+        "pred": "The proposed qualitative annotation schema looks like this:\n\n* Lexical overlap: words and phrases that appear in the same sentence\n* Question and sentence: questions and sentences that appear together\n* Entity typing: entities (e.g. names, locations) that appear in the same sentence\n* Concrete overlap patterns: patterns of overlap between entities and concepts\n\nThis schema is designed to capture the nuances of human reading comprehension and can be used to evaluate the quality of gold standards for machine reading comprehension.",
         "answers": [
           "The resulting taxonomy of the framework is shown in Figure FIGREF10",
           "FIGREF10"
@@ -942,7 +942,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": "The political bias of different sources is included in the model by considering the size of the network associated with each source. The larger the network, the more influential the source is likely to be. This is because larger networks are more likely to be associated with mainstream news, which is considered to be more credible and trustworthy. The model also considers the type of content shared by each source, which is used to determine the level of bias. For example, sources that share more factual information are likely to be less biased, while sources that share more opinion-based content are likely to be more biased. By considering both the size and type of network, the",
+        "pred": "The political bias of different sources is included in the model by considering the size of the network associated with each layer. The size of the network is used as a feature to capture the differences in the sharing patterns of disinformation and mainstream news. The larger the network, the more likely it is to be associated with mainstream news, and the smaller the network, the more likely it is to be associated with disinformation. This allows the model to capture the differences in the sharing patterns of disinformation and mainstream news, and to make more accurate predictions.",
         "answers": [
           "By assigning a political bias label to each news article and training only on left-biased or right-biased outlets of both disinformation and mainstream domains",
           "we also account for political biases inherent to different news sources, referring to the procedure proposed in BIBREF2 to label different outlets. Overall we show that we are able to classify credible vs non-credible diffusion networks (and consequently news articles) with high accuracy (AUROC up to 94%), even when accounting for the political bias of sources (and training only on left-biased or right-biased articles). We observe that the layer of mentions alone conveys useful information for the classification, denoting a different usage of this functionality when sharing news belonging to the two news domains. We also show that most discriminative features, which are relative to the breadth and depth of largest cascades in different layers, are the same across the two countries."
@@ -961,7 +961,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": "Previous methods compared to the proposed model are the Li and Roth BIBREF6 model and the baseline model.",
+        "pred": "Previous methods were compared to the Li and Roth BIBREF6 model.",
         "answers": [
           "bag-of-words model, CNN"
         ],
@@ -970,7 +970,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": "KBQA systems, including our proposed HR-BiLSTM model, achieve state-of-the-art results on both WebQSP and SimpleQuestions. Specifically, our system outperforms the previous methods on KB relation detection tasks and allows our KBQA system to achieve state-of-the-arts.",
+        "pred": "KBQA systems, including our proposed HR-BiLSTM model, achieve state-of-the-art results on both WebQSP and SimpleQuestions.",
         "answers": [
           "SimpleQuestions, WebQSP",
           "WebQSP, SimpleQuestions"
@@ -982,7 +982,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": "Ajman",
+        "pred": "I cannot answer the question based on the given passages.",
         "answers": [
           "Abu Dhabi"
         ],
@@ -1000,7 +1000,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": "Brooklyn, New York",
+        "pred": "I cannot answer the question because the passage does not mention the director of film Edges Of The Lord.",
         "answers": [
           "Pozna\u0144"
         ],
@@ -1009,7 +1009,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": "London",
+        "pred": "I don't want to be a part of the answer.",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -1027,7 +1027,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": "Bogdan \u021a\u0103ru\u0219",
+        "pred": "Wesley Barresi.",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -1054,7 +1054,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": "Thomas De Berkeley",
+        "pred": "Eleanor Beauchamp, Duchess of Somerset",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -1063,7 +1063,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": "Italia-Germania 4-3",
+        "pred": "Prince of Arcadia",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -1072,7 +1072,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": "I cannot verify the birthplace of the director of the film Love At First Sight (1985).",
+        "pred": "I am writing a letter to the editor, and I am also writing a letter to the editor, and I am also writing a letter to the editor, and",
         "answers": [
           "Milan"
         ],
@@ -1126,7 +1126,7 @@
       },
       {
         "prompt_idx": 5,
-        "pred": "Answer: 1176.",
+        "pred": "The date of death of Humphrey De Bohun, 7Th Earl Of Hereford's father is 24 September 1275.",
         "answers": [
           "16 September 1360"
         ],
@@ -1207,7 +1207,7 @@
       },
       {
         "prompt_idx": 34,
-        "pred": "Lagu Kenangan",
+        "pred": "Lagu Kenangan.",
         "answers": [
           "All-American Co-Ed"
         ],
@@ -1216,7 +1216,7 @@
       },
       {
         "prompt_idx": 41,
-        "pred": "Answer: 20 March 1690",
+        "pred": "Answer: 1702",
         "answers": [
           "May 19, 1669"
         ],
@@ -1225,7 +1225,7 @@
       },
       {
         "prompt_idx": 51,
-        "pred": "Astrid North",
+        "pred": "United States.",
         "answers": [
           "Sweden"
         ],
@@ -1288,7 +1288,7 @@
       },
       {
         "prompt_idx": 72,
-        "pred": "The director of the film Postmortem (1998) is not specified in the given passages.",
+        "pred": "The director of the film Postmortem (1998) is Dana Blankstein.",
         "answers": [
           "America"
         ],
@@ -1432,7 +1432,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": "Princess Charlotte of Saxe-Meiningen's husband is a German prince.",
+        "pred": "Princess Charlotte of Saxe-Meiningen's husband is German.",
         "answers": [
           "Duchy of Saxe-Gotha-Altenburg"
         ],
@@ -1577,7 +1577,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": "unanswerable",
+        "pred": "ROGUE metric",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -1920,7 +1920,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": "No",
+        "pred": "The 1932 American film, directed by George Archainba, was, and, finally, solved, and, finally, solved, and, finally,",
         "answers": [
           "yes"
         ],
@@ -1938,7 +1938,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": "No",
+        "pred": "assistant",
         "answers": [
           "yes"
         ],
@@ -1965,7 +1965,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "I cannot verify the middle name of the actor who hosted the 24th People's Choice Awards with Reba McEntire.",
+        "pred": "assistant)\nassistant\nassistant\nassistant\nassistant\nassistant\nassistant\nassistant\nassistant\n\nNote: The middle name of the actor who hosted the24th People",
         "answers": [
           "Albert"
         ],
@@ -1974,7 +1974,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "Napalm Records",
+        "pred": "## \"Used to This was included on the streaming version of the album released in 2017 on what label?\"",
         "answers": [
           "A1 Recordings"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Vodka",
+        "pred": "The answer is: None of the above ingredients are in both Cosmopolitan and Cuba Libre.\n\nExplanation: The Cuba Libre story is a documentary series on Cuban history",
         "answers": [
           "lime"
         ],
@@ -2300,7 +2300,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": "I cannot verify the cause of death of the director of the 1959 film Temptation.",
+        "pred": "I cannot verify the cause of death of the director of the film Temptation (1959 film).",
         "answers": [
           "Nice"
         ],
@@ -2318,7 +2318,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": "The director of film Defilada, Andrzej Fidyk, graduated from the University of Warsaw.",
+        "pred": "Long Wharf University",
         "answers": [
           "Warsaw School of Economics"
         ],
