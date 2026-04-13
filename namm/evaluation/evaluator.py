@@ -227,7 +227,7 @@ class MemoryHFEvaluator():
                 (batch_size, chunk_size), device=self.device
             ).long()
             past_key_values = None
-            with torch.no_grad():
+            with torch.inference_mode():
                 for _ in range(num_chunks):
                     out = inner_model(
                         test_batch, use_cache=True,
@@ -723,6 +723,20 @@ class MemoryHFEvaluator():
                     )
                     successful_generation = True
                     if self.force_clear_cache:
+                        # O8: reset NAMM per-layer buffers between prompt
+                        # batches so prev_attn_buffer, past_scores, and EMA
+                        # state from the finished batch are freed before
+                        # the next batch allocates new ones.
+                        if self.is_memory_model:
+                            self.memory_policy.initialize_buffers()
+                            for comp_name in getattr(
+                                    self.memory_policy,
+                                    'component_names', []):
+                                comp = getattr(
+                                    self.memory_policy, comp_name, None)
+                                if comp is not None and hasattr(
+                                        comp, 'initialize_buffers'):
+                                    comp.initialize_buffers()
                         empty_gpu_cache()
                 except Exception as e:
                     if is_oom_exception(e):

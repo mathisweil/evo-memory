@@ -5,16 +5,16 @@ to LoRAGradTrainer instead of ESTrainer. Runs WITHOUT torch.no_grad()
 around the training loop so autograd flows through LoRA A/B matrices.
 
 Usage:
-    # LoRA-only (m1 condition):
-    python scripts/run_lora.py --config scripts/configs/lora_default.yaml --run_name m1_test
+    # M1 LoRA-only (FAIR-01):
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml --run_name m1_r8
 
-    # LoRA + frozen NAMM (m4-frozen condition):
-    python scripts/run_lora.py --config scripts/configs/lora_default.yaml \
-        --namm_active --namm_checkpoint path/to/namm.pt --run_name m4_test
+    # M3 LoRA + frozen NAMM (FAIR-01):
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+        --run_name m3_lora_frozen_namm --namm_checkpoint path/to/namm.pt
 
     # Quick smoke test:
-    python scripts/run_lora.py --run_name test \
-        --num_epochs 1 --eval_interval 5 --max_seq_len 512
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+        --run_name smoke --num_epochs 1 --eval_interval 999 --no-gcs --wandb_log false
 """
 
 import argparse
@@ -52,7 +52,7 @@ def parse_args():
         description="LoRA gradient fine-tuning of base LLM weights with optional NAMM")
 
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/configs/lora_default.yaml)")
+                        help="YAML config file (see scripts/configs/lora_rh_m1_instruct_5t.yaml)")
 
     # Experiment hierarchy
     parser.add_argument("--run_name", type=str, default=None,
