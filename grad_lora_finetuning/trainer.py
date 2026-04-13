@@ -107,6 +107,7 @@ class LoRATrainerConfig:
     early_stopping_patience: int = 0  # stop after N evals with no val F1 improvement (0 = disabled)
     min_conditioning_length: int = None  # min prompt tokens (skip shorter prompts)
     max_answer_tokens: int = None        # max answer tokens (skip samples with longer answers)
+    skip_baseline_eval: bool = False     # skip pre-training eval to save VRAM on small GPUs
 
 
 # ---------------------------------------------------------------------------
@@ -861,7 +862,7 @@ class LoRAGradTrainer:
             self._write_wandb_id()
 
         # --- Baseline evaluation (before training) on val set ---
-        if self.task_sampler is not None:
+        if self.task_sampler is not None and not cfg.skip_baseline_eval:
             print("=== Baseline evaluation on VAL set (before LoRA training) ===")
             self.model.eval()
             torch.cuda.empty_cache()
