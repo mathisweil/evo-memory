@@ -52,6 +52,8 @@ Each leaf contains:
 | `Trunc/lora_m1_2048` — M1 LoRA, input truncated to last 2048 tokens | ✅ done |
 | `M1_recency/cs1024` — M1 LoRA + recency eviction, cache_size=1024 | ✅ done |
 | `M1_recency/cs2048` — M1 LoRA + recency eviction, cache_size=2048 | ⏳ pending |
+| `M1_under_NAMM/cs1024` — M1 LoRA (no NAMM training) + NAMM eviction cs1024 | ✅ done |
+| `M1_under_NAMM/cs2048` — M1 LoRA (no NAMM training) + NAMM eviction cs2048 | ✅ done |
 | `A4/cs1024_no_namm` — A4 — M4 (cs1024) LoRA, NAMM disabled (full cache) | ✅ done |
 | `A4/cs2048_no_namm` — A4 — M4 (cs2048) LoRA, NAMM disabled (full cache) | ✅ done |
 
@@ -77,6 +79,8 @@ Re-run `python scripts/organize_eval_results.py` to refresh after more jobs fini
 | `Trunc/lora_m1_2048` | 28.87 | 28.91 | 27.67 | 29.34 |
 | `M1_recency/cs1024` | 0.00 | 0.00 | 0.00 | 0.00 |
 | `M1_recency/cs2048` | — | — | — | — |
+| `M1_under_NAMM/cs1024` | 26.97 | 27.20 | 21.83 | 22.54 |
+| `M1_under_NAMM/cs2048` | 31.35 | 31.59 | 24.50 | 25.29 |
 | `A4/cs1024_no_namm` | 28.82 | 28.69 | 25.62 | 26.40 |
 | `A4/cs2048_no_namm` | 33.91 | 34.07 | 25.66 | 25.96 |
 
@@ -98,6 +102,8 @@ Re-run `python scripts/organize_eval_results.py` to refresh after more jobs fini
 | `Trunc/lora_m1_2048` | 31.56 | 27.56 | 30.04 | 33.95 | 21.43 | 28.91 | **28.87** |
 | `M1_recency/cs1024` | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | **0.00** |
 | `M1_recency/cs2048` | — | — | — | — | — | — | — |
+| `M1_under_NAMM/cs1024` | 19.42 | 27.56 | 27.48 | 35.33 | 26.19 | 27.20 | **26.97** |
+| `M1_under_NAMM/cs2048` | 35.34 | 27.56 | 27.20 | 35.19 | 32.65 | 31.59 | **31.35** |
 | `A4/cs1024_no_namm` | 46.19 | 25.00 | 28.12 | 26.67 | 17.46 | 28.69 | **28.82** |
 | `A4/cs2048_no_namm` | 43.56 | 38.89 | 34.63 | 35.80 | 17.46 | 34.07 | **33.91** |
 
@@ -119,6 +125,8 @@ Re-run `python scripts/organize_eval_results.py` to refresh after more jobs fini
 | `Trunc/lora_m1_2048` | 30.62 | 18.72 | 31.68 | 41.85 | 23.83 | 29.34 | **27.67** |
 | `M1_recency/cs1024` | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | **0.00** |
 | `M1_recency/cs2048` | — | — | — | — | — | — | — |
+| `M1_under_NAMM/cs1024` | 17.52 | 19.24 | 22.28 | 33.57 | 20.09 | 22.54 | **21.83** |
+| `M1_under_NAMM/cs2048` | 23.74 | 20.10 | 21.60 | 35.75 | 25.28 | 25.29 | **24.50** |
 | `A4/cs1024_no_namm` | 30.41 | 23.55 | 21.41 | 31.57 | 25.07 | 26.40 | **25.62** |
 | `A4/cs2048_no_namm` | 24.54 | 31.15 | 22.88 | 29.92 | 21.31 | 25.96 | **25.66** |
 
