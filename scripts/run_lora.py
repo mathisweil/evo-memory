@@ -94,6 +94,8 @@ def parse_args():
     parser.add_argument("--batch_size_eval", type=int, default=None)
     parser.add_argument("--early_stopping_patience", type=int, default=0,
                         help="Stop after N evals with no val F1 improvement (0 = disabled)")
+    parser.add_argument("--skip_baseline_eval", action="store_true", default=False,
+                        help="Skip pre-training F1 eval to reduce peak VRAM")
 
     # Checkpointing & GCS
     parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True)
@@ -313,6 +315,7 @@ def main():
         min_conditioning_length=cfg.get('min_conditioning_length', None),
         max_answer_tokens=args.filter_answers_by_tokens,
         early_stopping_patience=args.early_stopping_patience,
+        skip_baseline_eval=args.skip_baseline_eval,
     )
 
     wandb_cfg = WandbConfig(
