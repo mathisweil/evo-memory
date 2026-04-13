@@ -1,4 +1,7 @@
-# ES fine-tuning default configuration
+# DEPRECATED: Generic ES defaults (non-FAIR-01). Uses 3-task run_config and
+# train_samples=150 (old data-split mechanism). M2 NAMM training uses
+# run_namm.py, not run_es.py. Kept for reproducibility of prior ES runs.
+#
 # Usage: python scripts/run_es.py --config scripts/configs/es_default.yaml --run_name my_run
 # CLI args override values in this file.
 
