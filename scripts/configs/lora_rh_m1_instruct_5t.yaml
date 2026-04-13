@@ -43,7 +43,7 @@ val_split: 0.15
 split_seed: 42
 
 # -- Evaluation ---------------------------------------------------------------
-eval_interval: 24
+eval_interval: 8
 log_interval: 5
 batch_size_eval: 1
 early_stopping_patience: 5

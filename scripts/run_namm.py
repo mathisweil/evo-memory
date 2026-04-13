@@ -50,7 +50,7 @@ def main(cfg: DictConfig):
     torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
     torch.backends.cudnn.allow_tf32 = True  # allow tf32 on cudnn
 
-    with torch.no_grad():
+    with torch.inference_mode():
         (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
             auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
 
@@ -146,7 +146,7 @@ def main(cfg: DictConfig):
         if cfg.wandb_config.wandb_log and master_process:
             wandb_init(cfg=cfg)
 
-        with torch.no_grad():
+        with torch.inference_mode():
             trainer.train()
 
         if is_ddp:
@@ -154,5 +154,5 @@ def main(cfg: DictConfig):
 
 
 if __name__ == "__main__":
-    with torch.no_grad():
+    with torch.inference_mode():
         main()
