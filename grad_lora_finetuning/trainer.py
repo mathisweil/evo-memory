@@ -1004,9 +1004,10 @@ class LoRAGradTrainer:
                             try:
                                 with torch.no_grad():
                                     val_scores = self._evaluate_f1(split='val')
-                                    # Evaluate on a train subsample (same size as val) for overfitting detection
+                                    torch.cuda.empty_cache()
                                     val_n = sum(len(v) for v in self.task_sampler.get_split_indices('val').values())
                                     train_scores = self._evaluate_f1(split='train', num_samples=val_n)
+                                    torch.cuda.empty_cache()
                                     self._debug_generate(n=3, split='val')
                             except (torch.cuda.OutOfMemoryError, ValueError) as e:
                                 print(f"WARNING: Periodic eval OOM at step {global_step} — skipping. ({e})")
