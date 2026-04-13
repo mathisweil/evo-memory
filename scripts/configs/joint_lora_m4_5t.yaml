@@ -39,13 +39,13 @@ mini_batch_size: 16
 lora_rank: 8
 lora_target_modules: [q_proj, v_proj]
 lora_alpha: 16
-lora_dropout: 0.0
+lora_dropout: 0.1
 learning_rate: 5e-5
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
 gradient_accumulation_steps: 16
-max_seq_len: 3500
+max_seq_len: 7000
 sft_mode: true
 
 # -- Data (FAIR-01) -----------------------------------------------------------
