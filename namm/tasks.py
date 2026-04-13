@@ -11,6 +11,7 @@ from datasets import load_dataset
 import copy
 
 import numpy as np
+import torch
 
 from namm.evaluation.longbench import get_score
 
@@ -722,7 +723,7 @@ class TaskSampler():
 
             task_outputs = lm.evaluate_lb(dataset_samples=prompts,
                                           **task_kwargs, **model_kwargs)
-            task_outputs = task_outputs
+            torch.cuda.empty_cache()
             n_task_outputs = len(task_outputs)
             n_outputs_per_pop_idx = n_task_outputs // pop_reps
 
