@@ -47,7 +47,7 @@ split_seed: 42
 # -- Evaluation ---------------------------------------------------------------
 eval_interval: 2
 log_interval: 5
-batch_size_eval: 4
+batch_size_eval: 1
 early_stopping_patience: 5
 
 # -- Wandb --------------------------------------------------------------------
