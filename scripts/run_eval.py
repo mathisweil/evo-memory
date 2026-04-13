@@ -254,7 +254,7 @@ def main():
     )
     test_idxs = task_sampler.get_split_indices('test')
     print(f"  Test split size: {n_test} prompts across "
-          f"{len(test_idxs)} tasks (FAIR-01 target: 69)")
+          f"{len(test_idxs)} tasks (FAIR-01 target: 70)")
 
     # Generation kwargs
     gen_kwargs = {}
