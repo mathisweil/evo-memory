@@ -1,0 +1,65 @@
+# M4 Joint LoRA + NAMM — alternating co-training on 5-task QA subset
+# FAIR-01 compliant. See experiment_specification.md §3 M4.
+#
+# Overrides joint_default.yaml with adapter_type=lora and learning_rate=5e-5
+# (matching M1). Use this instead of joint_default.yaml for M4-LoRA runs.
+#
+# Usage:
+#   python scripts/run_joint.py \
+#       --config scripts/configs/joint_lora_m4_5t.yaml \
+#       --run_name m4_joint_lora
+
+# -- Experiment ---------------------------------------------------------------
+run_name: null
+experiment: null
+
+# -- Joint training -----------------------------------------------------------
+adapter_type: lora
+num_outer_loops: 2
+namm_iterations_per_stage: 100
+adapter_iterations_per_stage: 25
+lora_epochs_per_stage: 75
+eval_after_each_loop: true
+
+# -- NAMM config --------------------------------------------------------------
+run_config: namm_bam_i1_llama32_1b_5t
+namm_checkpoint: null
+cache_size: 1024
+namm_eval_interval: 100
+
+# -- ES hyperparameters (unused for adapter_type=lora, kept for completeness) -
+sigma: 0.001
+alpha: 0.0005
+population_size: 8
+noise_mode: correlated
+initial_seed: 33
+mini_batch_size: 16
+
+# -- LoRA hyperparameters (M4 matches M1 lr) ----------------------------------
+lora_rank: 8
+lora_target_modules: [q_proj, v_proj]
+lora_alpha: 16
+lora_dropout: 0.0
+learning_rate: 5e-5
+weight_decay: 0.01
+max_grad_norm: 1.0
+warmup_ratio: 0.03
+gradient_accumulation_steps: 16
+max_seq_len: 3500
+sft_mode: true
+
+# -- Data (FAIR-01) -----------------------------------------------------------
+train_split: 0.7
+val_split: 0.15
+split_seed: 42
+min_conditioning_length: 4096
+max_conditioning_length: 6500
+max_answer_tokens: 64
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+
+# -- Evaluation ---------------------------------------------------------------
+batch_size: null
+
+# -- Advanced -----------------------------------------------------------------
+override: []
