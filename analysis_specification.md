@@ -13,18 +13,18 @@ We compare three conditions:
 
 ## Analysis Status
 
-| Section | Topic                          | Status                                          |
-| ------- | ------------------------------ | ----------------------------------------------- |
-| §0      | Dataset characterisation       | DONE (`report_0`)                               |
-| §1      | Per-task sensitivity           | DONE (`report_1`, rewritten with test-set data) |
-| §2      | Adaptation rate                | DONE (`report_2`, training dynamics)            |
-| §3      | Per-layer retention            | DONE (`report_3`)                               |
-| §4      | LoRA weight comparison         | DONE (`report_4`)                               |
-| §5      | Attention entropy              | DONE (`report_5`)                               |
-| §6      | Token importance alignment     | DONE (`report_6`)                               |
-| §7      | CKA representation similarity  | DONE (`report_7`)                               |
-| §8      | Probing for residual knowledge | NOT DONE                                        |
-| §9      | Gradient flow attribution      | NOT DONE                                        |
+| Section | Topic                          | Status                                                                                                       |
+| ------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| §0      | Dataset characterisation       | DONE (`report_0`)                                                                                            |
+| §1      | Per-task sensitivity           | DONE (`report_1`, rewritten with test-set data)                                                              |
+| §2      | Adaptation rate                | DONE (`report_2`, training dynamics)                                                                         |
+| §3      | Per-layer retention            | DONE (`report_3`)                                                                                            |
+| §4      | LoRA weight comparison         | DONE (`report_4`)                                                                                            |
+| §5      | Attention entropy              | DONE (`report_5`)                                                                                            |
+| §6      | Token importance alignment     | DONE (`report_6`)                                                                                            |
+| §7      | CKA representation similarity  | DONE (`report_7`)                                                                                            |
+| §8      | Probing for residual knowledge | DONE (`report_8`). 40 samples, linear probes per layer. M3 degrades in layers 7-14.                          |
+| §9      | Gradient flow attribution      | DONE (`report_9`). 60 samples, instrumented fwd+bwd. Eviction loss +865%, gradients uncorrelated (cos~0.02). |
 
 ### Additional conditions not in the original spec
 

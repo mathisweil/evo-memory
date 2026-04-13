@@ -233,13 +233,50 @@ M3's LoRA actually *outperforms* M1 on test (32.28 vs 31.14), and A4/cs2048
 further exceeds M1 (33.91 vs 31.14) -- confirming that the different
 computation path reaches a *better* destination.
 
+### Report 8 -- Probing for Residual Knowledge of Evicted Content
+
+Linear probes on mean-pooled hidden states test whether M3 retains information
+about evicted tokens. 40 test samples with balanced labels (20 with answer tokens
+evicted, 20 without).
+
+| Metric                          | M1 (full context) | M3 (evicted) | Random |
+| ------------------------------- | ----------------: | -----------: | -----: |
+| Mean probe accuracy (17 layers) |             0.557 |        0.484 |  0.500 |
+| Layer 14 (max M1-M3 gap)        |             0.700 |        0.375 |  0.500 |
+| Layer 15 (recovery)             |             0.550 |        0.550 |  0.500 |
+
+M3 probe accuracy degrades in layers 7-14 (down to 0.375) while M1 stays at
+0.525-0.700. Information about evicted content is genuinely lost from M3's
+later-layer representations. The gap is largest at layer 14 (0.325), aligning
+with Report 4's finding that later layers bear the heaviest LoRA adaptation
+burden. M3 recovers at layer 15, suggesting the final layer re-aggregates
+task-relevant features despite the information loss.
+
+### Report 9 -- Gradient Flow and Loss Attribution Under Eviction
+
+Instrumented forward+backward passes on 60 training samples compare gradient
+flow between NAMM-evicted and full-context conditions using the M3 checkpoint.
+
+| Metric                       | Evicted (cs=1024) | Full context |
+| ---------------------------- | ----------------: | -----------: |
+| Mean CE loss (answer tokens) |             8.706 |        0.902 |
+| Mean retention ratio         |             0.201 |        1.000 |
+| Gradient direction cos sim   | 0.015 (near zero) |              |
+
+Eviction increases answer-token loss by **865%** (8.71 vs 0.90). Gradient
+directions are essentially **uncorrelated** between evicted and full-context
+conditions (mean cosine similarity 0.015), meaning eviction completely changes
+the optimization signal. Early layers (0-3) show the largest gradient norm
+amplification under eviction (4-6x), while later layers (10-15) show more
+moderate increases (1-2x).
+
 ---
 
 ## 3. Cross-Report Analysis
 
 ### 3.1 The Coherent Picture: Weight Space -> Function Space -> Task Performance
 
-Reports 4, 5, 6, and 7 form a coherent chain from weight-space to
+Reports 4, 5, 6, 7, 8, and 9 form a coherent chain from weight-space to
 function-space to task performance:
 
 ```
@@ -442,6 +479,8 @@ from all comparative analyses. The `M1_recency/cs2048` run is still pending.
 | 5      | Are the attention patterns similar? | No -- M3 has +4% entropy, -1% sinks on full context                                                       |
 | 6      | Does M3 align with NAMM?            | No -- same negative correlation as M1 (rho = -0.14)                                                       |
 | 7      | Are the representations similar?    | Mostly -- CKA 0.979-1.0, dip at layer 3                                                                   |
+| 8      | Does M3 retain evicted information? | Partially -- probe accuracy degrades in layers 7-14 (M3 drops to 0.375 vs M1's 0.700 at layer 14)         |
+| 9      | Does eviction change gradient flow? | Yes drastically -- loss +865%, gradient directions uncorrelated (cos~0.02) between evicted and full       |
 
 ---
 

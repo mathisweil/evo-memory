@@ -77,9 +77,9 @@ The probing results support the hypothesis that M3's LoRA adaptation compensates
 
 ## Figures
 
-| File                       | Description                                              |
-| -------------------------- | -------------------------------------------------------- |
-| `probe_accuracy.png`       | Per-layer probe accuracy for M1 vs M3 vs random baseline |
-| `entity_survival.png`      | Retention fractions and answer token survival estimates   |
-| `layer_wise_information.png` | Per-layer accuracy difference (M1 - M3)                |
-| `probe_data.npz`           | Raw probe results for reproduction                       |
+| File                         | Description                                              |
+| ---------------------------- | -------------------------------------------------------- |
+| `probe_accuracy.png`         | Per-layer probe accuracy for M1 vs M3 vs random baseline |
+| `entity_survival.png`        | Retention fractions and answer token survival estimates  |
+| `layer_wise_information.png` | Per-layer accuracy difference (M1 - M3)                  |
+| `probe_data.npz`             | Raw probe results for reproduction                       |

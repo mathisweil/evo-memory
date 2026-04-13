@@ -37,6 +37,11 @@ New truncation baselines: Trunc/plain_1024 (18.21), Trunc/plain_2048 (18.26), Tr
 - **A4 picture is more nuanced.** A4/cs1024_no_namm (28.82) is *below* M4/cs1024 (32.28), meaning NAMM at inference *helps* the M4 cs1024 LoRA. But A4/cs2048_no_namm (33.91) exceeds M4/cs2048 (31.06), so the pattern is cache-size-dependent.
 - **Critique #2 (val-not-test) was still methodologically valid.** It is a coincidence that corrected test numbers support the original val-based narrative. The right process would have been to evaluate on test from the start.
 
+### Analyses 8 and 9 now complete (2026-04-13)
+
+- **Report 8 (Probing):** 40 test samples, per-layer linear probes. M1 probe accuracy ~0.56, M3 degrades to 0.375 in layers 7-14. Confirms information is genuinely lost from evicted context, concentrated in deep layers. Despite this, M3 matches M1 on task F1 — the LoRA adapts its processing strategy rather than preserving information.
+- **Report 9 (Gradient Flow):** 60 training samples, instrumented forward+backward. Eviction increases answer-token loss by 865% (8.71 vs 0.90). Gradient directions are essentially uncorrelated between evicted and full-context passes (mean cosine similarity 0.015). Early layers (0-3) show 4-6x gradient norm amplification under eviction.
+
 ### Recommendations still open
 
 - **#3 (cs3072 undertrained)** -- Resolved by dropping cs3072 entirely.
