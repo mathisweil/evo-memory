@@ -18,6 +18,7 @@ from namm.llms import MemoryModelWrapper
 
 from namm.evaluation import MemoryHFEvaluator
 from namm.policy import ParamMemoryPolicy, MemoryPolicyAuxiliaryLoss
+from es_finetuning.utils import force_memory_cleanup
 from utils import (
     COLOR, convert_to_dict_of_lists, pop_stats_from_dict_of_lists,
     concat_list_of_dicts_of_lists)
@@ -84,7 +85,7 @@ class Snapshot:
 
 class MemoryTrainer():
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def __init__(self,
                  device,
                  evaluation_model: MemoryHFEvaluator,
@@ -352,7 +353,7 @@ class MemoryTrainer():
                 self.evolution_algorithm.shift_first_gen = False
             self.force_initial_re_eval = True
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def aggregate_score_dict(self, score_dict, sample_idxs_per_task=None):
         score, norm_score_dict = aggregate_score_dict(
             score_dict=score_dict,
@@ -363,7 +364,7 @@ class MemoryTrainer():
         )
         return score, norm_score_dict
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def aggregate_scores(self, score_dicts, sample_idxs_per_task=None):
         aggregated_scores = []
         norm_score_dicts = []
@@ -444,7 +445,7 @@ class MemoryTrainer():
 
             self.task_sampler.set_requests_per_task(latest_sampled_task_idxs)
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def get_best_candidate_and_synchronize_evolution(
         self,
         fitness: torch.Tensor,
@@ -511,7 +512,7 @@ class MemoryTrainer():
                     norm_score_dict[task_name])
         return out
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def update_and_synchronize_evolution(
         self,
         fitness: torch.Tensor,
@@ -532,7 +533,7 @@ class MemoryTrainer():
         if self.ddp:
             self.synchronize_evolution_from_master()
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def synchronize_evolution_from_master(self,):
         if self.ddp:
 
@@ -545,7 +546,7 @@ class MemoryTrainer():
                     scatter_list = None
                 dist.scatter(p.data, scatter_list, src=0)
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def merge_and_store_buffers(
         self,
         target_buffer_list: Optional[List[torch.tensor]] = None,
@@ -596,7 +597,7 @@ class MemoryTrainer():
             self.raw_evolution_algorithm.store_buffers(
                 buffers=buffers_to_save)
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def sample_and_synchronize_params(self, best=False):
         if best:
             best_params = self.evolution_algorithm.best_params.unsqueeze(0)
@@ -674,7 +675,7 @@ class MemoryTrainer():
 
         print(f'PTDType used {self.ptdtype}')
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def gather_params(self, pop_accumulation_idx: int, ask_new: bool,):
         if ask_new:
             self.pop_params = self.evolution_algorithm.ask()
@@ -683,7 +684,7 @@ class MemoryTrainer():
 
         return torch.gather(self.pop_params, dim=0, index=idxs)
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def estimate_loss(self,):
         '''Estimate loss on sequentially sampled data, if iid go back
            defaults to non-sequential.'''
@@ -839,7 +840,7 @@ class MemoryTrainer():
 
         return out
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def synchronize_dict(self, input_dict):
         if self.ddp:
 
@@ -854,7 +855,7 @@ class MemoryTrainer():
             synced_dict = input_dict
         return synced_dict
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def gather_objects_to(self, obj, dst=0):
         if self.ddp:
             if dist.get_rank() == dst:
@@ -870,7 +871,7 @@ class MemoryTrainer():
             synced_list = [obj]
         return synced_list
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def gather_objects_all(self, obj):
         if self.ddp:
             synced_list = [None for _ in range(self.world_size)]
@@ -879,7 +880,7 @@ class MemoryTrainer():
             synced_list = [obj]
         return synced_list
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def merge_task_results(self, list_of_stats):
         prompts_per_task = {}
         scores_per_task = {}
@@ -908,7 +909,7 @@ class MemoryTrainer():
                                  f'merging results for task {task_n}')
         return prompts_per_task, scores_per_task, mean_scores_per_task
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def reduce_tensors_to(self, tensor, dst=0, mean=True):
         if self.ddp:
             dist.reduce(tensor, dst=dst, op=dist.ReduceOp.SUM)
@@ -916,7 +917,7 @@ class MemoryTrainer():
                 tensor = tensor/self.world_size
         return tensor
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def _evaluate(self, iter_num, **log_kwargs):
 
         if self.use_auxiliary_loss:
@@ -969,7 +970,7 @@ class MemoryTrainer():
                                         self.early_stop_patience)
         return wandb_log_dict
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def _train_step(self,):
         self.model.training_mode()
 
@@ -1006,6 +1007,8 @@ class MemoryTrainer():
                 performance_per_request=self.train_samples_split,
             )
             score_dicts_per_acc_step.append(score_dicts)
+            # O3: free GPU memory between population accumulation steps
+            force_memory_cleanup()
 
         if self.train_samples_split:
 
@@ -1171,7 +1174,7 @@ class MemoryTrainer():
             return True
         return False
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def train(self):
         local_iter_num = 0
         t0 = time.time()
@@ -1247,6 +1250,8 @@ class MemoryTrainer():
                         break
             if self.eval_only:
                 return logged_dict
+            # O4: free eval tensors before train step
+            force_memory_cleanup()
             all_scores, all_scores_dict = self._train_step()
             t1 = time.time()
             dt = t1 - t0

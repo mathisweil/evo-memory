@@ -1,3 +1,4 @@
+import gc
 import os
 import random
 import itertools
@@ -723,6 +724,7 @@ class TaskSampler():
 
             task_outputs = lm.evaluate_lb(dataset_samples=prompts,
                                           **task_kwargs, **model_kwargs)
+            gc.collect()
             torch.cuda.empty_cache()
             n_task_outputs = len(task_outputs)
             n_outputs_per_pop_idx = n_task_outputs // pop_reps
