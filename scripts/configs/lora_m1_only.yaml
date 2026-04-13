@@ -1,3 +1,7 @@
+# DEPRECATED: Early prototype config (non-FAIR-01). Uses train_split=0.8,
+# sft_mode=false, num_epochs=2, lr=2e-4, and 3-task run_config.
+# For FAIR-01 M1 runs use lora_rh_m1_instruct_5t.yaml instead.
+#
 # Usage:
 #   python scripts/run_lora.py --config scripts/configs/lora_m1_only.yaml --run_name m1_test
 

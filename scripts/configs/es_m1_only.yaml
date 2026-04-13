@@ -1,3 +1,7 @@
+# DEPRECATED: Pre-FAIR-01 ES config. Uses train_split=0.8 and
+# full_cache_es_llama32_1b run_config (single-task Qasper).
+# No FAIR-01 compliant ES-only config exists yet — M2 uses run_namm.py.
+#
 # Usage:
 #   python scripts/run_es.py --config scripts/configs/es_m1_only.yaml --run_name m1_es
 
