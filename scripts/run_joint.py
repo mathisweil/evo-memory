@@ -380,7 +380,7 @@ def main():
     )
     test_idxs = task_sampler.get_split_indices('test')
     print(f"  Test split size: {n_test} prompts across "
-          f"{len(test_idxs)} tasks (FAIR-01 target: 69)")
+          f"{len(test_idxs)} tasks (FAIR-01 target: 70)")
 
     # MemoryTrainer expects these attributes on the task_sampler (it reads
     # training_tasks_subset / test_tasks_subset directly).  TaskSampler
