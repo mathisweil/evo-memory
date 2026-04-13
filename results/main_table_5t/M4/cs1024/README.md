@@ -2,18 +2,18 @@
 
 LoRA fine-tuned on top of a frozen NAMM (cs=1024). The LoRA and NAMM are evaluated together.
 
-**Source run:** `eval_results/lora_m4_cs1024_5t/ext_20260412_112216/`
+**Source run:** `eval_results/lora_m4_cs1024_5t/ext_20260413_135809/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 29.30 | 25.39 |
-| lb/2wikimqa | 44.23 | 27.27 |
-| lb/qasper_e | 26.56 | 23.78 |
-| lb/hotpotqa_e | 43.45 | 41.21 |
-| lb/2wikimqa_e | 22.79 | 22.51 |
-| **mean F1** | **33.27** | **28.03** |
+| lb/qasper | 7.82 | 24.46 |
+| lb/2wikimqa | 44.23 | 21.97 |
+| lb/qasper_e | 21.91 | 26.75 |
+| lb/hotpotqa_e | 26.79 | 34.83 |
+| lb/2wikimqa_e | 20.75 | 23.11 |
+| **mean F1** | **24.30** | **26.23** |
 
 ## Command
 

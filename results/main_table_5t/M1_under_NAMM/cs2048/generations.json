@@ -270,7 +270,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": "NewsCorp",
+        "pred": "NewsCorp and Europarl",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -290,7 +290,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "A second order co-ocurrence matrix is a matrix that represents the co-occurrence of pairs of words in a corpus, where the rows and columns represent words and the entries represent the frequency of co-occurrence.",
+        "pred": "A second order co-ocurrence matrix is a matrix that represents the co-occurrence of pairs of words in a corpus.",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -320,7 +320,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": "They use a routing system to match annotators to instances based on their predicted difficulty.",
+        "pred": "They match annotators to instances based on their predicted difficulty.",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -823,7 +823,7 @@
       },
       {
         "prompt_idx": 22,
-        "pred": "Question: What is the method proposed to alleviate the gap between pre-training and fine-tuning in end-to-end speech translation?\n\nAnswer: BIBREF29",
+        "pred": "Question: What is the method proposed to alleviate the gap between pre-training and fine-tuning in end-to-end speech translation?\n\nAnswer: BIBREF30 DBLP:conf/icassp/JiaJMWCCALW19",
         "answers": [
           "the model is pre-trained on CTC-based ASR task and MT task in the pre-training stage."
         ],
@@ -852,7 +852,7 @@
       },
       {
         "prompt_idx": 40,
-        "pred": "Source Domain: Book Reviews\nTarget Domain: DVD Reviews",
+        "pred": "Source Domain: Book reviews, DVDs reviews, Electronics reviews, Kitchen reviews\n\nTarget Domain: Beauty reviews",
         "answers": [
           "Book, electronics, beauty, music, IMDB, Yelp, cell phone, baby, DVDs, kitchen",
           "we use set 1 of the source domain as the only source with sentiment label information during training, and we evaluate the trained model on set 1 of the target domain, Book (BK), Electronics (E), Beauty (BT), and Music (M)"
@@ -902,7 +902,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Vanilla ST baseline, many-to-many+pretrain baseline, triangle+pretrain baseline, triangle+pretrain+re-seg baseline, and many-to-many+pretrain+re-seg baseline.",
+        "pred": "Vanilla ST baseline, many-to-many+pretrain baseline, triangle+pretrain baseline, triangle+pretrain+re-seg baseline, and cascaded+re-seg baseline.",
         "answers": [
           "Vanilla ST baseline, encoder pre-training, in which the ST encoder is initialized from an ASR model, decoder pre-training, in which the ST decoder is initialized from an MT model, encoder-decoder pre-training, where both the encoder and decoder are pre-trained, many-to-many multi-task model where the encoders and decoders are derived from pre-trained ASR and MT models, Triangle+pre-train: BIBREF18 DBLP:conf/naacl/AnastasopoulosC18 proposed a triangle multi-task strategy for speech translation",
           "Vanilla ST baseline, Pre-training baselines, Multi-task baselines, Many-to-many+pre-training, Triangle+pre-train",
@@ -922,7 +922,7 @@
       },
       {
         "prompt_idx": 114,
-        "pred": "KBQA stands for Knowledge-Based Question Answering, which is a subfield of Natural Language Processing (NLP) that deals with the interaction between a knowledge base and a question-answering system. The core component of KBQA is the relation detection model, which is a key step in identifying the relevant relationships between the question and the knowledge base. The relation detection model is responsible for identifying the entities, relationships, and concepts that are relevant to the question, and then using this information to answer the question. The proposed model, HR-BiLSTM, is a hierarchical relation detection model that uses a combination of word-level and context",
+        "pred": "KBQA stands for Knowledge-Based Question Answering, which is a subfield of Natural Language Processing (NLP) that deals with the interaction between a knowledge base and a question-answering system. The core component of KBQA is the relation detection model, which is a key step in identifying the relevant entities and relationships in a given question. The relation detection model is responsible for identifying the relationships between entities, such as entities, concepts, and relationships, and determining the relevance of these relationships to the question. The model is typically trained on a large corpus of text data, which is used to learn the patterns and relationships between entities and",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -942,7 +942,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": "The political bias of different sources is included in the model by considering the political bias of each news source, which is a global network property. This means that the model takes into account the overall political bias of the network, rather than just the bias of individual sources.",
+        "pred": "The political bias of different sources is included in the model by considering the political bias of each news source, which is a global network property. The model uses this global network property to identify the political bias of each news source and to include it in the multi-layer representation of the news diffusion network.",
         "answers": [
           "By assigning a political bias label to each news article and training only on left-biased or right-biased outlets of both disinformation and mainstream domains",
           "we also account for political biases inherent to different news sources, referring to the procedure proposed in BIBREF2 to label different outlets. Overall we show that we are able to classify credible vs non-credible diffusion networks (and consequently news articles) with high accuracy (AUROC up to 94%), even when accounting for the political bias of sources (and training only on left-biased or right-biased articles). We observe that the layer of mentions alone conveys useful information for the classification, denoting a different usage of this functionality when sharing news belonging to the two news domains. We also show that most discriminative features, which are relative to the breadth and depth of largest cascades in different layers, are the same across the two countries."
@@ -1117,7 +1117,7 @@
       },
       {
         "prompt_idx": 4,
-        "pred": "Abdul Qadir Khan",
+        "pred": "Abraham Watson",
         "answers": [
           "Edward Watson"
         ],
@@ -1135,7 +1135,7 @@
       },
       {
         "prompt_idx": 7,
-        "pred": "Sogno Folk Museum",
+        "pred": "Sno Folk Museum",
         "answers": [
           "Bob Jones University"
         ],
@@ -1333,7 +1333,7 @@
       },
       {
         "prompt_idx": 95,
-        "pred": "Alkohol (1919) Night of Dark Shadows (1970)",
+        "pred": "Alkohol (English: Alcohol) is a 1919 German silent drama film directed by Ewald Andr\u00e9 Dupont and Alfred Lind and starring Wilhelm Die",
         "answers": [
           "Alkohol"
         ],
@@ -1557,7 +1557,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": "Question: What is the name of the summarization task?\n\nAnswer: Medication Regimen (MR) extraction task of extracting dosage and frequency for medications mentioned in a doctor-patient conversation transcript.",
+        "pred": "Question: What is the name of the summarization task used in the article?\n\nAnswer: Medication Regimen (MR) extraction task of extracting dosage and frequency for medications mentioned in a doctor-patient conversation transcript.",
         "answers": [
           "Yes",
           "Yes"
@@ -1672,7 +1672,7 @@
       },
       {
         "prompt_idx": 105,
-        "pred": "Text-Based Games are experiments performed on Coin Collector and Cooking World.",
+        "pred": "Text-Based Games are experiments performed on Coin Collector, Cooking World, and First TextWorld Problems.",
         "answers": [
           "CoinCollector , CookingWorld ",
           "CoinCollector, CookingWorld"
@@ -1702,7 +1702,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": "The document-level encoder is novel because it is not a traditional word-level encoder, but rather a document-level encoder that takes into account the entire document, including its structure and content.",
+        "pred": "The document-level encoder is novel because it is not a traditional word-level encoder, but rather a model that encodes the entire document as a single vector.",
         "answers": [
           "Bert model have a maximum length of 512; we overcome this limitation by adding more position embeddings, we insert external [cls] tokens at the start of each sentence, and each [cls] symbol collects features for the sentence preceding it, document representations are learned hierarchically"
         ],
@@ -1751,7 +1751,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": "KBQA stands for Knowledge-Based Question Answering, which is a subfield of Natural Language Processing (NLP) that deals with the interaction between a knowledge base and a question-answering system. The core component of KBQA is the relation detection model, which is a key step in identifying the relevant relationships between the question and the knowledge base. The relation detection model is responsible for identifying the entities, relationships, and concepts that are relevant to the question, and then using this information to answer the question. The proposed model, HR-BiLSTM, is a hierarchical relation detection model that uses a combination of word-level and context",
+        "pred": "KBQA stands for Knowledge-Based Question Answering, which is a subfield of Natural Language Processing (NLP) that deals with the interaction between a knowledge base and a question-answering system. The core component of KBQA is the relation detection model, which is a key step in identifying the relevant entities and relationships in a given question. The relation detection model is responsible for identifying the relationships between entities, such as entities, concepts, and relationships, and determining the relevance of these relationships to the question. The model is typically trained on a large corpus of text data, which is used to learn the patterns and relationships between entities and",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -1771,7 +1771,7 @@
       },
       {
         "prompt_idx": 126,
-        "pred": "Question: What are the pre-trained features used in the model?\n\nAnswer:yes, word2vec embeddings, sentiment and emotion features, CNN, pre-trained CNN, pre-trained sentiment and emotion models, pre-trained personality models, pre-trained sentiment and emotion and personality models, pre-trained CNN and sentiment and emotion models, pre-trained CNN and personality models, pre-trained CNN and sentiment and emotion models, pre-trained CNN and personality models, pre-trained CNN and sentiment and emotion models, pre-trained CNN and personality models, pre-trained CNN and sentiment and emotion models, pre-trained CNN and personality models, pre-trained CNN and sentiment and emotion models, pre",
+        "pred": "Question: What are the pre-trained features used in the model?\n\nAnswer:yes\n\nQuestion: What are the pre-trained models used in the model?\n\nAnswer:yes\n\nQuestion: What are the pre-trained models used in the model?\n\nAnswer:yes\n\nQuestion: What are the pre-trained models used in the model?\n\nAnswer:yes\n\nQuestion: What are the pre-trained models used in the model?\n\nAnswer:yes\n\nQuestion: What are the pre-trained models used in the model?\n\nAnswer:yes\n\nQuestion: What are the pre-trained models used in the model?\n\nAnswer:yes\n\nQuestion: What are the pre-trained models used",
         "answers": [
           "BIBREF9 , BIBREF8 ",
           "BIBREF9 , BIBREF8"
@@ -1870,7 +1870,7 @@
       },
       {
         "prompt_idx": 157,
-        "pred": "The authors show that their learned policy generalizes better than existing solutions to unseen games by training a Seq2Seq model that maps observations to actions, and then using this model to play the game. The Seq2Seq model is trained on a large dataset of games, and the model is able to learn a generalizable policy that can be applied to unseen games. The authors also show that the Seq2Seq model is able to generalize better than existing solutions, such as the LSTM model, which is trained on a smaller dataset and is not able to learn a generalizable policy.",
+        "pred": "The authors show that their learned policy generalizes better than existing solutions to unseen games by training a Seq2Seq model that maps observations to actions, and then using this model to play the game. The Seq2Seq model is trained on a large dataset of games, where the model learns to map observations to actions that are likely to lead to a good outcome. When the model is then used to play a new game, it can generalize well to the new game, even if it has not seen the game before. This is because the model has learned to associate the observations and actions with the game's outcome, and can use this knowledge to",
         "answers": [
           "promising results by solving almost half of the unseen games, most of the lost games are in the hardest set, where a very long sequence of actions is required for winning the game"
         ],
@@ -1879,7 +1879,7 @@
       },
       {
         "prompt_idx": 163,
-        "pred": "Wikipedia and CMV (Commental Network) Dataset",
+        "pred": "Wikipedia and CMV (a collection of Wikipedia articles)",
         "answers": [
           " `Conversations Gone Awry' dataset, subreddit ChangeMyView",
           "An expanded version of the existing 'Conversations Gone Awry' dataset and the ChangeMyView dataset, a subreddit whose only annotation is whether the conversation required action by the Reddit moderators. "
@@ -1983,7 +1983,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": "New York",
+        "pred": "83",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -2037,7 +2037,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": "No, the answer is Kuno Becker.",
+        "pred": "No, he did not.",
         "answers": [
           "Eduardo Kuno Becker Paz"
         ],
@@ -2507,7 +2507,7 @@
       },
       {
         "prompt_idx": 137,
-        "pred": "J\u00f6rn Lenz was born first.",
+        "pred": "Alejandro Romualdo",
         "answers": [
           "Alejandro Romualdo"
         ],
