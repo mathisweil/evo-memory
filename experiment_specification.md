@@ -429,6 +429,33 @@ The cs1024 and cs2048 runs crashed before completing all 150 epochs but best che
 
 > **WARNING — results directory mislabelling:** The `results/main_table_5t/M4/` directory contains M3 (frozen NAMM) eval results, NOT M4 (joint) results. This mislabelling propagated from the `rh_m4_frozen` config name into `scripts/organize_eval_results.py` and all downstream plots/reports. The correct mapping is: `results/main_table_5t/M4/ → experiment spec M3`. Similarly, `A4/` ablations disable the frozen NAMM from M3 checkpoints, not from a joint M4 run. All analysis reports written before this note was added use "M4" to mean M3-frozen-NAMM.
 
+### Maskfix Reruns — Attention Mask Bug Fix
+
+An attention mask bug was discovered in the NAMM split-processing loop (`namm/llms/llama.py` line 445): the attention mask grows with cumulative input length rather than tracking the actual post-eviction cache size. From chunk 9 onward (~2300 tokens into a ~5000-token prompt), attention collapses to perfectly uniform 1/N across all heads and layers. This bug exists in the original Sakana AI codebase and affects all results above. See `scripts/diagnose_attention_mask.py` for the diagnostic and `analysis/report_10/` for the comparison.
+
+Maskfix runs retrain M2 and M3 with the corrected attention mask.
+
+#### M2 maskfix — Standalone NAMM (CMA-ES, corrected attention)
+
+| Cache | WandB run name | WandB ID | State | Iters | Best val mean F1 |
+|-------|----------------|----------|-------|-------|-----------------|
+| 1024 | `...-cs1024-maskfix` | `z5bo4n8k` | finished | 200 | **14.90** (iter 170) |
+| 2048 | `...-cs2048-maskfix` | `jip3a3dm` | running | — | — |
+
+Earlier killed/crashed attempts: `upy2r2wr`, `dq14qqr2` (cs1024), `6yfx7846` (cs2048).
+
+M2 maskfix cs1024 val F1 (14.90) is substantially **worse** than buggy M2 (27.90). The NAMM eviction policy, trained with correct attention, performs worse — likely because the CMA-ES hyperparameters (pop_size=8, sigma=0.065) were tuned for the buggy regime. The optimisation landscape is different with correct attention.
+
+#### M3 maskfix — LoRA + frozen NAMM (corrected attention)
+
+| Cache | WandB run name | WandB ID | State | Steps | Best val avg F1 |
+|-------|----------------|----------|-------|-------|-----------------|
+| 1024 | `rh_m4_5t_cs1024_maskfix` | `h0bzg6on` | running | 294+ | **52.06** (step 260, interim) |
+
+Earlier killed attempt: `facswin9`.
+
+M3 maskfix cs1024 already exceeds both buggy M3 (45.59) and M1 (45.48) by ~6.5 points at only ~43% through training. Multi-hop tasks see the largest gains: HotpotQA-E +14.3, 2WikiMQA-E +19.5, 2WikiMQA +12.0.
+
 ### M4 — Joint LoRA + NAMM
 
 **Not yet started.** No runs matching the M4 joint training protocol exist in WandB.
@@ -459,6 +486,9 @@ The cs1024 and cs2048 runs crashed before completing all 150 epochs but best che
 | 8    | A4 — NAMM disabled at eval    | **done** (run on M3 ckpts, not M4; cs1024_no_namm: 28.82, cs2048_no_namm: 33.91)          |
 | —    | Trunc baselines               | **done** (plain_1024: 18.21, plain_2048: 18.26, lora_m1_1024: 26.90, lora_m1_2048: 28.87) |
 | —    | M1_recency/cs1024             | **BROKEN** (all zeros — likely LoRA+recency incompatibility, needs investigation)         |
+| —    | M2 maskfix cs1024             | **done** (val mean F1 14.90 — worse than buggy 27.90)                                     |
+| —    | M2 maskfix cs2048             | **running** (`jip3a3dm`)                                                                  |
+| —    | M3 maskfix cs1024             | **running** (`h0bzg6on`, step 294, val avg F1 52.06 interim — exceeds buggy 45.59 and M1 45.48) |
 
 ---
 

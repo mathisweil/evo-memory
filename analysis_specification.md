@@ -25,6 +25,7 @@ We compare three conditions:
 | §7      | CKA representation similarity  | DONE (`report_7`)                                                                                            |
 | §8      | Probing for residual knowledge | DONE (`report_8`). 40 samples, linear probes per layer. M3 degrades in layers 7-14.                          |
 | §9      | Gradient flow attribution      | DONE (`report_9`). 60 samples, instrumented fwd+bwd. Eviction loss +865%, gradients uncorrelated (cos~0.02). |
+| §10     | Maskfix comparison             | DONE (`report_10`). Buggy vs fixed attention mask. M2 maskfix worse (14.90 vs 27.90); M3 maskfix better (52.06 vs 45.59, still running). |
 
 ### Additional conditions not in the original spec
 
@@ -34,6 +35,17 @@ The following conditions have been evaluated but were not covered in the origina
 - **A4** (NAMM disabled at eval) — now evaluated on M3 checkpoints (not M4 joint as originally planned).
 - **Truncation baselines** (Trunc/plain, Trunc/lora_m1) — new conditions added during evaluation.
 - **M1_recency** — attempted but broken (all zeros); not usable.
+
+### Attention mask bug and maskfix reruns
+
+A critical attention mask bug was discovered in the NAMM split-processing loop (see `scripts/diagnose_attention_mask.py`). The attention mask grows with cumulative input length rather than tracking the actual post-eviction KV cache size. From chunk 9 onward (~2300 tokens), attention collapses to uniform 1/N. This bug exists in the original Sakana AI NAMM codebase and affects all published results.
+
+Maskfix reruns retrain M2 and M3 with the corrected attention mask:
+- **M2 maskfix cs1024** (`z5bo4n8k`): finished, val F1 14.90 (worse than buggy 27.90)
+- **M2 maskfix cs2048** (`jip3a3dm`): running
+- **M3 maskfix cs1024** (`h0bzg6on`): running, val F1 52.06 at step 260 (exceeds buggy 45.59 and M1 45.48)
+
+See `analysis/report_10/` for the full comparison.
 
 ---
 
@@ -288,6 +300,6 @@ Analyses 1–3 can be completed immediately from existing wandb data. Analyses 4
 
 ---
 
-## 10 · Cross-Report Synthesis
+## 11 · Cross-Report Synthesis
 
-`analysis/_summary_report.md` synthesises findings across all completed reports (§0–§7), drawing out cross-cutting themes and the overall narrative. `analysis/_meta-analysis.md` provides an independent critique of the analysis pipeline, identifying limitations, potential confounds, and directions for further work.
+`analysis/_summary_report.md` synthesises findings across all completed reports (§0–§9), drawing out cross-cutting themes and the overall narrative. `analysis/_meta-analysis.md` provides an independent critique of the analysis pipeline, identifying limitations, potential confounds, and directions for further work. `analysis/report_10/` compares buggy vs maskfix NAMM training results.
