@@ -384,17 +384,14 @@ performance by 14.5%.
 
 ### 3.2 M3's Advantage is Not in Attention Patterns
 
-The pre-emptive hedging hypothesis -- that M3 distributes attention more
-broadly as insurance against eviction -- is **not supported** by the
-corrected analysis:
+M3's LoRA does not change attention patterns:
 
 - **Report 5:** M2 (no LoRA) and M3 (with LoRA) have nearly identical
-  attention entropy under eviction (-1.4% difference).  The LoRA does
-  not change how attention is distributed.
+  attention entropy under eviction (-1.7% difference).
 - **Report 4:** M3's LoRA subspaces are orthogonal to M1's and 1.42x
   larger, yet produce the same attention entropy as M2 (no LoRA).
-- **Report 6:** M3 does not reshape attention toward NAMM (identical rho
-  for M1 and M3).
+- **Report 6:** M1, M2, M3 all show the same NAMM-attention correlation
+  (rho ≈ -0.15).
 
 Since M3 dramatically outperforms M2 (val F1 52.06 vs 14.90) with the
 same attention patterns, M3's advantage must come from what it does with
@@ -414,7 +411,7 @@ The anti-correlation suggests NAMM's spectrogram-based scoring captures
 different information from raw attention magnitude. NAMM may prioritise
 tokens that carry latent information (e.g., context tokens, section
 boundaries) over tokens that currently receive high attention (e.g.,
-recent tokens, sink tokens).
+recent tokens, high-attention tokens).
 
 The earlier analysis (15 samples, 1024-token truncation) reported positive
 correlation (+0.135). The discrepancy likely reflects qualitatively
@@ -440,8 +437,9 @@ devastates performance. Yet M3 with the same corrected NAMM achieves val F1
 
 This contrast establishes that the LoRA is doing the heavy lifting. NAMM
 alone under corrected eviction loses too much information. The LoRA's
-adaptation (broader attention, orthogonal subspaces, efficient norms)
-transforms a destructive bottleneck into a beneficial training signal.
+adaptation (orthogonal subspaces, efficient norms, improved value-space
+extraction) transforms a destructive bottleneck into a beneficial
+training signal.
 
 ### 3.6 Eviction Severity and Adaptation Quality
 
@@ -489,7 +487,7 @@ should be treated as suggestive rather than definitive.
 | Attention entropy shift   | +5.2% (flawed)  | M2 ≈ M3 (-12%)  | Revised  |
 | Orthogonal subspaces      | ~0.18 overlap   | ~0.21 overlap   | Robust   |
 | NAMM-attn correlation     | rho = -0.137    | rho ≈ -0.15     | Similar  |
-| CKA min layer             | Layer 3         | Layer 9         | Shifted  |
+| CKA min layer (M1vsM3)    | Layer 3         | Layer 11        | Shifted  |
 | LoRA norm ratio (q_proj)  | 1.93x           | 1.42x           | Smaller  |
 | Retention ratio           | 20%             | 3.8%            | 5x lower |
 | Probe informativeness     | M3 drops to .375| Abandoned       | Dropped  |
