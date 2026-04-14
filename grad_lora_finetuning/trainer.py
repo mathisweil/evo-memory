@@ -477,18 +477,34 @@ class LoRAGradTrainer:
                 np.zeros([1], dtype=np.int64))
             past_key_values = None
 
-            # Per-sample phase split
+            # Per-sample phase split. If the sample has no answer tokens
+            # (all labels == -100), it would contribute zero loss and zero
+            # gradient anyway — skip so phase 2 never runs over padding.
             answer_mask = (labels[0] != -100)
-            if answer_mask.any():
-                answer_start = answer_mask.nonzero(as_tuple=True)[0][0].item()
-            else:
-                answer_start = labels.shape[1]
+            if not answer_mask.any():
+                continue
+            answer_start = answer_mask.nonzero(as_tuple=True)[0][0].item()
 
             chunk_align = self.model.max_new_tokens  # 64
             context_end = (answer_start // chunk_align) * chunk_align
             context_end = max(context_end, 0)
 
-            seq_len = input_ids.shape[1]
+            # Sample's real end: one past the last non-pad input token.
+            # pad_collate_fn right-pads every batch to the batch max, so
+            # at bs>1 with heterogeneous lengths `input_ids.shape[1]` is
+            # the longest sample in the batch — running phase 2 up to
+            # that index processes padding tokens unnecessarily and, with
+            # output_attentions=True forcing eager attention, materialises
+            # a large `[1, heads, span, kv_len]` activation tape over
+            # padding. Labels past sample_end are -100, so clipping here
+            # changes no gradient but drops the wasted attention cost.
+            pad_id = self.tokenizer.pad_token_id
+            nonpad_positions = (input_ids[0] != pad_id).nonzero(as_tuple=True)[0]
+            if nonpad_positions.numel() == 0:
+                continue
+            sample_end = int(nonpad_positions[-1].item()) + 1
+            if sample_end <= context_end:
+                continue
 
             if context_end > 0:
                 with torch.no_grad():
@@ -502,11 +518,10 @@ class LoRAGradTrainer:
                     )
                 past_key_values = ctx_outputs.past_key_values
                 del ctx_outputs
-                torch.cuda.empty_cache()
 
-            phase2_input = input_ids[:, context_end:]
+            phase2_input = input_ids[:, context_end:sample_end]
             phase2_pos = torch.arange(
-                context_end, seq_len, device=self.device
+                context_end, sample_end, device=self.device
             ).unsqueeze(0).expand(input_ids.shape[0], -1)
 
             outputs = self.model(
@@ -520,7 +535,7 @@ class LoRAGradTrainer:
                 skip_lm_head=True,
             )
             hidden_states = outputs.hidden_states[-1]
-            phase2_labels = labels[:, context_end:]
+            phase2_labels = labels[:, context_end:sample_end]
             shift_hidden = hidden_states[:, :-1, :].contiguous()
             shift_labels = phase2_labels[:, 1:].contiguous()
             _past_kv = getattr(outputs, 'past_key_values', None)
