@@ -224,10 +224,79 @@ def plot_recovery_ratio(data: dict) -> None:
 # ── Main ────────────────────────────────────────────────────────────────────
 
 
+def extract_from_wandb() -> dict:
+    """Re-extract maskfix_data.json from WandB."""
+    import wandb
+
+    api = wandb.Api()
+    entity, project = WANDB_ENTITY, WANDB_PROJECT
+
+    def best_per_task(run_ids, key_prefix, step_key, is_namm=False):
+        """Get best per-task val F1 across run segments."""
+        import pandas as pd
+        frames = []
+        avg_key = (f"{key_prefix}mean_f1" if is_namm
+                   else f"{key_prefix}avg_f1")
+        task_keys = [f"{key_prefix}{t}" for t in TASKS]
+        all_keys = [step_key, avg_key] + task_keys
+        for rid in run_ids:
+            r = api.run(f"{entity}/{project}/{rid}")
+            h = r.history(keys=all_keys, pandas=True, samples=10000)
+            if not h.empty:
+                h = h.dropna(subset=[avg_key])
+                if frames:
+                    prev_max = frames[-1][step_key].max()
+                    h = h[h[step_key] > prev_max]
+                frames.append(h)
+        if not frames:
+            return {}
+        df = pd.concat(frames, ignore_index=True)
+        idx = df[avg_key].idxmax()
+        result = {t: float(df.loc[idx, f"{key_prefix}{t}"])
+                  for t in TASKS}
+        result["mean"] = float(df.loc[idx, avg_key])
+        result["best_step"] = int(df.loc[idx, step_key])
+        return result
+
+    print("Extracting B0 baseline...")
+    r = api.run(f"{entity}/{project}/{B0_RUN_ID}")
+    keys = [f"lora/baseline_lb_{t}" for t in TASKS]
+    h = r.history(keys=keys, pandas=True, samples=10000)
+    h = h.dropna(subset=[keys[0]])
+    b0 = {t: float(h.iloc[0][f"lora/baseline_lb_{t}"]) for t in TASKS}
+    b0["mean"] = float(np.mean(list(b0.values())))
+
+    print("Extracting M1...")
+    m1 = best_per_task(M1_RUN_IDS, "lora/val_lb_", "lora/global_step")
+
+    print("Extracting M2 maskfix...")
+    m2 = best_per_task([M2_MASKFIX_RUN_ID], "val_lb/", "iter",
+                       is_namm=True)
+
+    print("Extracting M3 maskfix...")
+    m3 = best_per_task([M3_MASKFIX_RUN_ID], "lora/val_lb_",
+                       "lora/global_step")
+
+    data = {
+        "B0": b0,
+        "M1": m1,
+        "M2_maskfix": m2,
+        "M3_maskfix": m3,
+    }
+
+    with open(DATA_PATH, "w") as f:
+        json.dump(data, f, indent=2)
+    print(f"Saved {DATA_PATH}")
+    return data
+
+
 def main() -> None:
-    data = load_data()
-    print(f"Loaded data from {DATA_PATH}")
-    print(f"  Conditions: {list(data.keys())}")
+    import sys
+    if "--extract" in sys.argv:
+        data = extract_from_wandb()
+    else:
+        data = load_data()
+    print(f"Loaded data: {list(data.keys())}")
 
     plot_best_val_f1_comparison(data)
     plot_sensitivity_bar(data)

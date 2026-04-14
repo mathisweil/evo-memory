@@ -6,7 +6,13 @@ Produces:
   - dataset_characteristics.png: summary table-as-figure
   - prompt_templates.png: prompt templates for each task
   - length_distributions.png: context and answer length distributions
+  - answer_types.png: answer type distribution per task
+  - eviction_analysis.png: eviction rates and retention at cs=1024
+  - relevant_tokens_data.json: per-sample relevant token statistics
   - Printed statistics used in _report.md
+
+After running this script, run generate_plots.py to produce the
+remaining plots (relevant_tokens.png, etc.) from the JSON data.
 
 Tasks analysed:
   lb/qasper, lb/2wikimqa, lb/qasper_e, lb/hotpotqa_e, lb/2wikimqa_e
@@ -174,6 +180,7 @@ def analyse():
             "ans_type_counts": dict(type_counter),
             "ctx_lengths": ctx_lengths,
             "ans_word_counts": ans_word_counts,
+            "_examples": eligible,
         }
 
         print(f"  Raw samples:     {len(all_ex)}")
@@ -522,6 +529,130 @@ def plot_answer_types(stats):
 # ---------------------------------------------------------------------------
 # Plot 5: Eviction impact analysis
 # ---------------------------------------------------------------------------
+def compute_relevant_tokens(stats_with_examples):
+    """Compute per-sample relevant token statistics.
+
+    For each sample, finds answer string occurrences and question entity
+    mentions in the context, expands each to a +-200 character window,
+    merges overlapping windows, and estimates relevant tokens.
+
+    Saves results to relevant_tokens_data.json for use by generate_plots.py.
+    """
+    import re
+
+    WINDOW = 200  # chars each side of an occurrence
+
+    def extract_entities(question):
+        """Extract capitalised noun phrases as entity candidates."""
+        # Simple heuristic: sequences of capitalised words (2+ chars)
+        entities = re.findall(r'\b[A-Z][a-zA-Z]{1,}(?:\s+[A-Z][a-zA-Z]{1,})*\b', question)
+        # Filter out sentence-start words by requiring length >= 2 words or
+        # single words that appear capitalised mid-sentence
+        return [e for e in entities if len(e) > 3]
+
+    def find_occurrences(context, pattern):
+        """Find all start positions of pattern in context (case-insensitive)."""
+        positions = []
+        ctx_lower = context.lower()
+        pat_lower = pattern.lower()
+        start = 0
+        while True:
+            idx = ctx_lower.find(pat_lower, start)
+            if idx == -1:
+                break
+            positions.append(idx)
+            start = idx + 1
+        return positions
+
+    def merge_windows(windows, ctx_len):
+        """Merge overlapping (start, end) windows."""
+        if not windows:
+            return []
+        windows = sorted(windows)
+        merged = [windows[0]]
+        for s, e in windows[1:]:
+            if s <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+            else:
+                merged.append((s, e))
+        return [(max(0, s), min(ctx_len, e)) for s, e in merged]
+
+    result = {}
+    for task in TASKS:
+        s = stats_with_examples[task]
+        examples = s["_examples"]
+        samples = []
+
+        for ex in examples:
+            context = ex["context"]
+            question = ex.get("input", "")
+            answers = ex["answers"]
+            if isinstance(answers, str):
+                answers = [answers]
+            shortest_answer = min(answers, key=lambda a: len(a.split()))
+
+            ctx_len = len(context)
+            ctx_tokens = int(ctx_len * TOKEN_WORD_RATIO / 5.0)  # rough char->token
+
+            # Find answer occurrences
+            ans_positions = find_occurrences(context, shortest_answer)
+
+            # Find entity mentions
+            entities = extract_entities(question)
+            entity_positions = []
+            entities_found = 0
+            for ent in entities:
+                pos = find_occurrences(context, ent)
+                if pos:
+                    entities_found += 1
+                    entity_positions.extend(pos)
+
+            # Build windows around all occurrences
+            all_positions = ans_positions + entity_positions
+            windows = [(p - WINDOW, p + len(shortest_answer) + WINDOW)
+                       for p in ans_positions]
+            for ent in entities:
+                for p in find_occurrences(context, ent):
+                    windows.append((p - WINDOW, p + len(ent) + WINDOW))
+
+            merged = merge_windows(windows, ctx_len)
+            relevant_chars = sum(e - s for s, e in merged)
+            # Convert chars to tokens (approx 1 token = 4-5 chars)
+            relevant_tokens = relevant_chars * TOKEN_WORD_RATIO / 5.0
+
+            # Answer position (first occurrence)
+            ans_pos_rel = (ans_positions[0] / ctx_len) if ans_positions else 0.5
+
+            # Context tokens (word-based estimate)
+            context_tokens = int(ex["length"] * TOKEN_WORD_RATIO)
+
+            samples.append({
+                "context_tokens": context_tokens,
+                "answer_length_words": len(shortest_answer.split()),
+                "answer_occurrences": len(ans_positions),
+                "n_entities_found": entities_found,
+                "n_entity_mentions": len(entity_positions),
+                "relevant_tokens": round(relevant_tokens, 2),
+                "relevant_fraction": relevant_tokens / context_tokens if context_tokens > 0 else 0,
+                "n_relevant_regions": len(merged),
+                "answer_position_relative": round(ans_pos_rel, 6),
+            })
+
+        result[task] = samples
+        mean_rt = np.mean([s["relevant_tokens"] for s in samples])
+        mean_frac = np.mean([s["relevant_fraction"] for s in samples])
+        mean_regions = np.mean([s["n_relevant_regions"] for s in samples])
+        print(f"  {task}: {len(samples)} samples, "
+              f"mean relevant tokens={mean_rt:.0f} ({mean_frac:.1%}), "
+              f"mean regions={mean_regions:.1f}")
+
+    out_path = os.path.join(OUT_DIR, "relevant_tokens_data.json")
+    with open(out_path, "w") as f:
+        json.dump(result, f, indent=2)
+    print(f"Saved: {out_path}")
+    return result
+
+
 def plot_eviction_analysis(stats):
     """Visualise how much context is evicted at different cache sizes."""
     fig, axes = plt.subplots(1, 2, figsize=(15, 6))
@@ -600,7 +731,10 @@ if __name__ == "__main__":
 
     stats = analyse()
 
-    print("\n\nGenerating plots...")
+    print("\n\nComputing relevant token analysis...")
+    compute_relevant_tokens(stats)
+
+    print("\nGenerating plots...")
     plot_characteristics_table(stats)
     plot_prompt_templates()
     plot_length_distributions(stats)
@@ -608,3 +742,5 @@ if __name__ == "__main__":
     plot_eviction_analysis(stats)
 
     print("\nDone. All outputs saved to:", OUT_DIR)
+    print("Run generate_plots.py to regenerate the remaining plots",
+          "from relevant_tokens_data.json.")
