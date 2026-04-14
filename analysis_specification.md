@@ -90,7 +90,7 @@ Form predictions for the relative task ranking under each condition (B0, M1, M2,
 **Method:** Compute per-task eviction sensitivity as the relative F1 drop between M1 (full context) and M3 (evicted context):
 
 ```
-sensitivity(task) = (M1_F1 - M3_F1) / M1_F1
+gain(task) = (M3_F1 - M1_F1) / M1_F1
 ```
 
 A high sensitivity score means the task relies on information that NAMM tends to evict. Cross-reference with task characteristics: average answer position within the context, average context length, and whether the task requires specific detail retrieval (e.g. Qasper scientific QA) vs high-level reasoning (e.g. 2WikiMQA).

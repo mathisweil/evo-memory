@@ -2,7 +2,7 @@
 
 Loads pre-extracted val F1 data from maskfix_data.json and generates:
   1. best_val_f1_comparison.png -- grouped bar: B0, M1, M2, M3 per task
-  2. sensitivity_bar.png        -- (M1 - M3) / M1 per task
+  2. sensitivity_bar.png        -- (M3 - M1) / M1 per task
   3. recovery_ratio.png         -- M3 / M1 per task
 
 Run:
@@ -139,9 +139,10 @@ def plot_sensitivity_bar(data: dict) -> None:
         if abs(m1[t]) < 1e-9:
             sens.append(0.0)
         else:
-            sens.append((m1[t] - m3[t]) / m1[t] * 100)
+            sens.append((m3[t] - m1[t]) / m1[t] * 100)
 
-    bars = ax.bar(x, sens, width, color="#e74c3c", edgecolor="white")
+    colors = ["#2ca02c" if s >= 0 else "#e74c3c" for s in sens]
+    bars = ax.bar(x, sens, width, color=colors, edgecolor="white")
     for bar, val in zip(bars, sens):
         y = bar.get_height()
         va = "bottom" if y >= 0 else "top"
@@ -151,8 +152,8 @@ def plot_sensitivity_bar(data: dict) -> None:
     ax.axhline(0, color="black", linewidth=0.8)
     ax.set_xticks(x)
     ax.set_xticklabels(task_labels)
-    ax.set_ylabel("Eviction Sensitivity  (M1 - M3) / M1  [%]")
-    ax.set_title("Per-Task Eviction Sensitivity (positive = M3 worse than M1)")
+    ax.set_ylabel("M3 Gain Over M1  (M3 - M1) / M1  [%]")
+    ax.set_title("Per-Task M3 Gain (positive = M3 better than M1)")
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
     path = OUT_DIR / "sensitivity_bar.png"

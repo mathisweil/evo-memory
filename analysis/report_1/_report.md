@@ -21,27 +21,25 @@ Best step / best iter:
 - M2: iter 170 (WandB `z5bo4n8k`)
 - M3: step 260 of ~608 (WandB `h0bzg6on`)
 
-## 2. Eviction Sensitivity: (M1 - M3) / M1
+## 2. M3 Gain Over M1: (M3 - M1) / M1
 
-This measures the fraction of M1 performance *lost* when NAMM eviction is applied
-during joint training. Negative values mean M3 *exceeded* M1, i.e. joint training
-recovered more than what was lost.
+This measures the relative change in performance when training with NAMM
+eviction active (M3) vs full context (M1). Positive = M3 is better.
 
-| Task         | Sensitivity (%) |
+| Task         | M3 Gain (%)     |
 |:-------------|----------------:|
-| qasper       |          +28.71 |
-| 2wikimqa     |          -24.04 |
-| qasper_e     |          +21.14 |
-| hotpotqa_e   |          -68.18 |
-| 2wikimqa_e   |           -9.26 |
-| **Mean**     |      **-14.48** |
+| qasper       |          -28.71 |
+| 2wikimqa     |          +24.04 |
+| qasper_e     |          -21.14 |
+| hotpotqa_e   |          +68.18 |
+| 2wikimqa_e   |           +9.26 |
+| **Mean**     |      **+14.48** |
 
-Positive = performance lost; negative = performance gained beyond M1.
-
-On average, M3 *surpasses* M1 by 14.48% relative. The joint-training loop
-(LoRA + NAMM) does not merely recover from eviction damage -- it improves beyond
-the LoRA-only baseline. Three of five tasks (2wikimqa, hotpotqa_e, 2wikimqa_e)
-show gains beyond M1, with hotpotqa_e showing a particularly large improvement.
+On average, M3 surpasses M1 by 14.48% relative. Eviction-aware training does
+not merely recover from eviction damage -- it improves beyond the LoRA-only
+baseline. Three of five tasks (2WikiMQA, HotpotQA-E, 2WikiMQA-E) show gains,
+with HotpotQA-E showing a particularly large +68% improvement. Qasper tasks
+are the exception, losing 21-29% relative to M1.
 
 ## 3. Recovery Ratio: (M3 - M2) / (M1 - M2)
 
@@ -111,5 +109,5 @@ genuine eviction quality.
 | Plot                                                     | Description                                  |
 | -------------------------------------------------------- | -------------------------------------------- |
 | [`best_val_f1_comparison.png`](plots/best_val_f1_comparison.png) | Per-task best val F1 grouped bar (B0--M3)  |
-| [`sensitivity_bar.png`](plots/sensitivity_bar.png)             | Eviction sensitivity per task                |
+| [`sensitivity_bar.png`](plots/sensitivity_bar.png)             | M3 gain over M1 per task                     |
 | [`recovery_ratio.png`](plots/recovery_ratio.png)               | Recovery ratio per task (M3/M1)              |
