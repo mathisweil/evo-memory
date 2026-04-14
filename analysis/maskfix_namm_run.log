@@ -1,0 +1,600 @@
+2026-04-14 15:22:37,095 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:22:37,095 [analysis.maskfix_namm] INFO: ######################################################################
+2026-04-14 15:22:37,095 [analysis.maskfix_namm] INFO: # REPORT 6 (maskfix): Token Importance Alignment
+2026-04-14 15:22:37,095 [analysis.maskfix_namm] INFO: ######################################################################
+2026-04-14 15:22:37,816 [analysis.maskfix_namm] INFO: ============================================================
+2026-04-14 15:22:37,816 [analysis.maskfix_namm] INFO: Report 6 (maskfix): Token Importance Alignment
+2026-04-14 15:22:37,816 [analysis.maskfix_namm] INFO: ============================================================
+2026-04-14 15:22:37,816 [analysis.maskfix_namm] INFO: Building model infrastructure...
+2026-04-14 15:22:38,414 [numexpr.utils] INFO: Note: NumExpr detected 32 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+2026-04-14 15:22:38,414 [numexpr.utils] INFO: NumExpr defaulting to 16 threads.
+2026-04-14 15:22:38,551 [datasets] INFO: PyTorch version 2.3.1 available.
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+2026-04-14 15:23:09,192 [analysis.maskfix_namm] INFO: Preparing test prompts...
+2026-04-14 15:23:09,261 [analysis.maskfix_namm] INFO: Prepared 15 test prompts (seq_len range: 1024-1024)
+2026-04-14 15:23:09,261 [analysis.maskfix_namm] INFO: Loading NAMM maskfix weights...
+2026-04-14 15:23:09,261 [analysis.maskfix_namm] INFO: Loading NAMM checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M2_cs1024_maskfix/ckpt.pt
+2026-04-14 15:23:09,283 [analysis.maskfix_namm] INFO:   NAMM loaded (4172 params)
+2026-04-14 15:23:09,283 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:23:09,283 [analysis.maskfix_namm] INFO: Condition: M1 (LoRA full-context) + NAMM-maskfix scoring
+2026-04-14 15:23:09,283 [analysis.maskfix_namm] INFO: Loading LoRA checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M1/best_ckpt.pt
+2026-04-14 15:23:09,287 [namm.llms.llama] WARNING: apply_lora_adapters: lora_alpha not provided; defaulting to 2 * rank = 16. FAIR-01 expects callers to set lora_alpha explicitly so the M1 sweep ratio is auditable.
+...Instantialting llm...
+...Instantialting memory policy...
+StatelessAttention()
+Warning: output features not specified setting to 50 (input features*default_output_features_mult)
+Warning: hidden features not specified setting to 1 (output features)
+Initializing learned weights for token_embedding
+Initializing learned weights for scoring_network
+Initializing learned weights for selection_criteria
+New number of initial base params from components setup: 0
+New number of initial additional params from components setup: 4172
+New number of initial base params from setup: 0
+New number of initial additional params from setup: 4172
+...Instantialting memory llm...
+Registering token_embedding
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering scoring_network
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering selection_criteria
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Instantiating memory llm with 16 attention layers
+...Instantialting evaluation module...
+...Instantialting evolution module...
+# optimized parameters: 4172
+...Finished instantiations.
+Instantiating tasks: ['lb/qasper', 'lb/2wikimqa', 'lb/qasper_e', 'lb/hotpotqa_e', 'lb/2wikimqa_e']; with  corresponding metrics: perf
+Length filter lb/qasper: 200 -> 181 examples
+Length filter lb/2wikimqa: 200 -> 138 examples
+Length filter lb/qasper_e: 224 -> 183 examples
+Length filter lb/hotpotqa_e: 300 -> 111 examples
+Length filter lb/2wikimqa_e: 300 -> 142 examples
+Train/test split lb/qasper: 126 train, 55 test (70%)
+Train/test split lb/2wikimqa: 96 train, 42 test (70%)
+Train/test split lb/qasper_e: 128 train, 55 test (70%)
+Train/test split lb/hotpotqa_e: 77 train, 34 test (70%)
+Train/test split lb/2wikimqa_e: 99 train, 43 test (70%)
+Token filter lb/qasper: 181 -> 168 examples (max=6500, avg=4291 tokens)
+Token filter lb/2wikimqa: 138 -> 106 examples (max=6500, avg=4739 tokens)
+Token filter lb/qasper_e: 183 -> 161 examples (max=6500, avg=4699 tokens)
+Token filter lb/hotpotqa_e: 111 -> 105 examples (max=6500, avg=4535 tokens)
+Token filter lb/2wikimqa_e: 142 -> 118 examples (max=6500, avg=4718 tokens)
+Train/test split lb/qasper: 117 train, 51 test (70%)
+Train/test split lb/2wikimqa: 74 train, 32 test (70%)
+Train/test split lb/qasper_e: 112 train, 49 test (70%)
+Train/test split lb/hotpotqa_e: 73 train, 32 test (70%)
+Train/test split lb/2wikimqa_e: 82 train, 36 test (70%)
+Answer token filter lb/qasper: 168 -> 163 examples (max=64)
+Answer token filter lb/2wikimqa: 106 -> 106 examples (max=64)
+Answer token filter lb/qasper_e: 161 -> 157 examples (max=64)
+Answer token filter lb/hotpotqa_e: 105 -> 105 examples (max=64)
+Answer token filter lb/2wikimqa_e: 118 -> 118 examples (max=64)
+Train/test split lb/qasper: 114 train, 49 test (70%)
+Train/test split lb/2wikimqa: 74 train, 32 test (70%)
+Train/test split lb/qasper_e: 109 train, 48 test (70%)
+Train/test split lb/hotpotqa_e: 73 train, 32 test (70%)
+Train/test split lb/2wikimqa_e: 82 train, 36 test (70%)
+  lb/qasper: 163 total, 76 filtered [4096-6500] tok -> 60 train / 13 val / 14 test
+  lb/2wikimqa: 106 total, 26 filtered [4096-6500] tok -> 56 train / 12 val / 12 test
+  lb/qasper_e: 157 total, 46 filtered [4096-6500] tok -> 77 train / 16 val / 18 test
+  lb/hotpotqa_e: 105 total, 32 filtered [4096-6500] tok -> 51 train / 10 val / 12 test
+  lb/2wikimqa_e: 118 total, 29 filtered [4096-6500] tok -> 62 train / 13 val / 14 test
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+2026-04-14 15:23:10,406 [analysis.maskfix_namm] INFO:   LoRA loaded (64 tensors, best_val=45.48060267873889)
+2026-04-14 15:23:12,274 [analysis.maskfix_namm] INFO:   Sample 1/15 (lb/2wikimqa) done
+2026-04-14 15:23:13,743 [analysis.maskfix_namm] INFO:   Sample 2/15 (lb/2wikimqa) done
+2026-04-14 15:23:15,242 [analysis.maskfix_namm] INFO:   Sample 3/15 (lb/2wikimqa) done
+2026-04-14 15:23:16,757 [analysis.maskfix_namm] INFO:   Sample 4/15 (lb/2wikimqa_e) done
+2026-04-14 15:23:18,378 [analysis.maskfix_namm] INFO:   Sample 5/15 (lb/2wikimqa_e) done
+2026-04-14 15:23:19,966 [analysis.maskfix_namm] INFO:   Sample 6/15 (lb/2wikimqa_e) done
+2026-04-14 15:23:21,565 [analysis.maskfix_namm] INFO:   Sample 7/15 (lb/hotpotqa_e) done
+2026-04-14 15:23:23,094 [analysis.maskfix_namm] INFO:   Sample 8/15 (lb/hotpotqa_e) done
+2026-04-14 15:23:24,713 [analysis.maskfix_namm] INFO:   Sample 9/15 (lb/hotpotqa_e) done
+2026-04-14 15:23:26,207 [analysis.maskfix_namm] INFO:   Sample 10/15 (lb/qasper) done
+2026-04-14 15:23:27,703 [analysis.maskfix_namm] INFO:   Sample 11/15 (lb/qasper) done
+2026-04-14 15:23:29,307 [analysis.maskfix_namm] INFO:   Sample 12/15 (lb/qasper) done
+2026-04-14 15:23:30,797 [analysis.maskfix_namm] INFO:   Sample 13/15 (lb/qasper_e) done
+2026-04-14 15:23:32,293 [analysis.maskfix_namm] INFO:   Sample 14/15 (lb/qasper_e) done
+2026-04-14 15:23:33,789 [analysis.maskfix_namm] INFO:   Sample 15/15 (lb/qasper_e) done
+2026-04-14 15:23:33,816 [analysis.maskfix_namm] INFO:   M1: 15 samples extracted
+2026-04-14 15:23:33,816 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:23:33,816 [analysis.maskfix_namm] INFO: Condition: M3-maskfix (LoRA + frozen NAMM-maskfix)
+2026-04-14 15:23:33,817 [analysis.maskfix_namm] INFO:   Reset LoRA weights to zero (identity)
+2026-04-14 15:23:33,817 [analysis.maskfix_namm] INFO: Loading LoRA checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
+2026-04-14 15:23:33,824 [analysis.maskfix_namm] INFO:   LoRA loaded (64 tensors, best_val=52.06387693314976)
+2026-04-14 15:23:35,367 [analysis.maskfix_namm] INFO:   Sample 1/15 (lb/2wikimqa) done
+2026-04-14 15:23:36,838 [analysis.maskfix_namm] INFO:   Sample 2/15 (lb/2wikimqa) done
+2026-04-14 15:23:38,335 [analysis.maskfix_namm] INFO:   Sample 3/15 (lb/2wikimqa) done
+2026-04-14 15:23:39,943 [analysis.maskfix_namm] INFO:   Sample 4/15 (lb/2wikimqa_e) done
+2026-04-14 15:23:41,441 [analysis.maskfix_namm] INFO:   Sample 5/15 (lb/2wikimqa_e) done
+2026-04-14 15:23:42,937 [analysis.maskfix_namm] INFO:   Sample 6/15 (lb/2wikimqa_e) done
+2026-04-14 15:23:44,431 [analysis.maskfix_namm] INFO:   Sample 7/15 (lb/hotpotqa_e) done
+2026-04-14 15:23:46,044 [analysis.maskfix_namm] INFO:   Sample 8/15 (lb/hotpotqa_e) done
+2026-04-14 15:23:47,538 [analysis.maskfix_namm] INFO:   Sample 9/15 (lb/hotpotqa_e) done
+2026-04-14 15:23:49,040 [analysis.maskfix_namm] INFO:   Sample 10/15 (lb/qasper) done
+2026-04-14 15:23:50,539 [analysis.maskfix_namm] INFO:   Sample 11/15 (lb/qasper) done
+2026-04-14 15:23:52,149 [analysis.maskfix_namm] INFO:   Sample 12/15 (lb/qasper) done
+2026-04-14 15:23:53,643 [analysis.maskfix_namm] INFO:   Sample 13/15 (lb/qasper_e) done
+2026-04-14 15:23:55,140 [analysis.maskfix_namm] INFO:   Sample 14/15 (lb/qasper_e) done
+2026-04-14 15:23:56,746 [analysis.maskfix_namm] INFO:   Sample 15/15 (lb/qasper_e) done
+2026-04-14 15:23:56,768 [analysis.maskfix_namm] INFO:   M3-maskfix: 15 samples extracted
+2026-04-14 15:23:56,907 [analysis.maskfix_namm] INFO: Saving data to /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_6/maskfix_alignment_data.json
+2026-04-14 15:23:56,912 [analysis.maskfix_namm] INFO: Generating Report 6 maskfix plots...
+2026-04-14 15:23:57,137 [analysis.maskfix_namm] INFO:   Saved score_attention_correlation_maskfix.png
+2026-04-14 15:23:57,277 [analysis.maskfix_namm] INFO:   Saved eviction_regret_maskfix.png
+2026-04-14 15:23:57,341 [analysis.maskfix_namm] INFO:   Saved alignment_shift_maskfix.png
+2026-04-14 15:23:57,341 [analysis.maskfix_namm] INFO: --- Report 6 (maskfix) Summary ---
+2026-04-14 15:23:57,341 [analysis.maskfix_namm] INFO:   M1:
+2026-04-14 15:23:57,341 [analysis.maskfix_namm] INFO:     Mean Spearman rho: 0.1350 +/- 0.1386
+2026-04-14 15:23:57,341 [analysis.maskfix_namm] INFO:     Mean total regret: 0.2893
+2026-04-14 15:23:57,342 [analysis.maskfix_namm] INFO:   M3_maskfix:
+2026-04-14 15:23:57,342 [analysis.maskfix_namm] INFO:     Mean Spearman rho: 0.1400 +/- 0.1345
+2026-04-14 15:23:57,342 [analysis.maskfix_namm] INFO:     Mean total regret: 0.3041
+2026-04-14 15:23:57,467 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:23:57,467 [analysis.maskfix_namm] INFO: ######################################################################
+2026-04-14 15:23:57,467 [analysis.maskfix_namm] INFO: # REPORT 8 (maskfix): Probing for Residual Knowledge
+2026-04-14 15:23:57,467 [analysis.maskfix_namm] INFO: ######################################################################
+2026-04-14 15:23:57,468 [analysis.maskfix_namm] INFO: ============================================================
+2026-04-14 15:23:57,468 [analysis.maskfix_namm] INFO: Report 8 (maskfix): Probing for Residual Knowledge
+2026-04-14 15:23:57,468 [analysis.maskfix_namm] INFO: ============================================================
+2026-04-14 15:23:57,468 [analysis.maskfix_namm] INFO: Building model infrastructure...
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+2026-04-14 15:24:25,971 [analysis.maskfix_namm] INFO: Preparing test samples...
+2026-04-14 15:24:26,208 [analysis.maskfix_namm] INFO: Prepared 40 test samples (seq_len range: 4303-6367)
+2026-04-14 15:24:26,208 [analysis.maskfix_namm] INFO: Finding answer token positions...
+2026-04-14 15:24:26,283 [analysis.maskfix_namm] INFO: Samples with answer tokens found: 16/40
+2026-04-14 15:24:26,283 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:24:26,283 [analysis.maskfix_namm] INFO: Phase 1a: M1 (full context, Recency passthrough)
+2026-04-14 15:24:26,283 [analysis.maskfix_namm] INFO: Loading LoRA checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M1/best_ckpt.pt
+2026-04-14 15:24:26,288 [namm.llms.llama] WARNING: apply_lora_adapters: lora_alpha not provided; defaulting to 2 * rank = 16. FAIR-01 expects callers to set lora_alpha explicitly so the M1 sweep ratio is auditable.
+2026-04-14 15:24:26,302 [analysis.maskfix_namm] INFO:   LoRA loaded (64 tensors, best_val=45.48060267873889)
+2026-04-14 15:24:26,612 [analysis.maskfix_namm] INFO:   No-eviction: processed 1/40 samples
+2026-04-14 15:24:28,224 [analysis.maskfix_namm] INFO:   No-eviction: processed 5/40 samples
+2026-04-14 15:24:30,611 [analysis.maskfix_namm] INFO:   No-eviction: processed 10/40 samples
+2026-04-14 15:24:33,348 [analysis.maskfix_namm] INFO:   No-eviction: processed 15/40 samples
+2026-04-14 15:24:36,312 [analysis.maskfix_namm] INFO:   No-eviction: processed 20/40 samples
+2026-04-14 15:24:39,439 [analysis.maskfix_namm] INFO:   No-eviction: processed 25/40 samples
+2026-04-14 15:24:42,676 [analysis.maskfix_namm] INFO:   No-eviction: processed 30/40 samples
+2026-04-14 15:24:46,017 [analysis.maskfix_namm] INFO:   No-eviction: processed 35/40 samples
+2026-04-14 15:24:49,435 [analysis.maskfix_namm] INFO:   No-eviction: processed 40/40 samples
+2026-04-14 15:24:49,510 [analysis.maskfix_namm] INFO: M1: extracted 40 samples
+2026-04-14 15:24:49,510 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:24:49,510 [analysis.maskfix_namm] INFO: Phase 1b: M3-maskfix (with NAMM eviction)
+2026-04-14 15:24:49,658 [analysis.maskfix_namm] INFO: Rebuilding model for M3-maskfix...
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+2026-04-14 15:25:05,052 [analysis.maskfix_namm] INFO: Loading NAMM checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M2_cs1024_maskfix/ckpt.pt
+2026-04-14 15:25:05,067 [analysis.maskfix_namm] INFO:   NAMM loaded (4172 params)
+2026-04-14 15:25:05,067 [analysis.maskfix_namm] INFO: Loading LoRA checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
+2026-04-14 15:25:05,071 [namm.llms.llama] WARNING: apply_lora_adapters: lora_alpha not provided; defaulting to 2 * rank = 16. FAIR-01 expects callers to set lora_alpha explicitly so the M1 sweep ratio is auditable.
+2026-04-14 15:25:05,085 [analysis.maskfix_namm] INFO:   LoRA loaded (64 tensors, best_val=52.06387693314976)
+2026-04-14 15:25:05,597 [analysis.maskfix_namm] INFO:   With-eviction: processed 1/40 (retained 416/4303)
+2026-04-14 15:25:07,229 [analysis.maskfix_namm] INFO:   With-eviction: processed 5/40 (retained 389/4803)
+2026-04-14 15:25:09,360 [analysis.maskfix_namm] INFO:   With-eviction: processed 10/40 (retained 234/5160)
+2026-04-14 15:25:11,663 [analysis.maskfix_namm] INFO:   With-eviction: processed 15/40 (retained 216/5647)
+2026-04-14 15:25:14,027 [analysis.maskfix_namm] INFO:   With-eviction: processed 20/40 (retained 385/5809)
+2026-04-14 15:25:16,435 [analysis.maskfix_namm] INFO:   With-eviction: processed 25/40 (retained 385/6069)
+2026-04-14 15:25:18,930 [analysis.maskfix_namm] INFO:   With-eviction: processed 30/40 (retained 245/6180)
+2026-04-14 15:25:21,483 [analysis.maskfix_namm] INFO:   With-eviction: processed 35/40 (retained 369/6306)
+2026-04-14 15:25:24,019 [analysis.maskfix_namm] INFO:   With-eviction: processed 40/40 (retained 427/6367)
+2026-04-14 15:25:24,032 [analysis.maskfix_namm] INFO: M3-maskfix: extracted 40 samples
+2026-04-14 15:25:24,032 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:25:24,032 [analysis.maskfix_namm] INFO: Phase 1c: Precise eviction analysis (two-pass)
+2026-04-14 15:25:24,033 [analysis.maskfix_namm] INFO:   Reset LoRA weights to zero (identity)
+2026-04-14 15:25:24,033 [analysis.maskfix_namm] INFO: Loading LoRA checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
+2026-04-14 15:25:24,038 [analysis.maskfix_namm] INFO:   LoRA loaded (64 tensors, best_val=52.06387693314976)
+2026-04-14 15:25:24,038 [analysis.maskfix_namm] INFO: Running precise eviction analysis on 15 samples
+2026-04-14 15:25:24,310 [analysis.maskfix_namm] WARNING:   Sample 0 analyze failed: 
+2026-04-14 15:25:24,653 [analysis.maskfix_namm] WARNING:   Sample 1 analyze failed: 
+2026-04-14 15:25:24,967 [analysis.maskfix_namm] WARNING:   Sample 2 analyze failed: 
+2026-04-14 15:25:25,285 [analysis.maskfix_namm] WARNING:   Sample 3 analyze failed: 
+2026-04-14 15:25:25,648 [analysis.maskfix_namm] WARNING:   Sample 4 analyze failed: 
+2026-04-14 15:25:26,033 [analysis.maskfix_namm] WARNING:   Sample 5 analyze failed: 
+2026-04-14 15:25:26,413 [analysis.maskfix_namm] WARNING:   Sample 6 analyze failed: 
+2026-04-14 15:25:26,789 [analysis.maskfix_namm] WARNING:   Sample 7 analyze failed: 
+2026-04-14 15:25:27,179 [analysis.maskfix_namm] WARNING:   Sample 8 analyze failed: 
+2026-04-14 15:25:27,604 [analysis.maskfix_namm] WARNING:   Sample 9 analyze failed: 
+2026-04-14 15:25:28,014 [analysis.maskfix_namm] WARNING:   Sample 10 analyze failed: 
+2026-04-14 15:25:28,466 [analysis.maskfix_namm] WARNING:   Sample 11 analyze failed: 
+2026-04-14 15:25:28,919 [analysis.maskfix_namm] WARNING:   Sample 12 analyze failed: 
+2026-04-14 15:25:29,381 [analysis.maskfix_namm] WARNING:   Sample 13 analyze failed: 
+2026-04-14 15:25:29,887 [analysis.maskfix_namm] WARNING:   Sample 14 analyze failed: 
+2026-04-14 15:25:29,913 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:25:29,913 [analysis.maskfix_namm] INFO: Phase 2: Training probes
+2026-04-14 15:25:29,913 [analysis.maskfix_namm] INFO: Labels: 16 positive (answer evicted), 24 negative, 40 total
+2026-04-14 15:25:30,071 [analysis.maskfix_namm] INFO: Probe training: 40 samples (16 positive, 24 negative)
+2026-04-14 15:25:30,138 [analysis.maskfix_namm] INFO:   Layer 0: M1=0.525, M3-maskfix=0.525, random=0.600
+2026-04-14 15:25:30,358 [analysis.maskfix_namm] INFO:   Layer 4: M1=0.575, M3-maskfix=0.475, random=0.600
+2026-04-14 15:25:30,565 [analysis.maskfix_namm] INFO:   Layer 8: M1=0.650, M3-maskfix=0.450, random=0.600
+2026-04-14 15:25:30,764 [analysis.maskfix_namm] INFO:   Layer 12: M1=0.550, M3-maskfix=0.450, random=0.600
+2026-04-14 15:25:30,966 [analysis.maskfix_namm] INFO:   Layer 16: M1=0.625, M3-maskfix=0.700, random=0.600
+2026-04-14 15:25:31,159 [analysis.maskfix_namm] INFO: Saving data to /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_8/maskfix_probe_data.npz
+2026-04-14 15:25:31,167 [analysis.maskfix_namm] INFO:   Saved (4 KB)
+2026-04-14 15:25:31,167 [analysis.maskfix_namm] INFO: Generating Report 8 maskfix plots...
+2026-04-14 15:25:31,256 [analysis.maskfix_namm] INFO:   Saved /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_8/probe_accuracy_maskfix.png
+2026-04-14 15:25:31,322 [analysis.maskfix_namm] INFO:   Saved /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_8/entity_survival_maskfix.png
+2026-04-14 15:25:31,407 [analysis.maskfix_namm] INFO:   Saved /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_8/layer_wise_information_maskfix.png
+2026-04-14 15:25:31,407 [analysis.maskfix_namm] INFO: --- Report 8 (maskfix) Summary ---
+2026-04-14 15:25:31,407 [analysis.maskfix_namm] INFO:   M1 mean probe accuracy: 0.599 +/- 0.131
+2026-04-14 15:25:31,407 [analysis.maskfix_namm] INFO:   M3-maskfix mean probe accuracy: 0.513 +/- 0.145
+2026-04-14 15:25:31,407 [analysis.maskfix_namm] INFO:   Random baseline: 0.600
+2026-04-14 15:25:31,407 [analysis.maskfix_namm] INFO:   Mean accuracy gap (M1 - M3-maskfix): 0.085
+2026-04-14 15:25:31,407 [analysis.maskfix_namm] INFO:   Max gap at layer 8: 0.200
+2026-04-14 15:25:31,407 [analysis.maskfix_namm] INFO:   Mean token retention ratio: 0.060
+2026-04-14 15:25:31,649 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:25:31,649 [analysis.maskfix_namm] INFO: ######################################################################
+2026-04-14 15:25:31,649 [analysis.maskfix_namm] INFO: # REPORT 9 (maskfix): Gradient Flow and Loss Attribution
+2026-04-14 15:25:31,649 [analysis.maskfix_namm] INFO: ######################################################################
+2026-04-14 15:25:31,649 [analysis.maskfix_namm] INFO: ============================================================
+2026-04-14 15:25:31,649 [analysis.maskfix_namm] INFO: Report 9 (maskfix): Gradient Flow and Loss Attribution
+2026-04-14 15:25:31,649 [analysis.maskfix_namm] INFO: ============================================================
+2026-04-14 15:25:31,649 [analysis.maskfix_namm] INFO: Building model infrastructure...
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+...Instantialting llm...
+...Instantialting memory policy...
+StatelessAttention()
+Warning: output features not specified setting to 50 (input features*default_output_features_mult)
+Warning: hidden features not specified setting to 1 (output features)
+Initializing learned weights for token_embedding
+Initializing learned weights for scoring_network
+Initializing learned weights for selection_criteria
+New number of initial base params from components setup: 0
+New number of initial additional params from components setup: 4172
+New number of initial base params from setup: 0
+New number of initial additional params from setup: 4172
+...Instantialting memory llm...
+Registering token_embedding
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering scoring_network
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering selection_criteria
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Instantiating memory llm with 16 attention layers
+...Instantialting evaluation module...
+...Instantialting evolution module...
+# optimized parameters: 4172
+...Finished instantiations.
+Instantiating tasks: ['lb/qasper', 'lb/2wikimqa', 'lb/qasper_e', 'lb/hotpotqa_e', 'lb/2wikimqa_e']; with  corresponding metrics: perf
+Length filter lb/qasper: 200 -> 181 examples
+Length filter lb/2wikimqa: 200 -> 138 examples
+Length filter lb/qasper_e: 224 -> 183 examples
+Length filter lb/hotpotqa_e: 300 -> 111 examples
+Length filter lb/2wikimqa_e: 300 -> 142 examples
+Train/test split lb/qasper: 126 train, 55 test (70%)
+Train/test split lb/2wikimqa: 96 train, 42 test (70%)
+Train/test split lb/qasper_e: 128 train, 55 test (70%)
+Train/test split lb/hotpotqa_e: 77 train, 34 test (70%)
+Train/test split lb/2wikimqa_e: 99 train, 43 test (70%)
+Token filter lb/qasper: 181 -> 168 examples (max=6500, avg=4291 tokens)
+Token filter lb/2wikimqa: 138 -> 106 examples (max=6500, avg=4739 tokens)
+Token filter lb/qasper_e: 183 -> 161 examples (max=6500, avg=4699 tokens)
+Token filter lb/hotpotqa_e: 111 -> 105 examples (max=6500, avg=4535 tokens)
+Token filter lb/2wikimqa_e: 142 -> 118 examples (max=6500, avg=4718 tokens)
+Train/test split lb/qasper: 117 train, 51 test (70%)
+Train/test split lb/2wikimqa: 74 train, 32 test (70%)
+Train/test split lb/qasper_e: 112 train, 49 test (70%)
+Train/test split lb/hotpotqa_e: 73 train, 32 test (70%)
+Train/test split lb/2wikimqa_e: 82 train, 36 test (70%)
+Answer token filter lb/qasper: 168 -> 163 examples (max=64)
+Answer token filter lb/2wikimqa: 106 -> 106 examples (max=64)
+Answer token filter lb/qasper_e: 161 -> 157 examples (max=64)
+Answer token filter lb/hotpotqa_e: 105 -> 105 examples (max=64)
+Answer token filter lb/2wikimqa_e: 118 -> 118 examples (max=64)
+Train/test split lb/qasper: 114 train, 49 test (70%)
+Train/test split lb/2wikimqa: 74 train, 32 test (70%)
+Train/test split lb/qasper_e: 109 train, 48 test (70%)
+Train/test split lb/hotpotqa_e: 73 train, 32 test (70%)
+Train/test split lb/2wikimqa_e: 82 train, 36 test (70%)
+  lb/qasper: 163 total, 76 filtered [4096-6500] tok -> 60 train / 13 val / 14 test
+  lb/2wikimqa: 106 total, 26 filtered [4096-6500] tok -> 56 train / 12 val / 12 test
+  lb/qasper_e: 157 total, 46 filtered [4096-6500] tok -> 77 train / 16 val / 18 test
+  lb/hotpotqa_e: 105 total, 32 filtered [4096-6500] tok -> 51 train / 10 val / 12 test
+  lb/2wikimqa_e: 118 total, 29 filtered [4096-6500] tok -> 62 train / 13 val / 14 test
+...Instantialting llm...
+...Instantialting memory policy...
+StatelessAttention()
+Warning: output features not specified setting to 50 (input features*default_output_features_mult)
+Warning: hidden features not specified setting to 1 (output features)
+Initializing learned weights for token_embedding
+Initializing learned weights for scoring_network
+Initializing learned weights for selection_criteria
+New number of initial base params from components setup: 0
+New number of initial additional params from components setup: 4172
+New number of initial base params from setup: 0
+New number of initial additional params from setup: 4172
+...Instantialting memory llm...
+Registering token_embedding
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering scoring_network
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering selection_criteria
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Instantiating memory llm with 16 attention layers
+...Instantialting evaluation module...
+...Instantialting evolution module...
+# optimized parameters: 4172
+...Finished instantiations.
+...Instantialting llm...
+...Instantialting memory policy...
+StatelessAttention()
+Warning: output features not specified setting to 50 (input features*default_output_features_mult)
+Warning: hidden features not specified setting to 1 (output features)
+Initializing learned weights for token_embedding
+Initializing learned weights for scoring_network
+Initializing learned weights for selection_criteria
+New number of initial base params from components setup: 0
+New number of initial additional params from components setup: 4172
+New number of initial base params from setup: 0
+New number of initial additional params from setup: 4172
+...Instantialting memory llm...
+Registering token_embedding
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering scoring_network
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering selection_criteria
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Instantiating memory llm with 16 attention layers
+...Instantialting evaluation module...
+...Instantialting evolution module...
+# optimized parameters: 4172
+...Finished instantiations.
+Instantiating tasks: ['lb/qasper', 'lb/2wikimqa', 'lb/qasper_e', 'lb/hotpotqa_e', 'lb/2wikimqa_e']; with  corresponding metrics: perf
+Length filter lb/qasper: 200 -> 181 examples
+Length filter lb/2wikimqa: 200 -> 138 examples
+Length filter lb/qasper_e: 224 -> 183 examples
+Length filter lb/hotpotqa_e: 300 -> 111 examples
+Length filter lb/2wikimqa_e: 300 -> 142 examples
+Train/test split lb/qasper: 126 train, 55 test (70%)
+Train/test split lb/2wikimqa: 96 train, 42 test (70%)
+Train/test split lb/qasper_e: 128 train, 55 test (70%)
+Train/test split lb/hotpotqa_e: 77 train, 34 test (70%)
+Train/test split lb/2wikimqa_e: 99 train, 43 test (70%)
+Token filter lb/qasper: 181 -> 168 examples (max=6500, avg=4291 tokens)
+Token filter lb/2wikimqa: 138 -> 106 examples (max=6500, avg=4739 tokens)
+Token filter lb/qasper_e: 183 -> 161 examples (max=6500, avg=4699 tokens)
+Token filter lb/hotpotqa_e: 111 -> 105 examples (max=6500, avg=4535 tokens)
+Token filter lb/2wikimqa_e: 142 -> 118 examples (max=6500, avg=4718 tokens)
+Train/test split lb/qasper: 117 train, 51 test (70%)
+Train/test split lb/2wikimqa: 74 train, 32 test (70%)
+Train/test split lb/qasper_e: 112 train, 49 test (70%)
+Train/test split lb/hotpotqa_e: 73 train, 32 test (70%)
+Train/test split lb/2wikimqa_e: 82 train, 36 test (70%)
+Answer token filter lb/qasper: 168 -> 163 examples (max=64)
+Answer token filter lb/2wikimqa: 106 -> 106 examples (max=64)
+Answer token filter lb/qasper_e: 161 -> 157 examples (max=64)
+Answer token filter lb/hotpotqa_e: 105 -> 105 examples (max=64)
+Answer token filter lb/2wikimqa_e: 118 -> 118 examples (max=64)
+Train/test split lb/qasper: 114 train, 49 test (70%)
+Train/test split lb/2wikimqa: 74 train, 32 test (70%)
+Train/test split lb/qasper_e: 109 train, 48 test (70%)
+Train/test split lb/hotpotqa_e: 73 train, 32 test (70%)
+Train/test split lb/2wikimqa_e: 82 train, 36 test (70%)
+  lb/qasper: 163 total, 76 filtered [4096-6500] tok -> 60 train / 13 val / 14 test
+2026-04-14 15:26:00,253 [analysis.maskfix_namm] INFO: Loading NAMM checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M2_cs1024_maskfix/ckpt.pt
+2026-04-14 15:26:00,286 [analysis.maskfix_namm] INFO:   NAMM loaded (4172 params)
+2026-04-14 15:26:00,288 [analysis.maskfix_namm] INFO: Loading LoRA checkpoint: /cs/student/project_msc/2025/csml/sruppage/evo-memory/experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
+2026-04-14 15:26:00,292 [namm.llms.llama] WARNING: apply_lora_adapters: lora_alpha not provided; defaulting to 2 * rank = 16. FAIR-01 expects callers to set lora_alpha explicitly so the M1 sweep ratio is auditable.
+2026-04-14 15:26:00,306 [analysis.maskfix_namm] INFO:   LoRA loaded (64 tensors, best_val=52.06387693314976)
+2026-04-14 15:26:00,307 [analysis.maskfix_namm] INFO: Registered PEFT embedding forward hook
+2026-04-14 15:26:00,307 [analysis.maskfix_namm] INFO: Preparing training samples...
+2026-04-14 15:26:00,668 [analysis.maskfix_namm] INFO: Prepared 40 training samples (seq_len range: 4260-6432, answer tokens: 2-10)
+2026-04-14 15:26:00,668 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:26:00,668 [analysis.maskfix_namm] INFO: Pass 1: Forward+backward WITH NAMM eviction (cache_size=1024)
+2026-04-14 15:26:01,522 [analysis.maskfix_namm] INFO:   [evicted] 1/40: loss=9.5560 retention=0.0327
+2026-04-14 15:26:06,250 [analysis.maskfix_namm] INFO:   [evicted] 10/40: loss=7.7670 retention=0.0450
+2026-04-14 15:26:11,566 [analysis.maskfix_namm] INFO:   [evicted] 20/40: loss=4.2707 retention=0.0330
+2026-04-14 15:26:16,692 [analysis.maskfix_namm] INFO:   [evicted] 30/40: loss=5.4877 retention=0.0365
+2026-04-14 15:26:22,111 [analysis.maskfix_namm] INFO:   [evicted] 40/40: loss=6.8813 retention=0.0329
+2026-04-14 15:26:22,111 [analysis.maskfix_namm] INFO: Pass 1 complete: 40/40 samples succeeded
+2026-04-14 15:26:22,111 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:26:22,111 [analysis.maskfix_namm] INFO: Pass 2: Forward+backward WITHOUT eviction (full context)
+2026-04-14 15:26:22,936 [analysis.maskfix_namm] INFO:   [full] 1/40: loss=2.2346
+2026-04-14 15:26:28,206 [analysis.maskfix_namm] INFO:   [full] 10/40: loss=0.0145
+2026-04-14 15:26:34,221 [analysis.maskfix_namm] INFO:   [full] 20/40: loss=0.0183
+2026-04-14 15:26:39,812 [analysis.maskfix_namm] INFO:   [full] 30/40: loss=0.2990
+2026-04-14 15:26:45,766 [analysis.maskfix_namm] INFO:   [full] 40/40: loss=0.0929
+2026-04-14 15:26:45,768 [analysis.maskfix_namm] INFO: Pass 2 complete: 40/40 samples succeeded
+2026-04-14 15:26:46,828 [analysis.maskfix_namm] INFO: Saving data to /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_9/maskfix_gradient_data.json
+2026-04-14 15:26:46,851 [analysis.maskfix_namm] INFO:   Saved (127.3 KB)
+2026-04-14 15:26:46,851 [analysis.maskfix_namm] INFO: Generating Report 9 maskfix plots...
+2026-04-14 15:26:46,851 [analysis.maskfix_namm] INFO:   Evicted loss: 8.8735 +/- 1.7698
+2026-04-14 15:26:46,851 [analysis.maskfix_namm] INFO:   Retention: 0.0386 +/- 0.0049 (median 0.0375)
+2026-04-14 15:26:46,851 [analysis.maskfix_namm] INFO:   Full-context loss: 1.1972 +/- 1.3428
+2026-04-14 15:26:46,851 [analysis.maskfix_namm] INFO:   Loss increase: 7.6763 (641.2%)
+2026-04-14 15:26:46,851 [analysis.maskfix_namm] INFO:   Gradient cosine similarity: 0.0107 +/- 0.1709
+/cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/run_maskfix_namm_analyses.py:2019: MatplotlibDeprecationWarning: The 'labels' parameter of boxplot() has been renamed 'tick_labels' since Matplotlib 3.9; support for the old name will be dropped in 3.11.
+  bp = ax.boxplot(box_data, labels=box_labels, patch_artist=True,
+2026-04-14 15:26:46,925 [analysis.maskfix_namm] INFO:   Saved /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_9/loss_stratified_maskfix.png
+2026-04-14 15:26:47,015 [analysis.maskfix_namm] INFO:   Saved /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_9/grad_norms_maskfix.png
+2026-04-14 15:26:47,088 [analysis.maskfix_namm] INFO:   Saved /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_9/loss_vs_retention_maskfix.png
+/cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/run_maskfix_namm_analyses.py:2195: MatplotlibDeprecationWarning: The 'labels' parameter of boxplot() has been renamed 'tick_labels' since Matplotlib 3.9; support for the old name will be dropped in 3.11.
+  bp = ax2.boxplot(box_data,
+2026-04-14 15:26:47,243 [analysis.maskfix_namm] INFO:   Saved /cs/student/project_msc/2025/csml/sruppage/evo-memory/analysis/report_9/grad_direction_consistency_maskfix.png
+2026-04-14 15:26:47,243 [analysis.maskfix_namm] INFO: --- Report 9 (maskfix) Summary ---
+2026-04-14 15:26:47,243 [analysis.maskfix_namm] INFO:   Evicted samples: 40
+2026-04-14 15:26:47,243 [analysis.maskfix_namm] INFO:   Full-context samples: 40
+2026-04-14 15:26:47,243 [analysis.maskfix_namm] INFO: 
+2026-04-14 15:26:47,243 [analysis.maskfix_namm] INFO: ======================================================================
+2026-04-14 15:26:47,243 [analysis.maskfix_namm] INFO: All requested maskfix NAMM analyses complete.
+2026-04-14 15:26:47,243 [analysis.maskfix_namm] INFO: ======================================================================
+  lb/2wikimqa: 106 total, 26 filtered [4096-6500] tok -> 56 train / 12 val / 12 test
+  lb/qasper_e: 157 total, 46 filtered [4096-6500] tok -> 77 train / 16 val / 18 test
+  lb/hotpotqa_e: 105 total, 32 filtered [4096-6500] tok -> 51 train / 10 val / 12 test
+  lb/2wikimqa_e: 118 total, 29 filtered [4096-6500] tok -> 62 train / 13 val / 14 test
+Registering token_embedding
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering scoring_network
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering selection_criteria
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)

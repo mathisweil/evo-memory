@@ -21,11 +21,10 @@ We compare three conditions:
 | §3      | Per-layer retention            | DONE (`report_3/_report.md` + `_report_maskfix.md`)                                                          |
 | §4      | LoRA weight comparison         | DONE (`report_4/_report.md` + `_report_maskfix.md`)                                                          |
 | §5      | Attention entropy              | DONE (`report_5/_report.md` + `_report_maskfix.md`)                                                          |
-| §6      | Token importance alignment     | DONE (`report_6/_report.md`). Maskfix rerun pending (needs NAMM infrastructure).                             |
+| §6      | Token importance alignment     | DONE (`report_6/_report.md` + `_report_maskfix.md`)                                                          |
 | §7      | CKA representation similarity  | DONE (`report_7/_report.md` + `_report_maskfix.md`)                                                          |
-| §8      | Probing for residual knowledge | DONE (`report_8/_report.md`). Maskfix rerun pending (needs NAMM infrastructure).                             |
-| §9      | Gradient flow attribution      | DONE (`report_9/_report.md`). Maskfix rerun pending (needs NAMM infrastructure).                             |
-| §10     | Maskfix comparison             | DONE (`report_10/_report.md`). Buggy vs fixed attention mask overview.                                       |
+| §8      | Probing for residual knowledge | DONE (`report_8/_report.md` + `_report_maskfix.md`)                                                          |
+| §9      | Gradient flow attribution      | DONE (`report_9/_report.md` + `_report_maskfix.md`)                                                          |
 
 ### Additional conditions not in the original spec
 
@@ -47,13 +46,13 @@ Maskfix reruns retrain M2 and M3 with the corrected attention mask:
 
 Checkpoints available locally (`experiment_artifacts/gcs/M2_cs1024_maskfix/`, `M3_cs1024_maskfix/`) and backed up to GCS (`gs://statistical-nlp/evo-memory/checkpoints_backup_20260414/`).
 
-Maskfix analyses completed:
+Maskfix analyses completed (all §0–§9):
+- §0: No rerun needed (dataset characterisation)
 - §1–§3: Rewritten from WandB data (`_report_maskfix.md` in each report folder)
-- §4, §5, §7: GPU analyses using maskfix checkpoints (`_report_maskfix.md` + `*_maskfix.png` plots)
-- §6, §8, §9: Pending (require full NAMM infrastructure with device placement fixes)
-- §10: Overview comparison (`report_10/_report.md`)
+- §4, §5, §7: GPU analyses using merged LoRA weights (`run_maskfix_gpu_analyses.py`)
+- §6, §8, §9: GPU analyses using full NAMM infrastructure (`run_maskfix_namm_analyses.py`)
 
-See `analysis/report_10/` for the buggy-vs-maskfix overview and `analysis/run_maskfix_gpu_analyses.py` for the GPU analysis script.
+Each report folder contains both `_report.md` (buggy) and `_report_maskfix.md` (corrected). The maskfix versions are the primary results.
 
 ---
 
@@ -308,6 +307,6 @@ Analyses 1–3 can be completed immediately from existing wandb data. Analyses 4
 
 ---
 
-## 11 · Cross-Report Synthesis
+## 10 · Cross-Report Synthesis
 
 `analysis/_summary_report.md` synthesises findings across all completed reports (§0–§9), drawing out cross-cutting themes and the overall narrative. `analysis/_meta-analysis.md` provides an independent critique of the analysis pipeline, identifying limitations, potential confounds, and directions for further work. `analysis/report_10/` compares buggy vs maskfix NAMM training results.
