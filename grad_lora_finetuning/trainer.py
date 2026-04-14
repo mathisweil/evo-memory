@@ -446,22 +446,33 @@ class LoRAGradTrainer:
             input_ids = input_ids_full[i:i+1]
             labels = labels_full[i:i+1]
 
-            # Reset NAMM state before each sample. initialize_buffers clears
-            # buffered attn / pos / queries; set_params_batch_idxs matches
-            # the policy's per-batch param fan-out to this sample's bs=1.
+            # Reset NAMM state before each sample. The top-level
+            # initialize_buffers only clears policy-level state
+            # (buffered_attn_mxs / buffered_pos_ids / buffered_queries);
+            # per-layer component buffers (ema_output_buffer,
+            # stored_keys_buffer, prev_attn_buffer, etc.) live on each
+            # component in memory_policy.component_names and must be
+            # reset separately, otherwise they accumulate across
+            # samples. Mirrors the evaluator's O8 cleanup at
+            # namm/evaluation/evaluator.py:725-740.
             if hasattr(self.model, 'memory_policy'):
-                if hasattr(self.model.memory_policy, 'initialize_buffers'):
-                    self.model.memory_policy.initialize_buffers()
-                elif hasattr(self.model.memory_policy, 'reset_kv_cache'):
-                    self.model.memory_policy.reset_kv_cache()
-                elif hasattr(self.model.memory_policy, 'reset'):
-                    self.model.memory_policy.reset()
+                mp = self.model.memory_policy
+                if hasattr(mp, 'initialize_buffers'):
+                    mp.initialize_buffers()
+                elif hasattr(mp, 'reset_kv_cache'):
+                    mp.reset_kv_cache()
+                elif hasattr(mp, 'reset'):
+                    mp.reset()
                 else:
                     print(
                         "WARNING: memory_policy has no known reset method "
                         "(initialize_buffers / reset_kv_cache / reset). "
                         "Proceeding without KV-cache reset."
                     )
+                for comp_name in getattr(mp, 'component_names', []) or []:
+                    comp = getattr(mp, comp_name, None)
+                    if comp is not None and hasattr(comp, 'initialize_buffers'):
+                        comp.initialize_buffers()
             self.memory_policy.set_params_batch_idxs(
                 np.zeros([1], dtype=np.int64))
             past_key_values = None
