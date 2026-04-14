@@ -5,13 +5,13 @@ Analysis 5: Attention Entropy Shift Under Eviction (M1 vs M3 maskfix)
 Loads pre-computed attention entropy/sink data from maskfix_data.npz and
 generates three comparison plots. No GPU required.
 
-Produces (in analysis/report_5/):
+Produces (in analysis/report_5/plots/):
   1. attention_entropy.png  -- bar chart with entropy + sinks per layer
   2. entropy_heatmap.png    -- 2-panel layer x head heatmaps (M1 and M3)
   3. entropy_diff.png       -- M3-M1 difference heatmap
 
 Run with:
-    PYTHONPATH=. .venv/bin/python analysis/report_5/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_5/scripts/generate_plots.py
 """
 
 from __future__ import annotations
@@ -43,8 +43,9 @@ import numpy as np
 # =============================================================================
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_FILE = SCRIPT_DIR / "maskfix_data.npz"
-PLOT_DIR = SCRIPT_DIR
+REPORT_DIR = SCRIPT_DIR.parent
+DATA_FILE = REPORT_DIR / "data" / "maskfix_data.npz"
+PLOT_DIR = REPORT_DIR / "plots"
 
 NUM_LAYERS = 16
 NUM_HEADS = 32
@@ -244,6 +245,7 @@ def print_summary(data: dict[str, np.ndarray]) -> None:
 # =============================================================================
 
 def main() -> None:
+    PLOT_DIR.mkdir(parents=True, exist_ok=True)
     data = load_data()
 
     print("\nGenerating plots...")

@@ -8,7 +8,7 @@ corrected attention mask) and generates:
   4. retention_vs_f1.png          -- scatter: mean retention vs val F1
 
 Run:
-    PYTHONPATH=. .venv/bin/python analysis/report_3/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_3/scripts/generate_plots.py
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ import wandb
 
 ENTITY = "SNLP_NAMM"
 PROJECT = "memory_evolution_hf"
-OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "plots")
 
 NUM_LAYERS = 16
 LAYER_COLS = [f"retention/layer_{i}" for i in range(NUM_LAYERS)]

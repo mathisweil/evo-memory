@@ -6,7 +6,7 @@ Loads pre-extracted val F1 data from maskfix_data.json and generates:
   3. recovery_ratio.png         -- M3 / M1 per task
 
 Run:
-    PYTHONPATH=. .venv/bin/python analysis/report_1/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_1/scripts/generate_plots.py
 
 To refresh maskfix_data.json from WandB, re-run the extraction script with
 the following run IDs:
@@ -29,8 +29,8 @@ import numpy as np
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
-DATA_PATH = Path(__file__).parent / "maskfix_data.json"
-OUT_DIR = Path(__file__).parent
+DATA_PATH = Path(__file__).parent.parent / "data" / "maskfix_data.json"
+OUT_DIR = Path(__file__).parent.parent / "plots"
 
 TASKS = ["qasper", "2wikimqa", "qasper_e", "hotpotqa_e", "2wikimqa_e"]
 TASK_LABELS = {
@@ -284,6 +284,7 @@ def extract_from_wandb() -> dict:
         "M3_maskfix": m3,
     }
 
+    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(DATA_PATH, "w") as f:
         json.dump(data, f, indent=2)
     print(f"Saved {DATA_PATH}")
@@ -292,6 +293,7 @@ def extract_from_wandb() -> dict:
 
 def main() -> None:
     import sys
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
     if "--extract" in sys.argv:
         data = extract_from_wandb()
     else:

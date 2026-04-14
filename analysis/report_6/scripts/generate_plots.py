@@ -3,15 +3,15 @@
 Analysis 6: Token Importance Alignment (M1 vs M3 maskfix)
 ==========================================================
 Loads pre-computed NAMM-score-vs-attention alignment data from
-maskfix_alignment_data.json and generates three plots. No GPU required.
+data/maskfix_alignment_data.json and generates three plots. No GPU required.
 
-Produces (in analysis/report_6/):
+Produces (in analysis/report_6/plots/):
   1. score_attention_correlation.png -- Spearman rho per layer (M1 vs M3)
   2. eviction_regret.png             -- attention mass lost to evicted tokens
   3. alignment_shift.png             -- per-task M1 vs M3 alignment comparison
 
 Run with:
-    PYTHONPATH=. .venv/bin/python analysis/report_6/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_6/scripts/generate_plots.py
 """
 
 from __future__ import annotations
@@ -44,8 +44,9 @@ import numpy as np
 # =============================================================================
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_FILE = SCRIPT_DIR / "maskfix_alignment_data.json"
-PLOT_DIR = SCRIPT_DIR
+REPORT_DIR = SCRIPT_DIR.parent
+DATA_FILE = REPORT_DIR / "data" / "maskfix_alignment_data.json"
+PLOT_DIR = REPORT_DIR / "plots"
 
 NUM_LAYERS = 16
 
@@ -349,6 +350,8 @@ def main() -> None:
 
     if not conditions:
         raise RuntimeError("No condition data found in JSON file")
+
+    PLOT_DIR.mkdir(parents=True, exist_ok=True)
 
     print("\nGenerating plots...")
     plot_score_attention_correlation(conditions)

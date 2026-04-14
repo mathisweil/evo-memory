@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Analysis 7 -- Representation Similarity (CKA) plots.
 
-Loads pre-computed CKA data from maskfix_data.npz and generates:
-  cka_by_layer.png  -- Bar chart of linear CKA per layer (M1 vs M3)
-  cka_heatmap.png   -- Cross-layer CKA heatmap (M1 layer i vs M3 layer j)
+Loads pre-computed CKA data from data/maskfix_data.npz and generates:
+  plots/cka_by_layer.png  -- Bar chart of linear CKA per layer (M1 vs M3)
+  plots/cka_heatmap.png   -- Cross-layer CKA heatmap (M1 layer i vs M3 layer j)
 
 Only the mask-fixed ("maskfix") data is plotted.  The buggy-run keys
 (layer_cka_buggy, cross_cka_buggy) in the npz are ignored.
 
 Runnable without a GPU:
-    PYTHONPATH=. .venv/bin/python analysis/report_7/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_7/scripts/generate_plots.py
 """
 from __future__ import annotations
 
@@ -42,8 +42,9 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_FILE = SCRIPT_DIR / "maskfix_data.npz"
-OUT_DIR = SCRIPT_DIR
+REPORT_DIR = SCRIPT_DIR.parent
+DATA_FILE = REPORT_DIR / "data" / "maskfix_data.npz"
+OUT_DIR = REPORT_DIR / "plots"
 
 NUM_LAYERS = 16  # LLaMA 3.2-1B decoder layers
 LAYER_LABELS = ["emb"] + [f"L{i}" for i in range(NUM_LAYERS)]

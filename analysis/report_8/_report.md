@@ -58,7 +58,7 @@ evicted. 40 test samples from the 5-task QA subset.
 | Layer 14  |           * |           * |              * |  0.600 |
 | Layer 15  |           * |           * |              * |  0.600 |
 
-`*` See `probe_accuracy.png` for exact per-layer values.
+`*` See `plots/probe_accuracy.png` for exact per-layer values.
 
 ### Key Observations
 
@@ -143,6 +143,6 @@ class imbalance renders the probe uninformative.
 
 | File                                    | Description                                             |
 | --------------------------------------- | ------------------------------------------------------- |
-| `probe_accuracy.png`            | Per-layer probe accuracy for M1 vs M3 vs random baseline|
-| `entity_survival.png`           | Retention fractions and answer token survival estimates  |
-| `layer_wise_information.png`    | Per-layer accuracy difference (M1 - M3)                 |
+| `plots/probe_accuracy.png`            | Per-layer probe accuracy for M1 vs M3 vs random baseline|
+| `plots/entity_survival.png`           | Retention fractions and answer token survival estimates  |
+| `plots/layer_wise_information.png`    | Per-layer accuracy difference (M1 - M3)                 |

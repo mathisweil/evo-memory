@@ -71,7 +71,7 @@ Prior to the attention mask bug fix, M3-buggy (step 600, val F1 45.59) showed su
 
 | Plot                                                  | Description                             |
 | ----------------------------------------------------- | --------------------------------------- |
-| [`weight_magnitude.png`](weight_magnitude.png) | Per-layer Frobenius norms (M1 vs M3)    |
-| [`singular_values.png`](singular_values.png) | SVD spectra of B@A q_proj (M1 vs M3)   |
-| [`subspace_overlap.png`](subspace_overlap.png) | Subspace overlap with M1 per layer      |
-| [`norm_ratio.png`](norm_ratio.png)    | Per-layer M3/M1 norm ratios             |
+| [`weight_magnitude.png`](plots/weight_magnitude.png) | Per-layer Frobenius norms (M1 vs M3)    |
+| [`singular_values.png`](plots/singular_values.png) | SVD spectra of B@A q_proj (M1 vs M3)   |
+| [`subspace_overlap.png`](plots/subspace_overlap.png) | Subspace overlap with M1 per layer      |
+| [`norm_ratio.png`](plots/norm_ratio.png)    | Per-layer M3/M1 norm ratios             |

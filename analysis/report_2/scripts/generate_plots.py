@@ -7,7 +7,7 @@ Pulls training curves from WandB for M1 (full-context LoRA) and M3 maskfix
   3. overfitting_gap.png         -- train F1 - val F1 over training
 
 Run:
-    PYTHONPATH=. .venv/bin/python analysis/report_2/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_2/scripts/generate_plots.py
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ import wandb
 
 ENTITY = "SNLP_NAMM"
 PROJECT = "memory_evolution_hf"
-OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "plots")
 
 # M1: LoRA full-context (3 segments)
 M1_RUN_IDS = ["kz6vqo2o", "x9a4smmf", "qfoxxi2m"]

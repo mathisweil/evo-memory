@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Analysis 9 -- Gradient Flow and Loss Attribution Under Eviction (plots).
 
-Loads pre-computed gradient data from maskfix_gradient_data.json and generates:
-  loss_stratified.png             -- Box plot of per-sample loss by retention stratum
-  grad_norms.png                  -- Per-layer LoRA gradient L2 norms (evicted vs full)
-  loss_vs_retention.png           -- Scatter of loss vs retention ratio
-  grad_direction_consistency.png  -- Per-layer cosine similarity of gradient directions
+Loads pre-computed gradient data from data/maskfix_gradient_data.json and generates:
+  plots/loss_stratified.png             -- Box plot of per-sample loss by retention stratum
+  plots/grad_norms.png                  -- Per-layer LoRA gradient L2 norms (evicted vs full)
+  plots/loss_vs_retention.png           -- Scatter of loss vs retention ratio
+  plots/grad_direction_consistency.png  -- Per-layer cosine similarity of gradient directions
 
 Only M1 vs M3 data is plotted (mask-fixed run). No buggy data is used.
 
 Runnable without a GPU:
-    PYTHONPATH=. .venv/bin/python analysis/report_9/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_9/scripts/generate_plots.py
 """
 from __future__ import annotations
 
@@ -54,8 +54,9 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_FILE = SCRIPT_DIR / "maskfix_gradient_data.json"
-OUT_DIR = SCRIPT_DIR
+REPORT_DIR = SCRIPT_DIR.parent
+DATA_FILE = REPORT_DIR / "data" / "maskfix_gradient_data.json"
+OUT_DIR = REPORT_DIR / "plots"
 
 NUM_LAYERS = 16  # LLaMA 3.2-1B decoder layers
 

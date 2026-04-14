@@ -5,14 +5,14 @@ Analysis 4: LoRA Weight Comparison (M1 vs M3 maskfix)
 Loads pre-computed weight analysis data from maskfix_data.npz and generates
 four comparison plots. No GPU required.
 
-Produces (in analysis/report_4/):
+Produces (in analysis/report_4/plots/):
   1. weight_magnitude.png  -- per-layer ||B@A||_F for q_proj and v_proj
   2. singular_values.png   -- SVD spectra of B@A (q_proj) per layer, 4x4 grid
   3. subspace_overlap.png  -- cosine of principal angles between M1/M3 subspaces
   4. norm_ratio.png        -- ||M3||_F / ||M1||_F ratio per layer
 
 Run with:
-    PYTHONPATH=. .venv/bin/python analysis/report_4/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_4/scripts/generate_plots.py
 """
 
 from __future__ import annotations
@@ -43,8 +43,9 @@ import numpy as np
 # =============================================================================
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_FILE = SCRIPT_DIR / "maskfix_data.npz"
-PLOT_DIR = SCRIPT_DIR
+REPORT_DIR = SCRIPT_DIR.parent
+DATA_FILE = REPORT_DIR / "data" / "maskfix_data.npz"
+PLOT_DIR = REPORT_DIR / "plots"
 
 NUM_LAYERS = 16
 RANK = 8
@@ -251,6 +252,7 @@ def print_summary(data: dict[str, np.ndarray]) -> None:
 # =============================================================================
 
 def main() -> None:
+    PLOT_DIR.mkdir(parents=True, exist_ok=True)
     data = load_data()
 
     print("\nGenerating plots...")

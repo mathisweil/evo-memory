@@ -110,6 +110,6 @@ genuine eviction quality.
 
 | Plot                                                     | Description                                  |
 | -------------------------------------------------------- | -------------------------------------------- |
-| [`best_val_f1_comparison.png`](best_val_f1_comparison.png) | Per-task best val F1 grouped bar (B0--M3)  |
-| [`sensitivity_bar.png`](sensitivity_bar.png)             | Eviction sensitivity per task                |
-| [`recovery_ratio.png`](recovery_ratio.png)               | Recovery ratio per task (M3/M1)              |
+| [`best_val_f1_comparison.png`](plots/best_val_f1_comparison.png) | Per-task best val F1 grouped bar (B0--M3)  |
+| [`sensitivity_bar.png`](plots/sensitivity_bar.png)             | Eviction sensitivity per task                |
+| [`recovery_ratio.png`](plots/recovery_ratio.png)               | Recovery ratio per task (M3/M1)              |

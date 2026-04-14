@@ -31,7 +31,7 @@ Two-pass analysis: full-context attention extraction, then NAMM
 | Mean Spearman rho (all layers) | +0.135 | +0.140 |
 | Std Spearman rho               |  0.139 |  0.135 |
 
-See `score_attention_correlation.png`.
+See `plots/score_attention_correlation.png`.
 
 NAMM scores are positively correlated with attention weights at rho ~+0.14.
 This means NAMM preferentially retains tokens that the model attends to --
@@ -43,7 +43,7 @@ exactly what one would expect from a well-functioning eviction policy.
 | ----------------- | -----: | -----: | -----: |
 | Mean Spearman rho | +0.135 | +0.140 | +0.005 |
 
-See `alignment_shift.png`.
+See `plots/alignment_shift.png`.
 
 M1 and M3 alignment is nearly identical, meaning M3 joint training does
 not reshape attention to better agree with NAMM's scoring. The LoRA
@@ -59,7 +59,7 @@ retained tokens.
 | ------------------------------ | ----: | ------: |
 | Mean total regret (all layers) | 0.289 | similar |
 
-See `eviction_regret.png`.
+See `plots/eviction_regret.png`.
 
 Total regret measures the attention mass assigned to evicted tokens --
 higher regret means the model is attending to tokens that NAMM discards.
@@ -122,6 +122,6 @@ attention mass.
 
 ## Figures
 
-- `score_attention_correlation.png` -- Spearman rho between NAMM scores and mean attention received, per layer, for M1 and M3
-- `eviction_regret.png` -- Total and per-token attention mass on evicted tokens, per layer
-- `alignment_shift.png` -- Per-task comparison of mean alignment (Spearman rho) between M1 and M3
+- `plots/score_attention_correlation.png` -- Spearman rho between NAMM scores and mean attention received, per layer, for M1 and M3
+- `plots/eviction_regret.png` -- Total and per-token attention mass on evicted tokens, per layer
+- `plots/alignment_shift.png` -- Per-task comparison of mean alignment (Spearman rho) between M1 and M3

@@ -128,6 +128,6 @@ more robust learned representations.
 
 | Plot                                                         | Description                           |
 | ------------------------------------------------------------ | ------------------------------------- |
-| [`learning_curves_overlay.png`](learning_curves_overlay.png) | M1 vs M3 validation F1 over training  |
-| [`normalised_improvement.png`](normalised_improvement.png)   | Normalised improvement curves         |
-| [`overfitting_gap.png`](overfitting_gap.png)                 | Train-val gap over training           |
+| [`learning_curves_overlay.png`](plots/learning_curves_overlay.png) | M1 vs M3 validation F1 over training  |
+| [`normalised_improvement.png`](plots/normalised_improvement.png)   | Normalised improvement curves         |
+| [`overfitting_gap.png`](plots/overfitting_gap.png)                 | Train-val gap over training           |

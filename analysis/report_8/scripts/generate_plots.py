@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Analysis 8 -- Probing for Residual Knowledge of Evicted Content (plots).
 
-Loads pre-computed probe data from maskfix_probe_data.npz and generates:
-  probe_accuracy.png        -- Per-layer probe accuracy for M1, M3, and random baseline
-  entity_survival.png       -- Per-task answer-token survival fraction after NAMM eviction
-  layer_wise_information.png -- Per-layer accuracy gap (M1 - M3)
+Loads pre-computed probe data from data/maskfix_probe_data.npz and generates:
+  plots/probe_accuracy.png        -- Per-layer probe accuracy for M1, M3, and random baseline
+  plots/entity_survival.png       -- Per-task answer-token survival fraction after NAMM eviction
+  plots/layer_wise_information.png -- Per-layer accuracy gap (M1 - M3)
 
 Only M1 vs M3 data is plotted (mask-fixed run). No buggy data is used.
 
 Runnable without a GPU:
-    PYTHONPATH=. .venv/bin/python analysis/report_8/generate_plots.py
+    PYTHONPATH=. .venv/bin/python analysis/report_8/scripts/generate_plots.py
 """
 from __future__ import annotations
 
@@ -52,8 +52,9 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_FILE = SCRIPT_DIR / "maskfix_probe_data.npz"
-OUT_DIR = SCRIPT_DIR
+REPORT_DIR = SCRIPT_DIR.parent
+DATA_FILE = REPORT_DIR / "data" / "maskfix_probe_data.npz"
+OUT_DIR = REPORT_DIR / "plots"
 
 NUM_LAYERS = 16  # LLaMA 3.2-1B decoder layers
 

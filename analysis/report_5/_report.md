@@ -72,6 +72,6 @@ The earlier buggy M3 variant (step 600, val F1 45.59, trained with incorrect att
 
 | Plot                                                             | Description                            |
 | ---------------------------------------------------------------- | -------------------------------------- |
-| [`attention_entropy.png`](attention_entropy.png) | Per-layer attention entropy (M1 vs M3) |
-| [`entropy_heatmap.png`](entropy_heatmap.png)     | Layer x head entropy heatmaps          |
-| [`entropy_diff.png`](entropy_diff.png)           | Entropy diff heatmap: M3 minus M1      |
+| [`attention_entropy.png`](plots/attention_entropy.png) | Per-layer attention entropy (M1 vs M3) |
+| [`entropy_heatmap.png`](plots/entropy_heatmap.png)     | Layer x head entropy heatmaps          |
+| [`entropy_diff.png`](plots/entropy_diff.png)           | Entropy diff heatmap: M3 minus M1      |

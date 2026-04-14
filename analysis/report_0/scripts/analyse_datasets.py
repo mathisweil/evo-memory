@@ -59,11 +59,12 @@ SPLIT_SEED = 42
 # Approximate token/word ratios used in the codebase
 TOKEN_WORD_RATIO = 1.3
 
-OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPORT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+OUT_DIR = os.path.join(REPORT_DIR, "plots")
 
 # Prompt templates (from data/longbench/dataset2prompt.json)
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
+REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
 PROMPT_FILE = os.path.join(REPO_ROOT, "data", "longbench", "dataset2prompt.json")
 
 with open(PROMPT_FILE) as f:
@@ -646,7 +647,7 @@ def compute_relevant_tokens(stats_with_examples):
               f"mean relevant tokens={mean_rt:.0f} ({mean_frac:.1%}), "
               f"mean regions={mean_regions:.1f}")
 
-    out_path = os.path.join(OUT_DIR, "relevant_tokens_data.json")
+    out_path = os.path.join(REPORT_DIR, "data", "relevant_tokens_data.json")
     with open(out_path, "w") as f:
         json.dump(result, f, indent=2)
     print(f"Saved: {out_path}")

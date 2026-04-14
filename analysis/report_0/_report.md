@@ -138,7 +138,7 @@ Answer:
 - The multi-hop template is minimal, simply asking for "the answer" with no guidance on format.
 - Both templates repeat the instruction after the context, which is helpful for models with limited attention — the instruction is present at both the start and end of the prompt.
 
-See `prompt_templates.png` for the full templates.
+See `plots/prompt_templates.png` for the full templates.
 
 ---
 
@@ -180,7 +180,7 @@ Filtering applied (matching experiment configuration):
 | HotpotQA-E | 3737         | 3710   | 3177 | 4751 | 413 |
 | 2WikiMQA-E | 3989         | 3998   | 3155 | 4993 | 554 |
 
-After filtering, all tasks have similar context length distributions (mean ~3800-4100 words, ~4900-5350 tokens). HotpotQA-E is slightly shorter on average. See `length_distributions.png`.
+After filtering, all tasks have similar context length distributions (mean ~3800-4100 words, ~4900-5350 tokens). HotpotQA-E is slightly shorter on average. See `plots/length_distributions.png`.
 
 ### 5.2 Answer Lengths
 
@@ -192,7 +192,7 @@ After filtering, all tasks have similar context length distributions (mean ~3800
 | HotpotQA-E | 2.5          | 2      | 11  |
 | 2WikiMQA-E | 2.4          | 2      | 9   |
 
-There is a stark divide: **Qasper tasks have much longer, more variable answers** (mean ~9 words, range 1-46) while **multi-hop tasks have very short answers** (mean ~2.3 words, mostly 1-3 words). See `answer_types.png`.
+There is a stark divide: **Qasper tasks have much longer, more variable answers** (mean ~9 words, range 1-46) while **multi-hop tasks have very short answers** (mean ~2.3 words, mostly 1-3 words). See `plots/answer_types.png`.
 
 ---
 
@@ -202,7 +202,7 @@ This section analyses where answer-relevant information is located within the co
 
 ### 6.1 Token Eviction Rates
 
-At cache_size=1024 with contexts of 4096-6500 tokens, approximately **75-80% of tokens are evicted**. Only ~20-25% of the original context is retained. See `eviction_analysis.png`.
+At cache_size=1024 with contexts of 4096-6500 tokens, approximately **75-80% of tokens are evicted**. Only ~20-25% of the original context is retained. See `plots/eviction_analysis.png`.
 
 | Cache Size | Approx. Tokens Retained | Approx. % Evicted |
 | ---------- | ----------------------- | ----------------- |
@@ -212,7 +212,7 @@ At cache_size=1024 with contexts of 4096-6500 tokens, approximately **75-80% of 
 
 To quantify how much of each context is actually needed to answer the question, we search for answer string occurrences and question entity mentions within the context, then estimate the relevant region as a +-200 character window around each occurrence. This is a lower-bound estimate — the true relevant context may be larger (e.g. surrounding sentences that provide necessary context for interpreting the answer).
 
-See `relevant_tokens.png`, `relevant_tokens_boxplot.png`, `answer_positions.png`, and `eviction_survival.png`.
+See `plots/relevant_tokens.png`, `plots/relevant_tokens_boxplot.png`, `plots/answer_positions.png`, and `plots/eviction_survival.png`.
 
 | Task       | Mean Rel. Tokens | % Context | Regions | Ans. Occur. | Ans. Position |
 | ---------- | ---------------- | --------- | ------- | ----------- | ------------- |
@@ -367,15 +367,15 @@ LoRA fine-tuning with a pre-trained (frozen) NAMM eviction policy active. The LL
 
 ## 9. Figures
 
-- `dataset_characteristics.png` — Summary table of per-task characteristics including sample counts, answer types, information locality, and eviction sensitivity ratings.
-- `prompt_templates.png` — Full prompt templates for each task.
-- `length_distributions.png` — Context length and answer length distributions for eligible samples.
-- `answer_types.png` — Stacked bar chart showing answer type breakdown per task.
-- `eviction_analysis.png` — Token eviction rates and retention distribution at cs=1024.
-- `relevant_tokens.png` — Mean relevant tokens, relevant fraction, and number of distinct relevant regions per task.
-- `relevant_tokens_boxplot.png` — Box plot of relevant token distributions per task, with cache size reference lines.
-- `answer_positions.png` — Distribution of first answer occurrence position within context (0=start, 1=end).
-- `eviction_survival.png` — Estimated fraction of relevant tokens surviving at cs=1024, assuming ideal eviction.
+- `plots/dataset_characteristics.png` — Summary table of per-task characteristics including sample counts, answer types, information locality, and eviction sensitivity ratings.
+- `plots/prompt_templates.png` — Full prompt templates for each task.
+- `plots/length_distributions.png` — Context length and answer length distributions for eligible samples.
+- `plots/answer_types.png` — Stacked bar chart showing answer type breakdown per task.
+- `plots/eviction_analysis.png` — Token eviction rates and retention distribution at cs=1024.
+- `plots/relevant_tokens.png` — Mean relevant tokens, relevant fraction, and number of distinct relevant regions per task.
+- `plots/relevant_tokens_boxplot.png` — Box plot of relevant token distributions per task, with cache size reference lines.
+- `plots/answer_positions.png` — Distribution of first answer occurrence position within context (0=start, 1=end).
+- `plots/eviction_survival.png` — Estimated fraction of relevant tokens surviving at cs=1024, assuming ideal eviction.
 
 ---
 

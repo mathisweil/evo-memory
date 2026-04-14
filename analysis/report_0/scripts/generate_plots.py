@@ -29,8 +29,8 @@ import numpy as np
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
-DATA_PATH = Path(__file__).parent / "relevant_tokens_data.json"
-OUT_DIR = Path(__file__).parent
+DATA_PATH = Path(__file__).parent.parent / "data" / "relevant_tokens_data.json"
+OUT_DIR = Path(__file__).parent.parent / "plots"
 
 TASKS = ["qasper", "2wikimqa", "qasper_e", "hotpotqa_e", "2wikimqa_e"]
 TASK_LABELS = {

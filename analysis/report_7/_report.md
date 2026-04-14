@@ -83,5 +83,5 @@ The M3 checkpoint (step 260, ~43% through training) has not completed training. 
 
 | Plot                                   | Description                     |
 | -------------------------------------- | ------------------------------- |
-| [`cka_by_layer.png`](cka_by_layer.png) | Layer-wise CKA, M1 vs M3       |
-| [`cka_heatmap.png`](cka_heatmap.png)   | Cross-layer CKA heatmap, M3 vs M1 |
+| [`cka_by_layer.png`](plots/cka_by_layer.png) | Layer-wise CKA, M1 vs M3       |
+| [`cka_heatmap.png`](plots/cka_heatmap.png)   | Cross-layer CKA heatmap, M3 vs M1 |

@@ -157,7 +157,7 @@ eviction strategy correlates with the higher M3 val F1 (52.06 vs 45.59).
 
 | Plot                                                         | Description                               |
 | ------------------------------------------------------------ | ----------------------------------------- |
-| [`layer_retention_profile.png`](layer_retention_profile.png) | Mean retention per layer (bar chart)       |
-| [`retention_heatmap.png`](retention_heatmap.png)             | Retention by layer and training step       |
-| [`retention_over_training.png`](retention_over_training.png) | Per-layer retention curves                 |
-| [`retention_vs_f1.png`](retention_vs_f1.png)                 | Retention vs val F1 scatter                |
+| [`layer_retention_profile.png`](plots/layer_retention_profile.png) | Mean retention per layer (bar chart)       |
+| [`retention_heatmap.png`](plots/retention_heatmap.png)             | Retention by layer and training step       |
+| [`retention_over_training.png`](plots/retention_over_training.png) | Per-layer retention curves                 |
+| [`retention_vs_f1.png`](plots/retention_vs_f1.png)                 | Retention vs val F1 scatter                |
