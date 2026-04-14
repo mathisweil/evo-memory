@@ -184,10 +184,10 @@ exists.
 
 **Report 9 (Gradient Flow): Retention shifted dramatically.** The
 buggy NAMM retained ~20.1% of tokens; the corrected NAMM retains
-~3.8%. The absolute loss gap is nearly identical (7.68 vs 7.80), but
-the corrected NAMM is 5x more aggressive and 19% more efficient per
-percentage point of eviction. The gradient distortion finding
-(cosine sim ~0.01) is consistent across both regimes.
+~4%. With balanced sampling (n=255), eviction increases loss by 79%
+(not 641% as the old 40-sample analysis reported) and gradient cosine
+similarity is 0.21 (weakly aligned, not ~0.01). The old numbers were
+biased by uneven task sampling toward harder examples.
 
 ### 3.2 Findings that are robust to the mask fix
 
@@ -317,7 +317,7 @@ The most robust findings are:
   shifted
 - M2 ≈ M3 attention entropy (R5): LoRA does not change attention
   patterns; M3's advantage is in value extraction
-- Gradient distortion under eviction (R9): fundamental to the regime
+- Moderate gradient distortion under eviction (R9): +79% loss, cos 0.21
 
 The least reliable findings are:
 - Absolute F1 numbers (R1--R2): interim checkpoint, validation only

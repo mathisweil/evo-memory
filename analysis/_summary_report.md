@@ -26,9 +26,10 @@ baseline (23.70 vs M1's initial). The negative train-val gap suggests
 eviction acts as a regulariser.
 
 **3. Corrected NAMM is far more aggressive than buggy NAMM.** Maskfix NAMM
-retains only 3.8% of tokens (vs 20% under the buggy mask), with a 641% loss
-increase over full context. Retention CV is 0.115 (more uniform across layers
-than buggy CV of 0.183). Layers 8-9 are the most aggressive eviction sites.
+retains only ~4% of tokens (vs 20% under the buggy mask), with a 79% loss
+increase over full context (n=255 balanced samples). Retention CV is 0.115
+(more uniform across layers than buggy CV of 0.183). Layers 8-9 are the
+most aggressive eviction sites.
 
 **4. M3 LoRA adapts more efficiently under corrected NAMM.** M3/M1 q_proj
 norm ratio is 1.42x (down from 1.93x under the buggy mask). LoRA subspaces
@@ -57,9 +58,10 @@ in deeper layers, not the early-middle layers previously identified.
 gold answers against input context — the same ground-truth problem as the
 dropped Report 0 relevant-tokens analysis. Results were inconclusive.
 
-**9. Gradient flow confirms eviction severity.** Retention 3.8%, loss +641%,
-gradient cosine similarity ~0.01 (uncorrelated). Corrected NAMM creates a
-roughly 5x more aggressive eviction regime than the buggy version.
+**9. Eviction moderately distorts gradients.** With balanced sampling
+(n=255), eviction increases loss by 79% (not 641% as old skewed sample
+suggested) and gradient cosine similarity is 0.21 (weakly aligned, not
+~0.01). The training signal under eviction is noisy but informative.
 
 ### What changed from the buggy-era analysis
 
@@ -340,22 +342,22 @@ reformulation that sidesteps the token-identification problem.
 
 ### Report 9 -- Gradient Flow and Loss Attribution (Maskfix)
 
-The corrected NAMM creates a substantially harsher training signal than the
-buggy version:
+With balanced sampling (255 samples, 51 per task), the gradient flow
+picture is less severe than the old 40-sample analysis suggested:
 
-| Metric                     | Maskfix        | Buggy          |
-| -------------------------- | -------------: | -------------: |
-| Mean retention ratio       |          3.8%  |         20.1%  |
-| CE loss (evicted)          |     ~6.7 (est) |          8.706 |
-| Loss increase vs full ctx  |         +641%  |          +865% |
-| Gradient cos sim           |         ~0.01  |          0.015 |
+| Metric                     |         Value |
+| -------------------------- | ------------: |
+| Mean retention ratio       |         4.1%  |
+| CE loss (evicted)          |         2.291 |
+| CE loss (full context)     |         1.283 |
+| Loss increase from eviction|          +79% |
+| Gradient cosine similarity |         0.207 |
 
-Gradient directions remain essentially uncorrelated between evicted and
-full-context conditions under both buggy and maskfix NAMM. The key
-difference is the severity: corrected NAMM retains 5x fewer tokens (3.8%
-vs 20%), creating a far more aggressive information bottleneck. Despite
-this, M3 achieves a higher val F1 (52.06) than under the buggy mask,
-suggesting the LoRA can successfully adapt to even extreme eviction.
+The 79% loss increase (not 641% as previously reported from a skewed
+40-sample subset) shows eviction creates a harder but not catastrophic
+training signal. Gradient cosine similarity of 0.21 means directions
+are weakly aligned — the LoRA receives meaningful (though noisy)
+training signal under eviction, explaining how M3 learns effectively.
 
 ---
 
@@ -376,8 +378,8 @@ M3 norms 1.42x (efficient) ->   M3 improves via values, not attention
 
 Gradient signal (Report 9)       Task space (Report 1)
 --------------------------       ----------------------
-3.8% retention, +641% loss  ->   M3 val F1: 52.06
-Uncorrelated gradients      ->   M1 val F1: 45.48
+4.1% retention, +79% loss   ->   M3 val F1: 52.06
+Weakly aligned grads (0.21) ->   M1 val F1: 45.48
                              ->   Recovery ratio: 121.5%
 ```
 
@@ -486,7 +488,7 @@ should be treated as suggestive rather than definitive.
 | 6      | Does M3 align with NAMM?    | No: same +0.135 rho as M1               |
 | 7      | Are representations similar? | Mostly: CKA 0.990-1.0, min at layer 9  |
 | 8      | Is evicted info retained?    | Abandoned (flawed probe labels)           |
-| 9      | Does eviction change grads?  | Yes: 3.8% retention, cos ~0.01           |
+| 9      | Does eviction change grads?  | Moderately: +79% loss, cos 0.21           |
 
 ---
 
@@ -502,12 +504,12 @@ should be treated as suggestive rather than definitive.
 | LoRA norm ratio (q_proj)  | 1.93x           | 1.42x           | Smaller  |
 | Retention ratio           | 20%             | 3.8%            | 5x lower |
 | Probe informativeness     | M3 drops to .375| Abandoned       | Dropped  |
-| Gradient uncorrelated     | cos ~0.015      | cos ~0.01       | Robust   |
+| Gradient alignment        | cos ~0.015      | cos 0.21        | Changed  |
 
-Four findings reversed or substantially changed (NAMM-attention
-correlation, CKA layer, probing, attention entropy). Two findings were
-robust across both versions (orthogonal subspaces, uncorrelated
-gradients). The robust findings are the strongest claims in the analysis.
+Five findings reversed or substantially changed (NAMM-attention
+correlation, CKA layer, probing, attention entropy, gradient alignment).
+Orthogonal LoRA subspaces is the most robust finding, holding
+qualitatively across both versions.
 
 ---
 
