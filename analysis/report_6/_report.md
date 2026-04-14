@@ -1,125 +1,118 @@
 # Analysis 6 -- Token Importance Alignment (NAMM Scores vs Attention)
 
-> Naming follows M0--M3 convention throughout.
 > Checkpoints: M2 NAMM from WandB `z5bo4n8k`, M3 LoRA from `h0bzg6on` step 260.
 
-> **TL;DR:** NAMM scores are weakly positively correlated with attention
-> weights (Spearman rho = +0.135 for M1, +0.140 for M3). NAMM
-> preferentially retains tokens the model attends to, consistent with a
-> well-functioning eviction policy. However, the correlation is weak
-> (R-squared ~2%), indicating NAMM relies heavily on additional features
-> beyond raw attention magnitude. M3 fine-tuning does not reshape
-> attention to better agree with NAMM -- M2 and M3 have nearly identical
-> attention entropy under eviction (Report 5).
+> **TL;DR:** NAMM scores are weakly **negatively** correlated with
+> attention (Spearman rho ≈ -0.15).  NAMM tends to retain tokens the
+> model does *not* heavily attend to.  All three conditions (M1, M2, M3)
+> show the same pattern — the LoRA does not change the NAMM-attention
+> relationship.
+
+---
 
 ## Methodology
 
-Two-pass analysis: full-context attention extraction, then NAMM
-`update_cache(analyze=True)` to obtain token importance scores.
+All three conditions run through the NAMM chunked pipeline
+(`apply_memory_policy=True`, 256-token chunks) on full-length prompts
+(4096-6500 tokens).  Per-token NAMM scores and retention decisions are
+captured via a monkey-patch on `select_new_tokens`.  Per-token attention
+received is accumulated across chunks via forward hooks on `self_attn`.
 
-- **Checkpoints:** M1 (LoRA full-context, val F1 45.48), M3 (LoRA + frozen NAMM,
-  `h0bzg6on` step 260, val F1 52.06), both using M2 NAMM (`z5bo4n8k`).
-- **Test data:** 3 samples per task from the 5-task test set (15 samples total).
-- **Cache size:** 1024 tokens.
+- **Samples:** 365 (73 per task, balanced across all 5 tasks)
+- **Conditions:** M1 (LoRA full-context weights), M2 (no LoRA),
+  M3 (LoRA eviction-aware weights).  All use the same NAMM policy.
+- **Cache size:** 1024 tokens
+
+> **Note on M1:** M1 normally operates without NAMM (full context, no
+> eviction).  Here we run M1's weights through the NAMM pipeline to
+> measure how NAMM would score tokens given M1's attention patterns.
+> This is hypothetical for M1 — it never sees NAMM in practice.  M2 and
+> M3 are in their actual operating regimes.
+
+---
 
 ## Findings
 
 ### Score-Attention Correlation
 
-| Metric                         | M1     | M3     |
-| ------------------------------ | -----: | -----: |
-| Mean Spearman rho (all layers) | +0.135 | +0.140 |
-| Std Spearman rho               |  0.139 |  0.135 |
+| Condition          | Mean Spearman rho | Std   |
+| ------------------ | ----------------: | ----: |
+| M1 (full context)  |            -0.115 | 0.227 |
+| M2 (NAMM, no LoRA) |            -0.151 | 0.235 |
+| M3 (LoRA + NAMM)   |            -0.168 | 0.237 |
 
-See `plots/score_attention_correlation.png`.
+NAMM scores are weakly **negatively** correlated with attention — tokens
+that receive more attention tend to get *lower* NAMM retention scores.
+This is counterintuitive but consistent across all conditions and all
+365 samples.
 
-NAMM scores are positively correlated with attention weights at rho ~+0.14.
-This means NAMM preferentially retains tokens that the model attends to --
-exactly what one would expect from a well-functioning eviction policy.
+The per-layer pattern (see `score_attention_correlation.png`) shows
+positive correlation in layer 0 (~+0.35) that drops to negative in
+layers 2-6 (~-0.2 to -0.3), then fluctuates around -0.1 to -0.4 in
+deeper layers.
 
-### M3 Does Not Reshape Attention Toward NAMM
+### M1 ≈ M2 ≈ M3
 
-| Metric            | M1     | M3     | Delta  |
-| ----------------- | -----: | -----: | -----: |
-| Mean Spearman rho | +0.135 | +0.140 | +0.005 |
-
-See `plots/alignment_shift.png`.
-
-M1 and M3 alignment is nearly identical, meaning M3 joint training does
-not reshape attention to better agree with NAMM's scoring. The LoRA
-adaptation strategy is not "learn to attend to what NAMM retains" but
-rather "learn to extract sufficient information regardless of what NAMM
-retains." This is consistent with the Report 5 finding that M2 and M3
-have nearly identical attention entropy under eviction -- the LoRA does
-not change attention routing.
+All three conditions show the same pattern.  The LoRA (M1 or M3)
+does not reshape attention-NAMM alignment.  The correlation is a
+property of the NAMM scoring network interacting with the base model's
+attention, not of the LoRA adaptation.
 
 ### Eviction Regret
 
-| Metric                         | M1    | M3      |
-| ------------------------------ | ----: | ------: |
-| Mean total regret (all layers) | 0.289 | similar |
+| Condition          | Mean total regret | Mean per-token regret |
+| ------------------ | ----------------: | --------------------: |
+| M1 (full context)  |             0.280 |               0.00108 |
+| M2 (NAMM, no LoRA) |             0.289 |               0.00112 |
+| M3 (LoRA + NAMM)   |             0.291 |               0.00112 |
 
-See `plots/eviction_regret.png`.
+Regret measures the attention mass on evicted tokens.  ~28-29% of
+total attention lands on tokens that NAMM evicts.  This is consistent
+with the negative correlation: NAMM evicts tokens the model attends to.
 
-Total regret measures the attention mass assigned to evicted tokens --
-higher regret means the model is attending to tokens that NAMM discards.
-The regret of 0.289 reflects the fact that with correct (peaked)
-attention distributions, evicting a large fraction of the cache
-inevitably removes some attended tokens. This is expected and does not
-indicate a failure of the eviction policy; it instead reflects the
-fundamental trade-off between cache compression and information loss.
+---
 
-### Layer-by-Layer Variation
+## Discussion
 
-The standard deviation of Spearman rho across layers (0.139 for M1,
-0.135 for M3) reflects genuine layer-by-layer variation in alignment.
-Early layers with broad attention show different alignment than deep
-layers with focused attention, consistent with the hierarchical nature
-of transformer representations.
+### Why is the correlation negative?
 
-## Interpretation
+NAMM's scoring network uses attention spectrograms (STFT of attention
+patterns across chunks) and positional embeddings, not raw attention
+magnitude.  The negative correlation suggests NAMM's learned scoring
+assigns high importance to tokens that are *not* heavily attended in the
+current chunk — possibly tokens that carry information the model hasn't
+yet integrated, or positionally important tokens (e.g., section
+boundaries) that don't receive direct attention.
 
-### NAMM Tracks Attention -- Weakly
+This finding differs from the old 15-sample analysis (which reported
+rho = +0.135 on 1024-token truncated prompts).  The discrepancy is
+likely due to sequence length: at 1024 tokens NAMM barely evicts,
+while at 4096-6500 tokens NAMM aggressively evicts ~96% of tokens.
+The scoring behaviour at different compression levels may be
+qualitatively different.
 
-The positive correlation (rho = 0.135) confirms that NAMM's learned
-scoring function captures some of the same importance signal as attention
-weights. However, the correlation is weak (rho ~0.14, R-squared ~2%),
-meaning NAMM relies heavily on additional features beyond raw attention
-magnitude -- the BAM spectrogram temporal patterns, positional
-information, and cross-layer statistics.
+### LoRA does not change NAMM-attention alignment
 
-### M3 does not co-adapt with NAMM
-
-M3 could in principle have learned to sharpen its attention toward tokens
-that NAMM retains, increasing alignment and reducing regret. Instead,
-M3's attention patterns are indistinguishable from M2's (Report 5: M2 ≈
-M3 entropy). M3's LoRA improves performance through value-space
-extraction, not by reshaping which tokens receive attention.
+M1, M2, and M3 all show the same correlation, confirming Report 5's
+finding that the LoRA does not change attention patterns.  M3's
+performance advantage (val F1 52.06 vs M2's 14.90) comes from
+value-space extraction, not from reshaping attention toward or away
+from NAMM's preferences.
 
 ### Connection to Other Reports
 
-| Report          | Finding                              | Implication                                     |
-| --------------- | ------------------------------------ | ----------------------------------------------- |
-| 1 (Sensitivity) | M3 surpasses M1 by 14.5%            | LoRA adaptation is effective under eviction      |
-| 3 (Retention)   | Aggressive retention pattern         | Higher regret expected with fewer retained tokens|
-| 5 (Attention)   | M2 ≈ M3 entropy under eviction       | LoRA improves via values, not attention routing  |
+| Report        | Finding                            | Implication                                   |
+| ------------- | ---------------------------------- | --------------------------------------------- |
+| 5 (Attention) | M2 ≈ M3 entropy under eviction     | Consistent: LoRA doesn't change attention     |
+| 3 (Retention) | ~4-6% retention                    | High regret expected at extreme eviction      |
+| 4 (LoRA wts)  | Orthogonal subspaces, 1.42x norms  | Large weight diffs but same attention pattern |
 
-## Historical note: buggy correlation was misleading
-
-Prior to the attention mask fix, NAMM-attention correlation was negative
-(rho = -0.137 for both M1 and M3). The original Report 6 interpreted
-this as evidence that NAMM operates on a "complementary signal"
-fundamentally different from attention. In reality, the bug produced a
-misleading anti-correlation: without a correct causal mask during M2
-evolution, attention was near-uniform, so NAMM's scoring was driven by
-positional heuristics (token age, position) rather than actual attention
-patterns. Fixing the mask revealed the true positive correlation. The
-buggy eviction regret was also misleadingly low (0.070 vs 0.289) because
-near-uniform attention meant evicting any token removed negligible
-attention mass.
+---
 
 ## Figures
 
-- `plots/score_attention_correlation.png` -- Spearman rho between NAMM scores and mean attention received, per layer, for M1 and M3
-- `plots/eviction_regret.png` -- Total and per-token attention mass on evicted tokens, per layer
-- `plots/alignment_shift.png` -- Per-task comparison of mean alignment (Spearman rho) between M1 and M3
+| Plot                                                                           | Description                                    |
+| ------------------------------------------------------------------------------ | ---------------------------------------------- |
+| [`score_attention_correlation.png`](plots/score_attention_correlation.png)      | Spearman rho per layer (M1 vs M2 vs M3)        |
+| [`eviction_regret.png`](plots/eviction_regret.png)                             | Attention mass on evicted tokens per layer      |
+| [`alignment_shift.png`](plots/alignment_shift.png)                             | Per-task alignment comparison (M1 vs M2 vs M3)  |

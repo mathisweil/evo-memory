@@ -131,8 +131,8 @@ rather than which tokens receive attention (query-key interaction).
 - **Report 4 (LoRA weights):** M3's LoRA weights are 1.42x larger and
   near-orthogonal to M1's, yet produce the same entropy as M2 (no LoRA)
   under eviction.
-- **Report 6 (NAMM alignment):** NAMM scores weakly correlate with
-  attention.  M1, M2, M3 all show the same correlation.
+- **Report 6 (NAMM alignment):** NAMM scores are weakly anti-correlated
+  with attention (rho ≈ -0.15).  M1, M2, M3 all show the same pattern.
 - **Report 3 (retention):** Mean retention ~6.5%, consistent with the
   cache sizes observed here.
 

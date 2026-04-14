@@ -36,11 +36,11 @@ norm ratio is 1.42x (down from 1.93x under the buggy mask). LoRA subspaces
 remain near-orthogonal (~0.21 overlap). The smaller norms suggest more
 efficient adaptation, not a noisier version of M1.
 
-**5. NAMM-attention correlation is POSITIVE with corrected masks.** The buggy
-analysis found anti-correlation (rho = -0.137), supporting a "complementary
-signals" narrative. This was an artefact. With correct attention masks, NAMM
-scores are weakly positively correlated with attention (rho = +0.135). NAMM
-does track attention, though weakly. M3 does not reshape attention toward NAMM.
+**5. NAMM-attention correlation is weakly negative.** With proper chunked
+processing on full-length prompts (n=365), NAMM scores are weakly
+anti-correlated with attention (rho ≈ -0.15). NAMM tends to retain
+tokens the model doesn't heavily attend to. All three conditions
+(M1, M2, M3) show the same pattern — the LoRA doesn't change it.
 
 **6. Attention entropy is ~12% lower under eviction; LoRA doesn't change
 it.** When measured in actual operating regimes (n=365, balanced across
@@ -75,9 +75,9 @@ Sakana AI codebase.
 After fixing the bug, all 10 analysis reports were rerun with maskfix
 checkpoints. The key narrative changes are:
 
-- **Report 6 (NAMM-attention correlation):** The "complementary signals"
-  narrative was wrong. The anti-correlation (rho = -0.137) was an artefact
-  of broken attention. Correct NAMM shows positive correlation (rho = +0.135).
+- **Report 6 (NAMM-attention correlation):** With proper chunked processing
+  on full-length prompts, correlation is weakly negative (rho ≈ -0.15).
+  The old +0.135 was from 15 samples truncated to 1024 tokens.
 - **Report 7 (CKA):** Three-way comparison (M1, M2, M3) shows M1's LoRA
   acts at L2, M3's at L9.  Old "layer 3 critical adaptation point" gone.
 - **Report 4 (LoRA norms):** Norms are 26% smaller with maskfix (1.42x vs
@@ -282,27 +282,27 @@ The old analysis ran both models on full context (no eviction), which
 measured a hypothetical that never occurs in practice and incorrectly
 reported a "+5.0% entropy increase."
 
-### Report 6 -- Token Importance Alignment (Maskfix)
+### Report 6 -- Token Importance Alignment
 
-**This is the report with the largest narrative change.** Under the buggy
-mask, NAMM scores were negatively correlated with attention (rho = -0.137),
-supporting a "complementary signals" interpretation. This was an artefact of
-the broken attention.
+With proper chunked processing on full-length prompts (n=365), NAMM scores
+are weakly **negatively** correlated with attention:
 
-| Metric            | M1 (maskfix) | M3 (maskfix) | M1 (buggy) |
-| ----------------- | -----------: | -----------: | ---------: |
-| Mean Spearman rho |       +0.135 |       +0.140 |     -0.137 |
+| Condition          | Mean Spearman rho |
+| ------------------ | ----------------: |
+| M1 (full context)  |            -0.115 |
+| M2 (NAMM, no LoRA) |            -0.151 |
+| M3 (LoRA + NAMM)   |            -0.168 |
 
-With correct attention masks, NAMM scores are **weakly positively
-correlated** with attention (rho = +0.135). This makes more intuitive
-sense: NAMM's spectrogram-based scoring, which uses attention patterns as
-input, produces retention scores that agree (weakly) with instantaneous
-attention magnitude.
+NAMM tends to retain tokens the model does *not* heavily attend to.  All
+three conditions show the same pattern — the LoRA does not change the
+NAMM-attention relationship.  The old analysis (15 samples, 1024-token
+truncation) reported rho = +0.135; the discrepancy is likely due to the
+qualitatively different eviction regime at full-length prompts (~96%
+eviction vs minimal eviction at 1024 tokens).
 
-M1 and M3 show nearly identical correlation (+0.135 and +0.140), meaning M3
-fine-tuning does not reshape attention toward or away from NAMM's
-preferences. The lack of co-adaptation is consistent across both buggy and
-maskfix analyses -- only the direction of the base correlation changed.
+Note: M1 normally operates without NAMM.  Here M1's weights are run
+through the NAMM pipeline hypothetically.  M2 and M3 are in their
+actual operating regimes.
 
 ### Report 7 -- Representation Similarity (CKA)
 
@@ -364,7 +364,7 @@ Weight space (Report 4)          Function space (5, 6, 7)
 --------------------------       ---------------------------
 Orthogonal LoRA subspaces   ->   M2 ≈ M3 entropy (LoRA doesn't change it)
 M3 norms 1.42x (efficient) ->   M3 improves via values, not attention
-                             ->   Positive NAMM correlation (+0.135)
+                             ->   Weak negative NAMM-attn corr (-0.15)
                              ->   M1 adapts L2, M3 adapts L9 (CKA)
 
 Gradient signal (Report 9)       Task space (Report 1)
@@ -403,22 +403,23 @@ LoRA) rather than query-key attention routing.  This shifts the
 mechanistic story from "M3 attends differently" to "M3 extracts better
 information from the same attention distribution."
 
-### 3.3 NAMM Tracks Attention (Weakly), Not the Opposite
+### 3.3 NAMM Scoring is Weakly Anti-Correlated with Attention
 
-The buggy-era "complementary signals" narrative described NAMM as operating
-on fundamentally different information from attention. With corrected masks,
-the picture is simpler: NAMM's spectrogram-based scoring produces retention
-preferences that weakly agree with attention magnitude (rho = +0.135).
+With proper chunked processing on full-length prompts (n=365), NAMM scores
+are weakly negatively correlated with attention (rho ≈ -0.15). NAMM tends
+to retain tokens the model does not heavily attend to. This is consistent
+across M1, M2, and M3 — the LoRA does not change the relationship.
 
-This makes architectural sense. NAMM takes attention spectrograms as input
-and was evolved (CMA-ES) to maximise F1. Its scoring reflects attention
-patterns, transformed through the spectrogram representation. The weak
-positive correlation confirms NAMM uses attention-derived information,
-though its spectrogram processing captures patterns beyond raw magnitude.
+The anti-correlation suggests NAMM's spectrogram-based scoring captures
+different information from raw attention magnitude. NAMM may prioritise
+tokens that carry latent information (e.g., context tokens, section
+boundaries) over tokens that currently receive high attention (e.g.,
+recent tokens, sink tokens).
 
-The lack of M3-induced alignment shift (M1 and M3 both show rho = +0.135)
-remains consistent: M3 does not learn to cooperate with NAMM's eviction
-decisions.
+The earlier analysis (15 samples, 1024-token truncation) reported positive
+correlation (+0.135). The discrepancy likely reflects qualitatively
+different NAMM behaviour at minimal eviction (1024 tokens) vs aggressive
+eviction (4096-6500 tokens).
 
 ### 3.4 M1 and M3 Adapt at Different Network Depths
 
@@ -473,7 +474,7 @@ should be treated as suggestive rather than definitive.
 | 3      | Is eviction uniform?         | Nearly: CV 0.115, L8-9 most aggressive  |
 | 4      | Are LoRA weights similar?    | No: orthogonal, norms 1.42x (efficient) |
 | 5      | Are attention patterns same? | M2 ≈ M3: LoRA doesn't change entropy     |
-| 6      | Does M3 align with NAMM?    | No: same +0.135 rho as M1               |
+| 6      | Does M3 align with NAMM?    | No: all three ≈ -0.15 rho (anti-corr)    |
 | 7      | Are representations similar? | Yes (>0.995); M1 adapts L2, M3 adapts L9 |
 | 8      | Is evicted info retained?    | Abandoned (flawed probe labels)           |
 | 9      | Does eviction change grads?  | Moderately: +79% loss, cos 0.21           |
@@ -487,7 +488,7 @@ should be treated as suggestive rather than definitive.
 | M3 > M1 on val           | Yes             | Yes (stronger)  | Stronger |
 | Attention entropy shift   | +5.2% (flawed)  | M2 ≈ M3 (-12%)  | Revised  |
 | Orthogonal subspaces      | ~0.18 overlap   | ~0.21 overlap   | Robust   |
-| NAMM-attn correlation     | rho = -0.137    | rho = +0.135    | REVERSED |
+| NAMM-attn correlation     | rho = -0.137    | rho ≈ -0.15     | Similar  |
 | CKA min layer             | Layer 3         | Layer 9         | Shifted  |
 | LoRA norm ratio (q_proj)  | 1.93x           | 1.42x           | Smaller  |
 | Retention ratio           | 20%             | 3.8%            | 5x lower |

@@ -162,16 +162,14 @@ findings substantially while leaving others qualitatively intact.
 
 ### 3.1 Changes that altered conclusions
 
-**Report 6 (Token Alignment): Sign flip.** Under the bug, the
-NAMM-attention Spearman correlation was rho = -0.137, interpreted as
-"complementary signals" -- NAMM retains tokens the model does NOT attend
-to. With maskfix, rho = +0.135, meaning NAMM retains tokens the model
-DOES attend to. This is the opposite interpretation: the corrected
-result says NAMM is doing what one would expect (retaining important
-tokens), not pursuing a complementary strategy. The entire "NAMM and
-LoRA operate as complementary systems" narrative from the buggy analysis
-was wrong. Reports that cited this finding need to be read with this
-reversal in mind.
+**Report 6 (Token Alignment): Methodology corrected.** The old analysis
+(15 samples, 1024-token truncation, two-pass analyze) reported
+rho = +0.135.  With proper chunked processing on full-length prompts
+(n=365), NAMM scores are weakly **anti-correlated** with attention
+(rho ≈ -0.15).  NAMM retains tokens the model does NOT heavily attend
+to — similar to the buggy-era finding (rho = -0.137), though for
+different reasons.  All three conditions (M1, M2, M3) show the same
+pattern.
 
 **Report 7 (CKA): Layer shift from 3 to 9.** The buggy CKA minimum
 was at layer 3 (CKA 0.979); with maskfix it is at layer 9 (CKA 0.990).
@@ -248,8 +246,8 @@ intervals, or permutation tests appear (except Report 3's retention
 correlations). The headline finding "M3 (52.06) exceeds M1 (45.48)" is
 a difference of 6.58 F1 points on a validation set of ~64 samples. This
 is likely significant, but "likely" is not a substitute for a test.
-The mechanistic findings (entropy +5.0%, CKA min 0.990, rho +0.135) at
-n=10--15 especially need uncertainty quantification.
+Sample sizes have improved (n=365 for reports 5-7, n=255 for report 9)
+but formal statistical tests are still absent.
 
 ---
 
