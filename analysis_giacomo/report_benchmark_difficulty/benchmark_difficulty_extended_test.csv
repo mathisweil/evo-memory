@@ -1,0 +1,225 @@
+task,prompt_idx,length,f1_tp1,f1_tp2,f1_tl1,f1_tl2,f1_m1,f1_m4_1,f1_b0,difficulty,difficulty_simple
+2WikiMQA,0,4696,0.0,0.6666666666666666,0.0,0.6666666666666666,0.5,0.0,0.5,needs 2K context,needs-more-context
+2WikiMQA,1,4776,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,3,4621,0.0,0.0,1.0,0.0,0.0,0.0,0.0,needs LoRA (1K tail),needs-more-context
+2WikiMQA,4,4625,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,5,5001,0.0,0.0,0.0,0.0,0.3333333333333333,0.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,7,5162,0.28571428571428575,0.28571428571428575,0.28571428571428575,0.28571428571428575,1.0,1.0,0.42857142857142855,needs NAMM/full-context,genuinely-hard
+2WikiMQA,11,4442,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,22,3948,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,23,4625,0.0,0.0,0.0,0.0,0.0,0.6666666666666666,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,24,4383,0.5,0.5,0.5,0.25,0.3333333333333333,0.8333333333333334,0.5,tail-solvable (1K),tail-solvable
+2WikiMQA,29,4436,0.0,0.0,0.0,0.0,1.0,0.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,31,4769,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,32,4957,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,34,5527,0.0,0.0,0.0,0.0,1.0,1.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,41,4570,0.0,0.0,0.0,0.0,0.0,0.6666666666666666,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,51,4845,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,53,4784,0.0,0.0,0.0,0.0,1.0,0.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,59,4966,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,60,4350,0.4,0.4,0.4,0.4,0.5714285714285715,0.4,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA,67,4713,1.0,1.0,1.0,1.0,0.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA,68,4261,0.0,1.0,0.0,1.0,1.0,0.0,0.0,needs 2K context,needs-more-context
+2WikiMQA,69,5869,0.0,0.0,0.0,1.0,1.0,0.0,0.0,needs LoRA (2K tail),genuinely-hard
+2WikiMQA,72,5631,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,75,4501,0.20000000000000004,0.20000000000000004,0.0,0.20000000000000004,0.8000000000000002,0.6,0.20000000000000004,needs NAMM/full-context,genuinely-hard
+2WikiMQA,77,5091,0.0,0.0,0.0,0.0,1.0,0.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,83,4438,0.0,0.25,0.0,0.0,0.0,0.25,0.33333333333333337,needs full-context (B0),genuinely-hard
+2WikiMQA,93,4323,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,95,5610,1.0,1.0,1.0,1.0,1.0,0.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA,101,4756,1.0,0.0,1.0,0.0,0.0,0.0,0.0,tail-solvable (1K),tail-solvable
+2WikiMQA,102,5772,0.0,0.0,0.0,0.0,1.0,1.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,103,4828,1.0,0.0,0.0,0.0,0.0,1.0,0.0,tail-solvable (1K),tail-solvable
+2WikiMQA,105,4526,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,112,4417,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,113,4580,1.0,1.0,1.0,1.0,0.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA,116,4854,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,118,4040,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,124,4871,0.0,0.0,0.0,0.0,0.0,0.0,0.5,needs full-context (B0),genuinely-hard
+2WikiMQA,125,5577,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,135,4847,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,138,3593,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,139,3584,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,140,3814,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,141,4597,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,142,3366,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,143,4389,1.0,1.0,1.0,1.0,0.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA,144,4958,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA,145,3425,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA,147,3894,1.0,1.0,0.0,1.0,0.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA,151,4337,0.0,0.0,0.0,0.0,0.0,1.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,152,3947,0.1818181818181818,0.0,0.1818181818181818,0.30769230769230765,0.2,0.30769230769230765,0.1818181818181818,needs LoRA (2K tail),genuinely-hard
+2WikiMQA,153,4441,0.6666666666666666,0.0,0.6666666666666666,0.0,0.0,0.0,0.0,tail-solvable (1K),tail-solvable
+2WikiMQA,154,3155,0.0,0.0,1.0,0.0,0.0,0.0,0.0,needs LoRA (1K tail),needs-more-context
+2WikiMQA,155,3195,0.0,0.0,0.0,0.0,0.0,1.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA,156,3719,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,101,4797,0.0,1.0,0.0,1.0,1.0,0.0,0.0,needs 2K context,needs-more-context
+2WikiMQA-E,102,4267,0.0,0.0,0.0,0.0,1.0,0.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,104,4774,0.0,0.0,0.0,1.0,0.6666666666666666,0.5,0.3636363636363636,needs LoRA (2K tail),genuinely-hard
+2WikiMQA-E,106,4629,0.0,0.0,0.0,0.0,0.0,0.0,0.3333333333333333,needs full-context (B0),genuinely-hard
+2WikiMQA-E,107,4176,0.0,0.0,1.0,1.0,1.0,0.0,0.0,needs LoRA (1K tail),needs-more-context
+2WikiMQA-E,108,4003,1.0,1.0,1.0,1.0,1.0,0.6666666666666666,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA-E,109,5240,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,110,4396,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,111,5575,1.0,1.0,1.0,1.0,1.0,0.5,0.4444444444444445,tail-solvable (1K),tail-solvable
+2WikiMQA-E,112,4327,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,114,4864,0.0,0.0,0.0,0.0,0.0,0.6666666666666666,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,117,4287,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,118,4759,1.0,0.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA-E,119,4961,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,120,4993,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,121,5794,0.0,0.0,0.0,0.0,0.0,0.17391304347826084,0.0,universally hard,universally-hard
+2WikiMQA-E,122,5421,0.0,0.0,0.0,0.0,0.0,1.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,124,5606,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA-E,128,4497,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,129,4185,0.0,0.0,0.0,0.0,0.0,0.3333333333333333,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,130,4264,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,131,5491,0.0,0.0,0.0,1.0,1.0,1.0,1.0,needs LoRA (2K tail),genuinely-hard
+2WikiMQA-E,132,4141,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,134,5078,1.0,1.0,0.0,0.0,1.0,1.0,0.25,tail-solvable (1K),tail-solvable
+2WikiMQA-E,135,4155,0.0,0.0,0.0,0.0,1.0,0.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,136,4171,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,137,5191,0.0,1.0,1.0,0.0,0.0,0.0,0.5714285714285715,needs 2K context,needs-more-context
+2WikiMQA-E,138,5540,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,139,4356,0.0,0.0,0.0,0.0,0.8000000000000002,0.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,140,4374,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,141,4038,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,142,4399,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,143,5159,0.0,0.0,0.0,0.0,0.0,0.0,1.0,needs full-context (B0),genuinely-hard
+2WikiMQA-E,144,5174,0.0,0.0,0.0,0.0,1.0,1.0,1.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,145,4234,0.75,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA-E,146,4881,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,147,4083,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,149,5306,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,150,5248,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+2WikiMQA-E,151,4421,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,152,5307,0.0,0.0,0.0,0.0,1.0,0.0,0.0,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,153,4733,0.0,0.0,1.0,1.0,1.0,0.0,1.0,needs LoRA (1K tail),needs-more-context
+2WikiMQA-E,154,4110,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,155,5611,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,156,4707,0.0,0.0,0.0,0.0,0.0,0.15384615384615383,0.0,universally hard,universally-hard
+2WikiMQA-E,158,4643,0.0,1.0,0.0,1.0,0.0,0.0,1.0,needs 2K context,needs-more-context
+2WikiMQA-E,159,4678,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,160,5382,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,161,4846,0.0,0.0,0.0,0.0,0.25,0.6,0.25,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,162,4645,0.25,0.25,0.25,0.25,0.25,0.25,0.25,universally hard,universally-hard
+2WikiMQA-E,165,5351,0.25,0.6666666666666666,0.3333333333333333,0.28571428571428575,0.28571428571428575,0.36363636363636365,0.28571428571428575,needs 2K context,needs-more-context
+2WikiMQA-E,167,4254,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,168,5628,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,171,4215,0.0,0.0,0.0,0.0,0.2222222222222222,0.5714285714285715,0.4444444444444444,needs NAMM/full-context,genuinely-hard
+2WikiMQA-E,172,4162,0.0,0.0,0.0,0.0,0.0,0.28571428571428575,0.0,universally hard,universally-hard
+2WikiMQA-E,174,4787,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,175,5303,1.0,0.0,1.0,0.0,1.0,0.0,0.0,tail-solvable (1K),tail-solvable
+2WikiMQA-E,176,5217,0.0,1.0,0.0,1.0,0.0,0.6666666666666666,1.0,needs 2K context,needs-more-context
+2WikiMQA-E,177,5047,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+2WikiMQA-E,178,4460,0.0,1.0,1.0,1.0,1.0,0.0,0.0,needs 2K context,needs-more-context
+2WikiMQA-E,181,4584,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+HotpotQA-E,88,3217,0.0,0.0,0.0,0.0,0.0,1.0,0.0,needs NAMM/full-context,genuinely-hard
+HotpotQA-E,89,3829,0.0,0.0,0.0,0.0,0.0,0.0,1.0,needs full-context (B0),genuinely-hard
+HotpotQA-E,93,3674,0.0,0.0,1.0,1.0,1.0,1.0,0.0,needs LoRA (1K tail),needs-more-context
+HotpotQA-E,94,3705,0.0,1.0,1.0,1.0,1.0,1.0,1.0,needs 2K context,needs-more-context
+HotpotQA-E,96,3730,0.0,0.0,1.0,1.0,0.0,1.0,0.13333333333333333,needs LoRA (1K tail),needs-more-context
+HotpotQA-E,97,3271,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+HotpotQA-E,99,2862,0.0,0.0,0.0,0.0,0.0,0.0,1.0,needs full-context (B0),genuinely-hard
+HotpotQA-E,100,4208,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+HotpotQA-E,101,4166,0.0,0.0,0.0,0.0,0.6666666666666666,0.0,0.0,needs NAMM/full-context,genuinely-hard
+HotpotQA-E,102,4751,0.5,0.5,0.5,0.5,0.5,0.5,0.5,tail-solvable (1K),tail-solvable
+HotpotQA-E,103,5850,0.0,0.4,0.0,0.4,0.4,0.0,0.4,needs 2K context,needs-more-context
+HotpotQA-E,104,5047,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+HotpotQA-E,105,5609,1.0,1.0,1.0,1.0,1.0,0.5,1.0,tail-solvable (1K),tail-solvable
+HotpotQA-E,106,5194,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+HotpotQA-E,107,4198,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+HotpotQA-E,108,4508,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+HotpotQA-E,113,4196,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+HotpotQA-E,117,4512,0.125,0.07407407407407408,0.06666666666666667,0.07407407407407408,0.26086956521739124,0.19047619047619047,0.21428571428571427,universally hard,universally-hard
+HotpotQA-E,118,4553,0.0,0.25,0.0,0.0,0.0,0.25,0.15384615384615385,universally hard,universally-hard
+HotpotQA-E,119,5098,0.6666666666666666,0.6666666666666666,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+HotpotQA-E,121,5564,0.0,0.0,1.0,1.0,1.0,0.0,0.0,needs LoRA (1K tail),needs-more-context
+HotpotQA-E,122,5564,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+HotpotQA-E,123,4500,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+HotpotQA-E,124,4497,0.0,0.0,0.0,0.0,0.6666666666666666,0.0,1.0,needs NAMM/full-context,genuinely-hard
+HotpotQA-E,127,5794,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+HotpotQA-E,129,5764,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+HotpotQA-E,136,5762,0.0,1.0,0.0,1.0,1.0,0.0,1.0,needs 2K context,needs-more-context
+HotpotQA-E,137,4685,0.0,0.0,0.0,0.0,0.6666666666666666,0.6666666666666666,0.15384615384615385,needs NAMM/full-context,genuinely-hard
+HotpotQA-E,138,5102,0.0,0.0,0.0,0.0,0.6666666666666666,0.6666666666666666,0.6666666666666666,needs NAMM/full-context,genuinely-hard
+HotpotQA-E,139,5267,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+HotpotQA-E,140,5348,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+Qasper,7,4369,0.30769230769230765,0.17142857142857143,0.23529411764705882,0.22222222222222224,0.0983606557377049,0.4,0.23999999999999996,tail-solvable (1K),tail-solvable
+Qasper,19,4902,0.0625,0.07142857142857142,0.0975609756097561,0.10526315789473685,0.23255813953488377,0.0970873786407767,0.20512820512820512,universally hard,universally-hard
+Qasper,22,4656,0.0,0.0,0.4761904761904762,0.47058823529411764,0.3157894736842105,0.3529411764705882,0.0,needs LoRA (1K tail),needs-more-context
+Qasper,30,4898,0.0,0.0,0.0,0.0,0.2105263157894737,0.0,0.0,universally hard,universally-hard
+Qasper,36,5344,0.0,0.0,0.2777777777777778,0.2424242424242424,0.31250000000000006,0.058823529411764705,0.0,needs NAMM/full-context,genuinely-hard
+Qasper,40,5061,0.30769230769230765,0.4000000000000001,0.5000000000000001,0.5000000000000001,0.16326530612244897,0.2272727272727273,0.17543859649122806,tail-solvable (1K),tail-solvable
+Qasper,51,4718,0.07142857142857142,0.07142857142857142,0.07692307692307691,0.07692307692307691,0.07692307692307691,0.13793103448275862,0.07692307692307691,universally hard,universally-hard
+Qasper,63,4542,0.0,0.0,0.22222222222222224,0.04878048780487805,0.0,0.0,0.0,universally hard,universally-hard
+Qasper,77,4475,0.0,0.0,0.0,0.0,0.7272727272727273,0.36363636363636365,0.0,needs NAMM/full-context,genuinely-hard
+Qasper,87,4958,0.13793103448275865,0.1290322580645161,0.13333333333333333,0.125,0.1142857142857143,0.0588235294117647,0.1290322580645161,universally hard,universally-hard
+Qasper,89,4704,0.0,0.0,0.17391304347826086,0.4444444444444444,0.6666666666666667,0.43478260869565216,0.3157894736842105,needs LoRA (2K tail),genuinely-hard
+Qasper,101,5151,0.3157894736842105,0.3,0.4,0.0,0.0,0.3,0.3,tail-solvable (1K),tail-solvable
+Qasper,114,4527,0.0,0.0,0.0,0.75,0.75,0.1935483870967742,0.0,needs LoRA (2K tail),genuinely-hard
+Qasper,119,6169,1.0,1.0,1.0,1.0,1.0,1.0,0.0,tail-solvable (1K),tail-solvable
+Qasper,154,4882,0.2105263157894737,0.2105263157894737,0.28571428571428575,0.28571428571428575,0.24999999999999994,0.06451612903225806,0.27692307692307694,universally hard,universally-hard
+Qasper,158,4487,0.28571428571428575,0.0,0.0,0.0,0.5,0.0,0.0,needs NAMM/full-context,genuinely-hard
+Qasper,159,4661,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+Qasper,160,4528,0.25,0.16666666666666669,0.4,0.6666666666666666,0.4444444444444445,0.0,0.12903225806451613,needs LoRA (1K tail),needs-more-context
+Qasper,161,3543,0.0,0.0,0.0,0.0,0.0,1.0,0.0,needs NAMM/full-context,genuinely-hard
+Qasper,165,4600,0.0,0.0,0.3636363636363636,0.0,0.4827586206896552,0.0,0.0,needs LoRA (1K tail),needs-more-context
+Qasper,166,3612,0.21917808219178084,0.21917808219178084,0.2564102564102564,0.2564102564102564,0.06349206349206349,0.2608695652173913,0.24,universally hard,universally-hard
+Qasper,167,4005,0.0,0.07407407407407408,0.0,0.0,0.2,0.0,0.0,universally hard,universally-hard
+Qasper,168,4855,0.4,0.125,0.28571428571428575,0.16666666666666666,0.057971014492753624,0.5714285714285715,0.22222222222222224,tail-solvable (1K),tail-solvable
+Qasper,173,3591,0.08333333333333334,0.08695652173913043,0.08695652173913043,0.09523809523809525,0.7368421052631579,0.39999999999999997,0.25000000000000006,needs NAMM/full-context,genuinely-hard
+Qasper,174,5838,0.125,0.0,0.0,0.14285714285714288,0.15384615384615383,0.023529411764705882,0.0,universally hard,universally-hard
+Qasper,175,3294,0.33333333333333337,0.0,0.33333333333333337,0.33333333333333337,0.0,0.0,0.0,tail-solvable (1K),tail-solvable
+Qasper,176,2835,0.0,0.0,0.0,0.0,1.0,0.0,0.0,needs NAMM/full-context,genuinely-hard
+Qasper,177,2474,0.0,0.0,0.0,0.6666666666666666,0.6666666666666666,0.4,0.0,needs LoRA (2K tail),genuinely-hard
+Qasper,178,3784,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+Qasper,179,4320,1.0,1.0,1.0,1.0,1.0,0.0,1.0,tail-solvable (1K),tail-solvable
+Qasper,180,4327,1.0,1.0,0.2222222222222222,0.2,0.2105263157894737,0.5454545454545454,1.0,tail-solvable (1K),tail-solvable
+Qasper,182,4524,0.3636363636363636,0.3636363636363636,0.33333333333333337,1.0,0.058823529411764705,0.2222222222222222,0.3076923076923077,tail-solvable (1K),tail-solvable
+Qasper-E,100,4719,0.0,0.0,0.20000000000000004,0.20000000000000004,0.0,0.0,0.0,universally hard,universally-hard
+Qasper-E,101,6182,0.0,0.0,0.09090909090909093,0.13793103448275865,0.2608695652173913,0.1075268817204301,0.1111111111111111,universally hard,universally-hard
+Qasper-E,104,4856,1.0,1.0,1.0,0.8571428571428571,0.1,0.888888888888889,1.0,tail-solvable (1K),tail-solvable
+Qasper-E,105,4924,0.5,0.5,0.6666666666666666,0.0,0.21052631578947367,0.0,0.3636363636363636,tail-solvable (1K),tail-solvable
+Qasper-E,108,4704,0.0,0.0,0.0,0.1111111111111111,0.0,0.15,0.0,universally hard,universally-hard
+Qasper-E,109,6244,0.0,0.0,0.40816326530612246,0.3529411764705882,0.3695652173913043,0.4242424242424242,0.4705882352941176,needs LoRA (1K tail),needs-more-context
+Qasper-E,110,4404,0.08450704225352113,0.12307692307692307,0.15873015873015872,0.15873015873015872,0.03703703703703704,0.13793103448275862,0.0,universally hard,universally-hard
+Qasper-E,111,4902,0.0625,0.07142857142857142,0.0975609756097561,0.10526315789473685,0.23255813953488377,0.07920792079207921,0.20512820512820512,universally hard,universally-hard
+Qasper-E,112,5331,1.0,0.0,1.0,0.0,0.0,0.0,1.0,tail-solvable (1K),tail-solvable
+Qasper-E,118,5344,0.0,0.0,0.2777777777777778,0.2424242424242424,0.31250000000000006,0.07407407407407407,0.0,needs NAMM/full-context,genuinely-hard
+Qasper-E,120,4542,0.0,0.0,0.22222222222222224,0.04878048780487805,0.0,0.0,0.0,universally hard,universally-hard
+Qasper-E,122,4527,0.0,0.0,0.0,0.75,0.75,0.18181818181818182,0.0,needs LoRA (2K tail),genuinely-hard
+Qasper-E,123,4841,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+Qasper-E,126,4855,0.0,0.0,1.0,1.0,0.06349206349206349,0.0,0.0,needs LoRA (1K tail),needs-more-context
+Qasper-E,135,5136,0.0,0.0,0.25,0.27777777777777773,0.27777777777777773,0.20000000000000004,0.31578947368421056,needs full-context (B0),genuinely-hard
+Qasper-E,136,5147,0.0,0.0,0.33333333333333337,0.33333333333333337,0.33333333333333337,0.5714285714285715,0.33333333333333337,needs LoRA (1K tail),needs-more-context
+Qasper-E,137,4489,0.31578947368421056,0.368421052631579,0.25,0.3529411764705882,0.3125,0.380952380952381,0.0,tail-solvable (1K),tail-solvable
+Qasper-E,139,4524,0.3636363636363636,0.3636363636363636,0.33333333333333337,1.0,0.058823529411764705,0.3076923076923077,0.3076923076923077,tail-solvable (1K),tail-solvable
+Qasper-E,143,4521,0.4,0.4,0.8571428571428571,0.8571428571428571,0.8571428571428571,0.7272727272727273,0.4,tail-solvable (1K),tail-solvable
+Qasper-E,149,4481,0.0,0.0,0.0,0.5,0.2857142857142857,0.46153846153846156,0.0,needs LoRA (2K tail),genuinely-hard
+Qasper-E,150,4746,0.0,0.06896551724137931,0.0,0.2857142857142857,0.14285714285714285,0.11111111111111112,0.0,universally hard,universally-hard
+Qasper-E,152,4475,0.0,0.0,0.0,0.0,0.7272727272727273,0.28571428571428575,0.0,needs NAMM/full-context,genuinely-hard
+Qasper-E,156,4566,0.0,0.13559322033898305,0.0,0.13559322033898305,0.14492753623188406,0.0,0.0,universally hard,universally-hard
+Qasper-E,157,4964,0.208955223880597,0.26666666666666666,0.2121212121212121,0.1379310344827586,0.1886792452830189,0.1794871794871795,0.15625000000000003,universally hard,universally-hard
+Qasper-E,162,4246,0.3529411764705882,0.26666666666666666,0.25,0.45454545454545453,0.36363636363636365,0.0,0.0,tail-solvable (1K),tail-solvable
+Qasper-E,163,4718,0.07142857142857142,0.07142857142857142,0.07692307692307691,0.07692307692307691,0.07692307692307691,0.13793103448275862,0.07692307692307691,universally hard,universally-hard
+Qasper-E,164,4117,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+Qasper-E,165,4184,0.0,0.0,0.0,0.0,0.19999999999999998,0.0,0.0,universally hard,universally-hard
+Qasper-E,166,4484,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+Qasper-E,167,4271,0.3125,0.0,0.3125,0.26666666666666666,0.3448275862068965,0.09523809523809525,0.0,tail-solvable (1K),tail-solvable
+Qasper-E,168,4101,0.0,0.0,0.42857142857142855,0.8000000000000002,0.5,0.5714285714285715,0.0,needs LoRA (1K tail),needs-more-context
+Qasper-E,169,4770,1.0,1.0,1.0,1.0,1.0,1.0,1.0,tail-solvable (1K),tail-solvable
+Qasper-E,170,4377,0.09523809523809525,0.09090909090909091,0.09999999999999999,0.09090909090909091,0.09523809523809525,0.1111111111111111,0.09090909090909091,universally hard,universally-hard
+Qasper-E,171,4489,0.0,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+Qasper-E,172,4592,0.0,0.0,0.0,0.0,0.0,1.0,0.0,needs NAMM/full-context,genuinely-hard
+Qasper-E,173,4457,0.0,0.0,1.0,1.0,1.0,1.0,0.0,needs LoRA (1K tail),needs-more-context
+Qasper-E,174,4395,0.0,0.2222222222222222,0.2857142857142857,0.14285714285714288,0.39999999999999997,0.2222222222222222,0.0,needs NAMM/full-context,genuinely-hard
+Qasper-E,175,5063,0.0,0.07407407407407408,0.10526315789473685,0.1,0.28571428571428575,0.0,0.0,universally hard,universally-hard
+Qasper-E,176,4203,0.0,0.0,0.0,0.0,0.25,0.0,0.0,universally hard,universally-hard
+Qasper-E,177,4259,0.10526315789473682,0.0,0.0,0.0,0.0,0.0,0.0,universally hard,universally-hard
+Qasper-E,178,4857,0.0,0.5,0.25,0.888888888888889,0.10666666666666667,0.5,0.0,needs 2K context,needs-more-context
+Qasper-E,179,5092,0.16666666666666669,0.16666666666666669,0.2631578947368421,0.25352112676056343,0.24657534246575344,0.1388888888888889,0.2,universally hard,universally-hard
+Qasper-E,180,4232,0.6521739130434783,0.16326530612244897,0.8518518518518519,0.8518518518518519,0.8363636363636363,0.0,0.0,tail-solvable (1K),tail-solvable
+Qasper-E,181,4515,0.0,0.0,0.6666666666666666,0.8,0.8,0.6666666666666666,0.0,needs LoRA (1K tail),needs-more-context
+Qasper-E,182,4187,0.0,0.0,0.0,0.0,0.4,0.19999999999999998,0.0,needs NAMM/full-context,genuinely-hard
+Qasper-E,183,4071,0.0,0.0,0.0,0.0,0.2222222222222222,0.0,0.0,universally hard,universally-hard
