@@ -30,7 +30,7 @@ WandB base: `https://wandb.ai/SNLP_NAMM/memory_evolution_hf/runs/`
 | 2    | B1 — recency eval   | none       | done                | eval only                    |
 | 3    | M1 — LoRA (r=8)     | none       | done                | [seg1][m1a] [seg2][m1b] [seg3][m1c]|
 | 4    | M2 — standalone NAMM| none       | done                | [`lenhmfb1`][m2]             |
-| 5    | M3 — LoRA+frozen NAMM| M2 ckpt   | maskfix running     | [`h0bzg6on`][m3]             |
+| 5    | M3 — LoRA+frozen NAMM| M2 ckpt   | maskfix killed@425  | [`h0bzg6on`][m3]             |
 | 6    | M4 — joint LoRA+NAMM| none       | not started         | —                            |
 | 7    | A1 — rank sweep     | none       | not started         | —                            |
 | 8    | A4 — NAMM off eval  | M3 ckpt    | done (on M3, not M4)| eval only                    |
@@ -484,11 +484,11 @@ M2 maskfix cs1024 val F1 (14.90) is substantially **worse** than buggy M2 (27.90
 
 | Cache | WandB run name            | WandB ID   | State   | Steps | Best val avg F1              |
 | ----- | ------------------------- | ---------- | ------- | ----- | ---------------------------- |
-| 1024  | `rh_m4_5t_cs1024_maskfix` | `h0bzg6on` | running | 294+  | **52.06** (step 260, interim)|
+| 1024  | `rh_m4_5t_cs1024_maskfix` | `h0bzg6on` | killed  | 425   | **52.06** (step 260)         |
 
 Earlier killed attempt: `facswin9`.
 
-M3 maskfix cs1024 already exceeds both buggy M3 (45.59) and M1 (45.48) by ~6.5 points at only ~43% through training. Multi-hop tasks see the largest gains: HotpotQA-E +14.3, 2WikiMQA-E +19.5, 2WikiMQA +12.0.
+M3 maskfix cs1024 exceeds both buggy M3 (45.59) and M1 (45.48) by ~6.5 points. Run was killed at step 425; best val F1 at step 260. Multi-hop tasks see the largest gains: HotpotQA-E +14.3, 2WikiMQA-E +19.5, 2WikiMQA +12.0.
 
 #### Maskfix checkpoints
 
@@ -532,7 +532,7 @@ GCS backup: `gs://statistical-nlp/evo-memory/checkpoints_backup_20260414/` conta
 | —    | M1_recency/cs1024    | **BROKEN**     | all zeros — needs investigation              |
 | —    | M2 maskfix cs1024    | **done**       | val F1 14.90 (worse than buggy 27.90)        |
 | —    | M2 maskfix cs2048    | **running**    | `jip3a3dm`                                   |
-| —    | M3 maskfix cs1024    | **running**    | `h0bzg6on`, val F1 52.06 at step 260        |
+| —    | M3 maskfix cs1024    | **killed@425** | `h0bzg6on`, val F1 52.06 at step 260        |
 
 ---
 

@@ -42,7 +42,7 @@ A critical attention mask bug was discovered in the NAMM split-processing loop (
 Maskfix reruns retrain M2 and M3 with the corrected attention mask:
 - **M2 maskfix cs1024** (`z5bo4n8k`): finished, val F1 14.90 (worse than buggy 27.90)
 - **M2 maskfix cs2048** (`jip3a3dm`): running
-- **M3 maskfix cs1024** (`h0bzg6on`): running, val F1 52.06 at step 260 (exceeds buggy 45.59 and M1 45.48)
+- **M3 maskfix cs1024** (`h0bzg6on`): killed at step 425, best val F1 52.06 at step 260 (exceeds buggy 45.59 and M1 45.48)
 
 Checkpoints available locally (`experiment_artifacts/gcs/M2_cs1024_maskfix/`, `M3_cs1024_maskfix/`) and backed up to GCS (`gs://statistical-nlp/evo-memory/checkpoints_backup_20260414/`).
 
@@ -178,13 +178,12 @@ A high sensitivity score means the task relies on information that NAMM tends to
 
 **Question:** Does the model's attention distribution change when tokens are evicted? Does M3 fine-tuning cause attention to sharpen onto retained tokens?
 
-**Method:** Run M1 and M3 checkpoints on the same test inputs and extract attention weight matrices at each layer and head.
+**Method:** Run M1, M2, and M3 in their actual operating regimes (M1 full context, M2/M3 with NAMM eviction active) on 365 balanced samples (73 per task) at full length (4096-6500 tokens).
 
-1. **Attention entropy:** For each head at each layer, compute the Shannon entropy of the attention distribution: `H = -sum(a_i * log(a_i))`. Higher entropy indicates more distributed attention. Compare M1 entropy (full context) vs M3 entropy (evicted context).
-2. **Attention mass on would-be-evicted tokens:** Using M1's checkpoint, compute how much attention goes to tokens that M2's NAMM would have evicted. This quantifies the "information at risk" — the fraction of attention that M3 must learn to redirect.
-3. **Attention sink analysis:** Measure the fraction of total attention captured by the first few tokens (BOS, system prompt tokens) in M1 vs M3. If M3 shows stronger attention sinks, it may be using early tokens as a "memory buffer" for information from evicted positions.
+1. **Per-head attention entropy:** For each head at each layer, compute the Shannon entropy of the attention distribution: `H = -sum(a_i * log(a_i))`. Compare M1 (full context) vs M2/M3 (evicted). Evicted tokens have zero attention by construction (absent from KV cache), so entropy is mathematically equivalent to computing over the full prompt with zeros.
+2. **Total attention entropy:** Sum attention received per token position across all layers and heads, normalise, compute entropy. Measures how broadly the whole model collectively covers the context.
 
-**Hypothesis:** M3 will show lower attention entropy (more focused) than M1, particularly in later layers. The attention mass on would-be-evicted tokens in M1 quantifies the upper bound on information loss, and M3's ability to recover F1 suggests it redirects this attention to retained tokens or early sinks.
+**Hypothesis:** ~~M3 will show lower entropy.~~ **Result:** Per-head entropy is ~12% lower for M2/M3 (fewer tokens to attend over), but M2 ≈ M3 (-1.7% difference) — the LoRA does not change attention patterns. Total entropy is slightly higher for M2 (3.73 vs M1's 3.61) because evicted heads attend to more diverse positions collectively.
 
 **Data needed:** Inference pass with attention output on test set using M1 and M3 checkpoints.
 
@@ -201,13 +200,15 @@ A high sensitivity score means the task relies on information that NAMM tends to
 
 **Question:** Does NAMM's learned scoring function agree with the model's own attention-based importance? Does M3 fine-tuning improve this alignment?
 
-**Method:** The NAMM BAM scoring network assigns an importance score to each token at each eviction step. During inference, extract both NAMM scores and the LLM's attention weights:
+**Method:** Run M1, M2, and M3 through the NAMM chunked pipeline (`apply_memory_policy=True`, 256-token chunks) on 365 balanced samples at full length. Capture NAMM scores via monkey-patched `select_new_tokens`; accumulate per-token attention received via forward hooks on `self_attn`.
 
-1. **Score-attention correlation:** For each eviction step, compute the Spearman rank correlation between NAMM's token scores and the average attention each token receives from subsequent query positions. High correlation means NAMM is evicting tokens the model doesn't attend to anyway.
-2. **Alignment shift M1→M3:** Compute the same attention-based importance using M1 weights and M3 weights. If M3's attention aligns more closely with NAMM scores, the model has learned to "agree" with the eviction policy.
-3. **Eviction regret:** For each evicted token, measure the total attention it would have received (from M1) in subsequent positions. High-regret evictions identify cases where NAMM removes tokens the model actually needs. Compare regret distributions across tasks to explain per-task sensitivity differences.
+1. **Score-attention correlation:** Spearman rank correlation between NAMM's per-token scores and the accumulated attention each token receives, per layer.
+2. **Alignment across conditions:** Compare M1, M2, M3 — does the LoRA change the NAMM-attention relationship?
+3. **Eviction regret:** Total attention mass on evicted tokens per layer.
 
-**Hypothesis:** NAMM scores will correlate moderately with attention weights (since NAMM is trained on task performance, not attention alignment). M3 fine-tuning should increase this correlation, as the model learns to rely more on tokens that NAMM retains.
+Note: M1 normally operates without NAMM; running it through the NAMM pipeline is hypothetical. M2 and M3 are in their actual regimes.
+
+**Hypothesis:** ~~NAMM scores will correlate moderately with attention.~~ **Result:** NAMM scores are weakly **anti-correlated** with attention (rho ≈ -0.15). NAMM retains tokens the model doesn't heavily attend to. All three conditions show the same pattern.
 
 **Data needed:** Inference pass with NAMM active, extracting both NAMM scores and attention weights. Requires hooking into `namm/policy/deep_scoring_bam.py` scoring forward pass.
 
@@ -244,24 +245,14 @@ A high sensitivity score means the task relies on information that NAMM tends to
 
 ## 8 · Probing for Residual Knowledge of Evicted Content
 
-**Question:** When NAMM evicts tokens, does the model still retain information about them in its hidden states? Has M3 learned to compress evicted information into the representations of retained tokens?
+**Status: DROPPED.**
 
-**Method:** Train lightweight linear probes on hidden states to predict facts that were present in evicted tokens:
-
-1. **Probe design:** For each test example, identify tokens that NAMM evicts. Formulate binary classification tasks: given the hidden state of a retained token at layer L, can a linear probe predict whether a specific evicted fact (e.g. a named entity, a date) was present in the original context?
-2. **M1 vs M3 probe accuracy:** Train probes on M1 hidden states (full context, all information present) as an upper bound. Train probes on M3 hidden states (post-eviction). If M3 probes approach M1 accuracy, the model has learned to compress evicted information.
-3. **Layer-wise probing:** Apply probes at each layer to identify where residual knowledge is concentrated. If it appears in later layers of M3 but not M1, this suggests the LoRA adapter is actively compressing information forward.
-
-**Hypothesis:** M1 probes will succeed easily (information is present in full). M3 probes will show intermediate accuracy — better than chance (some compression occurred) but worse than M1 (not all information survives eviction). Accuracy will be higher in later layers if LoRA is actively compensating.
-
-**Data needed:** Inference pass with hidden state extraction, plus construction of probe labels from evicted tokens.
-
-**Effort:** High — requires designing probe tasks, extracting hidden states, and training probe classifiers.
-
-**References:**
-- Belinkov (2022). "Probing Classifiers: Promises, Shortcomings, and Advances." *Computational Linguistics 48(1)*. Comprehensive survey of probing methodology, including best practices for control tasks and avoiding confounds. Essential reading for designing meaningful probes.
-- Voita et al. (2019). "The Bottom-up Evolution of Representations in the Transformer: A Study with Machine Translation and Language Modeling Heads." *EMNLP 2019*. Uses probing to track how information is transformed across layers, directly applicable to understanding where evicted information might be compressed.
-- Hewitt & Liang (2019). "Designing and Interpreting Probes with Control Tasks." *EMNLP 2019*. Introduces control tasks to ensure probes measure genuine encoding rather than probe capacity. Critical for avoiding false positives when probing for residual knowledge.
+This analysis attempted to train linear probes on hidden states to detect
+whether gold-answer tokens had been evicted by NAMM. The probe labels were
+constructed by string-matching gold answers against the input context, but
+this does not give ground truth for which tokens are needed to answer the
+question (answer information often appears in paraphrased or indirect form).
+Results were inconclusive. See `report_8/_report.md` for details.
 
 ---
 
@@ -299,10 +290,10 @@ A high sensitivity score means the task relies on information that NAMM tends to
 | 5        | Attention entropy shift               | §5      | Medium | Inference hooks          |
 | 6        | Token importance alignment            | §6      | Medium | NAMM hooks               |
 | 7        | CKA representation similarity         | §7      | Medium | Inference + CKA lib      |
-| 8        | Probing for residual knowledge        | §8      | High   | Probe training           |
+| 8        | ~~Probing for residual knowledge~~    | §8      | --     | DROPPED                  |
 | 9        | Gradient flow attribution             | §9      | High   | Training instrumentation |
 
-Analyses 1–3 can be completed immediately from existing wandb data. Analyses 4–7 each require one or two inference passes over the test set. Analyses 8–9 require new training or probe-training runs.
+Analyses 1–3 use existing WandB data. Analyses 4–7 and 9 each require GPU inference passes. Analysis 8 is dropped.
 
 ---
 
