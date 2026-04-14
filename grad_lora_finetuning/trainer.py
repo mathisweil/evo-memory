@@ -775,8 +775,18 @@ class LoRAGradTrainer:
     # -----------------------------------------------------------------------
 
     def _write_artifact_contract(self, cfg_yaml: str, method: str, seed: int):
-        """Create results/{method}/{seed}/ and initialise all artifact files."""
-        self.artifact_dir = os.path.join('results', method, str(seed))
+        """Create results/{method}/{run_name}/{seed}/ and initialise artifact files.
+
+        `run_name` is part of the path so rank-sweep variants (M1-r2 / r4 /
+        r8 / r16, all of which share `method=m1_lora_5t` and `seed=42`)
+        write to disjoint directories and don't clobber each other's
+        `best_ckpt.pt` -- otherwise a later, smaller-rank run would try to
+        load LoRA tensors of the wrong shape from a prior larger-rank run's
+        leftover best checkpoint.
+        """
+        run_segment = self.run_name if self.run_name else 'default'
+        self.artifact_dir = os.path.join(
+            'results', method, run_segment, str(seed))
         os.makedirs(self.artifact_dir, exist_ok=True)
 
         with open(os.path.join(self.artifact_dir, 'config.yaml'), 'w') as f:
