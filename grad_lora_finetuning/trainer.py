@@ -441,6 +441,7 @@ class LoRAGradTrainer:
         n_tokens_total = (labels_full != -100).sum().clamp(min=1)
         step_total_loss_value = 0.0
         last_past_kv = None
+        last_sample_n_input = 0
 
         for i in range(bs):
             input_ids = input_ids_full[i:i+1]
@@ -503,7 +504,13 @@ class LoRAGradTrainer:
             if nonpad_positions.numel() == 0:
                 continue
             sample_end = int(nonpad_positions[-1].item()) + 1
-            if sample_end <= context_end:
+            # Need at least 2 phase-2 tokens so that shift_hidden (seq-1)
+            # is non-empty and the CE loop produces a loss with grad_fn;
+            # otherwise sample_total_loss stays as a constant 0.0 tensor
+            # and `.backward()` raises "element 0 ... does not have a
+            # grad_fn". Triggers when the answer starts within the first
+            # token past a chunk_align boundary (e.g. answer_start == 64).
+            if sample_end - context_end < 2:
                 continue
 
             if context_end > 0:
@@ -569,11 +576,15 @@ class LoRAGradTrainer:
             step_total_loss_value += sample_loss.item()
 
             last_past_kv = _past_kv
+            last_sample_n_input = sample_end
 
-        # ANLYS-01: per-layer token retention logging (last sample's cache)
+        # ANLYS-01: per-layer token retention logging (last sample's cache).
+        # Denominator must be this sample's own input length (post phase-2
+        # clip), not input_ids_full.shape[1] which is the batch-max after
+        # right-padding and would understate retention at bs>1.
         self._last_retention_dict = {}
         if last_past_kv is not None:
-            n_input = input_ids_full.shape[1]
+            n_input = last_sample_n_input
             if n_input > 0:
                 for layer_i, layer_kv in enumerate(last_past_kv):
                     if layer_kv is not None and layer_kv[0] is not None:
