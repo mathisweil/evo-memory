@@ -4,7 +4,7 @@
 Loads pre-computed gradient data from data/maskfix_gradient_data.json and generates:
   plots/loss_stratified.png             -- Box plot of per-sample loss by retention stratum
   plots/grad_norms.png                  -- Per-layer LoRA gradient L2 norms (evicted vs full)
-  plots/loss_vs_retention.png           -- Scatter of loss vs retention ratio
+
   plots/grad_direction_consistency.png  -- Per-layer cosine similarity of gradient directions
 
 Only M1 vs M3 data is plotted (mask-fixed run). No buggy data is used.
@@ -27,7 +27,7 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # CONFIG -- how to regenerate the data
 # ---------------------------------------------------------------------------
-# Data file produced by analysis/generate_data_6_8_9.py on a GPU node.
+# Data file produced by analysis/report_9/scripts/generate_data.py on a GPU node.
 # That script loads the following checkpoints:
 #   M3 LoRA   : experiment_artifacts/gcs/M3_cs1024/best_ckpt.pt
 #   M2 NAMM   : experiment_artifacts/gcs/M2_cs1024/ckpt.pt
@@ -38,7 +38,7 @@ import numpy as np
 # LoRA gradient norms are recorded.
 #
 # To regenerate the data:
-#   PYTHONPATH=. .venv/bin/python analysis/generate_data_6_8_9.py
+#   PYTHONPATH=. .venv/bin/python analysis/report_9/scripts/generate_data.py
 #
 # JSON structure:
 #   evicted:               list[dict] -- per-sample results under eviction
@@ -186,63 +186,6 @@ def plot_grad_norms(data: dict[str, Any], out_dir: Path) -> None:
     print(f"Saved {path}")
 
 
-def plot_loss_vs_retention(data: dict[str, Any], out_dir: Path) -> None:
-    """Scatter of per-sample loss vs retention ratio, coloured by task."""
-    evicted = data["evicted"]
-    if not evicted:
-        print("  Skipping loss_vs_retention (no data)")
-        return
-
-    retentions = [s["retention_ratio"] for s in evicted]
-    losses = [s["loss"] for s in evicted]
-    tasks = [s["task"] for s in evicted]
-
-    fig, ax = plt.subplots(figsize=(10, 7))
-
-    unique_tasks = sorted(set(tasks))
-    task_colors = {
-        t: c for t, c in zip(
-            unique_tasks,
-            plt.cm.Set2(np.linspace(0, 1, max(len(unique_tasks), 1))),
-        )
-    }
-
-    for task in unique_tasks:
-        mask = [t == task for t in tasks]
-        task_ret = [r for r, m in zip(retentions, mask) if m]
-        task_loss = [lo for lo, m in zip(losses, mask) if m]
-        ax.scatter(
-            task_ret, task_loss, label=task, alpha=0.7, s=40,
-            color=task_colors[task], edgecolors="white", linewidth=0.5,
-        )
-
-    # Trend line
-    if len(retentions) >= 3:
-        from scipy import stats as scipy_stats  # noqa: PLC0415
-
-        slope, intercept, r_value, p_value, _std_err = scipy_stats.linregress(
-            retentions, losses)
-        x_line = np.linspace(min(retentions), max(retentions), 100)
-        y_line = slope * x_line + intercept
-        ax.plot(x_line, y_line, "--", color="gray", alpha=0.7,
-                label=f"OLS: r={r_value:.3f}, p={p_value:.3f}")
-
-    ax.set_xlabel("Retention Ratio", fontsize=12)
-    ax.set_ylabel("Cross-Entropy Loss (answer tokens)", fontsize=12)
-    ax.set_title(
-        "Loss vs Retention Ratio Under NAMM Eviction\n"
-        f"(M3 checkpoint, cache_size={data.get('cache_size', '?')})",
-        fontsize=13,
-    )
-    ax.legend(fontsize=9, loc="best")
-    ax.grid(True, alpha=0.3)
-    fig.tight_layout()
-
-    path = out_dir / "loss_vs_retention.png"
-    fig.savefig(path, dpi=150)
-    plt.close(fig)
-    print(f"Saved {path}")
-
 
 def plot_grad_direction_consistency(data: dict[str, Any], out_dir: Path) -> None:
     """Per-layer cosine similarity between evicted and full-context gradients."""
@@ -329,7 +272,7 @@ def main() -> None:
         raise FileNotFoundError(
             f"Data file not found: {DATA_FILE}\n"
             "Generate it on a GPU node with:\n"
-            "  PYTHONPATH=. .venv/bin/python analysis/generate_data_6_8_9.py"
+            "  PYTHONPATH=. .venv/bin/python analysis/report_9/scripts/generate_data.py"
         )
 
     with open(DATA_FILE) as f:
@@ -346,7 +289,7 @@ def main() -> None:
 
     plot_loss_stratified(data, OUT_DIR)
     plot_grad_norms(data, OUT_DIR)
-    plot_loss_vs_retention(data, OUT_DIR)
+
     plot_grad_direction_consistency(data, OUT_DIR)
 
     # Print summary

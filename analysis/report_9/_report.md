@@ -143,6 +143,5 @@ regimes.
 | ---------------------------------------- | ------------------------------------------------------ |
 | `plots/loss_stratified.png`            | Box plot of CE loss: full context vs evicted            |
 | `plots/grad_norms.png`                 | Per-layer LoRA gradient L2 norms under eviction vs full |
-| `plots/loss_vs_retention.png`          | Scatter plot of retention ratio vs CE loss               |
 | `plots/grad_direction_consistency.png` | Per-layer cosine similarity of gradient directions      |
 | `data/maskfix_gradient_data.json`      | Raw data (40 evicted + 40 full-context samples)         |

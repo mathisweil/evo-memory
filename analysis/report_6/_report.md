@@ -9,8 +9,8 @@
 > well-functioning eviction policy. However, the correlation is weak
 > (R-squared ~2%), indicating NAMM relies heavily on additional features
 > beyond raw attention magnitude. M3 fine-tuning does not reshape
-> attention to better agree with NAMM -- the hedging strategy (Report 5)
-> broadens attention rather than sharpening it toward retained tokens.
+> attention to better agree with NAMM -- M2 and M3 have nearly identical
+> attention entropy under eviction (Report 5).
 
 ## Methodology
 
@@ -49,9 +49,9 @@ M1 and M3 alignment is nearly identical, meaning M3 joint training does
 not reshape attention to better agree with NAMM's scoring. The LoRA
 adaptation strategy is not "learn to attend to what NAMM retains" but
 rather "learn to extract sufficient information regardless of what NAMM
-retains." This is consistent with the Report 5 finding that M3 broadens
-attention as a hedging strategy rather than sharpening it toward NAMM's
-retained tokens.
+retains." This is consistent with the Report 5 finding that M2 and M3
+have nearly identical attention entropy under eviction -- the LoRA does
+not change attention routing.
 
 ### Eviction Regret
 
@@ -88,23 +88,21 @@ meaning NAMM relies heavily on additional features beyond raw attention
 magnitude -- the BAM spectrogram temporal patterns, positional
 information, and cross-layer statistics.
 
-### The Hedging-Alignment Trade-off
+### M3 does not co-adapt with NAMM
 
 M3 could in principle have learned to sharpen its attention toward tokens
-that NAMM retains, increasing alignment and reducing regret. Instead, it
-broadens attention (Report 5: +5.0% entropy). This suggests the hedging
-strategy is more effective than the alignment strategy: rather than
-trusting NAMM's retention decisions and focusing on retained tokens, M3
-hedges against NAMM's errors by attending broadly. The 14.5% F1
-improvement over M1 (Report 1) validates this approach.
+that NAMM retains, increasing alignment and reducing regret. Instead,
+M3's attention patterns are indistinguishable from M2's (Report 5: M2 ≈
+M3 entropy). M3's LoRA improves performance through value-space
+extraction, not by reshaping which tokens receive attention.
 
 ### Connection to Other Reports
 
-| Report          | Finding                             | Implication                                       |
-| --------------- | ----------------------------------- | ------------------------------------------------- |
-| 1 (Sensitivity) | M3 surpasses M1 by 14.5%           | Positive alignment + hedging = effective strategy  |
-| 3 (Retention)   | Aggressive retention pattern        | Higher regret expected with fewer retained tokens  |
-| 5 (Attention)   | M3 has +5.0% higher entropy         | Hedging strategy, not alignment strategy           |
+| Report          | Finding                              | Implication                                     |
+| --------------- | ------------------------------------ | ----------------------------------------------- |
+| 1 (Sensitivity) | M3 surpasses M1 by 14.5%            | LoRA adaptation is effective under eviction      |
+| 3 (Retention)   | Aggressive retention pattern         | Higher regret expected with fewer retained tokens|
+| 5 (Attention)   | M2 ≈ M3 entropy under eviction       | LoRA improves via values, not attention routing  |
 
 ## Historical note: buggy correlation was misleading
 

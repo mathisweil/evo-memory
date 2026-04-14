@@ -43,7 +43,7 @@ Both values sit firmly in the near-orthogonal regime. M3 does not simply "scale 
 
 ### 3. Larger norms + orthogonal subspace = qualitatively different adaptation
 
-The combination of elevated norms and low overlap indicates that eviction-aware training does not merely intensify the same adaptation that full-context training finds. Instead, the optimizer discovers a distinct strategy for coping with the possibility that tokens will be evicted. This is consistent with the attention entropy findings (Report 5), where M3 shows a broader, more hedged attention pattern rather than a sharpened version of M1's.
+The combination of elevated norms and low overlap indicates that eviction-aware training does not merely intensify the same adaptation that full-context training finds. Instead, the optimizer discovers a distinct strategy for coping with the possibility that tokens will be evicted. Notably, Report 5 shows that M2 and M3 have nearly identical attention entropy under eviction, suggesting the LoRA's advantage comes from value-space extraction rather than attention routing.
 
 ---
 

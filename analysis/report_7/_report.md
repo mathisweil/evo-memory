@@ -66,7 +66,7 @@ The shift in divergence point from layer 3 to layer 9 is notable. The buggy mask
 | Report            | Measures              | Finding                                            |
 | ----------------- | --------------------- | -------------------------------------------------- |
 | 4 (LoRA wts)      | Weight-space diff     | Norms 1.42x base; overlap marginally above chance  |
-| 5 (Attention)      | Attention patterns    | Identical entropy/sinks; hedging not mask artefact |
+| 5 (Attention)      | Attention patterns    | M2 ≈ M3 entropy; LoRA changes values not attention |
 | 7 (CKA, this)     | Repr. similarity      | M3 close to M1 (mean 0.995); diverge at layer 9  |
 
 A coherent picture: the eviction-aware adapter achieves strong performance (val F1 52.06 vs M1 45.48) with moderate LoRA norms, near-identical attention patterns, and high representational similarity to M1. The adaptation is efficient -- it changes just enough in later layers to handle eviction constraints without distorting the base model's representations.

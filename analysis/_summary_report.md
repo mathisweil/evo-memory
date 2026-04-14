@@ -41,19 +41,21 @@ signals" narrative. This was an artefact. With correct attention masks, NAMM
 scores are weakly positively correlated with attention (rho = +0.135). NAMM
 does track attention, though weakly. M3 does not reshape attention toward NAMM.
 
-**6. The attention entropy shift is robust.** M3 shows +5.0% entropy and
--2.7% sink reduction vs M1 (nearly identical to buggy: +5.2% and -2.4%). The "pre-emptive hedging" pattern appears in both buggy and maskfix
-data, confirming it is a genuine property of eviction-aware training.
+**6. Attention entropy is ~12% lower under eviction; LoRA doesn't change
+it.** When measured in actual operating regimes (n=365, balanced across
+tasks), M2 and M3 (both under NAMM eviction) show -11.0% and -12.5%
+entropy vs M1 (full context). M2 and M3 are nearly identical (-1.7%
+difference), meaning the LoRA has negligible impact on attention entropy
+despite producing dramatically different weights and much higher F1.
 
 **7. Representational divergence shifts to deeper layers.** CKA mean is 0.995
 (min 0.990 at layer 9). Under the buggy mask, the CKA minimum was at layer 3
 (0.979). This changes the mechanistic story: the locus of M3's adaptation is
 in deeper layers, not the early-middle layers previously identified.
 
-**8. Probing results are inconclusive.** The random baseline shifted to 0.600
-due to class imbalance. M1 accuracy is 0.599 (at chance) and M3 is 0.513
-(below chance). Neither model shows clear evidence of retaining or losing
-evicted content beyond baseline rates.
+**8. Probing analysis abandoned.** The probe labels relied on string-matching
+gold answers against input context — the same ground-truth problem as the
+dropped Report 0 relevant-tokens analysis. Results were inconclusive.
 
 **9. Gradient flow confirms eviction severity.** Retention 3.8%, loss +641%,
 gradient cosine similarity ~0.01 (uncorrelated). Corrected NAMM creates a
@@ -78,8 +80,9 @@ checkpoints. The key narrative changes are:
   (maskfix). The "layer 3 critical adaptation point" narrative no longer holds.
 - **Report 4 (LoRA norms):** Norms are 26% smaller with maskfix (1.42x vs
   1.93x q_proj ratio), indicating more efficient adaptation.
-- **Report 8 (probing):** Results are now inconclusive due to baseline shift,
-  not showing clear information loss as the buggy analysis suggested.
+- **Report 8 (probing):** Abandoned — probe labels based on string-matching
+  lack ground truth (same flaw as the dropped Report 0 relevant-tokens
+  analysis).
 - **Report 9 (gradient flow):** Retention drops from 20% to 3.8% -- corrected
   NAMM is roughly 5x more aggressive.
 - **Report 3 (retention):** CV drops from 0.183 to 0.115, meaning corrected
@@ -254,23 +257,28 @@ learns a qualitatively different adaptation from M1 regardless of the mask
 bug. However, the smaller norms suggest that under corrected eviction, the
 model does not need to compensate as aggressively.
 
-### Report 5 -- Attention Entropy (Maskfix)
+### Report 5 -- Attention Entropy Under Eviction
 
-On **full-context** inputs (no eviction at inference), M3 shows measurably
-different attention patterns:
+Each model is measured in its **actual operating regime**: M1 on full
+context, M2 and M3 with NAMM eviction active.
 
-| Metric             | M1    | M3 (maskfix)  | M3 (buggy)    |
-| ------------------ | ----- | ------------- | ------------- |
-| Entropy shift      | --    | +5.0%         | +5.2%         |
-| Sink reduction     | --    | -2.7%         | -2.4%         |
+| Condition          | Mean entropy (nats) | Change vs M1 |
+| ------------------ | ------------------: | -----------: |
+| M1 (full context)  |              2.6366 | --           |
+| M2 (NAMM, no LoRA) |              2.3457 | -11.0%       |
+| M3 (LoRA + NAMM)   |              2.3063 | -12.5%       |
 
-The pre-emptive hedging pattern (broader attention, reduced sink reliance)
-appears in both buggy and maskfix data, with slightly larger effect sizes
-under maskfix. This robustness across two different NAMM configurations
-confirms that the hedging behaviour is a genuine consequence of
-eviction-aware training, not an artefact of any particular NAMM
-implementation. M3 distributes attention more broadly so that no single
-token's eviction is catastrophic.
+The most notable finding: **M2 and M3 are nearly identical** (-1.7%
+difference).  Despite M3's LoRA producing dramatically different weights
+(1.42x larger norms, near-orthogonal subspaces) and achieving much
+higher val F1 (52.06 vs M2's 14.90), the attention entropy is
+indistinguishable.  M3's performance advantage comes from what it
+extracts from attended tokens (value projections), not from which tokens
+it attends to.
+
+The old analysis ran both models on full context (no eviction), which
+measured a hypothetical that never occurs in practice and incorrectly
+reported a "+5.0% entropy increase."
 
 ### Report 6 -- Token Importance Alignment (Maskfix)
 
@@ -319,25 +327,16 @@ Overall, M3 representations are even closer to M1's under maskfix (mean
 that is functionally very similar to M1 despite the near-orthogonal LoRA
 subspaces.
 
-### Report 8 -- Probing for Residual Knowledge of Evicted Content (Maskfix)
+### Report 8 -- Probing for Residual Knowledge of Evicted Content
 
-**Results are inconclusive.** The random baseline shifted to 0.600 due to
-class imbalance in the maskfix probe dataset, making the probe accuracy
-values difficult to interpret:
-
-| Metric             | M1 (maskfix) | M3 (maskfix) | Random |
-| ------------------ | -----------: | -----------: | -----: |
-| Mean probe accuracy|        0.599 |        0.513 |  0.600 |
-
-M1 accuracy (0.599) is at chance level and M3 (0.513) is below chance.
-Neither result provides clear evidence about whether evicted content is
-retained or lost. The buggy analysis showed M1 at 0.557 and M3 at 0.484
-(vs random 0.500), which appeared to show meaningful information loss in
-M3's later layers. With the baseline shift, this interpretation no longer
-holds.
-
-This report needs methodological revision (balanced class sampling or a
-different probe design) before conclusions can be drawn.
+**Abandoned.** This analysis trained linear probes on hidden states to
+detect whether answer tokens were evicted. The probe labels were
+constructed by string-matching gold answers against the input context,
+but this does not give ground truth for which tokens are actually needed
+to answer the question — the same fundamental flaw that led us to drop
+the "relevant tokens" analysis from Report 0. Results were inconclusive
+(both conditions at the majority-class baseline). The approach needs a
+reformulation that sidesteps the token-identification problem.
 
 ### Report 9 -- Gradient Flow and Loss Attribution (Maskfix)
 
@@ -370,8 +369,9 @@ to task performance under maskfix:
 ```
 Weight space (Report 4)          Function space (5, 6, 7)
 --------------------------       ---------------------------
-Orthogonal LoRA subspaces   ->   +5.0% entropy, -2.7% sinks
-M3 norms 1.42x (efficient) ->   Positive NAMM correlation
+Orthogonal LoRA subspaces   ->   M2 ≈ M3 entropy (LoRA doesn't change it)
+M3 norms 1.42x (efficient) ->   M3 improves via values, not attention
+                             ->   Positive NAMM correlation (+0.135)
                              ->   CKA min at layer 9 (0.990)
 
 Gradient signal (Report 9)       Task space (Report 1)
@@ -382,29 +382,33 @@ Uncorrelated gradients      ->   M1 val F1: 45.48
 ```
 
 M3 learns in near-orthogonal weight subspaces with more efficient
-perturbations (smaller norms). It develops broader attention patterns
-(hedging) and produces representations that diverge most at layer 9
-(near the eviction hotspot at layers 8-9). Despite operating under
-extreme eviction (3.8% retention), M3 exceeds M1's validation performance
-by 14.5%.
+perturbations (smaller norms). Its attention entropy is identical to
+M2's (no LoRA), meaning the improvement comes from value-space
+extraction, not attention routing. Representations diverge most at
+layer 9 (near the eviction hotspot at layers 8-9). Despite operating
+under extreme eviction (3.8% retention), M3 exceeds M1's validation
+performance by 14.5%.
 
-### 3.2 Pre-emptive Hedging: Confirmed Across Both NAMM Versions
+### 3.2 M3's Advantage is Not in Attention Patterns
 
-The hedging hypothesis -- that M3 distributes attention broadly to be
-robust against arbitrary eviction -- is supported by maskfix data:
+The pre-emptive hedging hypothesis -- that M3 distributes attention more
+broadly as insurance against eviction -- is **not supported** by the
+corrected analysis:
 
-- **Report 5:** M3 increases entropy (+5.0%) and reduces sink reliance
-  (-2.7%), with slightly larger effects than under buggy NAMM.
-- **Report 4:** M3's LoRA subspaces are orthogonal to M1's, confirming a
-  qualitatively different adaptation strategy.
+- **Report 5:** M2 (no LoRA) and M3 (with LoRA) have nearly identical
+  attention entropy under eviction (-1.4% difference).  The LoRA does
+  not change how attention is distributed.
+- **Report 4:** M3's LoRA subspaces are orthogonal to M1's and 1.42x
+  larger, yet produce the same attention entropy as M2 (no LoRA).
 - **Report 6:** M3 does not reshape attention toward NAMM (identical rho
-  for M1 and M3), meaning hedging is undirected -- the model hedges
-  against eviction in general, not toward specific NAMM decisions.
+  for M1 and M3).
 
-The hedging pattern is robust across both buggy and maskfix NAMM
-configurations, even though the corrected NAMM is 5x more aggressive. This
-suggests the strategy is a fundamental consequence of training under any
-eviction regime, not a response to a particular eviction severity.
+Since M3 dramatically outperforms M2 (val F1 52.06 vs 14.90) with the
+same attention patterns, M3's advantage must come from what it does with
+the attended information — likely through the value projections (v_proj
+LoRA) rather than query-key attention routing.  This shifts the
+mechanistic story from "M3 attends differently" to "M3 extracts better
+information from the same attention distribution."
 
 ### 3.3 NAMM Tracks Attention (Weakly), Not the Opposite
 
@@ -478,10 +482,10 @@ should be treated as suggestive rather than definitive.
 | 2      | How fast does M3 learn?      | Faster: peak at step 260 vs 336         |
 | 3      | Is eviction uniform?         | Nearly: CV 0.115, L8-9 most aggressive  |
 | 4      | Are LoRA weights similar?    | No: orthogonal, norms 1.42x (efficient) |
-| 5      | Are attention patterns same? | No: +5.0% entropy, -2.7% sinks          |
+| 5      | Are attention patterns same? | M2 ≈ M3: LoRA doesn't change entropy     |
 | 6      | Does M3 align with NAMM?    | No: same +0.135 rho as M1               |
 | 7      | Are representations similar? | Mostly: CKA 0.990-1.0, min at layer 9  |
-| 8      | Is evicted info retained?    | Inconclusive (baseline imbalance)        |
+| 8      | Is evicted info retained?    | Abandoned (flawed probe labels)           |
 | 9      | Does eviction change grads?  | Yes: 3.8% retention, cos ~0.01           |
 
 ---
@@ -491,19 +495,19 @@ should be treated as suggestive rather than definitive.
 | Finding                   | Buggy           | Maskfix         | Changed? |
 | ------------------------- | --------------- | --------------- | -------- |
 | M3 > M1 on val           | Yes             | Yes (stronger)  | Stronger |
-| Pre-emptive hedging       | +4.2% entropy   | +5.0% entropy   | Robust   |
+| Attention entropy shift   | +5.2% (flawed)  | M2 ≈ M3 (-12%)  | Revised  |
 | Orthogonal subspaces      | ~0.18 overlap   | ~0.21 overlap   | Robust   |
 | NAMM-attn correlation     | rho = -0.137    | rho = +0.135    | REVERSED |
 | CKA min layer             | Layer 3         | Layer 9         | Shifted  |
 | LoRA norm ratio (q_proj)  | 1.93x           | 1.42x           | Smaller  |
 | Retention ratio           | 20%             | 3.8%            | 5x lower |
-| Probe informativeness     | M3 drops to .375| Inconclusive    | Changed  |
+| Probe informativeness     | M3 drops to .375| Abandoned       | Dropped  |
 | Gradient uncorrelated     | cos ~0.015      | cos ~0.01       | Robust   |
 
-Three findings reversed or substantially changed (NAMM-attention
-correlation, CKA layer, probing). Three findings were robust across both
-versions (hedging, orthogonal subspaces, uncorrelated gradients). The robust
-findings are the strongest claims in the analysis.
+Four findings reversed or substantially changed (NAMM-attention
+correlation, CKA layer, probing, attention entropy). Two findings were
+robust across both versions (orthogonal subspaces, uncorrelated
+gradients). The robust findings are the strongest claims in the analysis.
 
 ---
 
@@ -533,11 +537,10 @@ findings are the strongest claims in the analysis.
    specifically important for the fine-tuned model. This is the unrun M4
    condition.
 
-5. **Is the probing approach salvageable?** Report 8's inconclusive results
-   stem from class imbalance. A revised probe with balanced sampling or a
-   different design (e.g., regression on token-level features rather than
-   binary classification on mean-pooled states) could clarify whether M3
-   retains or loses evicted content.
+5. **Can evicted-content retention be measured?** Report 8 was abandoned
+   because probe labels relied on string-matching (no ground truth for
+   which tokens matter). A reformulation — e.g., probing for the answer
+   itself rather than for specific token positions — could address this.
 
 6. **Does the M3 > M1 advantage hold at scale?** All experiments use Llama
    3.2-1B and 4096-6500 token contexts. The buggy-era extended_test

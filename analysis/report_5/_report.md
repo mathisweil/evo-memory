@@ -1,77 +1,128 @@
-# Analysis 5 -- Attention Entropy Shift Under Eviction
+# Analysis 5 -- Attention Entropy Under Eviction
 
-> **TL;DR:** M3 distributes attention more broadly than M1: +5.0% higher
-> entropy and -2.7% lower sink fractions. We interpret this as
-> "pre-emptive hedging" -- the model learns to attend to more tokens as
-> insurance against eviction, reducing its reliance on attention sinks
-> that might be evicted. This pattern was also observed in the earlier
-> buggy runs (with nearly identical magnitudes), confirming it is a
-> robust adaptation to eviction-aware training rather than a training
-> artefact.
+> **TL;DR:** M2 and M3 (both under NAMM eviction) show ~12% lower
+> attention entropy than M1 (full context).  M2 and M3 are nearly
+> identical (-11.0% and -12.5% vs M1), meaning the LoRA has minimal
+> impact on attention entropy in the evicted regime.  The entropy
+> reduction is a direct consequence of attending over ~6.5% of the
+> original tokens.
 
 ---
 
 ## Setup
 
-All comparisons use **full-context inputs** (no NAMM eviction at inference). Prompts: 10 test samples at 1024 tokens from LongBench tasks.
+Each model is measured in its **actual operating regime**:
 
-- **M1:** LoRA fine-tuned, full context, no eviction (baseline; best val F1 45.48)
-- **M3:** LoRA + frozen NAMM, best checkpoint (step 260, val F1 52.06, ~43% through training; WandB `h0bzg6on`)
+- **M1:** Full-context forward (no NAMM, no eviction). All input tokens
+  visible.
+- **M2:** Forward with `apply_memory_policy=True`, no LoRA. NAMM evicts
+  tokens during prefill; base model attends over the retained cache.
+- **M3:** Forward with `apply_memory_policy=True`, with LoRA. Same NAMM
+  eviction as M2, but LoRA-adapted weights.
 
-For each model, we computed per-head per-layer attention entropy (H = -sum(a_i log a_i)) and attention sink fraction (mass on first 5 tokens), averaged over query positions and samples.
+Prompts: 365 samples from LongBench (73 per task, balanced across all 5
+tasks, drawn from train+val+test splits).  Seq_len 4303-6464 tokens.
+After eviction, models retain a mean of **6.5%** of tokens (cache sizes
+~200-450 from ~5700 input).
+
+Entropy: H = -sum(a_i log a_i) at the last query position, averaged
+over heads and samples.  Evicted tokens have zero attention (they are
+physically absent from the KV cache), so this is mathematically
+equivalent to computing entropy over the full prompt with evicted
+positions set to zero — 0 log 0 = 0 contributes nothing.
+
+Checkpoints:
+- M1: `experiment_artifacts/gcs/M1/best_ckpt.pt` (val F1 45.48)
+- M3: `experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt` (step 260, val F1 52.06)
+- NAMM: `experiment_artifacts/gcs/M2_cs1024_maskfix/ckpt.pt`
 
 ---
 
 ## Findings
 
-### Attention Entropy
+### Entropy comparison
 
-| Model | Mean entropy (nats) | Change vs M1 |
-| ----- | ------------------: | -----------: |
-| M1    |              2.1494 | --           |
-| M3    |              2.2561 | +5.0%        |
+| Condition            | Mean entropy (nats) | Change vs M1 |
+| -------------------- | ------------------: | -----------: |
+| M1 (full context)    |              2.6366 | --           |
+| M2 (NAMM, no LoRA)   |              2.3457 | -11.0%       |
+| M3 (LoRA + NAMM)     |              2.3063 | -12.5%       |
 
-M3 produces consistently higher entropy across layers: its attention distributions are flatter, spreading probability mass over more tokens rather than concentrating on a few.
+M2 and M3 are nearly identical (2.35 vs 2.31 nats, -1.7% difference).
+The LoRA adaptation has negligible effect on the entropy of the
+attention distribution under eviction.
 
-### Attention Sinks
+### Per-layer patterns
 
-| Model | Mean sink fraction | Change vs M1 |
-| ----- | -----------------: | -----------: |
-| M1    |             0.5278 | --           |
-| M3    |             0.5135 | -2.7%        |
+| Layer | M1    | M2    | M3    | M3-M1   |
+| ----: | ----: | ----: | ----: | ------: |
+|     0 | 3.195 | 2.884 | 2.882 |  -0.313 |
+|     1 | 1.678 | 1.445 | 1.495 |  -0.183 |
+|     2 | 1.440 | 1.235 | 1.489 |  +0.049 |
+|     3 | 1.825 | 1.778 | 1.796 |  -0.029 |
+|     4 | 2.764 | 2.547 | 2.443 |  -0.321 |
+|     5 | 2.601 | 2.197 | 2.334 |  -0.268 |
+|     6 | 2.718 | 2.601 | 2.370 |  -0.348 |
+|     7 | 3.364 | 2.803 | 2.744 |  -0.621 |
+|     8 | 2.750 | 2.743 | 2.658 |  -0.091 |
+|     9 | 2.613 | 2.545 | 2.769 |  +0.156 |
+|    10 | 2.716 | 2.373 | 2.226 |  -0.490 |
+|    11 | 2.545 | 2.288 | 2.199 |  -0.346 |
+|    12 | 2.495 | 2.156 | 2.097 |  -0.398 |
+|    13 | 2.743 | 2.417 | 2.424 |  -0.319 |
+|    14 | 3.430 | 2.789 | 2.537 |  -0.893 |
+|    15 | 3.311 | 2.730 | 2.441 |  -0.870 |
 
-M3 places less attention mass on the first 5 tokens (attention sinks). Since sinks are typically the highest-priority tokens for retention, reducing sink dependence makes the model more robust to the eviction of mid-sequence tokens.
+Layers 2 and 9 show slightly *higher* M3 entropy than M1, despite the
+shorter sequence.  These are exceptions — the overall pattern is
+lower entropy under eviction across all layers.
+
+The largest entropy drops are in layers 14-15 (-0.89 and -0.87 nats).
+M2 and M3 track each other closely at most layers, with M3 slightly
+lower in the later layers (10-15) and slightly higher in a few early
+layers (2, 5).
 
 ---
 
 ## Discussion
 
-### Pre-emptive hedging as an eviction-aware strategy
+### Why entropy is lower under eviction
 
-The combination of higher entropy and lower sink fractions suggests a coherent adaptation: M3 has learned to "hedge" its attention, spreading mass more evenly so that no single token's eviction is catastrophic. Rather than sharpening attention toward the tokens NAMM retains (which would increase alignment with the eviction policy), M3 broadens attention as insurance against losing any particular token.
+With ~350 retained tokens vs ~5700 for M1, the attention distribution
+is over a much smaller set.  Evicted tokens have zero attention by
+construction (they are absent from the KV cache), so the entire
+probability mass is concentrated on ~6.5% of the original positions.
+This mechanically reduces entropy.
 
-This is consistent with the Report 4 finding that M3's LoRA adaptation is near-orthogonal to M1's -- the model is not learning a stronger version of M1's strategy but a qualitatively different one.
+### M2 ≈ M3: LoRA does not change attention entropy
 
-### Connection to M3's performance advantage
+The most notable finding is that M2 and M3 are nearly identical (-1.7%
+difference).  Despite M3's LoRA producing dramatically different weights
+(1.42x larger norms, near-orthogonal subspaces per Report 4) and M3
+achieving much higher val F1 (52.06 vs M2's 14.90), the attention
+entropy distributions are indistinguishable.
 
-M3's hedging strategy appears effective: despite using only ~43% of training steps, M3 (val F1 52.06) substantially outperforms M1 (val F1 45.48). By distributing attention more broadly, the model extracts information from a wider set of tokens, making it more resilient when NAMM evicts part of the KV cache.
+This means M3's LoRA improves performance through mechanisms other than
+changing how attention is distributed — likely by transforming what
+information is extracted from the attended tokens (value projections)
+rather than which tokens receive attention (query-key interaction).
 
-### Layer-by-layer variation
+### Connection to other reports
 
-The entropy increase is not uniform across layers. Some layers show larger shifts than others, reflecting the fact that different layers serve different roles in the transformer's information processing. See `attention_entropy.png` and `entropy_heatmap.png` for per-layer and per-head breakdowns.
-
----
-
-## Robustness check: comparison with buggy runs
-
-The earlier buggy M3 variant (step 600, val F1 45.59, trained with incorrect attention mask) showed nearly identical attention patterns: +5.2% entropy and -2.4% sink reduction vs M1. The two M3 variants are within 0.0045 nats of each other on entropy and 0.0015 on sink fraction -- effectively indistinguishable. This confirms that the hedging strategy is a robust attractor in the eviction-aware training landscape, emerging regardless of whether the attention mask is correct. The bug affected training efficiency (maskfix reaches higher F1 in fewer steps) and LoRA norm magnitudes (Report 4), but not the qualitative attention pattern.
+- **Report 4 (LoRA weights):** M3's LoRA weights are 1.42x larger and
+  near-orthogonal to M1's, yet produce the same entropy as M2 (no LoRA)
+  under eviction.
+- **Report 6 (NAMM alignment):** NAMM scores weakly correlate with
+  attention (rho = +0.135).  M1, M2, M3 all show the same correlation.
+- **Report 3 (retention):** Mean retention ~6.5%, consistent with the
+  cache sizes observed here.
 
 ---
 
 ## Plots
 
-| Plot                                                             | Description                            |
-| ---------------------------------------------------------------- | -------------------------------------- |
-| [`attention_entropy.png`](plots/attention_entropy.png) | Per-layer attention entropy (M1 vs M3) |
-| [`entropy_heatmap.png`](plots/entropy_heatmap.png)     | Layer x head entropy heatmaps          |
-| [`entropy_diff.png`](plots/entropy_diff.png)           | Entropy diff heatmap: M3 minus M1      |
+| Plot                                                   | Description                                    |
+| ------------------------------------------------------ | ---------------------------------------------- |
+| [`attention_entropy.png`](plots/attention_entropy.png) | Per-layer entropy (M1 vs M2 vs M3)             |
+| [`entropy_heatmap.png`](plots/entropy_heatmap.png)     | Layer x head entropy heatmaps (M1 vs M3)       |
+| [`entropy_diff.png`](plots/entropy_diff.png)           | Entropy diff heatmap: M3 evicted minus M1       |

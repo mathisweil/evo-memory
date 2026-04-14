@@ -16,7 +16,7 @@
 The nine-report structure is a genuine strength. Starting from dataset
 characterisation (R0) through performance (R1--R2), internal mechanics
 (R3--R5), model-policy interaction (R6), representational similarity
-(R7), probing (R8), and gradient flow (R9), each report addresses a
+(R7), and gradient flow (R9), each report addresses a
 distinct question, and the findings compose into a coherent narrative.
 Specific strengths:
 
@@ -25,7 +25,7 @@ Specific strengths:
    drives the remaining investigation in a principled way.
 
 2. **Converging evidence from independent measurements.** Weight-space
-   analysis (R4: orthogonal subspaces), attention patterns (R5: hedging),
+   analysis (R4: orthogonal subspaces), attention patterns (R5: M2 ≈ M3),
    token alignment (R6: weak positive correlation), and CKA (R7: high
    similarity, divergence at layer 9) all independently support the claim
    that M3 learns a qualitatively different but representationally mild
@@ -114,39 +114,32 @@ neither model's learned adaptation is fully exercised.
 | Report | Samples | Tokens | Measurement               |
 | ------ | ------: | -----: | ------------------------- |
 | 4      |      10 |  1,024 | LoRA weight norms, overlap|
-| 5      |      10 |  1,024 | Attention entropy, sinks  |
+| 5      |      50 |  4,096+ | Attention entropy         |
 | 6      |      15 |  1,024 | NAMM-attention correlation|
 | 7      |      10 |  1,024 | CKA similarity            |
-| 8      |      40 |  1,024 | Linear probes             |
+| 8      |      -- |     -- | Abandoned (flawed labels) |
 | 9      |      40 |  1,024 | Gradient flow             |
 
 None of these reports include error bars, bootstrap confidence
 intervals, or significance tests (except Report 3, which uses
 correlations from WandB logs across many steps). At n=10--15, the
 standard error on mean entropy or CKA is large enough that the reported
-differences could plausibly be noise. The entropy shift of +5.0% and
-sink shift of -2.7% (Report 5) are presented as definitive findings, but
-no statistical test accompanies them.
+differences could plausibly be noise. Report 5 now uses 50 samples at
+full length (4096+ tokens) with NAMM eviction active, which is a
+substantial improvement, but still lacks formal statistical tests.
 
-### 2.4 Report 8 probe task is poorly calibrated
+### 2.4 Report 8 abandoned
 
-Report 8 (probing) is the weakest in the suite and the report
-acknowledges this directly. The binary label (was any answer token
-evicted?) produces a majority-class baseline of 0.600. Both M1 (0.599)
-and M3 (0.513) probe accuracies are at or below this baseline. The
-probe has no discriminative power and the results are uninformative.
-
-The probe design is flawed at a more fundamental level: mean-pooled
-hidden states over the full sequence are a blunt instrument for
-detecting whether specific answer tokens were in the evicted set. A
-probe that examines token-level representations at the positions
-surrounding the answer region, or that uses a more informative label
-(e.g., fraction of answer tokens evicted), might have more power.
-
-The report correctly labels its results as "inconclusive." The concern
-is that the inconclusive report still appears in the analysis chain and
-is cited in cross-report connection tables, which risks giving it more
-weight than its null result deserves.
+Report 8 (probing) has been dropped. The probe labels were constructed
+by string-matching gold answers against the input context to identify
+"answer token" positions, then checking whether those positions survived
+NAMM eviction. This suffers from the same fundamental flaw as the
+relevant-tokens analysis dropped from Report 0: string matching does not
+give ground truth for which tokens are needed to answer the question.
+Answer information often appears in paraphrased or indirect form. The
+probe results were inconclusive (both M1 and M3 at the majority-class
+baseline), likely reflecting noisy labels rather than anything about
+information retention.
 
 ### 2.5 Recovery ratio sensitivity to small denominators
 
@@ -203,12 +196,14 @@ norm ratio was 1.93x; maskfix gives 1.42x -- quantitatively smaller,
 but the qualitative finding (M3 norms > M1, near-orthogonal subspaces)
 holds. The subspace overlap changed modestly (0.18 to 0.21 for q_proj).
 
-**Report 5 (Attention Entropy): Hedging pattern persists.** Both
-buggy and maskfix M3 show higher entropy and lower sink fractions
-relative to M1, with similar magnitudes (maskfix: +5.0%, -2.7%;
-buggy: +5.2%, -2.4%).
-This is arguably the most robust finding in the suite -- the hedging
-pattern survived a fundamental change to the attention mechanism.
+**Report 5 (Attention Entropy): Methodology corrected.** The old
+analysis (both models on full context, no eviction) was flawed --
+it measured a hypothetical, not actual operating regimes. The corrected
+analysis runs M1 on full context, M2 and M3 with NAMM eviction active.
+Result: M2 and M3 have nearly identical entropy (-1.4% difference),
+meaning the LoRA does not change attention patterns. M3's performance
+advantage comes from value-space extraction, not attention routing.
+The old "hedging" narrative is not supported.
 
 **Report 3 (Retention Patterns): Layers 8--9 most aggressive in both
 regimes.** The NAMM's per-layer eviction structure is stable because
@@ -218,18 +213,16 @@ the NAMM itself (M2) was trained independently.
 
 ## 4. Open Methodological Issues
 
-### 4.1 "Pre-emptive hedging" remains an untested narrative
+### 4.1 M3's mechanism of action is unclear
 
-The summary interprets M3's broader attention as "pre-emptive hedging"
--- the model distributes attention to be robust to arbitrary evictions.
-This is post-hoc storytelling. An equally valid interpretation: M3's
-LoRA was optimised under a noisy training signal (evicted context varies
-per step), and the broader attention is an artefact of optimisation
-under noise, analogous to how dropout produces flatter weight
-distributions. To test the hedging hypothesis, one would need to show
-that M3's performance is more robust to *random* eviction patterns than
-M1's -- that the broader attention is specifically functional, not a
-side-effect.
+The corrected Report 5 shows M2 ≈ M3 in attention entropy, ruling out
+the "pre-emptive hedging" narrative. M3's LoRA produces dramatically
+different weights (Report 4: 1.42x norms, orthogonal subspaces) and
+much higher F1 (52.06 vs M2's 14.90), but the attention distributions
+are indistinguishable. This points to value-space (v_proj) extraction
+as the mechanism, but this has not been directly tested. A targeted
+ablation -- applying only q_proj or only v_proj LoRA -- would clarify
+which projection drives M3's advantage.
 
 ### 4.2 Random subspace baseline still missing for Report 4
 
@@ -279,8 +272,8 @@ In priority order:
    be made with confidence.
 
 4. **Add bootstrap confidence intervals** to at least the R1 per-task
-   F1 comparison (M3 vs M1) and the R5 entropy/sink comparisons. This
-   does not require new GPU runs -- it requires resampling existing
+   F1 comparison (M3 vs M1) and the R5 entropy comparisons. This does
+   not require new GPU runs -- it requires resampling existing
    per-sample or per-prompt metrics.
 
 5. **Increase GPU analysis sample sizes** if computationally feasible.
@@ -290,15 +283,13 @@ In priority order:
 
 6. **Compute the random subspace overlap baseline** for Report 4.
 
-7. **Redesign the probe task** for Report 8 (or drop it). The current
-   binary classification with a 0.600 majority baseline has no power.
-   A regression probe on the fraction of answer tokens evicted, or a
-   per-position probe, would be more informative.
+7. **Revisit information retention (Report 8).** The probe approach was
+   abandoned due to unreliable labels. A reformulation that probes for
+   the answer itself (not specific token positions) could address this.
 
 8. **Run the A4 ablation with maskfix checkpoints.** The existing A4
    results (M3 checkpoint evaluated without NAMM at inference) are from
-   buggy checkpoints. This ablation directly tests whether M3's hedging
-   is functional under full context.
+   buggy checkpoints.
 
 ---
 
@@ -307,8 +298,9 @@ In priority order:
 The analysis suite is well-structured, transparent, and covers an
 unusually broad range of mechanistic questions for an MSc thesis. The
 core finding -- that eviction-aware training produces a qualitatively
-different LoRA adaptation (orthogonal subspaces, broader attention, high
-CKA) that surpasses full-context fine-tuning -- is supported by
+different LoRA adaptation (orthogonal subspaces, unchanged attention
+patterns, high CKA) that surpasses full-context fine-tuning -- is
+supported by
 converging evidence from multiple independent measurements and survived
 a major methodological correction (the attention mask fix).
 
@@ -321,14 +313,15 @@ reminder that the remaining findings, while consistent, are not immune
 to revision once training completes and proper evaluation is done.
 
 The most robust findings are:
-- M3 attention hedging (R5): replicated across buggy and maskfix regimes
 - Orthogonal LoRA subspaces (R4): qualitatively stable, quantitatively
   shifted
+- M2 ≈ M3 attention entropy (R5): LoRA does not change attention
+  patterns; M3's advantage is in value extraction
 - Gradient distortion under eviction (R9): fundamental to the regime
 
 The least reliable findings are:
 - Absolute F1 numbers (R1--R2): interim checkpoint, validation only
-- Probe results (R8): null result from a poorly calibrated task
+- Probe results (R8): abandoned due to flawed labels
 - Layer-specific convergence narratives: the layer-3 story collapsed
   with maskfix; the layer-9 story may shift with further training
 
