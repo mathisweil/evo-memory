@@ -30,9 +30,9 @@ learning_rate: 5e-5       # matches M1 — do not tune separately for M3
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
-num_epochs: 150
-batch_size: 4             # matches M1/M4 for controlled comparison
-gradient_accumulation_steps: 4   # effective batch = 16
+num_epochs: 100
+batch_size: 2             # matches M1/M4 for controlled comparison
+gradient_accumulation_steps: 8   # effective batch = 16
 max_seq_len: 7000
 sft_mode: true
 dtype: bfloat16

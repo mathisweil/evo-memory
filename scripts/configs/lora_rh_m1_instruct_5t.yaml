@@ -29,9 +29,9 @@ learning_rate: 5e-5
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
-num_epochs: 150
-batch_size: 1                # matches M3/M4 for controlled comparison despite M1 having memory headroom
-gradient_accumulation_steps: 16   # effective batch = 16
+num_epochs: 100
+batch_size: 2                # matches M3/M4 for controlled comparison despite M1 having memory headroom
+gradient_accumulation_steps: 8   # effective batch = 16
 max_seq_len: 7000
 sft_mode: true
 dtype: bfloat16
@@ -51,7 +51,7 @@ val_split: 0.15
 split_seed: 42
 
 # -- Evaluation ---------------------------------------------------------------
-eval_interval: 14
+eval_interval: 2
 log_interval: 2
 batch_size_eval: 2            # matches M3 — no NAMM here means even more headroom
 early_stopping_patience: 20   # raised from 5 (too aggressive for 150-epoch schedule)
