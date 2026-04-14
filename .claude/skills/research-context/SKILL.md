@@ -14,7 +14,7 @@ Whether a learned KV-cache eviction policy (NAMM) and a parameter-efficient adap
 - Base model: **Llama-3.2-1B-Instruct**.
 - Benchmark: a **5-task LongBench QA subset** — `qasper`, `2wikimqa`, `qasper_e`, `hotpotqa_e`, `2wikimqa_e`.
 - Hardware: single GPU.
-- Metric: token-level F1 on the **test** split (69 prompts).
+- Metric: token-level F1 on the **test** split (70 prompts).
 
 ## The four papers in `papers/`
 
@@ -65,16 +65,16 @@ When you change anything that affects either training context or eval context, a
 | **M1** | LoRA r∈{4,8,16}, SFT | off (full cache) | none (eval row uses 1024) | 1024 | `run_lora.py` | `scripts/lora_rh_m1_instruct_5t.yaml` |
 | **M2** | none (frozen LLM) | CMA-ES (200 gens) | learned NAMM | 1024 | `run_namm.py` | `run@_global_=namm_bam_i1_llama32_1b_5t` |
 | **M3** | LoRA r=8, SFT | frozen M2 NAMM | frozen M2 NAMM | 1024 | `run_lora.py` | `scripts/lora_rh_m4_instruct_5t.yaml` |
-| **M4** | LoRA r=8, SFT | co-trained NAMM | co-trained NAMM | 1024 | `run_joint.py --adapter_type lora` | `scripts/configs/joint_default.yaml` |
+| **M4** | LoRA r=8, SFT | co-trained NAMM | co-trained NAMM | 1024 | `run_joint.py --adapter_type lora` | `scripts/configs/joint_lora_m4_5t.yaml` |
 
-**Compute parity is part of the design.** M4 runs 2 outer loops × (100 NAMM gens + 75 LoRA epochs) = 200 NAMM generations and 150 LoRA epochs total — exactly matching M2 and M1. Any refactor that lets M4's totals drift from M1+M2 invalidates the comparison even if the per-step code is correct.
+**Compute parity is part of the design.** M4 runs 3 outer loops × (67 NAMM gens + 50 LoRA epochs) = 201 NAMM generations and 150 LoRA epochs total — exactly matching M2 and M1. Any refactor that lets M4's totals drift from M1+M2 invalidates the comparison even if the per-step code is correct. The 3-loop schedule supersedes an earlier 2×(100+75) design; see `docs/m4_joint_training_analysis.md`.
 
 ## Naming quirks (the ones that bite when reading code)
 
 - **M3 ↔ `rh_m4_frozen_5t`.** The M3 condition appears in configs, scripts, and WandB as `rh_m4_frozen_5t` / `lora_rh_m4_instruct_5t.yaml`. The "m4" in those identifiers is a historical artifact from before the M-numbering existed. When reading code, "rh_m4_frozen" is M3, not M4. Do not "fix" this by renaming — GCS paths and WandB run history depend on the existing strings.
 - **M4 only ever means joint.** M4 uses `run_joint.py`, never `run_lora.py`.
 - **`rh_*` is a project tag**, not a paper concept.
-- **Stages are 0-indexed.** With `--num_outer_loops 2`, the final adapter checkpoint is `adapter/stage_1/`, not `stage_2/`.
+- **Stages are 0-indexed.** With `--num_outer_loops 3` (the M4 schedule), the final adapter checkpoint is `adapter/stage_2/`.
 - **`namm/latest.pt` is overwritten every NAMM stage.** It always reflects the most recent stage; it is not a "best so far" checkpoint.
 
 ## Research questions (so you know what each condition is *for*)

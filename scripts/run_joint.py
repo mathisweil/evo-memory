@@ -226,6 +226,10 @@ def parse_args():
                              "(999999 = skip periodic eval)")
     parser.add_argument("--lora_log_interval", type=int, default=10,
                         help="Logging interval within LoRA stages")
+    parser.add_argument("--lora_early_stopping_patience", type=int, default=0,
+                        help="Stop a LoRA stage after N evals with no val F1 "
+                             "improvement (0 = disabled). Applies per-stage; "
+                             "the outer loop continues regardless.")
     parser.add_argument("--dtype", type=str, default="bfloat16",
                         choices=["bfloat16", "float16", "float32"],
                         help="Training dtype for LoRA stages")
@@ -525,6 +529,7 @@ def main():
             "sft_mode": args.sft_mode,
             "lora_eval_interval": args.lora_eval_interval,
             "lora_log_interval": args.lora_log_interval,
+            "lora_early_stopping_patience": args.lora_early_stopping_patience,
             "dtype": args.dtype,
         })
 
@@ -765,6 +770,7 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
         max_conditioning_length=args.max_conditioning_length,
         min_conditioning_length=args.min_conditioning_length,
         max_answer_tokens=args.max_answer_tokens,
+        early_stopping_patience=args.lora_early_stopping_patience,
     )
 
     lora_wandb_config = WandbConfig(

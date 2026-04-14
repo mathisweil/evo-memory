@@ -14,11 +14,16 @@ run_name: null
 experiment: null
 
 # -- Joint training -----------------------------------------------------------
+# 3 outer loops × (67 NAMM + 50 LoRA) = 201 NAMM gens + 150 LoRA epochs total,
+# matching M1's 150 epochs and M2's 200 NAMM generations. The 3-loop design
+# gives 2 co-adaptation cycles instead of 1; each LoRA stage early-stops at
+# ~30 epochs in practice via best-checkpoint selection, so 50 allocated
+# epochs provides ~20 epochs of headroom. NAMM warm-starts across loops.
 adapter_type: lora
-num_outer_loops: 2
-namm_iterations_per_stage: 100
+num_outer_loops: 3
+namm_iterations_per_stage: 67
 adapter_iterations_per_stage: 25
-lora_epochs_per_stage: 75
+lora_epochs_per_stage: 50
 eval_after_each_loop: true
 
 # -- NAMM config --------------------------------------------------------------
@@ -50,6 +55,7 @@ max_seq_len: 7000
 sft_mode: true
 lora_eval_interval: 14      # matches M1/M3 — enables best-of-N checkpointing within each LoRA stage
 lora_log_interval: 10       # logging interval within LoRA stages
+lora_early_stopping_patience: 20   # matches M1/M3; applies per-stage, outer loop continues
 dtype: bfloat16
 
 # -- Data (FAIR-01) -----------------------------------------------------------

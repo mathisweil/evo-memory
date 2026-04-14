@@ -234,7 +234,7 @@ def main():
         memory_evaluator.tokenizer, args.filter_answers_by_tokens)
 
     # Apply the 3-way split used by M1/M2/M3/M4 training so the test set is
-    # the identical 69 prompts that every condition trained against. Without
+    # the identical 70 prompts that every condition trained against. Without
     # this, make_task_sampler's in-constructor 2-way split is what gets used
     # — which does NOT match any training-time split.
     task_sampler.apply_train_val_test_split(

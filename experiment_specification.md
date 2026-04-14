@@ -145,7 +145,7 @@ python scripts/run_lora.py \
 | `weight_decay`                | 0.01                                                                                   |
 | `max_grad_norm`               | 1.0                                                                                    |
 | Tasks                         | 5-task QA: qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e                          |
-| Splits                        | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (306 train / 64 val / 69 test)      |
+| Splits                        | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (306 train / 64 val / 70 test)      |
 | Filtering                     | `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64` |
 | `seed`                        | 42                                                                                     |
 | Output                        | `experiments/experiment_N/m1_lora_only/{m1_r4,m1_r8,m1_r16}/`                          |
@@ -243,6 +243,8 @@ python scripts/run_lora.py \
 
 NAMM and LoRA are co-trained in alternating stages: Stage A evolves the NAMM for N CMA-ES iterations; Stage B gradient-updates the LoRA for E epochs. Repeated for K outer loops. **Cold-start only** — no pretrained NAMM checkpoint. Must use the same 5-task dataset, splits, and filtering as M1–M3.
 
+> **3-loop schedule rationale:** 3 outer loops × (67 NAMM + 50 LoRA) = 201 NAMM + 150 LoRA, matching M1+M2's compute budget. 3 loops gives 2 co-adaptation cycles instead of 1 (the earlier 2-loop schedule had only one). Each LoRA stage early-stops at ~30 epochs via best-checkpoint selection; 50 allocated epochs gives ~20 epochs headroom. NAMM warm-starts from the previous loop's checkpoint (see `docs/m4_joint_training_analysis.md`).
+
 ```bash
 python scripts/run_joint.py \
     --config scripts/configs/joint_lora_m4_5t.yaml \
@@ -253,9 +255,9 @@ python scripts/run_joint.py \
 | --------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------- |
 | Config                      | `scripts/configs/joint_lora_m4_5t.yaml` (the M4 FAIR-01 preset)                        | `joint_default.yaml` is an ad-hoc preset — do not use it for the M4 paper run |
 | `adapter_type`              | `lora`                                                                                 |                                        |
-| `num_outer_loops`           | 2                                                                                      |                                        |
-| `namm_iterations_per_stage` | 100                                                                                    | 2 × 100 = 200 total — matches M2       |
-| `lora_epochs_per_stage`     | 75                                                                                     | 2 × 75 = 150 total epochs — matches M1 |
+| `num_outer_loops`           | 3                                                                                      | Final adapter stage is `stage_2` (0-indexed) |
+| `namm_iterations_per_stage` | 67                                                                                     | 3 × 67 = 201 total — matches M2       |
+| `lora_epochs_per_stage`     | 50                                                                                     | 3 × 50 = 150 total epochs — matches M1 |
 | `lora_rank`                 | 8                                                                                      | Matches M1-r8                          |
 | `lora_alpha`                | 16                                                                                     | Matches M1                             |
 | `learning_rate`             | 5e-5                                                                                   | Matches M1                             |
@@ -273,7 +275,7 @@ python scripts/run_joint.py \
 | Filtering                   | `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64` |                                        |
 | Output                      | `experiments/experiment_N/joint_lora/m4_joint_lora/`                                   |                                        |
 
-> M4 asymmetries to report in the paper: each LoRA stage runs a fresh 75-epoch warmup+cosine schedule (not one continuous 150-epoch curve), and `early_stopping_patience` is not applied inside joint LoRA stages (each stage runs to its full epoch budget). See `docs/m4_readiness_review.md`.
+> M4 asymmetries to report in the paper: each LoRA stage runs a fresh 50-epoch warmup+cosine schedule (not one continuous 150-epoch curve), so M4 has three separate warmups vs M1's single warmup. See `docs/m4_joint_training_analysis.md` for the full list of joint-vs-standalone asymmetries and their treatment in the paper.
 
 ---
 
@@ -303,7 +305,7 @@ Takes the fully trained M4 checkpoint and evaluates it twice: once with NAMM act
 
 ```bash
 python scripts/run_eval.py \
-    --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_1/ \
+    --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_2/ \
     --namm_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/namm/latest.pt \
     --cache_size 1024 \
     --output_dir experiments/ablations/a4_modularity/m4_namm_on
@@ -313,14 +315,14 @@ python scripts/run_eval.py \
 
 ```bash
 python scripts/run_eval.py \
-    --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_1/ \
+    --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_2/ \
     --output_dir experiments/ablations/a4_modularity/m4_namm_off
 # No --namm_checkpoint → full KV cache, no eviction
 ```
 
 |                    |                                                                                                                         |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Adapter checkpoint | `joint_lora/m4_joint_lora/adapter/stage_1/` — stages are 0-indexed; final stage with `--num_outer_loops 2` is `stage_1` |
+| Adapter checkpoint | `joint_lora/m4_joint_lora/adapter/stage_2/` — stages are 0-indexed; final stage with `--num_outer_loops 3` is `stage_2` |
 | NAMM checkpoint    | `joint_lora/m4_joint_lora/namm/latest.pt` — written after each NAMM stage; always reflects the most recent stage        |
 | What it answers    | RQ4: are jointly-trained NAMM and LoRA co-dependent, or is the LoRA sufficient alone?                                   |
 | Expected finding   | M4-NAMM-on > M4-NAMM-off ≈ M1 (LoRA adapts to compressed context; removing NAMM at eval hurts)                          |

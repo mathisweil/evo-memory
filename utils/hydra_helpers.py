@@ -45,13 +45,17 @@ def assert_fair01_test_size(
     bounds). Otherwise emits a soft warning so non-FAIR-01 sweeps still log
     the actual split size without crashing.
 
-    The canonical FAIR-01 test size is 69 prompts. Environments where the
-    cached LongBench dataset or tokenizer behaviour produces a different
-    count (observed: 70 on some machines from a boundary qasper_e prompt)
-    can set the ``FAIR01_EXPECTED_TEST_SIZE`` env var to override. Results
-    produced under an override are NOT FAIR-01-comparable with runs on the
-    canonical 69-prompt test set and MUST be reported as a separate
-    condition.
+    The canonical FAIR-01 test size is 70 prompts (verified from
+    ``results/main_table_5t/*/cs1024/results.json`` — ``n_prompts_total: 70``
+    on every test split; per-task: qasper=14, 2wikimqa=12, qasper_e=18,
+    hotpotqa_e=12, 2wikimqa_e=14). Earlier versions of this docstring quoted
+    69, which was an off-by-one error; the actual on-disk results use 70 and
+    the module-level ``_FAIR01_EXPECTED_TEST`` constant reflects that.
+    Environments where the cached LongBench dataset or tokenizer behaviour
+    produces a different count can set the ``FAIR01_EXPECTED_TEST_SIZE`` env
+    var to override. Results produced under an override are NOT
+    FAIR-01-comparable with runs on the canonical 70-prompt test set and
+    MUST be reported as a separate condition.
 
     Args:
         task_sampler: TaskSampler with ``apply_train_val_test_split`` already
@@ -61,7 +65,7 @@ def assert_fair01_test_size(
         val_frac: Val split fraction.
         min_conditioning_length: Minimum prompt length used by the splitter.
         max_conditioning_length: Maximum prompt length used by the splitter.
-        expected: Expected test split size (FAIR-01 default: 69). Env var
+        expected: Expected test split size (FAIR-01 default: 70). Env var
             ``FAIR01_EXPECTED_TEST_SIZE`` overrides this default.
 
     Returns:
@@ -108,7 +112,7 @@ def assert_fair01_test_size(
             f"max={max_conditioning_length}) — a divergent split size means "
             f"the training/eval data does not match M1/M2/M3/M4 and any F1 "
             f"comparison is invalid. If this machine's LongBench cache has "
-            f"drifted from the canonical 69-prompt calibration, set the "
+            f"drifted from the canonical 70-prompt calibration, set the "
             f"{_FAIR01_EXPECTED_TEST_ENV_VAR} env var to acknowledge the "
             f"drift explicitly — runs under an override are NOT "
             f"FAIR-01-comparable with past M1-M4 results and MUST be "
