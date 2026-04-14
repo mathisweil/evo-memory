@@ -136,9 +136,9 @@ Trunc, and A4 conditions do not use NAMM at inference and are unaffected.
 
 The dataset comprises 306 train / 64 val / 70 test samples (4096-6500 tokens
 each) plus 224 extended_test samples (6500-8192 tokens), with a divide between
-localised scientific paper QA (Qasper tasks, ~515-701 relevant tokens) and
-distributed multi-hop reasoning (2WikiMQA/HotpotQA, ~1564-2222 relevant tokens
-across 9-12 regions).
+localised scientific paper QA (Qasper tasks) and distributed multi-hop
+reasoning (2WikiMQA/HotpotQA — answers require combining facts from
+multiple passages).
 
 ### Naming warning
 
@@ -156,16 +156,15 @@ across 9-12 regions).
 
 The 5 tasks fall into two families with fundamentally different information
 structures:
-- **Qasper tasks:** Localised answers in scientific papers (~10-13% of tokens
-  relevant, ~3-5 regions)
-- **Multi-hop tasks:** Distributed answers across Wikipedia passages (~30-46%
-  of tokens relevant, ~9-12 regions)
+- **Qasper tasks:** Localised answers in scientific papers (answer typically
+  in a single section/paragraph)
+- **Multi-hop tasks:** Distributed answers across Wikipedia passages (require
+  combining facts from 2+ passages)
 
-At cache=1024, an ideal eviction policy retains 100% of Qasper's relevant
-tokens but only 46% of HotpotQA-E's. This led to the prediction that
-multi-hop tasks would suffer most from eviction. Report 1's maskfix
-validation data shows the opposite -- multi-hop tasks see the largest M3
-gains over M1.
+At cache=1024, ~80% of tokens are evicted. Multi-hop tasks were predicted to
+suffer most because they require retaining multiple scattered passages. Report
+1's maskfix validation data shows the opposite -- multi-hop tasks see the
+largest M3 gains over M1.
 
 ### Report 1 -- Performance Across Conditions (Maskfix Validation)
 

@@ -1,6 +1,6 @@
 # Report 0: Dataset Characteristics and Performance Hypotheses
 
-> **TL;DR:** The 5 tasks split into two families: Qasper tasks (scientific paper QA, diverse answer types, ~515-701 relevant tokens per prompt in ~3-5 regions) and multi-hop tasks (2WikiMQA, HotpotQA — short factoid answers, ~1564-2222 relevant tokens across 9-12 regions). At cache=1024, Qasper's relevant tokens fit easily (100% survival) while HotpotQA-E's exceed the budget (only 46% survival). We predict multi-hop tasks will suffer most from eviction, while Qasper's localised answers are easier to preserve. These predictions are tested against actual results in Report 1 — where they turn out to be partially wrong.
+> **TL;DR:** The 5 tasks split into two families: Qasper tasks (scientific paper QA, diverse answer types, localised answers) and multi-hop tasks (2WikiMQA, HotpotQA — short factoid answers, distributed across multiple passages). At cache=1024, ~80% of tokens are evicted. We predict multi-hop tasks will suffer most from eviction because they require retaining information from multiple passages simultaneously. These predictions are tested against actual results in Report 1 — where they turn out to be partially wrong.
 
 > **Purpose:** Characterise the five LongBench QA tasks used in our experiments and form hypotheses about expected relative performance under each experimental condition — *before* examining any results.
 
@@ -208,40 +208,7 @@ At cache_size=1024 with contexts of 4096-6500 tokens, approximately **75-80% of 
 | ---------- | ----------------------- | ----------------- |
 | 1024       | 1024 of ~5000           | ~80%              |
 
-### 6.2 Relevant Token Analysis
-
-To quantify how much of each context is actually needed to answer the question, we search for answer string occurrences and question entity mentions within the context, then estimate the relevant region as a +-200 character window around each occurrence. This is a lower-bound estimate — the true relevant context may be larger (e.g. surrounding sentences that provide necessary context for interpreting the answer).
-
-See `plots/relevant_tokens.png`, `plots/relevant_tokens_boxplot.png`, `plots/answer_positions.png`, and `plots/eviction_survival.png`.
-
-| Task       | Mean Rel. Tokens | % Context | Regions | Ans. Occur. | Ans. Position |
-| ---------- | ---------------- | --------- | ------- | ----------- | ------------- |
-| Qasper     | **515**          | 10.1%     | 3.4     | 1.3         | 0.47 (mid)    |
-| 2WikiMQA   | **1578**         | 30.4%     | 9.2     | 3.0         | 0.39          |
-| Qasper-E   | **701**          | 13.2%     | 4.5     | 4.8         | 0.44          |
-| HotpotQA-E | **2222**         | 45.5%     | 11.9    | 11.6        | 0.25 (early)  |
-| 2WikiMQA-E | **1564**         | 30.2%     | 9.0     | 3.7         | 0.38          |
-
-**Key findings:**
-
-- **Qasper tasks have moderately sparse relevant content** (~515-701 tokens, 10-13% of context, ~3-5 regions). The answer comes from a relatively localised passage. At cache=1024, all relevant tokens fit — an ideal eviction policy could retain them with 100% probability.
-- **Multi-hop tasks have much denser relevant content** (~1564-2222 tokens, 30-46% of context, 9-12 regions). The answer entity appears multiple times across different passages, and question entities are scattered throughout.
-- **HotpotQA-E is the most demanding**: 2222 mean relevant tokens across 11.9 regions — exceeding the cache=1024 budget by more than 2x. Even an ideal policy cannot retain all relevant tokens at cs1024. The answer entity appears 11.6 times on average, suggesting it is mentioned across many distractor passages (not just the 2 gold ones).
-- **Answer position differs**: HotpotQA-E answers tend to appear early (0.25), while Qasper answers are mid-document (0.47). This means a recency-based policy would systematically evict HotpotQA-E's early answer occurrences.
-
-**Estimated relevant token survival** (assuming an ideal eviction policy that prioritises relevant tokens):
-
-| Task       | cache=1024 |
-| ---------- | ---------- |
-| Qasper     | 100%       |
-| 2WikiMQA   | 65%        |
-| Qasper-E   | 100%       |
-| HotpotQA-E | **46%**    |
-| 2WikiMQA-E | 65%        |
-
-HotpotQA-E is the most extreme case, with relevant tokens exceeding the cache budget by more than 2x at cs1024 (46% survival). The 2WikiMQA tasks also exceed the budget (65% survival). Only Qasper tasks fit entirely within the cache. This should make multi-hop tasks the most eviction-sensitive under our initial hypothesis — but as Report 1 shows, the actual results tell a different story.
-
-### 6.3 Per-Task Information Locality
+### 6.2 Per-Task Information Locality
 
 **Qasper / Qasper-E (Localised):**
 - The answer to a question about a scientific paper typically resides in a single paragraph or section.
@@ -260,7 +227,7 @@ HotpotQA-E is the most extreme case, with relevant tokens exceeding the cache bu
 - Bridge questions follow a chain: passage A mentions entity B, passage B contains the answer. The chain structure means the eviction policy must retain both links.
 - The context contains many **distractor passages** (typically 8-10 passages, of which only 2 are relevant). This makes the task harder for eviction: the policy must identify the 2 gold passages among many distractors.
 
-### 6.3 Eviction Sensitivity Summary
+### 6.3 Qualitative Eviction Sensitivity
 
 | Task       | Locality    | Sensitivity | Reasoning                                       |
 | ---------- | ----------- | ----------- | ----------------------------------------------- |
@@ -367,15 +334,11 @@ LoRA fine-tuning with a pre-trained (frozen) NAMM eviction policy active. The LL
 
 ## 9. Figures
 
-- `plots/dataset_characteristics.png` — Summary table of per-task characteristics including sample counts, answer types, information locality, and eviction sensitivity ratings.
+- `plots/dataset_characteristics.png` — Summary table of per-task characteristics.
 - `plots/prompt_templates.png` — Full prompt templates for each task.
-- `plots/length_distributions.png` — Context length and answer length distributions for eligible samples.
-- `plots/answer_types.png` — Stacked bar chart showing answer type breakdown per task.
-- `plots/eviction_analysis.png` — Token eviction rates and retention distribution at cs=1024.
-- `plots/relevant_tokens.png` — Mean relevant tokens, relevant fraction, and number of distinct relevant regions per task.
-- `plots/relevant_tokens_boxplot.png` — Box plot of relevant token distributions per task, with cache size reference lines.
-- `plots/answer_positions.png` — Distribution of first answer occurrence position within context (0=start, 1=end).
-- `plots/eviction_survival.png` — Estimated fraction of relevant tokens surviving at cs=1024, assuming ideal eviction.
+- `plots/length_distributions.png` — Context and answer length distributions.
+- `plots/answer_types.png` — Answer type breakdown per task.
+- `plots/eviction_analysis.png` — Token eviction rates and retention at cs=1024.
 
 ---
 
