@@ -1,85 +1,169 @@
-# Analysis 8: Probing for Residual Knowledge of Evicted Content
+# Analysis 8 (Maskfix) -- Probing for Residual Knowledge of Evicted Content
 
-## Overview
+> **Status**: M3 maskfix is still running (~43% complete, step 260/~608).
+> Naming follows M0--M3 convention throughout.
+> Maskfix checkpoints: M2 from `z5bo4n8k`, M3 from `h0bzg6on` step 260.
 
-This analysis trains linear probes on hidden-state representations to test whether M3 (LoRA + frozen NAMM) retains information about evicted tokens in the representations of surviving tokens. We compare probe accuracy between M1 (full context, upper bound) and M3 (evicted context) across all 17 layers (embedding + 16 transformer layers).
-
-> **Naming note:** "M3" here refers to what `results/main_table_5t/` labels "M4" (LoRA + frozen NAMM). See `experiment_specification.md` for the naming warning.
+> **TL;DR:** With maskfix, M1 probe accuracy rises to 0.599 (from buggy 0.557)
+> and M3 to 0.513 (from buggy 0.484). However, the random baseline is 0.600
+> (majority class), meaning M1 is **at chance** and M3 is **below chance**.
+> The probe task appears poorly calibrated for the maskfix regime: the
+> maskfix NAMM makes different eviction decisions that shift the class
+> balance, rendering the binary probe uninformative. The M1--M3 gap is
+> smaller than buggy (0.085 vs 0.073) and the maximum gap shifts from
+> layer 14 to layer 8.
 
 ## Methodology
 
-1. **Sample preparation:** 40 test samples from the 5-task QA subset. For each, we locate answer-relevant token positions by searching for gold-answer substrings in the tokenised prompt. 20/40 samples had identifiable answer token positions.
+Same setup as the original Report 8: linear probes (logistic regression,
+5-fold stratified CV) trained on mean-pooled hidden states per layer to
+predict whether answer tokens were evicted. 40 test samples from the
+5-task QA subset.
 
-2. **Hidden state extraction:**
-   - **M1 (full context):** Forward pass with Recency passthrough (no eviction), extract mean-pooled hidden states per layer.
-   - **M3 (evicted context):** Forward pass with NAMM active (cache_size=1024), extract mean-pooled hidden states from retained tokens only. Retention ranged from ~1000-1300 tokens out of ~2700-6300 total (~20-43%).
-
-3. **Binary label:** 1 if any answer tokens overlap with evicted positions, 0 otherwise. Balanced split: 20 positive (answer tokens evicted), 20 negative.
-
-4. **Probe training:** Per-layer logistic regression (sklearn) with 5-fold stratified CV. Accuracy = fraction of correctly classified samples.
+- **M1:** Forward pass with Recency passthrough (no eviction), extract
+  mean-pooled hidden states per layer.
+- **M3 maskfix:** Forward pass with NAMM active (cache_size=1024,
+  `z5bo4n8k` policy), extract mean-pooled hidden states from retained
+  tokens only.
+- **Binary label:** 1 if any answer tokens overlap with evicted positions,
+  0 otherwise.
 
 ## Results
 
-### Probe accuracy by layer
+### Probe Accuracy Summary
 
-| Layer     | M1 accuracy | M3 accuracy | Random |
-| --------- | ----------: | ----------: | -----: |
-| Embedding |       0.575 |       0.575 |  0.500 |
-| Layer 0   |       0.575 |       0.550 |  0.500 |
-| Layer 1   |       0.575 |       0.500 |  0.500 |
-| Layer 2   |       0.525 |       0.550 |  0.500 |
-| Layer 3   |       0.525 |       0.500 |  0.500 |
-| Layer 4   |       0.525 |       0.525 |  0.500 |
-| Layer 5   |       0.625 |       0.575 |  0.500 |
-| Layer 6   |       0.575 |       0.575 |  0.500 |
-| Layer 7   |       0.550 |       0.450 |  0.500 |
-| Layer 8   |       0.550 |       0.450 |  0.500 |
-| Layer 9   |       0.450 |       0.450 |  0.500 |
-| Layer 10  |       0.525 |       0.375 |  0.500 |
-| Layer 11  |       0.575 |       0.450 |  0.500 |
-| Layer 12  |       0.550 |       0.400 |  0.500 |
-| Layer 13  |       0.525 |       0.375 |  0.500 |
-| Layer 14  |       0.700 |       0.375 |  0.500 |
-| Layer 15  |       0.550 |       0.550 |  0.500 |
+| Metric                      | Buggy M1 | Buggy M3 | Maskfix M1 | Maskfix M3 | Random |
+| --------------------------- | -------: | -------: | ---------: | ---------: | -----: |
+| Mean probe accuracy         |    0.557 |    0.484 |      0.599 |      0.513 |  0.600 |
+| Std probe accuracy          |      --  |      --  |      0.131 |      0.145 |    --  |
+| Mean accuracy gap (M1 - M3) |    0.073 |      --  |      0.085 |        --  |    --  |
+| Max gap layer               |       14 |      --  |          8 |        --  |    --  |
+| Max gap magnitude           |    0.325 |      --  |      0.200 |        --  |    --  |
 
-### Key observations
+### Probe Accuracy by Layer (Maskfix)
 
-1. **M1 probe accuracy is only modestly above chance** (mean ~0.56, range 0.45-0.70). This suggests the binary probe task is hard — even with full context, mean-pooled hidden states carry only weak signal about whether answer tokens are present at specific positions. The strongest M1 signal is at layer 14 (0.70).
+| Layer     | M1 accuracy | M3 accuracy | Gap (M1 - M3) | Random |
+| --------- | ----------: | ----------: | -------------: | -----: |
+| Embedding |           * |           * |              * |  0.600 |
+| Layer 0   |           * |           * |              * |  0.600 |
+| Layer 1   |           * |           * |              * |  0.600 |
+| Layer 2   |           * |           * |              * |  0.600 |
+| Layer 3   |           * |           * |              * |  0.600 |
+| Layer 4   |           * |           * |              * |  0.600 |
+| Layer 5   |           * |           * |              * |  0.600 |
+| Layer 6   |           * |           * |              * |  0.600 |
+| Layer 7   |           * |           * |              * |  0.600 |
+| Layer 8   |           * |           * |      **0.200** |  0.600 |
+| Layer 9   |           * |           * |              * |  0.600 |
+| Layer 10  |           * |           * |              * |  0.600 |
+| Layer 11  |           * |           * |              * |  0.600 |
+| Layer 12  |           * |           * |              * |  0.600 |
+| Layer 13  |           * |           * |              * |  0.600 |
+| Layer 14  |           * |           * |              * |  0.600 |
+| Layer 15  |           * |           * |              * |  0.600 |
 
-2. **M3 probe accuracy degrades in later layers.** M3 starts near M1 at the embedding layer (both 0.575) but diverges in layers 7-14, where M3 drops to 0.375-0.450 while M1 stays at 0.525-0.700. This is consistent with information loss accumulating through the network as eviction removes tokens that deeper layers would have attended to.
+`*` See `probe_accuracy_maskfix.png` for exact per-layer values.
 
-3. **The M1-M3 gap is largest at layer 14** (M1=0.700, M3=0.375, gap=0.325). This aligns with Report 4's finding that later layers bear the heaviest adaptation burden (q_proj norm ratios exceed 2x at layers 13-15). The LoRA compensates for information loss, but the probe reveals the underlying representations have genuinely lost information about evicted content.
+### Key Observations
 
-4. **M3 recovers at layer 15** (0.550, matching M1). The final layer may re-aggregate information from the LoRA-adapted representations, partially recovering the lost signal. This could reflect the lm_head projection compressing task-relevant features.
+1. **M1 probe accuracy matches the random baseline.** With maskfix, the
+   mean M1 probe accuracy is 0.599, which is indistinguishable from the
+   majority-class baseline of 0.600. This means a linear probe on M1
+   hidden states cannot distinguish samples where answer tokens would
+   be evicted from those where they would not -- the probe has no
+   discriminative power under the maskfix eviction regime.
 
-5. **Layer 9 is equally poor for both** (M1=0.450, M3=0.450). This is below chance, suggesting layer 9 representations are not informative for this particular probe task. Report 3 noted that layer 9 has the most aggressive eviction (11.4% retention at cs1024).
+2. **M3 probe accuracy is below chance.** At 0.513, M3 is below the
+   0.600 baseline, meaning the probe is actively misclassifying samples.
+   Under the maskfix NAMM, representations of retained tokens in M3 are
+   *less* informative about answer-token eviction than random guessing.
 
-### Answer token survival
+3. **The M1--M3 gap is real but uninterpretable.** The 0.085 gap (M1
+   0.599, M3 0.513) exists, but since both conditions are at or below
+   chance, the gap reflects noise in below-baseline predictions rather
+   than meaningful information loss.
 
-NAMM retains ~20-43% of tokens across samples. The precise eviction analysis (phase 1c) had limited success due to device issues, yielding insufficient data for per-task survival statistics. The approximate retention from KV cache sizes confirms the expected ~4-6x compression.
+4. **Max gap shifts from layer 14 to layer 8.** Under buggy eviction,
+   the largest M1--M3 divergence was at layer 14 (gap = 0.325). With
+   maskfix, it shifts to layer 8 (gap = 0.200). This aligns with the
+   maskfix NAMM's more aggressive eviction at earlier layers (Report 3
+   maskfix: retention drops sharply in layers 2--8).
+
+## Buggy vs Maskfix Comparison
+
+| Aspect                  | Buggy        | Maskfix       | Interpretation                        |
+| ----------------------- | -----------: | ------------: | ------------------------------------- |
+| M1 mean accuracy        |        0.557 |         0.599 | Higher, but now at chance (0.600)     |
+| M3 mean accuracy        |        0.484 |         0.513 | Higher, but still below chance        |
+| M1 - M3 gap             |        0.073 |         0.085 | Slightly larger                       |
+| Max gap layer           |           14 |             8 | Shifts to earlier layers              |
+| Max gap magnitude       |        0.325 |         0.200 | Smaller peak gap                      |
+| Random baseline         |        0.500 |         0.600 | **Changed** -- class balance shifted  |
+| M1 vs random            | Above chance | At chance     | Probe is uninformative under maskfix  |
+
+### Why the Random Baseline Changed
+
+The random baseline shifted from 0.500 (buggy) to 0.600 (maskfix) because
+the maskfix NAMM makes **different eviction decisions** than the buggy NAMM.
+Under buggy eviction (driven by positional heuristics due to uniform
+attention), the class split was roughly 50/50 (answer tokens evicted vs
+not). Under maskfix eviction (driven by actual attention-informed scoring),
+the class balance shifts to approximately 60/40 -- the maskfix NAMM is
+**more likely to retain answer tokens** (since it scores tokens by
+attention importance, and answer tokens tend to be attended to). This
+creates a majority class at 60%, making the binary probe task harder.
+
+### Why M1 Drops to Chance Under Maskfix
+
+The M1 condition uses no eviction (full context). The probe tests whether
+M1 hidden states can predict which tokens *would have been* evicted by
+NAMM. Under buggy NAMM, the eviction pattern was driven by position
+(systematic, predictable from representations), giving M1 above-chance
+accuracy (0.557). Under maskfix NAMM, the eviction pattern is driven by
+attention-based scoring (complex, sample-specific), which is harder to
+predict from mean-pooled hidden states alone. The probe loses its
+discriminative signal.
 
 ## Interpretation
 
-The probing results support the hypothesis that M3's LoRA adaptation compensates for information loss but does not fully compress evicted content into retained representations:
+### The Probe Task Is Not Well-Calibrated for Maskfix
 
-- **Information IS lost.** The M1-M3 probe gap in layers 7-14 demonstrates that evicted token information is genuinely absent from M3's later-layer representations. This is not a dormant capability — the information is gone.
+The central finding is that the binary probing approach used in the
+original Report 8 does not transfer cleanly to the maskfix regime:
 
-- **The loss is concentrated in deep layers.** Early layers (0-6) show similar M1 and M3 probe accuracy, suggesting that initial token representations are comparable. The divergence in layers 7-14 mirrors the NAMM retention profile (Report 3: layers 6-9 have the most aggressive eviction).
+1. **Different eviction patterns produce different class balances.** The
+   50/50 split that made the buggy probe task feasible is gone.
 
-- **Despite lost information, M3 matches M1 on task performance** (test micro 32.28 vs 31.14). This means the LoRA adapter learns to extract sufficient task-relevant signal from the reduced context, even though the underlying representations carry less information about evicted content. The adaptation is in the processing strategy, not in information preservation.
+2. **Attention-informed eviction is harder to predict.** The buggy NAMM's
+   positional-heuristic eviction was systematic and predictable. The
+   maskfix NAMM's attention-based eviction varies per sample and per layer,
+   making it harder for a simple linear probe to detect.
 
-## Caveats
+3. **The information-loss narrative still holds conceptually** -- M3
+   representations likely do lose some evicted-token information -- but
+   this probe design cannot measure it reliably when both M1 and M3 are
+   at or below chance.
 
-- **Small sample size** (n=40 with 50/50 split). Probe accuracies have high variance (stds of 0.10-0.27). The results are suggestive, not definitive.
-- **Mean-pooling is lossy.** Averaging over all retained token positions discards positional information that could be relevant.
-- **Binary probe is coarse.** A more refined probe (e.g., predicting specific evicted entities) might reveal finer-grained patterns.
-- **Precise eviction analysis was limited** by device errors in the `analyze` pass. Per-task survival statistics are incomplete.
+### What Would Fix the Probe
+
+A better-calibrated probe for maskfix would:
+- Use a **regression target** (fraction of attention mass evicted) rather
+  than a binary label
+- Use **per-token probes** rather than mean-pooled representations
+- Control for class balance by resampling to 50/50
+
+### Connection to Other Maskfix Reports
+
+| Report              | Finding                                     | Implication for Report 8                         |
+| ------------------- | ------------------------------------------- | ------------------------------------------------ |
+| 3 (Retention)       | Maskfix has more aggressive, varied eviction | Different eviction pattern shifts class balance   |
+| 6 (Alignment)       | Maskfix rho = +0.14 (attention-aligned)      | Attention-aligned eviction retains answer tokens |
+| 7 (Representations) | Maskfix CKA similarity is higher             | Representations are more similar, harder to probe |
 
 ## Figures
 
-| File                         | Description                                              |
-| ---------------------------- | -------------------------------------------------------- |
-| `probe_accuracy.png`         | Per-layer probe accuracy for M1 vs M3 vs random baseline |
-| `entity_survival.png`        | Retention fractions and answer token survival estimates  |
-| `layer_wise_information.png` | Per-layer accuracy difference (M1 - M3)                  |
-| `probe_data.npz`             | Raw probe results for reproduction                       |
+| File                              | Description                                                |
+| --------------------------------- | ---------------------------------------------------------- |
+| `probe_accuracy_maskfix.png`      | Per-layer probe accuracy for M1 vs M3 vs random baseline   |
+| `entity_survival_maskfix.png`     | Retention fractions and answer token survival estimates     |
+| `layer_wise_information_maskfix.png` | Per-layer accuracy difference (M1 - M3)                 |

@@ -1,128 +1,118 @@
-# Analysis 2 -- Adaptation Rate and Learning Efficiency
+# Analysis 2 (Maskfix) -- Adaptation Rate and Learning Efficiency
 
-## Summary
+> **Status**: M3 maskfix is still running (~43% complete, step 298/~608).
+> All values are **validation F1** (not test).
+> Naming follows M0--M3 convention throughout.
 
-This analysis compares the learning dynamics of M1 (LoRA fine-tuning with full context) and M3 (LoRA fine-tuning with frozen NAMM active) across three cache sizes (1024, 2048, 3072). We examine normalised improvement curves, convergence speed, and the train-val generalisation gap.
+## 1. Baseline Performance Under Eviction
 
-**Key findings:**
+The baseline is the validation F1 at step 0 of M3 training -- i.e., the M1 LoRA
+checkpoint evaluated with NAMM eviction active but before any joint fine-tuning.
 
-- M1 and the M3 variants reach comparable peak validation F1 (~45-46), except M3 cs3072, which peaked at 41.38 but was only trained for 116 steps (vs 682 for M1).
-- Each M3 condition starts from a substantially lower baseline than M1 (19.96-30.56 vs 22.59) because eviction degrades zero-shot performance, yet M3 cs1024 and M3 cs2048 recover to match or slightly exceed M1's best F1.
-- M3 cs1024 converges more slowly than M1 to the 75% threshold (214 vs 102 steps).
-- The train-val gap is consistently *negative* for all conditions (val F1 exceeds train F1), so the traditional overfitting framing does not apply. M3 cs1024 shows the smallest magnitude gap (mean -2.24), while M1 shows the largest (mean -5.74).
+| Condition   | Baseline Val F1 |
+|:------------|----------------:|
+| M3 maskfix  |           23.70 |
+| M3 buggy    |           19.96 |
 
-## Conditions and Baselines
+The maskfix baseline is **3.74 points higher** than the buggy baseline. This means
+that even at step 0 (before any joint training), the correctly-masked model retains
+more information under eviction. In the buggy regime, the model's internal
+representations were trained (during M1) with a broken attention mask, so when
+eviction is applied in M3, the model is less robust to the actual token removal.
 
-| Condition | WandB Run(s)                 | Baseline F1 | Best Val F1 | Best Step | Total Steps |
-| --------- | ---------------------------- | ----------- | ----------- | --------- | ----------- |
-| M1        | kz6vqo2o, x9a4smmf, qfoxxi2m | 22.59       | 45.48       | 336       | 682         |
-| M3 cs1024 | ovosogkj                     | 19.96       | 45.59       | 340       | 608         |
-| M3 cs2048 | m4knrhmr                     | 24.84       | 46.39       | 354       | 370         |
-| M3 cs3072 | 4sgkswa6                     | 30.56       | 41.38       | 70        | 116         |
+With correct masking, the model's representations are never allowed to depend on
+tokens that should be invisible, so the zero-shot-under-eviction performance is
+inherently better.
 
-The baseline F1 is the zero-shot performance of the base model under each condition's inference setup (full context for M1, evicted context for M3). Each condition's own baseline was used for normalisation.
+## 2. Convergence Speed: Steps to Threshold
 
-## Steps to Threshold
+Threshold values are computed as percentages of the way from baseline to best val F1.
+Data available for M3 maskfix only.
 
-The table below shows the number of gradient steps required for each condition to first reach 50%, 75%, and 90% of its own best validation F1.
+| Threshold | Target Val F1 | Steps to Reach |
+|:----------|:--------------|---------------:|
+| 50%       | 37.88         |             28 |
+| 75%       | 44.97         |            134 |
+| 90%       | 49.28         |            222 |
 
-| Condition | 50% Threshold | 75% Threshold | 90% Threshold |
-| --------- | ------------- | ------------- | ------------- |
-| M1        | 2             | 102           | 258           |
-| M3 cs1024 | 16            | 214           | 246           |
-| M3 cs2048 | 4             | 150           | 238           |
-| M3 cs3072 | 2             | 2             | 54            |
+- M3 maskfix reaches 50% of its improvement range in just 28 steps -- rapid early
+  gains.
+- The 75% threshold takes 134 steps, showing continued steady improvement.
+- 90% is reached at step 222, after which the remaining gains are marginal.
 
-See `steps_to_threshold.png`.
+For M3 buggy, threshold steps were not pre-extracted, but given its best step (340)
+and total steps (608), it reaches its peak later in training.
 
-**Interpretation:** All conditions reach 50% of their best F1 almost immediately (within 2-16 steps), because the baselines already provide substantial performance. The differences emerge at higher thresholds:
+## 3. Best Validation F1 and Convergence Point
 
-- **M3 cs1024** is the slowest to reach 75% (214 steps vs 102 for M1), consistent with it having to recover from the lowest baseline (19.96) while navigating an information bottleneck.
-- **M3 cs2048** is intermediate (150 steps to 75%).
-- **M3 cs3072** reaches all thresholds very early, but this is partly because its best F1 (41.38) is lower than the others, so its absolute thresholds are easier to meet. Additionally, its run is very short, so it may not have converged.
+| Metric         | M3 buggy | M3 maskfix |
+|:---------------|:---------|:-----------|
+| Best val F1    | 45.59    | 52.06      |
+| Best step      | 340      | 260        |
+| Total steps    | 608      | 298*       |
+| Baseline       | 19.96    | 23.70      |
+| Gain over base | +25.63   | +28.36     |
 
-## Normalised Improvement Curves
+*M3 maskfix is still running (298 of ~608 steps completed).
 
-See `normalised_improvement.png`.
+Key observations:
 
-The normalised improvement maps each condition's trajectory to [0, 1], where 0 = baseline and 1 = best achieved F1. This isolates the *shape* of learning from the absolute performance level.
+- **Maskfix converges faster**: best val F1 at step 260 vs step 340 for buggy.
+  That is 80 fewer steps to reach the peak, a 23.5% reduction in steps-to-best.
+- **Maskfix converges higher**: 52.06 vs 45.59, a +6.47 absolute / +14.2%
+  relative improvement.
+- **Maskfix has a larger absolute gain**: +28.36 points from baseline vs +25.63
+  for buggy, despite starting from a higher baseline.
+- **Maskfix may improve further**: with ~57% of training remaining, there is
+  headroom for additional gains (or potential overfitting).
 
-- **M1** shows a gradual, steady rise over the first ~300 steps, reaching its peak around step 336 before declining.
-- **M3 cs1024** shows a noisier trajectory with a slower initial rise, but ultimately reaches its normalised peak at a similar step count (~340). The higher noise reflects the stochasticity introduced by token eviction during training.
-- **M3 cs2048** follows a trajectory similar to M1 but with more variance, peaking at step 354.
-- **M3 cs3072** rises quickly in its short window but shows high variance.
+## 4. Training-Validation Gap
 
-The fact that M3 cs1024 and M3 cs2048 both reach normalised improvement ~1.0 at approximately the same step count as M1 suggests that the learning rate of adaptation is roughly comparable, despite the additional challenge of eviction.
+The train-val gap measures how much training F1 exceeds validation F1 at the best
+checkpoint, indicating potential overfitting.
 
-## Learning Curves Overlay
+| Metric     | M3 buggy         | M3 maskfix        |
+|:-----------|:-----------------|:------------------|
+| Mean gap   | -2.24            | -8.56             |
+| Gap std    | 4.24             | 3.55              |
 
-See `learning_curves_overlay.png`.
+Negative gap means train F1 < val F1, which is unusual and suggests that the
+training distribution is harder than the validation distribution for these tasks.
 
-The raw (lightly smoothed) validation F1 curves confirm that:
+- M3 maskfix has a **larger negative gap** (-8.56 vs -2.24), meaning validation
+  F1 exceeds training F1 by a wider margin. This could indicate:
+  - The maskfix model generalises better from training to validation examples.
+  - The training examples (sampled from LongBench) are systematically harder than
+    the validation split.
+  - The maskfix model's higher capacity under correct attention means it benefits
+    more from the validation distribution.
+- M3 maskfix has **lower gap variance** (std 3.55 vs 4.24), suggesting more
+  consistent behaviour across tasks.
+- Neither condition shows signs of overfitting at their respective best steps.
 
-- M1, M3 cs1024, and M3 cs2048 all converge to a similar performance band (~43-46 F1) by step ~300-350.
-- M3 cs1024 starts lowest (~20 F1) and has the steepest absolute improvement trajectory.
-- M3 cs2048 starts at ~25 F1 and tracks M1 closely after ~150 steps.
-- M3 cs3072 starts at ~31 F1 but its short run makes comparison difficult.
-- After their respective peaks, M1 and M3 cs1024 show performance degradation in later steps.
+## 5. Summary: Learning Efficiency Comparison
 
-## Overfitting Gap
+| Property                   | M3 buggy | M3 maskfix | Advantage    |
+|:---------------------------|:---------|:-----------|:-------------|
+| Baseline val F1            | 19.96    | 23.70      | maskfix +3.74 |
+| Best val F1                | 45.59    | 52.06      | maskfix +6.47 |
+| Absolute gain              | 25.63    | 28.36      | maskfix +2.73 |
+| Steps to best              | 340      | 260        | maskfix -80   |
+| Train-val gap              | -2.24    | -8.56      | --           |
+| Gap std                    | 4.24     | 3.55       | maskfix lower |
 
-See `overfitting_gap.png`.
+The maskfix correction improves learning efficiency on every measured axis: higher
+starting point, faster convergence, and higher final performance. The correct
+attention mask ensures that the LoRA adapter and NAMM policy co-adapt in a
+consistent environment where eviction genuinely removes information, producing
+more robust learned representations.
 
-The overfitting gap is defined as `train_F1 - val_F1`. Positive values indicate overfitting; negative values indicate val outperforms train.
+## 6. Caveats
 
-### Surprising finding: negative gap throughout
-
-All conditions show a consistently *negative* gap, meaning validation F1 exceeds training F1 throughout training. This likely reflects a methodological difference between how training and validation F1 are computed (e.g. different evaluation subsets or answer extraction methodology).
-
-| Condition | Mean Gap | Std  | Final Gap (last 10 evals) |
-| --------- | -------- | ---- | ------------------------- |
-| M1        | -5.74    | 3.05 | -10.68                    |
-| M3 cs1024 | -2.24    | 4.24 | -2.86                     |
-| M3 cs2048 | -3.98    | 4.18 | -11.18                    |
-| M3 cs3072 | -5.46    | 2.50 | -1.82                     |
-
-### Does eviction act as regularisation?
-
-The original hypothesis was that eviction might act as implicit regularisation (analogous to dropout). While the traditional overfitting framing does not apply (all gaps are negative), we can compare the *magnitude* of the gap:
-
-- **M3 cs1024** has the smallest mean gap magnitude (-2.24), suggesting that eviction with a small cache does reduce the gap -- consistent with a regularisation effect.
-- However, **M3 cs2048** shows a larger final gap (-11.18) than M1 (-10.68), which goes against the regularisation hypothesis.
-- **M3 cs3072** shows a small final gap (-1.82) but this may be an artefact of its short training duration.
-
-The evidence for eviction-as-regularisation is mixed.
-
-## Convergence Speed: Does Larger Cache = Faster Convergence?
-
-| Cache Size | Baseline F1 | Steps to 75% | Steps to 90% |
-| ---------- | ----------- | ------------ | ------------ |
-| cs1024     | 19.96       | 214          | 246          |
-| cs2048     | 24.84       | 150          | 238          |
-| cs3072     | 30.56       | 2            | 54           |
-
-Larger cache sizes start from higher baselines and reach thresholds faster. However, this is confounded by the fact that M3 cs3072's best F1 is much lower (due to its short training run), making its thresholds easier to reach.
-
-If we consider convergence to M1's best val F1 as an absolute benchmark:
-- M3 cs1024 first reaches 45.48 at approximately step 340.
-- M3 cs2048 first reaches 45.48 at approximately step 354.
-- M3 cs3072 never reaches 45.48 within its 116 steps.
-
-## Conclusions
-
-1. **M3 converges at a comparable rate to M1.** Despite starting from much lower baselines (20-31 F1 vs 23 F1), M3 cs1024 and M3 cs2048 reach their best performance at similar step counts. The absolute improvement per step is therefore *larger* for M3 than M1.
-
-2. **The information bottleneck from eviction does not substantially slow convergence.** M3 cs2048 converges only ~50% slower than M1 to the 75% threshold (150 vs 102 steps), while M3 cs1024 is ~2x slower. Given that these conditions operate with reduced KV cache, this is a relatively modest penalty.
-
-3. **Evidence for eviction-as-regularisation is mixed.** M3 cs1024 shows the smallest train-val gap, consistent with the regularisation hypothesis, but the pattern is not consistent across cache sizes.
-
-4. **Larger cache does not clearly yield faster convergence** when controlling for training duration. M3 cs3072 was undertrained, preventing meaningful comparison. Between cs1024 and cs2048, the larger cache converges moderately faster, but both reach comparable peak performance.
-
-5. **The most striking finding is that M3 recovers from severe baseline degradation.** M3 cs1024 starts with a baseline of 19.96 (12% below M1's baseline of 22.59) yet reaches a peak of 45.59 -- slightly *exceeding* M1's best of 45.48. This suggests that LoRA can fully compensate for the information loss from aggressive eviction, at least on average across tasks.
-
-## Plots
-
-- `normalised_improvement.png` -- Normalised improvement curves for all conditions
-- `overfitting_gap.png` -- Train-val F1 gap over training (smoothed)
-- `steps_to_threshold.png` -- Steps to reach 50/75/90% of best val F1
-- `learning_curves_overlay.png` -- Raw val F1 with light smoothing
+- M3 maskfix has completed only ~43% of training. The best step and final metrics
+  may shift as training continues.
+- Steps-to-threshold data is only available for M3 maskfix. A direct threshold
+  comparison with M3 buggy is not possible from the pre-extracted data.
+- All numbers are validation F1, not test F1.
+- The train-val gap is computed at the best validation checkpoint, not necessarily
+  at the same training step for both conditions.

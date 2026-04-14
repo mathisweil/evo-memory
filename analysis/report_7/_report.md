@@ -1,103 +1,105 @@
-# Analysis 7 — Representation Similarity (CKA)
+# Analysis 7 (Maskfix): CKA Representation Similarity -- Maskfix vs Buggy
 
-> **TL;DR:** Linear CKA between M1 and M3 cs1024 is **very high (0.979–1.0) but not identical** across all layers when both models process full-context inputs. The embedding layer is 1.0 (shared tokenizer), but transformer layers show a characteristic dip, with the minimum at **layer 3 (CKA=0.979)**. This aligns with Report 4's finding that M3's LoRA norms are 1.5-2.6× larger in orthogonal subspaces — the weight-space divergence produces a small but measurable representation-space divergence, even on full context. The cross-layer heatmap reveals an asymmetric block structure with a transition around layers 6-7.
+> **TL;DR:** M3-maskfix representations are **closer to M1** than M3-buggy (mean CKA 0.995 vs 0.992). The point of maximum divergence shifts from **layer 3 (buggy, CKA 0.979)** to **layer 10 (maskfix, CKA 0.990)** -- the divergence moves deeper into the network and becomes less severe. Both variants maintain very high CKA (>0.97 everywhere), confirming the LoRA perturbation is small in representation space regardless of the bug. The maskfix adapter produces representations that are more M1-like, consistent with its smaller LoRA norms (Report 4 maskfix).
 
-## Methodology
+---
 
-We loaded M1 and M3 cs1024 checkpoints (LoRA merged into base weights), ran inference on 10 test prompts (1024 tokens each), and extracted mean-pooled hidden states at all 17 layers (embedding + 16 transformer layers).
+## Setup
 
-**Linear CKA** measures representation similarity between two models:
+All comparisons use **full-context inputs** (no NAMM eviction at inference). Prompts: 10 test samples at 1024 tokens from LongBench tasks.
+
+- **M1:** LoRA fine-tuned, full context, no eviction (baseline)
+- **M3-maskfix:** LoRA + frozen NAMM, attention mask bug fixed, best checkpoint (step 260, val F1 52.06, ~43% through training)
+- **M3-buggy:** LoRA + frozen NAMM, original buggy attention mask (step 600, val F1 45.59, end of training)
+
+Linear CKA measures representation similarity:
 ```
 CKA(X, Y) = ||Y^T X||_F^2 / (||X^T X||_F * ||Y^T Y||_F)
 ```
 CKA = 1.0 means identical representations (up to linear transform); CKA = 0.0 means unrelated.
 
-We computed:
-1. **Layer-wise CKA:** M1 layer i vs M3 layer i for all 17 layers
-2. **Cross-layer CKA heatmap:** M1 layer i vs M3 layer j for all (i, j) pairs
+---
 
 ## Findings
 
-### Layer-wise CKA
+### Layer-wise CKA vs M1
 
-| Layer       | CKA       |
-| ----------- | --------- |
-| Embedding   | 1.000     |
-| Layer 0     | 1.000     |
-| Layer 1     | 1.000     |
-| Layer 2     | 0.996     |
-| **Layer 3** | **0.979** |
-| Layer 4     | 0.988     |
-| Layer 5     | 0.990     |
-| Layer 6     | 0.993     |
-| Layer 7     | 0.993     |
-| Layer 8     | 0.993     |
-| Layer 9     | 0.991     |
-| Layer 10    | 0.989     |
-| Layer 11    | 0.991     |
-| Layer 12    | 0.990     |
-| Layer 13    | 0.990     |
-| Layer 14    | 0.995     |
-| Layer 15    | 0.994     |
+| Metric          | M3-maskfix | M3-buggy |
+| --------------- | ---------: | -------: |
+| Mean CKA        |     0.9952 |   0.9921 |
+| Min CKA         |     0.9901 |   0.9788 |
+| Min CKA layer   |   layer 10 |  layer 3 |
+| Max CKA         |     1.0000 |   1.0000 |
+| Max CKA layer   |    layer 0 |  layer 0 |
 
-See `cka_by_layer.png`. All layers show CKA > 0.97, with a dip at layer 3.
+Both variants start at CKA = 1.0 at the embedding/early layers (shared tokenizer and minimal LoRA effect) and dip at different points deeper in the network.
 
-**Mean CKA across all layers: 0.992**
+### Side-by-side comparison
 
-### Cross-layer CKA
+| Layer     | CKA (maskfix vs M1) | CKA (buggy vs M1) | Delta     |
+| --------- | ------------------: | -----------------: | --------: |
+| Layer 0   |              1.0000 |             1.0000 |    0.0000 |
+| Layer 3   |                 --  |         **0.9788** |        -- |
+| Layer 10  |          **0.9901** |                 -- |        -- |
 
-See `cka_heatmap.png`. Key observations:
-- The **diagonal** is near-1.0 throughout, confirming high same-layer similarity
-- **Block structure:** Early layers (Emb–6) and late layers (7–15) form two similarity blocks with a visible transition around layer 6-7
-- **Early–late asymmetry:** Embedding representations have lower CKA with deep layers (~0.6-0.7) than deep layers have with each other (~0.9+)
-- The block structure is consistent across both models, reflecting the base model's architecture
+(Full per-layer values available in the analysis scripts; the table above highlights the minimum-CKA layers for each variant.)
 
-## Interpretation
+---
 
-### CKA is high but not 1.0
+## Discussion
 
-The LoRA update modifies the model's weights by a rank-8 perturbation to q_proj and v_proj. For LLaMA 3.2-1B, these projections have dimension 2048. A rank-8 update changes at most 8/2048 = 0.4% of the weight space per layer. On full-context inputs, the base model's 1.2B parameters largely dominate, but the LoRA perturbation is large enough to produce a detectable CKA difference of ~1-2%.
+### Maskfix representations are more M1-like
 
-### Layer 3 as the point of maximum divergence
+The higher mean CKA (0.995 vs 0.992) is consistent with Report 4's finding that maskfix LoRA norms are smaller (1.42x vs 1.93x for q_proj). Smaller weight perturbations produce representations closer to the baseline model. The maskfix adapter achieves better task performance (val F1 52.06 vs 45.59) with less representational divergence from M1 -- a more efficient adaptation.
 
-The CKA minimum at layer 3 (0.979) is notable. This is in the early-middle layers where:
-- Attention transitions from positional/syntactic to semantic processing (Report 5 shows low entropy in layers 1-3)
-- Report 4 showed M3 LoRA norms grow with layer depth, but the largest *relative* impact may occur in early layers where base representations are less entrenched
-- The q_proj modifications at this layer may alter how the model routes information, with effects that partially recover in later layers
+### The divergence point shifts from layer 3 to layer 10
 
-### Connection to other reports
+This is a notable structural change:
 
-| Report           | What it measures                            | M1 vs M3 on full context                                       |
-| ---------------- | ------------------------------------------- | -------------------------------------------------------------- |
-| 4 (LoRA weights) | Weight-space difference                     | **Orthogonal subspaces**, M3 norms 1.5-2.6× larger             |
-| 5 (Attention)    | Function-space difference (attention)       | **Measurably different**: M3 higher entropy (+4%), lower sinks |
-| 7 (CKA)          | Function-space difference (representations) | **Very similar but not identical**: CKA 0.979-1.0              |
+- **M3-buggy** diverges most at **layer 3** (CKA 0.979) -- an early-middle layer where attention transitions from positional/syntactic to semantic processing. The original Report 7 interpreted this as a critical adaptation point where M3 redirects information flow.
 
-This is a coherent picture: M1 and M3 differ in weight space (Report 4), and this translates to small but measurable differences in both attention patterns (Report 5) and hidden representations (Report 7) even on full context. The adaptation is not fully dormant — it produces a functional signature that may serve as a form of pre-adaptation, readying the model for the distribution shift caused by eviction.
+- **M3-maskfix** diverges most at **layer 10** (CKA 0.990) -- a later layer involved in higher-level semantic integration. The divergence is also less severe (0.990 vs 0.979).
 
-### Implications
+The shift suggests that the buggy mask forced the model to make early, aggressive corrections to compensate for corrupted attention patterns in the initial layers. With correct masking, the adaptation can be deferred to later layers where it serves a more natural purpose (task-specific processing under eviction constraints).
 
-1. **M3's adaptation has a small cost on full context.** The models are not functionally identical — M3's LoRA weights produce slightly different representations. However, Report 1 shows M3 matches M1 on aggregate F1 (val: 45.59 vs 45.48; test micro: 32.28 vs 31.14), so the representational difference does not hurt task performance — M3 reaches similar answers via a different computation path.
-2. **CKA is sensitive enough to detect rank-8 LoRA perturbations.** CKA can resolve ~1-2% representation differences from low-rank fine-tuning, making it a viable tool for comparing LoRA-adapted models.
-3. **Layer 3 may be a critical adaptation point.** The CKA dip at layer 3 suggests this is where M3's LoRA makes the largest representational change, potentially redirecting information flow for eviction robustness.
+### The divergence at layer 10 is mild
 
-### Implications for the paper
+The maskfix minimum CKA of 0.990 is substantially higher than the buggy minimum of 0.979. On the CKA scale, where fine-tuned models of the same architecture typically score >0.95, the difference between 0.990 and 0.979 is meaningful -- the maskfix model's representations are much closer to M1 at their point of maximum divergence.
 
-Combined with Reports 4 and 5, the CKA results support a **"pre-emptive hedging"** interpretation of M3's adaptation rather than a "dormant adaptation" story:
+### Both variants maintain very high CKA
 
-1. **M3 is a genuinely different model, not a dormant variant of M1.** The orthogonal LoRA subspaces (Report 4), the attention entropy shift (Report 5, +4%), and the CKA divergence (this report, min 0.979) all show that M3 occupies a different region of function space. The adaptation is always active, not switched on by eviction.
+Both exceed 0.97 at every layer. The LoRA perturbation (rank 8 in a 2048-dimensional space) produces at most a ~2% representational shift (buggy) or ~1% shift (maskfix). This confirms that the "different adaptation" finding from Report 4 (orthogonal LoRA subspaces) manifests as a small functional difference -- the models compute slightly different things but stay in the same representational neighbourhood.
 
-2. **Different path, same destination.** M3 produces different representations and attention patterns but achieves the same task performance on full context (Report 1). This means eviction-aware training finds an alternative solution that is robust to both full-context and evicted-context conditions — a stronger claim than "it doesn't change anything without eviction."
+---
 
-3. **The adaptation is concentrated, not diffuse.** The CKA dip at layer 3 and the head-specific entropy shifts (Report 5) show that M3's changes are localised to specific layers and heads, consistent with LoRA's low-rank structure selectively modifying particular attention circuits rather than globally perturbing the model.
+## Connection to Other Maskfix Reports
 
-## Figures
+| Report              | What it measures         | Maskfix vs Buggy                                                |
+| ------------------- | ------------------------ | --------------------------------------------------------------- |
+| 4 (LoRA weights)    | Weight-space difference  | Maskfix norms **26% smaller**; overlap marginally higher         |
+| 5 (Attention)       | Attention patterns       | **Nearly identical** entropy/sinks; hedging is not a mask artefact |
+| 7 (CKA, this report)| Representation similarity | Maskfix **closer to M1** (0.995 vs 0.992); divergence shifts deeper |
 
-- `cka_by_layer.png` — Layer-wise CKA (0.979–1.0 range)
-- `cka_heatmap.png` — Cross-layer CKA heatmap (M1 layer i vs M3 layer j)
+A coherent picture emerges:
 
-## References
+1. **The mask bug inflated LoRA norms** (Report 4) and **pushed representational divergence to early layers** (this report), but **did not change the qualitative attention strategy** (Report 5).
 
-- Kornblith et al. (2019). "Similarity of Neural Network Representations Revisited." *ICML 2019*.
-- Raghu et al. (2017). "SVCCA: Singular Vector Canonical Correlation Analysis for Deep Learning Dynamics and Interpretability." *NeurIPS 2017*.
-- Neyshabur et al. (2020). "What is being transferred in transfer learning?" *NeurIPS 2020*.
+2. **Maskfix is a more efficient adaptation.** It achieves higher task performance (52.06 vs 45.59 val F1) with smaller LoRA norms, closer representations to M1, and the same hedging attention pattern. The buggy adapter wasted capacity compensating for mask-induced noise.
+
+3. **The core findings are robust to the bug fix.** Near-orthogonal LoRA subspaces, pre-emptive hedging in attention, and high-but-not-identical CKA all persist with correct masking. These are genuine properties of eviction-aware training, not artefacts.
+
+---
+
+## Note on Checkpoint Maturity
+
+The maskfix checkpoint (step 260, ~43% through training) has not completed training. The representational profile may evolve as training continues -- the divergence point at layer 10 could shift or deepen. The current results should be interpreted as a snapshot of the best-performing maskfix checkpoint available, not a final comparison.
+
+---
+
+## Plots
+
+| Plot                                                         | Description                                                     |
+| ------------------------------------------------------------ | --------------------------------------------------------------- |
+| [`cka_by_layer_maskfix.png`](cka_by_layer_maskfix.png)       | Layer-wise CKA vs M1 for maskfix and buggy, side-by-side        |
+| [`cka_heatmap_maskfix.png`](cka_heatmap_maskfix.png)         | Cross-layer CKA heatmap for M3-maskfix vs M1                    |
+| [`cka_heatmap_buggy_ref.png`](cka_heatmap_buggy_ref.png)     | Cross-layer CKA heatmap for M3-buggy vs M1 (reference)          |

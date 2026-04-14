@@ -16,15 +16,15 @@ We compare three conditions:
 | Section | Topic                          | Status                                                                                                       |
 | ------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | §0      | Dataset characterisation       | DONE (`report_0/_report.md`)                                                                                 |
-| §1      | Per-task sensitivity           | DONE (`report_1/_report.md` + `_report_maskfix.md`)                                                          |
-| §2      | Adaptation rate                | DONE (`report_2/_report.md` + `_report_maskfix.md`)                                                          |
-| §3      | Per-layer retention            | DONE (`report_3/_report.md` + `_report_maskfix.md`)                                                          |
-| §4      | LoRA weight comparison         | DONE (`report_4/_report.md` + `_report_maskfix.md`)                                                          |
-| §5      | Attention entropy              | DONE (`report_5/_report.md` + `_report_maskfix.md`)                                                          |
-| §6      | Token importance alignment     | DONE (`report_6/_report.md` + `_report_maskfix.md`)                                                          |
-| §7      | CKA representation similarity  | DONE (`report_7/_report.md` + `_report_maskfix.md`)                                                          |
-| §8      | Probing for residual knowledge | DONE (`report_8/_report.md` + `_report_maskfix.md`)                                                          |
-| §9      | Gradient flow attribution      | DONE (`report_9/_report.md` + `_report_maskfix.md`)                                                          |
+| §1      | Per-task sensitivity           | DONE (`report_1/_report.md` )                                                          |
+| §2      | Adaptation rate                | DONE (`report_2/_report.md` )                                                          |
+| §3      | Per-layer retention            | DONE (`report_3/_report.md` )                                                          |
+| §4      | LoRA weight comparison         | DONE (`report_4/_report.md` )                                                          |
+| §5      | Attention entropy              | DONE (`report_5/_report.md` )                                                          |
+| §6      | Token importance alignment     | DONE (`report_6/_report.md` )                                                          |
+| §7      | CKA representation similarity  | DONE (`report_7/_report.md` )                                                          |
+| §8      | Probing for residual knowledge | DONE (`report_8/_report.md` )                                                          |
+| §9      | Gradient flow attribution      | DONE (`report_9/_report.md` )                                                          |
 
 ### Additional conditions not in the original spec
 
@@ -52,7 +52,7 @@ Maskfix analyses completed (all §0–§9):
 - §4, §5, §7: GPU analyses using merged LoRA weights (`run_maskfix_gpu_analyses.py`)
 - §6, §8, §9: GPU analyses using full NAMM infrastructure (`run_maskfix_namm_analyses.py`)
 
-Each report folder contains both `_report.md` (buggy) and `_report_maskfix.md` (corrected). The maskfix versions are the primary results.
+Each report's `_report.md` now contains the maskfix (corrected) results. Previous buggy versions are available in git history.
 
 ---
 
