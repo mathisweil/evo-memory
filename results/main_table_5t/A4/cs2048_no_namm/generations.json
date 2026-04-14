@@ -3,7 +3,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": "3 layers",
+        "pred": "3-5\n\n## Step-by-bytes; 3-5\n\nThe final answer is the number of nodes and 2^3-5 for the number of nodes in the case of a single input, and 5",
         "answers": [
           "eight layers"
         ],
@@ -22,7 +22,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": "NUbes-PHI and MEDDOCAN 2019 shared task dataset",
+        "pred": "NUBes-PHI and MEDDOCAN.",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -32,7 +32,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "Unanswerable",
+        "pred": "Unsolicited and Linguar. Sarcasm and Linguarure, Linguaruality of the bar those are the main text of the answer is the set of features.",
         "answers": [
           "Unanswerable"
         ],
@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "Facebook status updates",
+        "pred": "Facebook Re: \"Can the United States. Are the causal relation between the two types of questions, the number of words and the presence of the complete and explicit explicit explicit explicit explicit explicit language and the explicit, the number of words were 1.2. The results of the development of the causal relation between the explicit and 1.5 and 1.5 times the number of words.",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -70,7 +70,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "sentiment classification, web-page classification, science classification, medical classification, and healthcare classification.",
+        "pred": "sentiment sentiment Sentiment polarity polarity for each class. \n\nAnswer: sentiment polarity. prior knowledge about the importance of prior knowledge.",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "Unanswerable",
+        "pred": "Unstoppable overtime for the total of 1002000000, 10000/1(1 4-10 1-2000 of 10:10+5k, 10%}z_1-certified, 2*10001 be present in this 2*2*10-1000 2, 10:10 2P2, 2*2*10001 are the most in the world's a bbb, and for this one title of the word length of the answer is 2*2*10^*p, 2*10*10*",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "MLP, s2sL",
+        "pred": "MLa, etc.highres, etc. Doseley, et etu, etc.1 (q8-birthdate borndbonka, b), and others.",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -150,7 +150,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": "Ottensen",
+        "pred": "Ostergkensdeutschbayern 1915 in Halle, Germany",
         "answers": [
           "Prenzlau"
         ],
@@ -177,7 +177,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": "Forbidden Daughters",
+        "pred": "Forbidden Fruit to a \"Best Actress and a Cat. A film at a restaurant, The Third is too late to name a man to the top of the next",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -195,7 +195,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From Corleone To Brooklyn",
+        "pred": "From the same people what is the common ground (the \"The Exorcisato'edtten)",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -270,7 +270,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": "Europarl",
+        "pred": "Europ 2017.",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -290,7 +290,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "A second-order co-occurrence matrix is a matrix constructed from the co-occurrence of two concepts in a corpus.",
+        "pred": "A co-occurrence matrix is a matrix where the rows and columns represent words in a vocabulary.",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -348,7 +348,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "Yes",
+        "pred": "Yes, they do.",
         "answers": [
           "Yes",
           "Yes"
@@ -387,7 +387,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": "Yes",
+        "pred": "Yes, the number of possible number of words were 100% of the way to answer this question, the number of words were 100% of the way the best\u00a0grants.",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -415,7 +415,7 @@
       },
       {
         "prompt_idx": 183,
-        "pred": "No",
+        "pred": "No, they do not recommend.",
         "answers": [
           "No",
           "No"
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Dublin",
+        "pred": "Dublin, New Hampshire; the town of Marlborough, New Hampshire; Manchester, New Hampshire; and Manchester, New Hampshire; and the town of Marlborough",
         "answers": [
           "Marlborough"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": "Polypodium",
+        "pred": "Polypodium\n\nPolypodium\n\nThe total of which a sign of the genus-level taxonomy is the same as that of the Polypodium.",
         "answers": [
           "Polypodium"
         ],
@@ -472,7 +472,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "No answer",
+        "pred": "No, the answer is the same title (for a moment, the host, 1 and 1st, the couple was the one with the celebrity guest",
         "answers": [
           "Albert"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "Universal Music Group",
+        "pred": "Universal.",
         "answers": [
           "A1 Recordings"
         ],
@@ -508,7 +508,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": "Abbott directed the 1926 play \"Broadway\" and the 1928 film \"Broadway\" (also known as \"The Broadway Melody\")",
+        "pred": "Abbott and Abbott wrote the screenplay was produced by George Abbott, and directed by, and starring Claudette Colbert, Fredric March, and Herbert Jerome.",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -526,7 +526,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": "13 times",
+        "pred": "13",
         "answers": [
           "13"
         ],
@@ -573,7 +573,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": "No",
+        "pred": "No, they do. \n\nAnswer: No, they are not the same.",
         "answers": [
           "yes"
         ],
@@ -654,7 +654,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": "Carnegie Mellon University",
+        "pred": "Columbia University",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -667,7 +667,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": "3 layers",
+        "pred": "3-5\n\n## Step-by-bytes; 3-5\n\nThe final answer is the number of nodes and 2^3-5 for the number of nodes in the case of a single input, and 5",
         "answers": [
           "eight layers"
         ],
@@ -686,7 +686,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": "NUbes-PHI and MEDDOCAN 2019 shared task dataset",
+        "pred": "NUBes-PHI and MEDDOCAN.",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -724,7 +724,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "Facebook status updates",
+        "pred": "Facebook Re: \"Can the United States. Are the causal relation between the two types of questions, the number of words and the presence of the complete and explicit explicit explicit explicit explicit explicit language and the explicit, the number of words were 1.2. The results of the development of the causal relation between the explicit and 1.5 and 1.5 times the number of words.",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -734,7 +734,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "sentiment classification, web-page classification, science classification, medical classification, and healthcare classification.",
+        "pred": "sentiment sentiment Sentiment polarity polarity for each class. \n\nAnswer: sentiment polarity. prior knowledge about the importance of prior knowledge.",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "Unanswerable",
+        "pred": "Uns: \"Yes, the size of the vocabulary set sizes are the same for all languages, the larger the size of the training set used in the English version of the question, the larger the better. The size of the training set is the size of the training set.",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "MLP, s2sL",
+        "pred": "ML: The proposed methods of Using in context context context context context) the experimental2heightghter, MLP (S1, the number of dimensions) and MLP (S1) are the most relevant to the specific task of classifies.",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -803,7 +803,7 @@
       },
       {
         "prompt_idx": 7,
-        "pred": "Summary: The article discusses the application of pre-trained language models in text summarization. The authors use a pretrained BertSum model to fine-tune for extractive and abstractive summarization tasks on three datasets: CNN/DailyMail, NYT, and XSum. The results show that the model achieves state-of-the-art results across the board under automatic and human-based evaluation protocols.",
+        "pred": "Summary: The article discusses the application of pre-trained language models in text summarization. The authors use a pretrained BertSum model to fine-tune for summarization tasks and compare its performance with other models. The results show that the model achieves state-of-the-art results across various evaluation protocols.",
         "answers": [
           "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
           "the CNN/DailyMail news highlights dataset BIBREF24, the New York Times Annotated Corpus (NYT; BIBREF25), XSum BIBREF22"
@@ -961,7 +961,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": "Previous methods compared to the BERT-QA+QC model are the baseline models, the BERT-QA model, and the BERT-QA+QC model.",
+        "pred": "Previous methods compared to the BERT-QA+QC model are the baseline models and the models developed by the authors.",
         "answers": [
           "bag-of-words model, CNN"
         ],
@@ -991,7 +991,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": "Ottensen",
+        "pred": "Ostergkensdeutschbayern 1915 in Halle, Germany",
         "answers": [
           "Prenzlau"
         ],
@@ -1009,7 +1009,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": "London",
+        "pred": "London London Bridge of Bridy, New York City 1 (3) for a head of M, the son of a married partner's age\n\nLaf",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -1018,7 +1018,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": "Forbidden Daughters",
+        "pred": "Forbidden Fruit to a \"Best Actress and a Cat. A film at a restaurant, The Third is too late to name a man to the top of the next",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -1036,7 +1036,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From Corleone To Brooklyn",
+        "pred": "From the same people what is the common ground (the \"The Exorcisato'edtten)",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -1063,7 +1063,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": "Italia-Germania 4-3",
+        "pred": "It is the second Lees were a class Cs+1 set of (bensonland-Do-B- of a city 1 1 st1 of",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -1072,7 +1072,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": "Rosario, Santa Fe Province, Argentina",
+        "pred": "Rosie for the City of S. Oooh! A star guest Guest honour him in the US.",
         "answers": [
           "Milan"
         ],
@@ -1108,7 +1108,7 @@
       },
       {
         "prompt_idx": 3,
-        "pred": "Answer:1483/1485",
+        "pred": "Answer: 1483/1485",
         "answers": [
           "1510"
         ],
@@ -1261,7 +1261,7 @@
       },
       {
         "prompt_idx": 67,
-        "pred": "Det Sande Ansigt",
+        "pred": "Det Sande Ansigt was released in 1951.",
         "answers": [
           "Det Sande Ansigt"
         ],
@@ -1509,7 +1509,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "A second-order co-occurrence matrix is a matrix constructed from the co-occurrence of two concepts in a corpus.",
+        "pred": "A co-occurrence matrix is a matrix where the rows and columns represent words in a vocabulary.",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -1567,7 +1567,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "Yes",
+        "pred": "Yes, they do.",
         "answers": [
           "Yes",
           "Yes"
@@ -1682,7 +1682,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": "Future improvements include incorporating modules dedicated to entity extraction, updating the encoding across the generation process, and improving Content Ordering and RG-P%.",
+        "pred": "Future improvements include incorporating modules dedicated to entity extraction, updating the encoding across the generation process, and improving Content Ordering and Content Selection.",
         "answers": [
           "rther constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions",
           "to further constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions"
@@ -1820,7 +1820,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": "KBQA stands for Knowledge Question Answering System.",
+        "pred": "KBQA Enhanced by Relation Detection\nThis section describes our KBQA pipeline system. We make minimal efforts beyond the training of the relation detection model, making the whole system easy to build.\n\nRelation Detection Results\nTable 2 shows the results on two relation detection tasks. The AMPCNN result is from BIBREF20, which yielded state-of-the-art scores by outperforming several attention-based methods. We re-implemented the BiCNN model from BIBREF4, where both questions and relations are represented with the word hash trick on character tri-grams. The baseline BiLSTM with relation word sequence appears to be the best baseline",
         "answers": [
           "Knowledge Base Question Answering",
           "Knowledge Base Question Answering "
@@ -1983,7 +1983,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": "16,633",
+        "pred": "16, 16.0\nAnswer:  1, 16.0\n\nAnswer: 16",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Rum",
+        "pred": "Rum. The drink recipe recipe recipe 1 \u00a0 of the Cosm\n\nCuba Libre, a cocktail cocktail (or a cocktail cocktail, if you",
         "answers": [
           "lime"
         ],
@@ -2172,7 +2172,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": "Bentham Station",
+        "pred": "Brampton railway station",
         "answers": [
           "Borwick railway station"
         ],
@@ -2345,7 +2345,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": "Werner Mensching lived from 1933 to 1997, while Karel Zich lived from 1933 to 1914. Werner Mensching died",
+        "pred": "Werner Mensching lived longer.",
         "answers": [
           "Werner Mensching"
         ],
@@ -2408,7 +2408,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": "Cavalcade Of The West",
+        "pred": "Cavalcade of the West",
         "answers": [
           "Cavalcade Of The West"
         ],
@@ -2453,7 +2453,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": "Su-Ki-Da was released in 2005. Tales From The Golden Age was released in 2003.",
+        "pred": "Su-Ki-Da (2005)Tales From The Golden Age (2009)",
         "answers": [
           "Su-Ki-Da"
         ],
@@ -2516,7 +2516,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": "Throw Momma From The Train was directed by Danny DeVito. Dona Mariquita Of My Heart was directed by Joaqu\u00edn Pardav\u00e9.",
+        "pred": "Throw Momma From The Train",
         "answers": [
           "Dona Mariquita Of My Heart"
         ],
@@ -2651,7 +2651,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "Thomas Beaufort, 1st Marquess of Somerset and 1st Earl of Dorset, was the son of John Beaufort, ",
+        "pred": "Thomas Beaufort, Count of Perche was the son of Geoffrey II, Count of Perche and Matilda, daughter of William of Gaunt.",
         "answers": [
           "John of Gaunt"
         ],

@@ -31,7 +31,7 @@ DST  = PROJ / "results" / "main_table_5t"
 # (source dir under eval_results,  dest path under main_table_5t,  pretty name,  command snippet)
 JOBS = [
     {
-        "src": "plain_baseline_5t",
+        "src": "plain_baseline_5t_bs1",
         "dst": "B0",
         "name": "B0 — plain Llama, full KV cache",
         "desc": "Base Llama-3.2-1B-Instruct with no eviction, no fine-tuning. "
@@ -69,7 +69,7 @@ JOBS = [
         ),
     },
     {
-        "src": "lora_m1_5t",
+        "src": "lora_m1_5t_bs1",
         "dst": "M1",
         "name": "M1 — LoRA only (no NAMM)",
         "desc": "LoRA SFT on the 5-task QA subset, full KV cache during training "
@@ -143,7 +143,7 @@ JOBS = [
         ),
     },
     {
-        "src": "trunc_plain_1024_5t",
+        "src": "trunc_plain_1024_5t_bs1",
         "dst": "Trunc/plain_1024",
         "name": "Plain Llama, input truncated to last 1024 tokens",
         "desc": "Naive tail-only baseline: every prompt is decoded from its "
@@ -173,7 +173,7 @@ JOBS = [
         ),
     },
     {
-        "src": "trunc_lora_m1_1024_5t",
+        "src": "trunc_lora_m1_1024_5t_bs1",
         "dst": "Trunc/lora_m1_1024",
         "name": "M1 LoRA, input truncated to last 1024 tokens",
         "desc": "M1 LoRA evaluated on its last-1024-token input. Pairs with "
@@ -265,6 +265,37 @@ JOBS = [
             "    --splits test extended_test --run_label ext \\\n"
             "    --output_dir eval_results/lora_m1_namm_cs2048_5t"
         ),
+    },
+    {
+        "src": "namm_cs1024_maskfix_5t_bs1",
+        "dst": "M2_maskfix/cs1024",
+        "name": "M2 maskfix — standalone NAMM cs1024 (correct attention)",
+        "desc": "NAMM eviction with the attention mask fix. The policy was "
+                "trained with correct prefill attention.",
+        "cmd": "eval_namm_splits.py --namm_checkpoint eval_results/namm_cs1024_maskfix/ckpt.pt --cache_size 1024",
+    },
+    {
+        "src": "lora_m1_namm_cs1024_maskfix_5t_bs1",
+        "dst": "M1_under_maskfix_NAMM/cs1024",
+        "name": "M1 LoRA + maskfix NAMM cs1024 (distribution shift)",
+        "desc": "M1 LoRA evaluated under the maskfix NAMM. Shows distribution "
+                "shift — M1 was not trained with this eviction regime.",
+        "cmd": "eval_namm_splits.py --namm_checkpoint eval_results/namm_cs1024_maskfix/ckpt.pt --lora_checkpoint M1",
+    },
+    {
+        "src": "lora_m4_cs1024_maskfix_5t_bs1",
+        "dst": "M4_maskfix/cs1024",
+        "name": "M4 maskfix — LoRA + maskfix NAMM cs1024 (correct attention)",
+        "desc": "LoRA trained with the maskfix NAMM (correct prefill attention). "
+                "Both NAMM and LoRA operate with the attention fix.",
+        "cmd": "eval_namm_splits.py --namm_checkpoint eval_results/namm_cs1024_maskfix/ckpt.pt --lora_checkpoint M4_maskfix",
+    },
+    {
+        "src": "lora_m4_cs1024_maskfix_ablation_5t_bs1",
+        "dst": "A4_maskfix/cs1024_no_namm",
+        "name": "A4 maskfix — M4 maskfix LoRA, NAMM disabled (full cache)",
+        "desc": "Ablation: the maskfix M4 LoRA evaluated without NAMM.",
+        "cmd": "eval_namm_splits.py --lora_checkpoint M4_maskfix --cache_size 8192",
     },
     {
         "src": "lora_m4_cs1024_5t_ablation",

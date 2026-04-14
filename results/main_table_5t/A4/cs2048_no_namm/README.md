@@ -2,18 +2,18 @@
 
 Same ablation as A4 cs1024 but for the cs=2048 LoRA.
 
-**Source run:** `eval_results/lora_m4_cs2048_5t_ablation/ext_newbest_20260413_090559/`
+**Source run:** `eval_results/lora_m4_cs2048_5t_ablation/ext_newbest_20260413_135800/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 50.22 | 32.09 |
-| lb/2wikimqa | 33.33 | 32.66 |
-| lb/qasper_e | 39.16 | 28.29 |
-| lb/hotpotqa_e | 39.68 | 35.66 |
-| lb/2wikimqa_e | 31.75 | 27.20 |
-| **mean F1** | **38.83** | **31.18** |
+| lb/qasper | 29.90 | 26.38 |
+| lb/2wikimqa | 18.78 | 28.88 |
+| lb/qasper_e | 32.79 | 26.03 |
+| lb/hotpotqa_e | 35.78 | 36.52 |
+| lb/2wikimqa_e | 31.75 | 27.45 |
+| **mean F1** | **29.80** | **29.05** |
 
 ## Command
 

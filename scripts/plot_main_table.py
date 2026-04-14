@@ -52,6 +52,10 @@ CONDITIONS = [
     ("M1_under_NAMM/cs2048", "M1 under NAMM cs2048", "#d6616b"),
     ("M4/cs1024",         "M4 LoRA+NAMM cs1024", "#d62728"),
     ("M4/cs2048",         "M4 LoRA+NAMM cs2048", "#8c1a1b"),
+    ("M2_maskfix/cs1024",            "M2 maskfix NAMM 1024", "#98df8a"),
+    ("M1_under_maskfix_NAMM/cs1024", "M1 under maskfix NAMM", "#c49c94"),
+    ("M4_maskfix/cs1024",            "M4 maskfix+NAMM 1024", "#17becf"),
+    ("A4_maskfix/cs1024_no_namm",    "A4 maskfix (no NAMM)", "#dbdb8d"),
     ("A4/cs1024_no_namm", "A4 (M4-cs1024 no NAMM)", "#e377c2"),
     ("A4/cs2048_no_namm", "A4 (M4-cs2048 no NAMM)", "#9b3b8c"),
 ]

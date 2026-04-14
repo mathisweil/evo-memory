@@ -1,0 +1,7 @@
+- run@_global_=namm_bam_i1_llama32_1b_5t
+- cache_size=1024
+- max_memory_length=1024
+- run_name_suffix=llama32-1b-5t-cs1024-maskfix
+- wandb_log=true
+- wandb_project=memory_evolution_hf
+- seed=1337
