@@ -49,8 +49,8 @@ Checkpoints available locally (`experiment_artifacts/gcs/M2_cs1024_maskfix/`, `M
 Maskfix analyses completed (all §0–§9):
 - §0: No rerun needed (dataset characterisation)
 - §1–§3: Rewritten from WandB data
-- §4, §5, §7: GPU analyses using merged LoRA weights (`run_maskfix_gpu_analyses.py`)
-- §6, §8, §9: GPU analyses using full NAMM infrastructure (`run_maskfix_namm_analyses.py`)
+- §4, §5, §7: GPU analyses using merged LoRA weights (`generate_data_4_5_7.py`)
+- §6, §8, §9: GPU analyses using full NAMM infrastructure (`generate_data_6_8_9.py`)
 
 Each report's `_report.md` now contains the maskfix (corrected) results as the primary data. Previous buggy versions are available in git history.
 

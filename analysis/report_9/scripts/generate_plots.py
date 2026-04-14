@@ -27,7 +27,7 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # CONFIG -- how to regenerate the data
 # ---------------------------------------------------------------------------
-# Data file produced by analysis/run_maskfix_namm_analyses.py on a GPU node.
+# Data file produced by analysis/generate_data_6_8_9.py on a GPU node.
 # That script loads the following checkpoints:
 #   M3 LoRA   : experiment_artifacts/gcs/M3_cs1024/best_ckpt.pt
 #   M2 NAMM   : experiment_artifacts/gcs/M2_cs1024/ckpt.pt
@@ -38,7 +38,7 @@ import numpy as np
 # LoRA gradient norms are recorded.
 #
 # To regenerate the data:
-#   PYTHONPATH=. .venv/bin/python analysis/run_maskfix_namm_analyses.py
+#   PYTHONPATH=. .venv/bin/python analysis/generate_data_6_8_9.py
 #
 # JSON structure:
 #   evicted:               list[dict] -- per-sample results under eviction
@@ -329,7 +329,7 @@ def main() -> None:
         raise FileNotFoundError(
             f"Data file not found: {DATA_FILE}\n"
             "Generate it on a GPU node with:\n"
-            "  PYTHONPATH=. .venv/bin/python analysis/run_maskfix_namm_analyses.py"
+            "  PYTHONPATH=. .venv/bin/python analysis/generate_data_6_8_9.py"
         )
 
     with open(DATA_FILE) as f:

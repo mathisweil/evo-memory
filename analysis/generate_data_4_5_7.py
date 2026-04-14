@@ -15,10 +15,10 @@ to device placement issues with the NAMM policy + WrappedLlama stack.
 
 Usage:
     source activate.sh
-    PYTHONPATH=. HF_HOME=.hf_cache .venv/bin/python analysis/run_maskfix_gpu_analyses.py
+    PYTHONPATH=. HF_HOME=.hf_cache .venv/bin/python analysis/generate_data_4_5_7.py
 
     # Regenerate plots from saved data (no GPU needed):
-    PYTHONPATH=. .venv/bin/python analysis/run_maskfix_gpu_analyses.py --plot-only
+    PYTHONPATH=. .venv/bin/python analysis/generate_data_4_5_7.py --plot-only
 """
 
 from __future__ import annotations

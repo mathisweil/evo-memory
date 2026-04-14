@@ -24,7 +24,7 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # CONFIG -- how to regenerate the data
 # ---------------------------------------------------------------------------
-# Data file produced by analysis/run_maskfix_gpu_analyses.py on a GPU node.
+# Data file produced by analysis/generate_data_4_5_7.py on a GPU node.
 # That script loads the following checkpoints:
 #   M1 LoRA   : experiment_artifacts/gcs/M1/best_ckpt.pt
 #   M3 LoRA   : experiment_artifacts/gcs/M3_cs1024/best_ckpt.pt
@@ -32,7 +32,7 @@ import numpy as np
 # and computes linear CKA between M1 and M3 hidden states on the test split.
 #
 # To regenerate the data:
-#   PYTHONPATH=. .venv/bin/python analysis/run_maskfix_gpu_analyses.py
+#   PYTHONPATH=. .venv/bin/python analysis/generate_data_4_5_7.py
 #
 # NPZ keys used here:
 #   layer_cka_maskfix   : (17,) float64  -- per-layer CKA (emb + 16 layers)
@@ -147,7 +147,7 @@ def main() -> None:
         raise FileNotFoundError(
             f"Data file not found: {DATA_FILE}\n"
             "Generate it on a GPU node with:\n"
-            "  PYTHONPATH=. .venv/bin/python analysis/run_maskfix_gpu_analyses.py"
+            "  PYTHONPATH=. .venv/bin/python analysis/generate_data_4_5_7.py"
         )
 
     data = np.load(DATA_FILE)

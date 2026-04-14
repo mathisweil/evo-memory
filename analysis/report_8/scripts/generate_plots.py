@@ -24,7 +24,7 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # CONFIG -- how to regenerate the data
 # ---------------------------------------------------------------------------
-# Data file produced by analysis/run_maskfix_namm_analyses.py on a GPU node.
+# Data file produced by analysis/generate_data_6_8_9.py on a GPU node.
 # That script loads the following checkpoints:
 #   M1 LoRA   : experiment_artifacts/gcs/M1/best_ckpt.pt
 #   M3 LoRA   : experiment_artifacts/gcs/M3_cs1024/best_ckpt.pt
@@ -34,7 +34,7 @@ import numpy as np
 # gold-answer entities were evicted.
 #
 # To regenerate the data:
-#   PYTHONPATH=. .venv/bin/python analysis/run_maskfix_namm_analyses.py
+#   PYTHONPATH=. .venv/bin/python analysis/generate_data_6_8_9.py
 #
 # NPZ keys (all from the mask-fixed run):
 #   m1_accuracies          (17,)   -- M1 probe accuracy per layer
@@ -253,7 +253,7 @@ def main() -> None:
         raise FileNotFoundError(
             f"Data file not found: {DATA_FILE}\n"
             "Generate it on a GPU node with:\n"
-            "  PYTHONPATH=. .venv/bin/python analysis/run_maskfix_namm_analyses.py"
+            "  PYTHONPATH=. .venv/bin/python analysis/generate_data_6_8_9.py"
         )
 
     loaded = np.load(DATA_FILE, allow_pickle=True)

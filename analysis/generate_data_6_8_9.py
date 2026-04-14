@@ -21,10 +21,10 @@ Produces:
 
 Usage:
     source activate.sh
-    PYTHONPATH=. HF_HOME=.hf_cache .venv/bin/python analysis/run_maskfix_namm_analyses.py
+    PYTHONPATH=. HF_HOME=.hf_cache .venv/bin/python analysis/generate_data_6_8_9.py
 
     # Regenerate plots from saved data (no GPU needed):
-    PYTHONPATH=. .venv/bin/python analysis/run_maskfix_namm_analyses.py --plot-only
+    PYTHONPATH=. .venv/bin/python analysis/generate_data_6_8_9.py --plot-only
 """
 
 from __future__ import annotations
