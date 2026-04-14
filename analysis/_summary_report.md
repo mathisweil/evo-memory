@@ -49,10 +49,10 @@ entropy vs M1 (full context). M2 and M3 are nearly identical (-1.7%
 difference), meaning the LoRA has negligible impact on attention entropy
 despite producing dramatically different weights and much higher F1.
 
-**7. Representational divergence shifts to deeper layers.** CKA mean is 0.995
-(min 0.990 at layer 9). Under the buggy mask, the CKA minimum was at layer 3
-(0.979). This changes the mechanistic story: the locus of M3's adaptation is
-in deeper layers, not the early-middle layers previously identified.
+**7. M1 and M3 adapt at different network depths.** Three-way CKA (n=365)
+shows all pairs >0.995 everywhere.  M1's LoRA diverges from base most at
+L2 (early), M3's at L9 (near eviction hotspot), and M1-vs-M3 at L11.
+The two LoRAs change different parts of the network.
 
 **8. Probing analysis abandoned.** The probe labels relied on string-matching
 gold answers against input context — the same ground-truth problem as the
@@ -78,8 +78,8 @@ checkpoints. The key narrative changes are:
 - **Report 6 (NAMM-attention correlation):** The "complementary signals"
   narrative was wrong. The anti-correlation (rho = -0.137) was an artefact
   of broken attention. Correct NAMM shows positive correlation (rho = +0.135).
-- **Report 7 (CKA):** Divergence shifts from layer 3 (buggy) to layer 9
-  (maskfix). The "layer 3 critical adaptation point" narrative no longer holds.
+- **Report 7 (CKA):** Three-way comparison (M1, M2, M3) shows M1's LoRA
+  acts at L2, M3's at L9.  Old "layer 3 critical adaptation point" gone.
 - **Report 4 (LoRA norms):** Norms are 26% smaller with maskfix (1.42x vs
   1.93x q_proj ratio), indicating more efficient adaptation.
 - **Report 8 (probing):** Abandoned — probe labels based on string-matching
@@ -304,30 +304,21 @@ fine-tuning does not reshape attention toward or away from NAMM's
 preferences. The lack of co-adaptation is consistent across both buggy and
 maskfix analyses -- only the direction of the base correlation changed.
 
-### Report 7 -- Representation Similarity (CKA, Maskfix)
+### Report 7 -- Representation Similarity (CKA)
 
-CKA between M1 and M3 is extremely high but with a different divergence
-profile than the buggy analysis:
+Three-way CKA with 365 balanced samples and M2 (base model) included:
 
-| Metric         | Maskfix   | Buggy     |
-| -------------- | --------- | --------- |
-| CKA mean       | 0.995     | 0.992     |
-| CKA minimum    | 0.990     | 0.979     |
-| Min at layer   | Layer 9   | Layer 3   |
+| Pair     | Meaning               | Mean CKA | Min CKA | Min layer |
+| -------- | --------------------- | -------: | ------: | --------: |
+| M1 vs M2 | M1 LoRA effect        |   0.9988 |  0.9956 |        L2 |
+| M2 vs M3 | M3 LoRA effect        |   0.9992 |  0.9984 |        L9 |
+| M1 vs M3 | Between the two LoRAs |   0.9986 |  0.9977 |       L11 |
 
-The divergence shift from layer 3 (buggy) to layer 9 (maskfix) is
-significant for the mechanistic interpretation. Under the buggy mask, the
-"layer 3 critical adaptation point" narrative (Section 3.5 of the old
-report) tied together multiple reports. With maskfix, the maximum
-representational divergence occurs in deeper layers, closer to the output.
-This aligns better with the observation that layers 8-9 perform the most
-aggressive eviction (Report 3) -- the LoRA adapts representations most
-strongly near the eviction zone, not upstream of it.
-
-Overall, M3 representations are even closer to M1's under maskfix (mean
-0.995 vs 0.992), suggesting the corrected eviction regime produces a model
-that is functionally very similar to M1 despite the near-orthogonal LoRA
-subspaces.
+All pairs exceed 0.995 everywhere — the representations are nearly
+identical.  The key structural finding: **M1's LoRA acts early (L2),
+M3's acts late (L9)**.  M3's divergence at L9 aligns with the eviction
+hotspot (layers 8-9 per Report 3).  The two LoRAs change different
+parts of the network but neither moves far from the base model.
 
 ### Report 8 -- Probing for Residual Knowledge of Evicted Content
 
@@ -374,7 +365,7 @@ Weight space (Report 4)          Function space (5, 6, 7)
 Orthogonal LoRA subspaces   ->   M2 ≈ M3 entropy (LoRA doesn't change it)
 M3 norms 1.42x (efficient) ->   M3 improves via values, not attention
                              ->   Positive NAMM correlation (+0.135)
-                             ->   CKA min at layer 9 (0.990)
+                             ->   M1 adapts L2, M3 adapts L9 (CKA)
 
 Gradient signal (Report 9)       Task space (Report 1)
 --------------------------       ----------------------
@@ -386,9 +377,9 @@ Weakly aligned grads (0.21) ->   M1 val F1: 45.48
 M3 learns in near-orthogonal weight subspaces with more efficient
 perturbations (smaller norms). Its attention entropy is identical to
 M2's (no LoRA), meaning the improvement comes from value-space
-extraction, not attention routing. Representations diverge most at
-layer 9 (near the eviction hotspot at layers 8-9). Despite operating
-under extreme eviction (3.8% retention), M3 exceeds M1's validation
+extraction, not attention routing. M3's LoRA targets deeper layers
+(L9) than M1's (L2), near the eviction hotspot. Despite operating
+under extreme eviction (~4% retention), M3 exceeds M1's validation
 performance by 14.5%.
 
 ### 3.2 M3's Advantage is Not in Attention Patterns
@@ -429,18 +420,15 @@ The lack of M3-induced alignment shift (M1 and M3 both show rho = +0.135)
 remains consistent: M3 does not learn to cooperate with NAMM's eviction
 decisions.
 
-### 3.4 Layer 9 Replaces Layer 3 as the Adaptation Locus
+### 3.4 M1 and M3 Adapt at Different Network Depths
 
-The buggy-era analysis identified layer 3 as the critical adaptation point,
-supported by convergent evidence from Reports 5, 7, 4, and 3. With maskfix
-data, the CKA minimum shifts to layer 9 (Report 7), and the most aggressive
-eviction occurs at layers 8-9 (Report 3).
-
-The revised picture: M3's LoRA adapts representations most strongly in the
-layers immediately downstream of the heaviest eviction. Rather than
-"preparing" representations upstream for eviction (the layer 3 narrative),
-the adaptation occurs at or after the eviction site, compensating for
-information loss after it occurs.
+The three-way CKA comparison (Report 7) reveals that M1 and M3 change
+different parts of the network.  M1's LoRA diverges most from the base
+model at L2 (early), while M3's diverges most at L9 (near the eviction
+hotspot at layers 8-9 per Report 3).  The two LoRAs target different
+depths because they solve different problems: M1 adapts for task
+performance on full context, M3 adapts for task performance under
+eviction.
 
 ### 3.5 M2 Degradation Highlights the LoRA's Role
 
@@ -486,7 +474,7 @@ should be treated as suggestive rather than definitive.
 | 4      | Are LoRA weights similar?    | No: orthogonal, norms 1.42x (efficient) |
 | 5      | Are attention patterns same? | M2 ≈ M3: LoRA doesn't change entropy     |
 | 6      | Does M3 align with NAMM?    | No: same +0.135 rho as M1               |
-| 7      | Are representations similar? | Mostly: CKA 0.990-1.0, min at layer 9  |
+| 7      | Are representations similar? | Yes (>0.995); M1 adapts L2, M3 adapts L9 |
 | 8      | Is evicted info retained?    | Abandoned (flawed probe labels)           |
 | 9      | Does eviction change grads?  | Moderately: +79% loss, cos 0.21           |
 
@@ -527,11 +515,10 @@ qualitatively across both versions.
    should be an optimal eviction severity. Controlled experiments varying
    cache size under maskfix NAMM would map this relationship.
 
-3. **Does the CKA shift to layer 9 align with a causal mechanism?** The
-   coincidence of CKA minimum (layer 9) and aggressive eviction (layers
-   8-9) is suggestive. Targeted ablation of LoRA weights at specific
-   layers could test whether the layer 9 adaptation is necessary for M3's
-   performance advantage.
+3. **Is the depth-dependent adaptation causal?** M3's CKA dip at L9
+   and M1's at L2 suggest each LoRA targets specific layers. Targeted
+   ablation of LoRA weights at specific layers could test whether these
+   are necessary or incidental.
 
 4. **Can joint training (M4) further improve M3?** M3 uses a frozen NAMM
    policy. If the eviction policy could adapt to the LoRA's changing
