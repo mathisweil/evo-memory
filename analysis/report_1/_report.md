@@ -1,27 +1,25 @@
-# Analysis 1 (Maskfix) -- Per-Task Eviction Sensitivity
+# Analysis 1 -- Per-Task Eviction Sensitivity
 
-> **Status**: M3 maskfix is still running (~43% complete, step 298/~608).
 > All values are **validation F1** (not test).
 > Naming follows M0--M3 convention throughout.
+> M3 checkpoint is step 260 (~43% through training); final metrics may shift.
 
 ## 1. Per-Task Best Validation F1
 
-| Task         |    B0 |    M1 | M2 buggy | M2 maskfix | M3 buggy | M3 maskfix |
-|:-------------|------:|------:|---------:|-----------:|---------:|-----------:|
-| qasper       | 14.69 | 30.67 |    14.18 |       8.62 |    21.60 |      21.86 |
-| 2wikimqa     | 15.83 | 50.83 |    29.00 |      20.00 |    51.11 |      63.06 |
-| qasper_e     | 12.57 | 32.67 |    17.82 |       8.81 |    39.40 |      25.76 |
-| hotpotqa_e   | 40.00 | 44.00 |    39.54 |      14.00 |    59.67 |      74.00 |
-| 2wikimqa_e   | 35.68 | 69.23 |    38.97 |      23.08 |    56.15 |      75.64 |
-| **Mean**     | **22.59** | **45.48** | **27.90** | **14.90** | **45.59** | **52.06** |
+| Task         |    B0 |    M1 |    M2 |    M3 |
+|:-------------|------:|------:|------:|------:|
+| qasper       | 14.69 | 30.67 |  8.62 | 21.86 |
+| 2wikimqa     | 15.83 | 50.83 | 20.00 | 63.06 |
+| qasper_e     | 12.57 | 32.67 |  8.81 | 25.76 |
+| hotpotqa_e   | 40.00 | 44.00 | 14.00 | 74.00 |
+| 2wikimqa_e   | 35.68 | 69.23 | 23.08 | 75.64 |
+| **Mean**     | **22.59** | **45.48** | **14.90** | **52.06** |
 
 Best step / best iter:
 
 - M1: step 0 (LoRA alone, no eviction)
-- M2 buggy: iter 105
-- M2 maskfix: iter 170
-- M3 buggy: step 340 (of 608)
-- M3 maskfix: step 260 (of ~608, still running)
+- M2: iter 170 (WandB `z5bo4n8k`)
+- M3: step 260 of ~608 (WandB `h0bzg6on`)
 
 ## 2. Eviction Sensitivity: (M1 - M3) / M1
 
@@ -29,72 +27,89 @@ This measures the fraction of M1 performance *lost* when NAMM eviction is applie
 during joint training. Negative values mean M3 *exceeded* M1, i.e. joint training
 recovered more than what was lost.
 
-| Task         | Buggy (%) | Maskfix (%) |
-|:-------------|----------:|------------:|
-| qasper       |    +29.56 |      +28.71 |
-| 2wikimqa     |     -0.55 |      -24.04 |
-| qasper_e     |    -20.60 |      +21.14 |
-| hotpotqa_e   |    -35.61 |      -68.18 |
-| 2wikimqa_e   |    +18.89 |       -9.26 |
-| **Mean**     |  **-0.24** | **-14.48** |
+| Task         | Sensitivity (%) |
+|:-------------|----------------:|
+| qasper       |          +28.71 |
+| 2wikimqa     |          -24.04 |
+| qasper_e     |          +21.14 |
+| hotpotqa_e   |          -68.18 |
+| 2wikimqa_e   |           -9.26 |
+| **Mean**     |      **-14.48** |
 
 Positive = performance lost; negative = performance gained beyond M1.
 
-On average, M3 buggy essentially matches M1 (sensitivity -0.24%), while M3 maskfix
-*surpasses* M1 by 14.48% relative. The maskfix attention correction enables the
-joint-training loop (LoRA + NAMM) to not just recover from eviction damage but to
-improve beyond the LoRA-only baseline.
+On average, M3 *surpasses* M1 by 14.48% relative. The joint-training loop
+(LoRA + NAMM) does not merely recover from eviction damage -- it improves beyond
+the LoRA-only baseline. Three of five tasks (2wikimqa, hotpotqa_e, 2wikimqa_e)
+show gains beyond M1, with hotpotqa_e showing a particularly large improvement.
 
 ## 3. Recovery Ratio: (M3 - M2) / (M1 - M2)
 
-This measures how much of the gap between M2 (NAMM-only, no LoRA) and M1 (LoRA-only,
-no eviction) is closed by M3 (joint LoRA+NAMM). Values above 100% mean M3 exceeded M1.
+This measures how much of the gap between M2 (NAMM-only, no LoRA) and M1
+(LoRA-only, no eviction) is closed by M3 (joint LoRA+NAMM). Values above 100%
+mean M3 exceeded M1.
 
-| Task         | Buggy (%) | Maskfix (%) |
-|:-------------|----------:|------------:|
-| qasper       |     45.01 |       60.06 |
-| 2wikimqa     |    101.28 |      139.69 |
-| qasper_e     |    145.33 |       71.05 |
-| hotpotqa_e   |    451.13 |      200.00 |
-| 2wikimqa_e   |     56.78 |      113.89 |
-| **Mean**     | **100.61** | **121.53** |
+| Task         | Recovery (%) |
+|:-------------|-------------:|
+| qasper       |        60.06 |
+| 2wikimqa     |       139.69 |
+| qasper_e     |        71.05 |
+| hotpotqa_e   |       200.00 |
+| 2wikimqa_e   |       113.89 |
+| **Mean**     |   **121.53** |
 
-Both buggy and maskfix M3 fully recover the M1-M2 gap on average, but maskfix
-achieves a substantially higher recovery ratio (121.53% vs 100.61%), meaning it
-overshoots M1 by a wider margin.
+M3 fully recovers the M1-M2 gap on average (121.53%), meaning it overshoots M1.
+hotpotqa_e achieves 200% recovery -- M3 gains twice the M1-M2 gap at that task.
 
 ## 4. Key Findings
 
-1. **M3 maskfix (52.06) >> M3 buggy (45.59) >> M1 (45.48).** Fixing the attention
-   mask during joint training yields a +6.47 point absolute improvement over the
-   buggy M3, and +6.58 points over M1. This is a 14.2% relative gain over M3 buggy.
+1. **M3 (52.06) exceeds M1 (45.48) by +6.58 points.** Joint LoRA+NAMM training
+   does not just recover from eviction -- it produces a model that outperforms the
+   LoRA-only baseline. This is a 14.5% relative gain over M1.
 
-2. **M2 maskfix (14.90) << M2 buggy (27.90).** The maskfix M2 performs substantially
-   *worse* than the buggy M2. This is expected: the buggy NAMM was optimised under
-   a broken attention regime where the model could partially attend to supposedly
-   evicted tokens. The NAMM policy learned to exploit this leak, achieving
-   artificially higher scores. With correct masking (maskfix), eviction is real:
-   truly evicted tokens are invisible, so a NAMM-only policy (no LoRA adaptation)
-   does much worse.
+2. **M2 (14.90) shows the cost of eviction without adaptation.** NAMM-only eviction
+   (no LoRA adaptation) drops performance well below even the B0 baseline (22.59).
+   The model cannot compensate for token removal without LoRA fine-tuning. This
+   confirms that joint training (M3) is essential -- eviction alone destroys too
+   much information.
 
-3. **The buggy M2 advantage is a misleading signal.** The 13-point M2 buggy > M2
-   maskfix gap does not indicate that the buggy setup is better. It shows the buggy
-   attention mask allowed information leakage that flattered the NAMM-only score.
-   Once the model is allowed to jointly adapt (M3), the maskfix condition
-   dramatically outperforms.
+3. **Task-level variance is large.** hotpotqa_e shows the most dramatic M3 gain
+   (74.00, up from M1's 44.00), while qasper shows the largest sensitivity to
+   eviction (M3 21.86 vs M1 30.67). This suggests some tasks are more sensitive
+   to the eviction strategy than others.
 
-4. **Task-level variance is large.** hotpotqa_e shows the most dramatic maskfix
-   gain (+14.33 points in M3, from 59.67 to 74.00), while qasper_e actually
-   regresses under maskfix M3 (39.40 to 25.76). This suggests some tasks are more
-   sensitive to the eviction strategy than others.
+4. **Recovery ratio exceeds 100% on three of five tasks.** 2wikimqa (139.69%),
+   hotpotqa_e (200.00%), and 2wikimqa_e (113.89%) all show M3 exceeding M1,
+   indicating that the NAMM eviction policy can act as a beneficial regulariser
+   when the model is allowed to adapt jointly.
 
-## 5. Caveats
+## 5. Comparison with Pre-Correction (Buggy) Runs
 
-- M3 maskfix has completed only ~43% of training (step 298 of ~608). The final best
+Early M2/M3 runs used a broken attention mask that allowed partial attention to
+evicted tokens. The bug inflated M2 scores (27.90 mean F1 vs 14.90 after
+correction) because the NAMM policy learned to exploit information leaking
+through "evicted" positions. M3 buggy achieved 45.59 mean F1 -- substantially
+lower than the corrected M3 (52.06). Once joint adaptation is allowed, the
+corrected attention mask yields a +6.47 point improvement, confirming that the
+buggy M2 advantage was a misleading signal caused by information leakage, not
+genuine eviction quality.
+
+| Condition    | M2 Val F1 | M3 Val F1 |
+|:-------------|----------:|----------:|
+| Buggy        |     27.90 |     45.59 |
+| Corrected    |     14.90 |     52.06 |
+
+## 6. Caveats
+
+- M3 has completed only ~43% of training (step 260 of ~608). The final best
   val F1 may change.
 - All numbers are validation F1, not test F1. Final conclusions require test-set
   evaluation.
-- The buggy M2 was optimised end-to-end in the broken attention regime, so its
-  evolved NAMM policy is specifically adapted to exploit the attention leak. The
-  two M2 conditions are not directly comparable in the usual sense -- they were
-  optimised in different environments.
+
+## Plots
+
+| Plot                                                     | Description                                  |
+| -------------------------------------------------------- | -------------------------------------------- |
+| [`best_val_f1_comparison.png`](best_val_f1_comparison.png) | Per-task best val F1 grouped bar (B0--M3)  |
+| [`sensitivity_bar.png`](sensitivity_bar.png)             | Eviction sensitivity per task                |
+| [`recovery_ratio.png`](recovery_ratio.png)               | Recovery ratio per task (M3/M1)              |

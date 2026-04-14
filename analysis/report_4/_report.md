@@ -1,6 +1,12 @@
-# Analysis 4 (Maskfix): LoRA Weight Comparison (M1 vs M3-maskfix vs M3-buggy)
+# Analysis 4 -- LoRA Weight Comparison (M1 vs M3)
 
-> **TL;DR:** With the attention mask bug fixed, M3's LoRA adapters are **smaller** than the buggy variant (1.42x vs 1.93x for q_proj, 1.16x vs 1.50x for v_proj) but still larger than M1. Subspace overlap with M1 is marginally higher for maskfix (~0.21 for q_proj vs ~0.19 buggy), though both remain near-orthogonal. The correct attention mask reduces the compensation burden on the LoRA -- the adapter no longer needs to work as hard to overcome degraded KV entries -- but the "qualitatively different adaptation" finding from the original report holds regardless of the bug.
+> **TL;DR:** M3's LoRA adapters are larger than M1's -- 1.42x for q_proj
+> and 1.16x for v_proj -- but the two adaptations are near-orthogonal
+> (subspace overlap ~0.21 for q_proj, ~0.18 for v_proj). Eviction-aware
+> training pushes the optimizer into a fundamentally different region of
+> LoRA parameter space: the model compensates for information loss from
+> eviction by growing its adapter norms while learning in a qualitatively
+> different subspace from full-context fine-tuning.
 
 ---
 
@@ -8,87 +14,64 @@
 
 All comparisons use **full-context inputs** (no NAMM eviction at inference). Prompts: 10 test samples at 1024 tokens from LongBench tasks.
 
-- **M1:** LoRA fine-tuned, full context, no eviction (baseline)
-- **M3-maskfix:** LoRA + frozen NAMM, attention mask bug fixed, best checkpoint (step 260, val F1 52.06, ~43% through training)
-- **M3-buggy:** LoRA + frozen NAMM, original buggy attention mask (step 600, val F1 45.59, end of training)
+- **M1:** LoRA fine-tuned, full context, no eviction (baseline; best val F1 45.48)
+- **M3:** LoRA + frozen NAMM, best checkpoint (step 260, val F1 52.06, ~43% through training; WandB `h0bzg6on`)
 
 ---
 
-## Summary of Findings
+## Findings
 
-1. **Maskfix LoRA norms are smaller than buggy.** With correct attention masking, the LoRA adapter compensates less aggressively: q_proj mean ratio drops from 1.93x (buggy) to 1.42x (maskfix), and v_proj from 1.50x to 1.16x. The corrected mask gives the model clean KV cache entries, reducing the need for large weight perturbations to work around corrupted attention patterns.
+### 1. M3 LoRA norms are larger than M1
 
-2. **Subspace overlap is slightly higher for maskfix.** q_proj overlap rises from 0.192 (buggy) to 0.206 (maskfix); v_proj from 0.174 to 0.181. The maskfix LoRA is marginally more aligned with M1's adaptation direction, though both remain overwhelmingly near-orthogonal.
+| Projection | Mean M3/M1 ratio | Std    |
+| ---------- | ---------------: | -----: |
+| q_proj     |           1.4201 | 0.1760 |
+| v_proj     |           1.1630 | 0.1235 |
 
-3. **Both are still near-orthogonal (~0.18--0.21).** The "different adaptation" conclusion from the original report is robust to the bug fix. Eviction-aware training pushes the optimizer into a fundamentally different region of LoRA parameter space regardless of whether the attention mask is correct.
+Both ratios are strictly > 1.0 across all layers. Eviction-aware training produces larger adapters than full-context training: the model compensates for the information loss from NAMM eviction by increasing its LoRA weight magnitudes, particularly in the query projection.
 
----
-
-## Norm Ratio (M3/M1) Comparison
-
-### q_proj
-
-| Variant   | Mean ratio | Std   |
-| --------- | ---------: | ----: |
-| M3-maskfix |     1.4201 | 0.1760 |
-| M3-buggy   |     1.9277 | 0.3506 |
-
-### v_proj
-
-| Variant   | Mean ratio | Std   |
-| --------- | ---------: | ----: |
-| M3-maskfix |     1.1630 | 0.1235 |
-| M3-buggy   |     1.4960 | 0.1929 |
-
-The maskfix adapter is **26% smaller** (q_proj) and **22% smaller** (v_proj) than the buggy adapter in terms of M3/M1 norm ratio. Both are still strictly > 1.0 across all layers, confirming that eviction-aware training produces larger adapters than full-context training even with correct masking.
-
----
-
-## Subspace Overlap Comparison
+### 2. Subspace overlap is near-orthogonal
 
 Mean cosine of principal angles between M1 and M3 LoRA column spaces (1.0 = identical, 0.0 = orthogonal):
 
-### q_proj
-
-| Variant    | Mean overlap | Std    |
+| Projection | Mean overlap | Std    |
 | ---------- | -----------: | -----: |
-| M3-maskfix |       0.2057 | 0.0330 |
-| M3-buggy   |       0.1918 | 0.0242 |
+| q_proj     |       0.2057 | 0.0330 |
+| v_proj     |       0.1812 | 0.0333 |
 
-### v_proj
+Both values sit firmly in the near-orthogonal regime. M3 does not simply "scale up" the M1 adaptation -- it learns in a different subspace entirely.
 
-| Variant    | Mean overlap | Std    |
-| ---------- | -----------: | -----: |
-| M3-maskfix |       0.1812 | 0.0333 |
-| M3-buggy   |       0.1738 | 0.0282 |
+### 3. Larger norms + orthogonal subspace = qualitatively different adaptation
 
-The differences are small (+0.014 for q_proj, +0.007 for v_proj). Both variants sit firmly in the "near-orthogonal" regime. The bug does not meaningfully change the conclusion that M1 and M3 learn in different subspaces.
+The combination of elevated norms and low overlap indicates that eviction-aware training does not merely intensify the same adaptation that full-context training finds. Instead, the optimizer discovers a distinct strategy for coping with the possibility that tokens will be evicted. This is consistent with the attention entropy findings (Report 5), where M3 shows a broader, more hedged attention pattern rather than a sharpened version of M1's.
 
 ---
 
 ## Discussion
 
-### Why are maskfix norms smaller?
+### Why does eviction-aware training produce larger adapters?
 
-With the buggy attention mask, corrupted attention patterns produce degraded KV cache entries during training. The LoRA adapter must compensate for two things simultaneously: (1) the information loss from eviction, and (2) the additional noise from incorrect masking. Fixing the mask removes the second source of degradation, leaving only the genuine eviction effect, which requires less compensation.
+During M3 training, the frozen NAMM evicts a fraction of KV cache entries. The LoRA adapter must compensate for this information loss by learning to extract sufficient signal from the retained entries. This requires larger perturbations to the base model's attention and value projections -- hence larger Frobenius norms.
 
-The reduction is substantial -- roughly a quarter less compensation -- suggesting that a meaningful fraction of the buggy adapter's magnitude was spent correcting mask-induced artefacts rather than adapting to eviction per se.
-
-### Why is subspace overlap marginally higher?
-
-With correct masking, the M3 training signal is cleaner: the model learns to adapt purely to eviction rather than to eviction-plus-mask-noise. This purer signal produces an adaptation that is slightly more aligned with M1 (which also uses correct masking), but the alignment increase is modest. The dominant effect -- near-orthogonal subspaces -- persists because eviction itself, not the mask bug, is the primary driver of subspace divergence.
+The q_proj ratio (1.42x) exceeds the v_proj ratio (1.16x), suggesting that most of the compensation occurs in the query projection: the model reshapes *what it looks for* more than *what it outputs* per token.
 
 ### Note on checkpoint maturity
 
-The maskfix checkpoint is from step 260 (~43% through training), while the buggy checkpoint is from step 600 (end of training). The smaller norms for maskfix could partially reflect less training, though the maskfix val F1 (52.06) substantially exceeds the buggy val F1 (45.59), suggesting the maskfix adapter is more efficient rather than simply less trained.
+The M3 checkpoint is from step 260 (~43% through training). Despite being early-stopped, M3's val F1 (52.06) substantially exceeds M1 (45.48), suggesting the adapter is efficient rather than undertrained. If anything, the norm ratios might increase slightly with further training, though the subspace direction is unlikely to shift given how orthogonal the adaptation already is.
+
+---
+
+## Comparison with buggy runs (historical context)
+
+Prior to the attention mask bug fix, M3-buggy (step 600, val F1 45.59) showed substantially larger norm ratios (q_proj 1.93x, v_proj 1.50x) and marginally lower subspace overlap (q_proj 0.192, v_proj 0.174). The inflated norms reflected the adapter compensating for *both* eviction and mask-induced noise; fixing the mask removed the second source of degradation, reducing the compensation burden by roughly a quarter. The near-orthogonal subspace finding is robust to the bug fix.
 
 ---
 
 ## Plots
 
-| Plot                                                           | Description                                                      |
-| -------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [`weight_magnitude_maskfix.png`](weight_magnitude_maskfix.png) | Per-layer Frobenius norms of B@A for M1, M3-maskfix, and M3-buggy |
-| [`singular_values_maskfix.png`](singular_values_maskfix.png)   | SVD spectra of B@A (q_proj) comparing maskfix vs buggy            |
-| [`subspace_overlap_maskfix.png`](subspace_overlap_maskfix.png) | Subspace overlap with M1 for maskfix vs buggy                     |
-| [`norm_ratio_maskfix.png`](norm_ratio_maskfix.png)             | Per-layer M3/M1 norm ratios, maskfix vs buggy side-by-side        |
+| Plot                                                  | Description                             |
+| ----------------------------------------------------- | --------------------------------------- |
+| [`weight_magnitude.png`](weight_magnitude.png) | Per-layer Frobenius norms (M1 vs M3)    |
+| [`singular_values.png`](singular_values.png) | SVD spectra of B@A q_proj (M1 vs M3)   |
+| [`subspace_overlap.png`](subspace_overlap.png) | Subspace overlap with M1 per layer      |
+| [`norm_ratio.png`](norm_ratio.png)    | Per-layer M3/M1 norm ratios             |

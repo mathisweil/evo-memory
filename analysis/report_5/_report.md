@@ -1,6 +1,13 @@
-# Analysis 5 (Maskfix): Attention Entropy Shift -- Maskfix vs Buggy
+# Analysis 5 -- Attention Entropy Shift Under Eviction
 
-> **TL;DR:** M3-maskfix and M3-buggy produce **nearly identical attention patterns** on full-context inputs: both show +5.0% higher entropy and -2.5% lower sink fractions relative to M1. The "pre-emptive hedging" strategy -- broader, less sink-dependent attention -- is **not an artefact of the attention mask bug**. It is a genuine adaptation to eviction-aware training that emerges regardless of whether the mask is correct.
+> **TL;DR:** M3 distributes attention more broadly than M1: +5.0% higher
+> entropy and -2.7% lower sink fractions. We interpret this as
+> "pre-emptive hedging" -- the model learns to attend to more tokens as
+> insurance against eviction, reducing its reliance on attention sinks
+> that might be evicted. This pattern was also observed in the earlier
+> buggy runs (with nearly identical magnitudes), confirming it is a
+> robust adaptation to eviction-aware training rather than a training
+> artefact.
 
 ---
 
@@ -8,9 +15,8 @@
 
 All comparisons use **full-context inputs** (no NAMM eviction at inference). Prompts: 10 test samples at 1024 tokens from LongBench tasks.
 
-- **M1:** LoRA fine-tuned, full context, no eviction (baseline)
-- **M3-maskfix:** LoRA + frozen NAMM, attention mask bug fixed, best checkpoint (step 260, val F1 52.06, ~43% through training)
-- **M3-buggy:** LoRA + frozen NAMM, original buggy attention mask (step 600, val F1 45.59, end of training)
+- **M1:** LoRA fine-tuned, full context, no eviction (baseline; best val F1 45.48)
+- **M3:** LoRA + frozen NAMM, best checkpoint (step 260, val F1 52.06, ~43% through training; WandB `h0bzg6on`)
 
 For each model, we computed per-head per-layer attention entropy (H = -sum(a_i log a_i)) and attention sink fraction (mass on first 5 tokens), averaged over query positions and samples.
 
@@ -20,56 +26,52 @@ For each model, we computed per-head per-layer attention entropy (H = -sum(a_i l
 
 ### Attention Entropy
 
-| Model       | Mean entropy (nats) | Change vs M1 |
-| ----------- | ------------------: | ------------- |
-| M1          |              2.1494 | --            |
-| M3-maskfix  |              2.2561 | +5.0%         |
-| M3-buggy    |              2.2606 | +5.2%         |
+| Model | Mean entropy (nats) | Change vs M1 |
+| ----- | ------------------: | -----------: |
+| M1    |              2.1494 | --           |
+| M3    |              2.2561 | +5.0%        |
 
-M3-maskfix and M3-buggy are within 0.0045 nats of each other -- effectively indistinguishable. Both show the same entropy elevation relative to M1.
+M3 produces consistently higher entropy across layers: its attention distributions are flatter, spreading probability mass over more tokens rather than concentrating on a few.
 
 ### Attention Sinks
 
-| Model       | Mean sink fraction | Change vs M1 |
-| ----------- | -----------------: | ------------- |
-| M1          |             0.5278 | --            |
-| M3-maskfix  |             0.5135 | -2.7%         |
-| M3-buggy    |             0.5150 | -2.4%         |
+| Model | Mean sink fraction | Change vs M1 |
+| ----- | -----------------: | -----------: |
+| M1    |             0.5278 | --           |
+| M3    |             0.5135 | -2.7%        |
 
-Again, maskfix and buggy are nearly identical (delta = 0.0015). Both reduce attention mass on sink tokens by a similar margin.
+M3 places less attention mass on the first 5 tokens (attention sinks). Since sinks are typically the highest-priority tokens for retention, reducing sink dependence makes the model more robust to the eviction of mid-sequence tokens.
 
 ---
 
 ## Discussion
 
-### The hedging strategy is real, not a mask artefact
+### Pre-emptive hedging as an eviction-aware strategy
 
-The original Report 5 found that M3-buggy distributes attention more broadly than M1 and interpreted this as "pre-emptive hedging" -- the model learns to attend to more tokens as insurance against eviction. A natural concern was that the buggy attention mask might itself cause broader attention, and the hedging would disappear once the mask is fixed.
+The combination of higher entropy and lower sink fractions suggests a coherent adaptation: M3 has learned to "hedge" its attention, spreading mass more evenly so that no single token's eviction is catastrophic. Rather than sharpening attention toward the tokens NAMM retains (which would increase alignment with the eviction policy), M3 broadens attention as insurance against losing any particular token.
 
-This report rules out that concern. M3-maskfix shows the same entropy shift (+5.0% vs +5.2%) and the same sink reduction (-2.7% vs -2.4%). The pre-emptive hedging strategy is a genuine adaptation to eviction-aware training.
+This is consistent with the Report 4 finding that M3's LoRA adaptation is near-orthogonal to M1's -- the model is not learning a stronger version of M1's strategy but a qualitatively different one.
 
-### Why are the two M3 variants so similar?
+### Connection to M3's performance advantage
 
-Despite having different attention masks during training and substantially different LoRA norms (Report 4 maskfix: 1.42x vs buggy 1.93x for q_proj), both M3 variants converge to nearly the same attention behaviour on full-context inputs. This suggests that the hedging pattern is a robust attractor in the eviction-aware training landscape: the model finds this strategy regardless of the precise training dynamics.
+M3's hedging strategy appears effective: despite using only ~43% of training steps, M3 (val F1 52.06) substantially outperforms M1 (val F1 45.48). By distributing attention more broadly, the model extracts information from a wider set of tokens, making it more resilient when NAMM evicts part of the KV cache.
 
-The LoRA norms differ because the buggy variant must compensate for mask-induced noise in addition to eviction, but the extra compensation does not change the qualitative attention pattern -- it just requires more weight magnitude to achieve a similar functional outcome.
+### Layer-by-layer variation
 
-### Comparison with original Report 5
-
-The original report compared M1 (entropy 1.912, sinks 0.574) with M3-buggy. The numbers here differ slightly (M1 entropy 2.149, sinks 0.528) because the maskfix analysis used a different set of 10 test prompts. The relative patterns are consistent: M3 has higher entropy and lower sinks regardless of the specific samples.
+The entropy increase is not uniform across layers. Some layers show larger shifts than others, reflecting the fact that different layers serve different roles in the transformer's information processing. See `attention_entropy.png` and `entropy_heatmap.png` for per-layer and per-head breakdowns.
 
 ---
 
-## Key Takeaway
+## Robustness check: comparison with buggy runs
 
-The attention mask bug affected the *magnitude* of LoRA compensation (Report 4) and likely the training efficiency (maskfix reaches 52.06 F1 at 43% training vs buggy's 45.59 F1 at 100%), but it did **not** change the qualitative nature of the learned attention strategy. The pre-emptive hedging interpretation stands.
+The earlier buggy M3 variant (step 600, val F1 45.59, trained with incorrect attention mask) showed nearly identical attention patterns: +5.2% entropy and -2.4% sink reduction vs M1. The two M3 variants are within 0.0045 nats of each other on entropy and 0.0015 on sink fraction -- effectively indistinguishable. This confirms that the hedging strategy is a robust attractor in the eviction-aware training landscape, emerging regardless of whether the attention mask is correct. The bug affected training efficiency (maskfix reaches higher F1 in fewer steps) and LoRA norm magnitudes (Report 4), but not the qualitative attention pattern.
 
 ---
 
 ## Plots
 
-| Plot                                                         | Description                                                   |
-| ------------------------------------------------------------ | ------------------------------------------------------------- |
-| [`attention_entropy_maskfix.png`](attention_entropy_maskfix.png) | Per-layer attention entropy for M1, M3-maskfix, and M3-buggy  |
-| [`entropy_heatmap_maskfix.png`](entropy_heatmap_maskfix.png)     | Layer x head entropy heatmaps, three-way comparison           |
-| [`entropy_diff_maskfix.png`](entropy_diff_maskfix.png)           | Entropy difference heatmaps: maskfix-M1 vs buggy-M1 side-by-side |
+| Plot                                                             | Description                            |
+| ---------------------------------------------------------------- | -------------------------------------- |
+| [`attention_entropy.png`](attention_entropy.png) | Per-layer attention entropy (M1 vs M3) |
+| [`entropy_heatmap.png`](entropy_heatmap.png)     | Layer x head entropy heatmaps          |
+| [`entropy_diff.png`](entropy_diff.png)           | Entropy diff heatmap: M3 minus M1      |

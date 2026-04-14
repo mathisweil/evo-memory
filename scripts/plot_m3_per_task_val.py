@@ -33,12 +33,20 @@ TASK_LABELS = {
 # M1 LoRA segments
 M1_SEGMENTS = ["kz6vqo2o", "x9a4smmf", "qfoxxi2m"]
 
-# M3 (LoRA + frozen NAMM) runs
+# M3 (LoRA + frozen NAMM) runs — buggy
 M3_RUNS = {
     "1024": ["ovosogkj"],
     "2048": ["m4knrhmr"],
     "3072": ["4sgkswa6"],
 }
+
+# M3 maskfix runs (corrected attention mask)
+M3_MASKFIX_RUNS = {
+    "1024": ["h0bzg6on"],
+    # "2048": ["<TBD>"],  # TODO: add WandB ID when M3 maskfix cs2048 starts
+}
+
+MASKFIX_COLOR = "#9467bd"  # purple for maskfix
 
 CS_COLORS = {"1024": "#1f77b4", "2048": "#ff7f0e", "3072": "#2ca02c"}
 M1_COLOR = "#d62728"
@@ -84,10 +92,17 @@ def main():
 
     m3_data = {}
     for cs, rids in M3_RUNS.items():
-        print(f"Fetching M3 cs{cs}...")
+        print(f"Fetching M3 cs{cs} (buggy)...")
         m3_data[cs] = fetch_lora_history(api, rids)
         df = m3_data[cs]
         print(f"  M3 cs{cs}: {len(df)} rows, steps {df['lora/global_step'].min():.0f}-{df['lora/global_step'].max():.0f}")
+
+    m3_maskfix_data = {}
+    for cs, rids in M3_MASKFIX_RUNS.items():
+        print(f"Fetching M3 cs{cs} (maskfix)...")
+        m3_maskfix_data[cs] = fetch_lora_history(api, rids)
+        df = m3_maskfix_data[cs]
+        print(f"  M3 maskfix cs{cs}: {len(df)} rows, steps {df['lora/global_step'].min():.0f}-{df['lora/global_step'].max():.0f}")
 
     # Plot: one subplot per task
     fig, axes = plt.subplots(2, 3, figsize=(18, 10))
@@ -100,33 +115,41 @@ def main():
         # M1
         m1_sub = m1_df.dropna(subset=[val_key])
         if not m1_sub.empty:
-            # Raw as faint
             ax.plot(
                 m1_sub["lora/global_step"], m1_sub[val_key],
                 color=M1_COLOR, alpha=0.15, linewidth=1,
             )
-            # Smoothed
             ax.plot(
                 m1_sub["lora/global_step"], smooth(m1_sub[val_key]),
                 color=M1_COLOR, linewidth=2, label="M1 (no NAMM)",
             )
 
-        # M3 per cache size
+        # M3 buggy per cache size (faded, dashed)
         for cs in sorted(m3_data.keys()):
             df = m3_data[cs]
             sub = df.dropna(subset=[val_key])
             if sub.empty:
                 continue
-            # Raw as faint
-            ax.plot(
-                sub["lora/global_step"], sub[val_key],
-                color=CS_COLORS[cs], alpha=0.15, linewidth=1,
-            )
-            # Smoothed
             ax.plot(
                 sub["lora/global_step"], smooth(sub[val_key]),
-                color=CS_COLORS[cs], linewidth=2,
-                label=f"M3 cs={cs}",
+                color=CS_COLORS[cs], linewidth=1.5, alpha=0.4,
+                linestyle="--", label=f"M3 cs={cs} (buggy)",
+            )
+
+        # M3 maskfix (solid, prominent)
+        for cs in sorted(m3_maskfix_data.keys()):
+            df = m3_maskfix_data[cs]
+            sub = df.dropna(subset=[val_key])
+            if sub.empty:
+                continue
+            ax.plot(
+                sub["lora/global_step"], sub[val_key],
+                color=MASKFIX_COLOR, alpha=0.15, linewidth=1,
+            )
+            ax.plot(
+                sub["lora/global_step"], smooth(sub[val_key]),
+                color=MASKFIX_COLOR, linewidth=2.5,
+                label=f"M3 cs={cs} (maskfix)",
             )
 
         ax.set_title(TASK_LABELS[task], fontsize=13, fontweight="bold")

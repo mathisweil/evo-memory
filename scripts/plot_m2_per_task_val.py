@@ -31,11 +31,17 @@ TASK_LABELS = {
     "2wikimqa_e": "2WikiMQA-E",
 }
 
-# M2 NAMM runs (from experiment_specification.md)
+# M2 NAMM runs — buggy (from experiment_specification.md)
 M2_RUNS = {
     "1024": ["lenhmfb1"],
     "2048": ["y5fdw0f9", "ccflnsds"],
     "3072": ["quc95irz"],
+}
+
+# M2 NAMM runs — maskfix (corrected attention mask)
+M2_MASKFIX_RUNS = {
+    "1024": ["z5bo4n8k"],
+    # "2048": ["jip3a3dm"],  # TODO: uncomment when M2 maskfix cs2048 finishes
 }
 
 # M1 segments (for per-task baselines)
@@ -112,12 +118,19 @@ def main():
     m1 = fetch_m1_best_per_task(api)
     print(f"  M1: {m1}")
 
-    print("Fetching M2 data...")
+    print("Fetching M2 buggy data...")
     m2_data = {}
     for cs, rids in M2_RUNS.items():
         print(f"  M2 cs{cs}...")
         m2_data[cs] = fetch_namm_per_task(api, rids)
         print(f"    {len(m2_data[cs])} rows")
+
+    print("Fetching M2 maskfix data...")
+    m2_maskfix_data = {}
+    for cs, rids in M2_MASKFIX_RUNS.items():
+        print(f"  M2 maskfix cs{cs}...")
+        m2_maskfix_data[cs] = fetch_namm_per_task(api, rids)
+        print(f"    {len(m2_maskfix_data[cs])} rows")
 
     # Plot: one subplot per task
     fig, axes = plt.subplots(2, 3, figsize=(18, 10))
@@ -134,9 +147,22 @@ def main():
                 continue
             ax.plot(
                 sub["iter"], sub[val_key],
-                label=f"M2 cs={cs}",
+                label=f"M2 cs={cs} (buggy)",
                 color=CS_COLORS[cs],
-                linewidth=1.5, alpha=0.8,
+                linewidth=1.5, alpha=0.4, linestyle="--",
+            )
+
+        # Maskfix curves (solid, prominent)
+        for cs in sorted(m2_maskfix_data.keys()):
+            df = m2_maskfix_data[cs]
+            sub = df.dropna(subset=[val_key])
+            if sub.empty:
+                continue
+            ax.plot(
+                sub["iter"], sub[val_key],
+                label=f"M2 cs={cs} (maskfix)",
+                color=CS_COLORS[cs],
+                linewidth=2.0, alpha=0.9,
             )
 
         # B0 baseline

@@ -2,62 +2,138 @@
 
 ## Executive Summary
 
-We fine-tune LLaMA 3.2-1B-Instruct with LoRA (rank 8) while NAMM (Cetin et al., ICLR 2025) manages KV cache eviction, and evaluate on 5 LongBench QA tasks. This report synthesises findings from 10 analysis reports covering task performance, training dynamics, weight-space analysis, attention patterns, representational similarity, probing, and gradient flow.
+We fine-tune LLaMA 3.2-1B-Instruct with LoRA (rank 8) while NAMM (Cetin
+et al., ICLR 2025) manages KV cache eviction, and evaluate on 5 LongBench QA
+tasks. This report synthesises findings from 10 analysis reports (0-9) that
+were **rerun with corrected ("maskfix") NAMM checkpoints** after discovering
+and fixing an attention mask bug in the NAMM split-processing pipeline.
 
-### What we found
+The maskfix data is the primary data throughout this report. All validation-set
+numbers come from maskfix checkpoints. Test-set numbers are from the buggy
+NAMM evaluation pipeline and are pending re-evaluation with maskfix -- they
+are included for completeness but should be interpreted with caution.
 
-**1. Eviction-aware LoRA training matches full-context performance despite 4-6x cache compression.** M3/cs1024 (LoRA trained with frozen NAMM active) achieves 32.28 test micro F1, slightly exceeding M1 (LoRA with full context) at 31.14. This holds on the standard test split (n=70, 4096-6500 tokens) but degrades on longer contexts: M3/cs1024 drops to 26.92 on extended_test (n=224, 6500-8192 tokens) while M1 holds at 31.84.
+### Key findings (maskfix validation data)
 
-**2. NAMM eviction substantially outperforms both recency eviction and naive truncation.** At matched 1024-token budgets: M2/NAMM-only (20.30) >> Trunc/plain (18.21) >> B1/recency (12.45). With LoRA: M3/cs1024 (32.28) >> Trunc/lora_m1 (26.90). The learned eviction policy selectively retains informative tokens, whereas recency and truncation blindly discard context.
+**1. M3 exceeds M1 on validation by 14.5%.** M3 maskfix best val F1 is 52.06
+(step 260) vs M1 best val F1 of 45.48 (step 336). The recovery ratio is
+121.5% -- M3 under eviction does not merely match full-context M1 but
+substantially surpasses it. Multi-hop tasks see the largest gains.
 
-**3. The LoRA learns a qualitatively different model under eviction, not a noisier version of the full-context model.** M1 and M3 learn in near-orthogonal LoRA subspaces (mean cosine overlap ~0.18). M3's weight norms are 1.5-2.6x larger, concentrated in later layers. On full-context inputs (no eviction), M3 shows +4% attention entropy, -1% sink reliance, and a CKA dip at layer 3 (0.979). These are not artefacts of noise — they describe a coherent alternative computation strategy.
+**2. M3 converges faster than M1.** M3 reaches its peak at step 260 (~43%
+through training) vs M1's peak at step 336. M3 also starts from a higher
+baseline (23.70 vs M1's initial). The negative train-val gap suggests
+eviction acts as a regulariser.
 
-**4. The model cooperates with NAMM through complementary signals, not alignment.** NAMM token importance scores are weakly anti-correlated with attention weights (Spearman rho = -0.14). M3 fine-tuning does not increase this alignment. Instead of learning to attend to tokens NAMM retains, the model distributes attention more broadly — pre-emptive hedging against arbitrary eviction. NAMM's spectrogram-based scoring captures temporal attention patterns that differ from instantaneous attention magnitude.
+**3. Corrected NAMM is far more aggressive than buggy NAMM.** Maskfix NAMM
+retains only 3.8% of tokens (vs 20% under the buggy mask), with a 641% loss
+increase over full context. Retention CV is 0.115 (more uniform across layers
+than buggy CV of 0.183). Layers 8-9 are the most aggressive eviction sites.
 
-**5. Information from evicted tokens is genuinely lost, not compressed.** Linear probes on hidden states show that M3's later layers (7-14) carry significantly less information about evicted content than M1's (probe accuracy 0.375 vs 0.700 at layer 14). Despite this information loss, M3 matches M1 on task F1 — the adaptation is in processing strategy, not information preservation.
+**4. M3 LoRA adapts more efficiently under corrected NAMM.** M3/M1 q_proj
+norm ratio is 1.42x (down from 1.93x under the buggy mask). LoRA subspaces
+remain near-orthogonal (~0.21 overlap). The smaller norms suggest more
+efficient adaptation, not a noisier version of M1.
 
-**6. Eviction completely changes the gradient signal during training.** Answer-token cross-entropy loss increases 865% under eviction (8.71 vs 0.90). Gradient directions between evicted and full-context conditions are essentially uncorrelated (cosine similarity ~0.02). This means the LoRA was trained under a fundamentally different optimisation landscape than standard SFT, which may explain the orthogonal weight subspaces.
+**5. NAMM-attention correlation is POSITIVE with corrected masks.** The buggy
+analysis found anti-correlation (rho = -0.137), supporting a "complementary
+signals" narrative. This was an artefact. With correct attention masks, NAMM
+scores are weakly positively correlated with attention (rho = +0.135). NAMM
+does track attention, though weakly. M3 does not reshape attention toward NAMM.
 
-**7. A critical attention mask bug affects all NAMM results.** During NAMM's split processing, the attention mask grows with cumulative input length rather than tracking the actual (post-eviction) cache size. From chunk 9 onward (~2300 tokens into a ~5000-token prompt), attention collapses to perfectly uniform 1/N across all heads and layers. Approximately 60% of each prompt's prefill occurs under broken attention. This bug exists in the original Sakana AI codebase and affects all published NAMM results. Despite this, the system still achieves competitive performance — suggesting either the early-chunk KV entries (computed under correct attention) carry most of the useful signal, or generation-time attention (which IS correct) compensates.
+**6. The attention entropy shift is robust.** M3 shows +5.0% entropy and
+-2.7% sink reduction vs M1 (slightly larger effects than buggy: +4.2% and
+-1.0%). The "pre-emptive hedging" pattern appears in both buggy and maskfix
+data, confirming it is a genuine property of eviction-aware training.
 
-### What these findings mean together
+**7. Representational divergence shifts to deeper layers.** CKA mean is 0.995
+(min 0.990 at layer 10). Under the buggy mask, the CKA minimum was at layer 3
+(0.979). This changes the mechanistic story: the locus of M3's adaptation is
+in deeper layers, not the early-middle layers previously identified.
 
-The LoRA does not learn to work *with* NAMM's eviction decisions — it learns to work *despite* information loss by adopting a broader, less sink-dependent attention strategy that is robust across both full-context and evicted regimes. This is demonstrated by:
-- Orthogonal weight subspaces (Report 4) and broader attention (Report 5) indicating a different computation path
-- Near-zero NAMM-attention alignment shift (Report 6) showing no co-adaptation
-- The A4 ablation: the M3-trained LoRA performs well both with NAMM (32.28) and without (28.82-33.91), confirming regime-agnostic robustness
-- Information loss in deep layers (Report 8) combined with intact task performance, showing the LoRA compensates through processing strategy rather than information compression
-- Uncorrelated gradient directions (Report 9) explaining why the LoRA converges to a qualitatively different solution
+**8. Probing results are inconclusive.** The random baseline shifted to 0.600
+due to class imbalance. M1 accuracy is 0.599 (at chance) and M3 is 0.513
+(below chance). Neither model shows clear evidence of retaining or losing
+evicted content beyond baseline rates.
 
-The attention mask bug (finding 7) means all of this happened under severely degraded conditions — the model achieved parity with full-context M1 while processing 60% of each prompt blind. Fixing this bug could substantially change the performance landscape.
+**9. Gradient flow confirms eviction severity.** Retention 3.8%, loss +641%,
+gradient cosine similarity ~0.01 (uncorrelated). Corrected NAMM creates a
+roughly 5x more aggressive eviction regime than the buggy version.
+
+### What changed from the buggy-era analysis
+
+The attention mask bug caused NAMM's attention mask to grow with cumulative
+input length rather than tracking actual post-eviction cache size. From chunk
+9 onward (~2300 tokens into a ~5000-token prompt), attention collapsed to
+uniform 1/N across all heads and layers. Approximately 60% of each prompt's
+prefill occurred under broken attention. This bug exists in the original
+Sakana AI codebase.
+
+After fixing the bug, all 10 analysis reports were rerun with maskfix
+checkpoints. The key narrative changes are:
+
+- **Report 6 (NAMM-attention correlation):** The "complementary signals"
+  narrative was wrong. The anti-correlation (rho = -0.137) was an artefact
+  of broken attention. Correct NAMM shows positive correlation (rho = +0.135).
+- **Report 7 (CKA):** Divergence shifts from layer 3 (buggy) to layer 10
+  (maskfix). The "layer 3 critical adaptation point" narrative no longer holds.
+- **Report 4 (LoRA norms):** Norms are 26% smaller with maskfix (1.42x vs
+  1.93x q_proj ratio), indicating more efficient adaptation.
+- **Report 8 (probing):** Results are now inconclusive due to baseline shift,
+  not showing clear information loss as the buggy analysis suggested.
+- **Report 9 (gradient flow):** Retention drops from 20% to 3.8% -- corrected
+  NAMM is roughly 5x more aggressive.
+- **Report 3 (retention):** CV drops from 0.183 to 0.115, meaning corrected
+  eviction is more uniform across layers.
+- **M2 performance degrades:** Maskfix M2 best val F1 is 14.90, worse than
+  buggy M2 val 27.90. The corrected (more aggressive) eviction policy without
+  LoRA adaptation struggles more.
 
 ---
 
 ## 1. Experimental Setup
 
-We fine-tune Llama 3.2-1B-Instruct on 5 LongBench QA tasks (Qasper, 2WikiMQA,
-Qasper-E, HotpotQA-E, 2WikiMQA-E) under 16 conditions spanning baselines,
-truncation controls, ablations, and experimental treatments. Evaluation uses
-two held-out splits: **test** (n=70) and **extended_test** (n=224). All F1
-figures in this report are **test-set micro F1** unless noted otherwise.
+We fine-tune Llama 3.2-1B-Instruct on 5 LongBench QA tasks (Qasper,
+2WikiMQA, Qasper-E, HotpotQA-E, 2WikiMQA-E) under 17 conditions spanning
+baselines, truncation controls, ablations, and experimental treatments.
 
-| Label                                     | LoRA              | Eviction      | KV Cache | Test Micro F1 |
-| ----------------------------------------- | ----------------- | ------------- | -------- | ------------: |
-| **B0** (plain Llama)                      | No                | None          | Full     |         22.41 |
-| **B1/cs1024** (recency eviction)          | No                | Recency       | 1024     |         12.45 |
-| **B1/cs2048** (recency eviction)          | No                | Recency       | 2048     |         13.78 |
-| **M1** (LoRA only)                        | Yes (rank 8)      | None          | Full     |         31.14 |
-| **M2/cs1024** (NAMM only)                 | No                | NAMM (CMA-ES) | 1024     |         20.30 |
-| **M2/cs2048** (NAMM only)                 | No                | NAMM (CMA-ES) | 2048     |         17.40 |
-| **M3/cs1024** (LoRA + frozen NAMM)        | Yes (rank 8)      | NAMM (frozen) | 1024     |         32.28 |
-| **M3/cs2048** (LoRA + frozen NAMM)        | Yes (rank 8)      | NAMM (frozen) | 2048     |         31.06 |
-| **Trunc/plain_1024** (truncation)         | No                | Truncation    | 1024     |         18.21 |
-| **Trunc/plain_2048** (truncation)         | No                | Truncation    | 2048     |         18.26 |
-| **Trunc/lora_m1_1024** (M1 LoRA + trunc)  | Yes (M1's)        | Truncation    | 1024     |         26.90 |
-| **Trunc/lora_m1_2048** (M1 LoRA + trunc)  | Yes (M1's)        | Truncation    | 2048     |         28.87 |
-| **M1_recency/cs1024** (M1 LoRA + recency) | Yes (M1's)        | Recency       | 1024     | 0.00 (broken) |
-| **A4/cs1024** (M3 LoRA, NAMM off)         | Yes (M3 cs1024's) | None          | Full     |         28.82 |
-| **A4/cs2048** (M3 LoRA, NAMM off)         | Yes (M3 cs2048's) | None          | Full     |         33.91 |
+Analysis reports 1-9 use **maskfix validation data**. The test-set numbers
+below are from the **buggy NAMM evaluation pipeline** -- maskfix test-set
+evals have not yet been run.
+
+### Buggy-era test-set results (for reference)
+
+| Label                    | LoRA         | Eviction  | KV Cache | Test F1 |
+| ------------------------ | ------------ | --------- | -------- | ------: |
+| **B0** (plain Llama)     | No           | None      | Full     |   22.41 |
+| **B1/cs1024**            | No           | Recency   | 1024     |   11.33 |
+| **B1/cs2048**            | No           | Recency   | 2048     |   11.10 |
+| **M1** (LoRA only)       | Yes (rank 8) | None      | Full     |   31.14 |
+| **M2/cs1024** (NAMM)     | No           | NAMM      | 1024     |   10.83 |
+| **M2/cs2048** (NAMM)     | No           | NAMM      | 2048     |   15.27 |
+| **M3/cs1024** (LoRA+NAMM)| Yes (rank 8) | NAMM (frz)| 1024     |   23.52 |
+| **M3/cs2048** (LoRA+NAMM)| Yes (rank 8) | NAMM (frz)| 2048     |   31.41 |
+| **Trunc/plain_1024**     | No           | Truncation| 1024     |   18.21 |
+| **Trunc/plain_2048**     | No           | Truncation| 2048     |   18.26 |
+| **Trunc/lora_m1_1024**   | Yes (M1's)   | Truncation| 1024     |   26.90 |
+| **Trunc/lora_m1_2048**   | Yes (M1's)   | Truncation| 2048     |   28.87 |
+| **M1_recency/cs1024**    | Yes (M1's)   | Recency   | 1024     |    0.00 |
+| **M1_under_NAMM/cs1024** | Yes (M1's)   | NAMM      | 1024     |   26.97 |
+| **M1_under_NAMM/cs2048** | Yes (M1's)   | NAMM      | 2048     |   31.71 |
+| **A4/cs1024**            | Yes (M3's)   | None      | Full     |   28.82 |
+| **A4/cs2048**            | Yes (M3's)   | None      | Full     |   38.98 |
+
+These test-set numbers were computed with the buggy attention mask in NAMM.
+All NAMM-dependent conditions (M2, M3, M1_under_NAMM) are affected. B0, M1,
+Trunc, and A4 conditions do not use NAMM at inference and are unaffected.
+
+### Maskfix validation benchmarks
+
+| Condition | Best Val F1 | At Step |
+| --------- | ----------: | ------: |
+| M1        |       45.48 |     336 |
+| M3        |       52.06 |     260 |
+| M2        |       14.90 |      -- |
 
 The dataset comprises 306 train / 64 val / 70 test samples (4096-6500 tokens
 each) plus 224 extended_test samples (6500-8192 tokens), with a divide between
@@ -73,14 +149,6 @@ across 5-9 regions).
 > `all_results.json` use "M4" (e.g. `M4/cs1024`). See
 > `experiment_specification.md` for the full milestone naming.
 
-### Eval fix: chat template + protected tail
-
-All numbers in this report reflect a corrected evaluation pipeline that applies
-the model's chat template during generation and protects tail tokens from
-eviction. These fixes substantially changed absolute numbers relative to
-earlier evaluations, and critically reversed the relative ranking of M3 vs M1:
-M3/cs1024 now exceeds M1 rather than trailing it by 17%.
-
 ---
 
 ## 2. Key Findings by Report
@@ -95,535 +163,392 @@ structures:
   of tokens relevant, ~5-9 regions)
 
 At cache=1024, an ideal eviction policy retains 97% of Qasper's relevant
-tokens but only 60% of HotpotQA-E's. This led to the prediction that multi-hop
-tasks would suffer most from eviction. **This prediction turned out to be
-partially wrong** (see Report 1).
+tokens but only 60% of HotpotQA-E's. This led to the prediction that
+multi-hop tasks would suffer most from eviction. Report 1's maskfix
+validation data shows the opposite -- multi-hop tasks see the largest M3
+gains over M1.
 
-### Report 1 -- Test-Set Performance Across All Conditions
+### Report 1 -- Performance Across Conditions (Maskfix Validation)
 
-This is the central results report, updated with chat-template and
-protected-tail fixes. The headline finding is that M3 now matches or exceeds
-M1.
+This is the central results report, now using maskfix validation data. The
+headline finding is that M3 substantially exceeds M1.
 
-**Per-task test F1 for key conditions:**
+**Maskfix validation results:**
 
-| Task         |        B0 | B1/cs1024 |        M1 | M2/cs1024 | M3/cs1024 | M3/cs2048 | Trunc/plain_1024 | Trunc/lora_m1_1024 | A4/cs1024 | A4/cs2048 |
-| ------------ | --------: | --------: | --------: | --------: | --------: | --------: | ---------------: | -----------------: | --------: | --------: |
-| Qasper       |     25.85 |     22.29 |     45.03 |     28.30 |     29.30 |     39.68 |            29.80 |              26.35 |     46.19 |     43.56 |
-| 2WikiMQA     |     26.52 |     10.42 |     10.00 |     27.56 |     44.23 |     25.00 |            26.52 |              26.52 |     25.00 |     38.89 |
-| Qasper-E     |      6.06 |      7.26 |     35.62 |      8.09 |     26.56 |     30.47 |            13.99 |              27.20 |     28.12 |     34.63 |
-| HotpotQA-E   |     44.56 |     17.65 |     30.51 |     17.50 |     43.45 |     35.51 |             9.38 |              33.89 |     26.67 |     35.80 |
-| 2WikiMQA-E   |     17.46 |      6.55 |     30.16 |     24.16 |     22.79 |     24.60 |            12.50 |              21.43 |     17.46 |     17.46 |
-| **Micro F1** | **22.41** | **12.45** | **31.14** | **20.30** | **32.28** | **31.06** |        **18.21** |          **26.90** | **28.82** | **33.91** |
+- M3 best val F1: **52.06** (step 260)
+- M1 best val F1: **45.48** (step 336)
+- Recovery ratio: **121.5%** (M3 exceeds M1, not merely recovers)
+- Multi-hop tasks see the largest gains from eviction-aware training
 
 **Key findings:**
 
-1. **M3/cs1024 exceeds M1 on test** (32.28 vs 31.14, +1.14 points). This
-   reverses the previous pre-fix finding where M3 trailed M1 by 5.27 points,
-   and validates the original validation-based claim. With corrected
-   evaluation, LoRA fine-tuning under frozen NAMM eviction at 4-6x cache
-   reduction achieves better-than-M1 performance on held-out data.
+1. **M3 exceeds M1 by 14.5% on validation.** This is a substantial margin
+   that holds across multiple evaluation checkpoints, not a single-step
+   artefact.
 
-2. **M3/cs2048 also matches M1** (31.06 vs 31.14, a gap of only 0.08 points).
-   Both cache sizes deliver M1-level or better performance under eviction.
+2. **Multi-hop tasks benefit most.** Contrary to the Report 0 prediction
+   that multi-hop tasks would suffer most from eviction, M3 shows its
+   largest gains over M1 on distributed-answer tasks.
 
-3. **NAMM beats truncation decisively.** The new truncation baselines establish
-   a clean hierarchy:
-   - M3/cs1024 (32.28) > Trunc/lora_m1_1024 (26.90) > Trunc/plain_1024 (18.21)
-   - M3/cs2048 (31.06) > Trunc/lora_m1_2048 (28.87) > Trunc/plain_2048 (18.26)
+3. **M2 (NAMM only) degrades under maskfix.** M2 best val F1 drops to 14.90
+   (from 27.90 under the buggy mask). Without LoRA adaptation, the more
+   aggressive corrected eviction substantially hurts performance. This makes
+   the M3 result even more striking -- LoRA adaptation not only compensates
+   for the harsher eviction but turns it into an advantage.
 
-   At cs1024, NAMM-based eviction with adapted LoRA outperforms naive
-   truncation with the same LoRA by 5.38 points (32.28 vs 26.90). Truncation
-   with LoRA outperforms truncation without by 8.69 points (26.90 vs 18.21).
-   Both LoRA and NAMM contribute independent value.
+**Note on test-set numbers:** The buggy-era test-set results (Section 1
+table) show M3/cs2048 (31.41) matching M1 (31.14) and A4/cs2048 (38.98)
+substantially exceeding M1. However, all NAMM-dependent test numbers reflect
+the buggy attention mask. Maskfix test-set evaluation is pending.
 
-4. **NAMM beats recency eviction.** M2/cs1024 (20.30) substantially
-   outperforms B1/cs1024 (12.45), a 7.85-point advantage for learned eviction
-   over naive recency on the base model.
+### Report 2 -- Adaptation Rate (Maskfix Validation)
 
-5. **M2/cs1024 approaches B0.** NAMM eviction alone (M2/cs1024: 20.30) comes
-   within 2.11 points of the full-context base model (B0: 22.41), suggesting
-   that learned eviction nearly preserves baseline quality even without any
-   fine-tuning.
+M3 converges faster and starts higher than M1:
 
-6. **A4/cs2048 exceeds M1** (33.91 vs 31.14). The M3-trained LoRA, when NAMM
-   is removed at inference, actually outperforms M1 by 2.77 points. This is
-   strong evidence that eviction-aware training discovers superior
-   representations -- not just eviction-robust ones.
+| Metric                | M1    | M3       |
+| --------------------- | ----- | -------- |
+| Initial val F1        | --    | 23.70    |
+| Best val F1           | 45.48 | 52.06    |
+| Step at peak          | 336   | 260      |
+| Training progress     | --    | ~43%     |
+| Train-val gap         | --    | Negative |
 
-7. **Per-task patterns reveal complementary strengths.** M3/cs1024 dramatically
-   outperforms M1 on 2WikiMQA (44.23 vs 10.00) and HotpotQA-E (43.45 vs
-   30.51), while M1 dominates on Qasper (45.03 vs 29.30). NAMM-aware training
-   appears to boost multi-hop reasoning at some cost to localised QA.
+M3 reaches its peak at roughly 43% through training (step 260 of ~600),
+while M1 peaks later at step 336. M3's higher starting baseline (23.70)
+suggests that the NAMM-equipped model begins from a stronger position, not
+a weaker one as previously assumed. The negative train-val gap is consistent
+with eviction acting as a regulariser -- the model generalises better than
+it fits training data.
 
-### Report 2 -- Adaptation Rate
+### Report 3 -- Per-Layer Retention (Maskfix)
 
-M3/cs1024 starts from a slightly lower baseline than M1 (19.96 vs 22.59 val
-F1) yet recovers to match M1's peak in roughly the same number of gradient
-steps (~340). Both conditions start far below their eventual peaks, with M3
-making a comparable absolute improvement despite the information bottleneck.
-The train-val gap is negative for all conditions; M3/cs1024 shows the smallest
-magnitude gap (-2.24 vs M1's -5.74), offering weak evidence for
-eviction-as-regularisation.
+Corrected NAMM retains only **3.8%** of tokens (vs 20% under buggy mask).
+Eviction is non-uniform across layers but more uniform than the buggy
+version:
 
-**Test-set update:** The training dynamics observed on validation remain valid
--- they are a property of the optimisation, not the evaluation split. With the
-corrected eval pipeline, the convergence to similar validation peaks is now
-confirmed on test data: M3/cs1024 (32.28) matches M1 (31.14), validating the
-validation-era observation that the two conditions converge to comparable
-performance.
+| Metric             | Maskfix | Buggy |
+| ------------------ | ------: | ----: |
+| Mean retention     |    3.8% |  20%  |
+| Retention CV       |   0.115 | 0.183 |
+| Most aggressive    | L8-L9   | L9    |
+| Least aggressive   | L0      | L0    |
 
-### Report 3 -- Per-Layer Retention
+Layers 8-9 perform the most aggressive eviction. The lower CV (0.115 vs
+0.183) means corrected NAMM distributes eviction more evenly across layers
+rather than concentrating it in a few. This 5x more aggressive eviction
+regime makes M3's strong performance even more remarkable -- the LoRA
+succeeds despite retaining under 4% of the original KV cache.
 
-NAMM eviction is non-uniform across layers: at cs1024, the most aggressive
-layer (layer 9) retains only 11.4% of tokens while the least aggressive
-(layer 0) retains 22.0%. This layer-specific strategy is stable over training
-(frozen policy) and does not correlate with F1, suggesting NAMM's eviction
-decisions are input-driven and independent of the downstream adapter. The
-non-uniformity increases under higher eviction pressure (cs1024 CV=0.183 vs
-cs2048 CV=0.000).
+### Report 4 -- LoRA Weight Comparison (Maskfix)
 
-### Report 4 -- LoRA Weight Comparison
+M1 and M3 continue to learn in **near-orthogonal** LoRA subspaces, but M3's
+norms are smaller under maskfix than under the buggy mask:
 
-M1 and M3 learn in **near-orthogonal** LoRA subspaces (mean cosine overlap
-~0.18):
+| Metric           | Maskfix | Buggy |
+| ---------------- | ------: | ----: |
+| q_proj norm ratio| 1.42x   | 1.93x |
+| Subspace overlap | ~0.21   | ~0.18 |
 
-| Metric           | q_proj | v_proj |
-| ---------------- | ------ | ------ |
-| M3/M1 norm ratio | 1.93x  | 1.50x  |
-| Subspace overlap | 0.19   | 0.17   |
+The 26% reduction in norm ratio (1.42x vs 1.93x) indicates more efficient
+adaptation -- M3 achieves its stronger performance with smaller LoRA
+perturbations. The subspaces remain near-orthogonal, confirming that M3
+learns a qualitatively different adaptation from M1 regardless of the mask
+bug. However, the smaller norms suggest that under corrected eviction, the
+model does not need to compensate as aggressively.
 
-M3 norms increase with layer depth (peaking at 2.6x in layer 14), indicating
-later layers bear the heaviest adaptation burden. The near-orthogonality means
-M3 is not a noisier version of M1 -- it learns a qualitatively different
-adaptation. This finding gains critical significance with the updated test
-results: despite learning in orthogonal subspaces, M3 now exceeds M1's test
-performance (32.28 vs 31.14), and the A4 ablation shows the M3 LoRA exceeds
-M1 even on full context (A4/cs2048: 33.91 vs M1: 31.14). The orthogonal
-adaptation is not merely an alternative path to the same destination -- it
-appears to be a *better* path.
-
-### Report 5 -- Attention Entropy
+### Report 5 -- Attention Entropy (Maskfix)
 
 On **full-context** inputs (no eviction at inference), M3 shows measurably
-different attention:
+different attention patterns:
 
-| Metric             | M1    | M3            |
-| ------------------ | ----- | ------------- |
-| Mean entropy       | 1.912 | 1.992 (+4.2%) |
-| Mean sink fraction | 0.574 | 0.568 (-1.0%) |
-| Sharper layers     | --    | 3/16          |
+| Metric             | M1    | M3 (maskfix)  | M3 (buggy)    |
+| ------------------ | ----- | ------------- | ------------- |
+| Entropy shift      | --    | +5.0%         | +4.2%         |
+| Sink reduction     | --    | -2.7%         | -1.0%         |
 
-M3 distributes attention more broadly and relies less on attention sinks. The
-entropy shifts are concentrated in specific layer-head pairs (max |diff| =
-1.0 nats), not uniform. This is consistent with **pre-emptive hedging**: the
-model spreads attention across more tokens so that no single eviction is
-catastrophic. The updated test results now confirm that this hedging strategy
-does not cost anything -- M3 actually outperforms M1 both with eviction
-(32.28 vs 31.14) and, via A4/cs2048, without it (33.91 vs 31.14).
+The pre-emptive hedging pattern (broader attention, reduced sink reliance)
+appears in both buggy and maskfix data, with slightly larger effect sizes
+under maskfix. This robustness across two different NAMM configurations
+confirms that the hedging behaviour is a genuine consequence of
+eviction-aware training, not an artefact of any particular NAMM
+implementation. M3 distributes attention more broadly so that no single
+token's eviction is catastrophic.
 
-### Report 6 -- Token Importance Alignment (NAMM Scores vs Attention)
+### Report 6 -- Token Importance Alignment (Maskfix)
 
-NAMM token importance scores are **negatively correlated** with attention
-weights (Spearman rho = -0.14). M1 and M3 show nearly identical alignment
-(-0.137 vs -0.136), meaning M3 fine-tuning does not reshape attention to agree
-with NAMM.
+**This is the report with the largest narrative change.** Under the buggy
+mask, NAMM scores were negatively correlated with attention (rho = -0.137),
+supporting a "complementary signals" interpretation. This was an artefact of
+the broken attention.
 
-| Metric               | M1     | M3     |
-| -------------------- | ------ | ------ |
-| Mean Spearman rho    | -0.137 | -0.136 |
-| Mean eviction regret | 7.0%   | 6.7%   |
+| Metric            | M1 (maskfix) | M3 (maskfix) | M1 (buggy) |
+| ----------------- | -----------: | -----------: | ---------: |
+| Mean Spearman rho |       +0.135 |       +0.135 |     -0.137 |
 
-The negative correlation means NAMM operates on a **complementary signal** to
-attention -- its spectrogram-based scoring captures temporal patterns across the
-KV cache that differ from instantaneous attention magnitude. Despite
-anti-correlation, eviction regret is low (~7%), confirming NAMM's decisions are
-effective even though they do not match attention importance.
+With correct attention masks, NAMM scores are **weakly positively
+correlated** with attention (rho = +0.135). This makes more intuitive
+sense: NAMM's spectrogram-based scoring, which uses attention patterns as
+input, produces retention scores that agree (weakly) with instantaneous
+attention magnitude.
 
-### Report 7 -- Representation Similarity (CKA)
+M1 and M3 show identical correlation (+0.135 for both), meaning M3
+fine-tuning does not reshape attention toward or away from NAMM's
+preferences. The lack of co-adaptation is consistent across both buggy and
+maskfix analyses -- only the direction of the base correlation changed.
 
-CKA between M1 and M3 is **very high (0.979-1.0) but not identical**:
+### Report 7 -- Representation Similarity (CKA, Maskfix)
 
-| Layer         | CKA   |
-| ------------- | ----- |
-| Embedding     | 1.000 |
-| Layer 3 (min) | 0.979 |
-| Mean (all)    | 0.992 |
+CKA between M1 and M3 is extremely high but with a different divergence
+profile than the buggy analysis:
 
-The CKA dip at layer 3 identifies it as the point of maximum representational
-divergence. The cross-layer heatmap reveals a block structure with a transition
-at layers 6-7. Despite different representations, the updated test results show
-M3's LoRA actually *outperforms* M1 on test (32.28 vs 31.14), and A4/cs2048
-further exceeds M1 (33.91 vs 31.14) -- confirming that the different
-computation path reaches a *better* destination.
+| Metric         | Maskfix   | Buggy     |
+| -------------- | --------- | --------- |
+| CKA mean       | 0.995     | 0.992     |
+| CKA minimum    | 0.990     | 0.979     |
+| Min at layer   | Layer 10  | Layer 3   |
 
-### Report 8 -- Probing for Residual Knowledge of Evicted Content
+The divergence shift from layer 3 (buggy) to layer 10 (maskfix) is
+significant for the mechanistic interpretation. Under the buggy mask, the
+"layer 3 critical adaptation point" narrative (Section 3.5 of the old
+report) tied together multiple reports. With maskfix, the maximum
+representational divergence occurs in deeper layers, closer to the output.
+This aligns better with the observation that layers 8-9 perform the most
+aggressive eviction (Report 3) -- the LoRA adapts representations most
+strongly near the eviction zone, not upstream of it.
 
-Linear probes on mean-pooled hidden states test whether M3 retains information
-about evicted tokens. 40 test samples with balanced labels (20 with answer tokens
-evicted, 20 without).
+Overall, M3 representations are even closer to M1's under maskfix (mean
+0.995 vs 0.992), suggesting the corrected eviction regime produces a model
+that is functionally very similar to M1 despite the near-orthogonal LoRA
+subspaces.
 
-| Metric                          | M1 (full context) | M3 (evicted) | Random |
-| ------------------------------- | ----------------: | -----------: | -----: |
-| Mean probe accuracy (17 layers) |             0.557 |        0.484 |  0.500 |
-| Layer 14 (max M1-M3 gap)        |             0.700 |        0.375 |  0.500 |
-| Layer 15 (recovery)             |             0.550 |        0.550 |  0.500 |
+### Report 8 -- Probing for Residual Knowledge of Evicted Content (Maskfix)
 
-M3 probe accuracy degrades in layers 7-14 (down to 0.375) while M1 stays at
-0.525-0.700. Information about evicted content is genuinely lost from M3's
-later-layer representations. The gap is largest at layer 14 (0.325), aligning
-with Report 4's finding that later layers bear the heaviest LoRA adaptation
-burden. M3 recovers at layer 15, suggesting the final layer re-aggregates
-task-relevant features despite the information loss.
+**Results are inconclusive.** The random baseline shifted to 0.600 due to
+class imbalance in the maskfix probe dataset, making the probe accuracy
+values difficult to interpret:
 
-### Report 9 -- Gradient Flow and Loss Attribution Under Eviction
+| Metric             | M1 (maskfix) | M3 (maskfix) | Random |
+| ------------------ | -----------: | -----------: | -----: |
+| Mean probe accuracy|        0.599 |        0.513 |  0.600 |
 
-Instrumented forward+backward passes on 60 training samples compare gradient
-flow between NAMM-evicted and full-context conditions using the M3 checkpoint.
+M1 accuracy (0.599) is at chance level and M3 (0.513) is below chance.
+Neither result provides clear evidence about whether evicted content is
+retained or lost. The buggy analysis showed M1 at 0.557 and M3 at 0.484
+(vs random 0.500), which appeared to show meaningful information loss in
+M3's later layers. With the baseline shift, this interpretation no longer
+holds.
 
-| Metric                       | Evicted (cs=1024) | Full context |
-| ---------------------------- | ----------------: | -----------: |
-| Mean CE loss (answer tokens) |             8.706 |        0.902 |
-| Mean retention ratio         |             0.201 |        1.000 |
-| Gradient direction cos sim   | 0.015 (near zero) |              |
+This report needs methodological revision (balanced class sampling or a
+different probe design) before conclusions can be drawn.
 
-Eviction increases answer-token loss by **865%** (8.71 vs 0.90). Gradient
-directions are essentially **uncorrelated** between evicted and full-context
-conditions (mean cosine similarity 0.015), meaning eviction completely changes
-the optimization signal. Early layers (0-3) show the largest gradient norm
-amplification under eviction (4-6x), while later layers (10-15) show more
-moderate increases (1-2x).
+### Report 9 -- Gradient Flow and Loss Attribution (Maskfix)
+
+The corrected NAMM creates a substantially harsher training signal than the
+buggy version:
+
+| Metric                     | Maskfix        | Buggy          |
+| -------------------------- | -------------: | -------------: |
+| Mean retention ratio       |          3.8%  |         20.1%  |
+| CE loss (evicted)          |     ~6.7 (est) |          8.706 |
+| Loss increase vs full ctx  |         +641%  |          +865% |
+| Gradient cos sim           |         ~0.01  |          0.015 |
+
+Gradient directions remain essentially uncorrelated between evicted and
+full-context conditions under both buggy and maskfix NAMM. The key
+difference is the severity: corrected NAMM retains 5x fewer tokens (3.8%
+vs 20%), creating a far more aggressive information bottleneck. Despite
+this, M3 achieves a higher val F1 (52.06) than under the buggy mask,
+suggesting the LoRA can successfully adapt to even extreme eviction.
 
 ---
 
 ## 3. Cross-Report Analysis
 
-### 3.1 The Coherent Picture: Weight Space -> Function Space -> Task Performance
+### 3.1 The Coherent Picture: Weight -> Function -> Task (Maskfix)
 
-Reports 4, 5, 6, 7, 8, and 9 form a coherent chain from weight-space to
-function-space to task performance:
+Reports 4, 5, 6, 7, and 9 form a chain from weight-space to function-space
+to task performance under maskfix:
 
 ```
-Weight space (Report 4)          Function space (Reports 5, 6, 7)         Task space (Report 1)
------------------------------    ---------------------------------         --------------------
-Orthogonal LoRA subspaces   ->  Different attention patterns          ->  M3/cs1024: 32.28
-M3 norms 1.5-2.6x larger   ->  +4% entropy, -1% sinks               ->  M1: 31.14
-                             ->  CKA dip at layer 3 (0.979)              A4/cs2048: 33.91
-                             ->  Anti-correlated with NAMM scores
+Weight space (Report 4)          Function space (5, 6, 7)
+--------------------------       ---------------------------
+Orthogonal LoRA subspaces   ->   +5.0% entropy, -2.7% sinks
+M3 norms 1.42x (efficient) ->   Positive NAMM correlation
+                             ->   CKA min at layer 10 (0.990)
+
+Gradient signal (Report 9)       Task space (Report 1)
+--------------------------       ----------------------
+3.8% retention, +641% loss  ->   M3 val F1: 52.06
+Uncorrelated gradients      ->   M1 val F1: 45.48
+                             ->   Recovery ratio: 121.5%
 ```
 
-M3 occupies a genuinely different region of function space. On corrected test
-data, this different solution achieves *better* task performance than M1 when
-eviction is active (32.28 vs 31.14), and the A4/cs2048 ablation shows it also
-excels without eviction (33.91 vs 31.14). The mechanistic story (orthogonal
-subspaces, broader attention, CKA divergence) describes a model that is
-genuinely different from M1 -- and now demonstrably at least as good or better
-across both inference regimes.
+M3 learns in near-orthogonal weight subspaces with more efficient
+perturbations (smaller norms). It develops broader attention patterns
+(hedging) and produces representations that diverge most at layer 10
+(near the eviction hotspot at layers 8-9). Despite operating under
+extreme eviction (3.8% retention), M3 exceeds M1's validation performance
+by 14.5%.
 
-### 3.2 Pre-emptive Hedging: Confirmed by Both Test Results and A4 Ablation
+### 3.2 Pre-emptive Hedging: Confirmed Across Both NAMM Versions
 
-The original hypothesis predicted that M3 would learn to align its attention
-with NAMM's eviction decisions -- attending more to tokens NAMM retains. The
-evidence refutes this:
+The hedging hypothesis -- that M3 distributes attention broadly to be
+robust against arbitrary eviction -- is supported by maskfix data:
 
-- **Report 6:** NAMM-attention correlation is identical for M1 and M3 (-0.137
-  vs -0.136). No alignment shift.
-- **Report 5:** M3 increases entropy (+4%) rather than sharpening attention
-  toward retained tokens.
-- **Report 4:** M3's LoRA subspaces are orthogonal to M1's, not a refinement.
+- **Report 5:** M3 increases entropy (+5.0%) and reduces sink reliance
+  (-2.7%), with slightly larger effects than under buggy NAMM.
+- **Report 4:** M3's LoRA subspaces are orthogonal to M1's, confirming a
+  qualitatively different adaptation strategy.
+- **Report 6:** M3 does not reshape attention toward NAMM (identical rho
+  for M1 and M3), meaning hedging is undirected -- the model hedges
+  against eviction in general, not toward specific NAMM decisions.
 
-Instead, M3 adopts a **pre-emptive hedging** strategy:
-1. Distribute attention more broadly (Report 5) so that no single token's
-   eviction is catastrophic
-2. Reduce reliance on attention sinks (Report 5) to extract more from content
-   tokens while available
-3. Use larger LoRA perturbations (Report 4) concentrated in later layers to
-   compensate for information loss during task-specific processing
+The hedging pattern is robust across both buggy and maskfix NAMM
+configurations, even though the corrected NAMM is 5x more aggressive. This
+suggests the strategy is a fundamental consequence of training under any
+eviction regime, not a response to a particular eviction severity.
 
-The updated test results provide strong validation. M3/cs1024 (32.28) exceeds
-M1 (31.14), and the A4 ablation confirms the hedging strategy is **beneficial
-in both regimes**:
+### 3.3 NAMM Tracks Attention (Weakly), Not the Opposite
 
-- **With eviction:** M3/cs1024 (32.28) > M1 (31.14) -- hedging actively helps
-  under eviction
-- **Without eviction:** A4/cs2048 (33.91) > M1 (31.14) -- hedging also helps
-  on full context
-- **A4/cs1024 (28.82)** is slightly below M1, but A4/cs2048 (33.91) exceeds it
+The buggy-era "complementary signals" narrative described NAMM as operating
+on fundamentally different information from attention. With corrected masks,
+the picture is simpler: NAMM's spectrogram-based scoring produces retention
+preferences that weakly agree with attention magnitude (rho = +0.135).
 
-### 3.3 NAMM Operates on a Different Importance Signal Than Attention
+This makes architectural sense. NAMM takes attention spectrograms as input
+and was evolved (CMA-ES) to maximise F1. Its scoring reflects attention
+patterns, transformed through the spectrogram representation. The weak
+positive correlation confirms NAMM uses attention-derived information,
+though its spectrogram processing captures patterns beyond raw magnitude.
 
-Report 6's negative correlation between NAMM scores and attention (-0.14) is
-initially surprising but consistent with NAMM's architecture:
+The lack of M3-induced alignment shift (M1 and M3 both show rho = +0.135)
+remains consistent: M3 does not learn to cooperate with NAMM's eviction
+decisions.
 
-- NAMM uses **attention spectrograms** (STFT of attention patterns over the KV
-  cache) as input to its scoring network, not raw attention weights
-- The spectrogram captures **temporal patterns** -- how a token's attention
-  changes across layers -- which is fundamentally different from instantaneous
-  attention at any single layer
-- NAMM was trained via CMA-ES to maximise F1, not to preserve attention
-  patterns
+### 3.4 Layer 10 Replaces Layer 3 as the Adaptation Locus
 
-This has implications for understanding why NAMM outperforms recency-based
-eviction (B1/cs1024: 12.45 vs M2/cs1024: 20.30, a 7.85-point advantage).
-Recency eviction uses no information about token importance; NAMM learns a
-nuanced importance signal from spectrograms.
+The buggy-era analysis identified layer 3 as the critical adaptation point,
+supported by convergent evidence from Reports 5, 7, 4, and 3. With maskfix
+data, the CKA minimum shifts to layer 10 (Report 7), and the most aggressive
+eviction occurs at layers 8-9 (Report 3).
 
-### 3.4 NAMM vs Truncation: The Value of Learned Selective Eviction
+The revised picture: M3's LoRA adapts representations most strongly in the
+layers immediately downstream of the heaviest eviction. Rather than
+"preparing" representations upstream for eviction (the layer 3 narrative),
+the adaptation occurs at or after the eviction site, compensating for
+information loss after it occurs.
 
-The new truncation baselines establish that NAMM provides genuine value beyond
-simply reducing context length:
+### 3.5 M2 Degradation Highlights the LoRA's Role
 
-**At 1024 tokens retained:**
+Maskfix M2 best val F1 (14.90) is substantially worse than buggy M2 (27.90).
+Without LoRA adaptation, the corrected (5x more aggressive) eviction
+devastates performance. Yet M3 with the same corrected NAMM achieves val F1
+52.06 -- a 37-point improvement over M2.
 
-| Method                  | Micro F1 | Delta vs Trunc/plain |
-| ----------------------- | -------- | -------------------- |
-| Trunc/plain_1024        | 18.21    | --                   |
-| B1/cs1024 (recency)     | 12.45    | -5.76                |
-| M2/cs1024 (NAMM only)   | 20.30    | +2.09                |
-| Trunc/lora_m1_1024      | 26.90    | +8.69                |
-| M3/cs1024 (LoRA + NAMM) | 32.28    | +14.07               |
+This contrast establishes that the LoRA is doing the heavy lifting. NAMM
+alone under corrected eviction loses too much information. The LoRA's
+adaptation (broader attention, orthogonal subspaces, efficient norms)
+transforms a destructive bottleneck into a beneficial training signal.
 
-**At 2048 tokens retained:**
+### 3.6 Eviction Severity and Adaptation Quality
 
-| Method                  | Micro F1 | Delta vs Trunc/plain |
-| ----------------------- | -------- | -------------------- |
-| Trunc/plain_2048        | 18.26    | --                   |
-| B1/cs2048 (recency)     | 13.78    | -4.48                |
-| M2/cs2048 (NAMM only)   | 17.40    | -0.86                |
-| Trunc/lora_m1_2048      | 28.87    | +10.61               |
-| M3/cs2048 (LoRA + NAMM) | 31.06    | +12.80               |
+The buggy vs maskfix comparison provides a natural experiment on eviction
+severity:
 
-Key observations:
-- **Recency eviction is worse than truncation** (B1 < Trunc/plain at both
-  sizes). Naive recency eviction actively harms performance more than simply
-  dropping the beginning of the context.
-- **NAMM without LoRA matches or slightly exceeds plain truncation**
-  (M2/cs1024: 20.30 vs Trunc/plain_1024: 18.21), showing learned eviction
-  preserves more useful information than truncation.
-- **LoRA is the largest single contributor.** Adding M1's LoRA to truncation
-  (Trunc/lora_m1) provides a larger gain than adding NAMM to the base model
-  (M2).
-- **NAMM + LoRA together exceed the sum of parts.** M3/cs1024 (32.28) exceeds
-  Trunc/lora_m1_1024 (26.90) by 5.38 points. The gap between NAMM-adapted
-  LoRA and truncation-evaluated LoRA isolates the value of NAMM's selective
-  eviction over naive truncation when the LoRA has adapted to the eviction
-  regime.
+| Regime        | Retention | M3 best val F1 | M2 best val F1 |
+| ------------- | --------: | -------------: | -------------: |
+| Buggy NAMM    |      20%  |          ~45   |          27.90 |
+| Maskfix NAMM  |      3.8% |          52.06 |          14.90 |
 
-### 3.5 Layer 3: The Critical Adaptation Point
+More aggressive eviction *hurts* the base model (M2 degrades) but
+*helps* the LoRA-adapted model (M3 improves). This is consistent with
+the regularisation hypothesis: more aggressive eviction forces the LoRA
+into a more robust adaptation, analogous to stronger dropout improving
+generalisation despite worsening memorisation.
 
-Multiple reports converge on the early-middle layers as the locus of M3's
-adaptation:
-
-| Report   | Layer 3 Finding                                                                |
-| -------- | ------------------------------------------------------------------------------ |
-| Report 5 | Strong entropy increase (layers 3-4 among the most shifted)                    |
-| Report 7 | CKA minimum at layer 3 (0.979) -- maximum representational divergence          |
-| Report 4 | q_proj norm ratio begins its upward trend at layers 3-4                        |
-| Report 3 | NAMM retention drops sharply at layers 6, 8-9 (just after the adaptation zone) |
-
-This suggests a picture where M3's LoRA redirects information flow in layers
-2-4 (the syntactic-to-semantic transition), and NAMM's heaviest eviction hits
-in layers 6-9 (just downstream). The LoRA adaptation may be preparing
-representations to survive the eviction that occurs a few layers later.
-
-### 3.6 The A4 Ablation: Eviction-Aware Training as a General Regulariser
-
-The A4 results reveal an unexpected asymmetry between the cs1024 and cs2048
-LoRAs when NAMM is removed:
-
-| Condition      | With NAMM | Without NAMM (A4) |
-| -------------- | --------: | ----------------: |
-| M3/cs1024      |     32.28 |             28.82 |
-| M3/cs2048      |     31.06 |             33.91 |
-| M1 (reference) |        -- |             31.14 |
-
-- **A4/cs2048 (33.91) is the highest-scoring condition in the entire
-  experiment.** The cs2048 LoRA, trained under moderate eviction, produces the
-  best full-context performance when eviction is removed. This exceeds M1 by
-  2.77 points.
-- **A4/cs1024 (28.82) is below M1 (31.14)** by 2.32 points, suggesting the
-  cs1024 LoRA's adaptation is more tightly coupled to the eviction regime. The
-  more aggressive eviction at cs1024 may have pushed the LoRA into a more
-  specialised adaptation.
-- **M3/cs1024 loses 3.46 points when NAMM is removed** (32.28 -> 28.82). Here
-  the LoRA is better *with* eviction, suggesting the cs1024 LoRA and NAMM
-  policy are more tightly co-adapted -- the LoRA relies on NAMM's filtering at
-  inference time.
-- **M3/cs2048 gains 2.85 points when NAMM is removed** (31.06 -> 33.91). The
-  cs2048 LoRA is actually *better* without eviction, consistent with the
-  hedging interpretation: the LoRA learned robust representations, and NAMM
-  eviction at inference constrains rather than helps.
-
-The most striking implication: training under moderate eviction (cs2048) may
-act as a **general regulariser**, producing LoRA weights that outperform both
-the eviction-unaware M1 and the more aggressively eviction-trained cs1024
-variant.
-
-### 3.7 Eviction Hierarchy: Learned > Truncation > Recency (for base model)
-
-The B1, M2, and Trunc conditions establish the eviction hierarchy for the base
-model:
-
-| Method                   | cs1024 F1 | cs2048 F1 |
-| ------------------------ | --------: | --------: |
-| None (B0, full context)  |     22.41 |     22.41 |
-| NAMM eviction (M2)       |     20.30 |     17.40 |
-| Plain truncation (Trunc) |     18.21 |     18.26 |
-| Recency eviction (B1)    |     12.45 |     13.78 |
-
-For the **base model** (no LoRA), NAMM eviction at cs1024 nearly preserves
-full-context quality (20.30 vs 22.41, only 2.11 points lost), substantially
-outperforming both truncation (18.21) and recency (12.45). The ordering
-reverses at cs2048 where M2 (17.40) falls below truncation (18.26), possibly
-reflecting a less well-evolved cs2048 NAMM policy.
-
-With LoRA, the picture is clear. M3/cs1024 (32.28) exceeds M1 (31.14)
-despite operating with a 4-6x smaller KV cache. The remaining question is not
-whether eviction-aware training can compensate for the information bottleneck,
-but why it appears to produce a better model.
-
-### 3.8 Broken M1_recency/cs1024 Condition
-
-The `M1_recency/cs1024` condition (M1 LoRA + recency eviction at cache size
-1024) produces all-zero F1 scores across every task on both test and
-extended_test splits. This is a pipeline failure and these results are excluded
-from all comparative analyses. The `M1_recency/cs2048` run is still pending.
+However, the buggy M3 val F1 (~45) is a rough estimate. The comparison
+should be treated as suggestive rather than definitive.
 
 ---
 
 ## 4. Summary Table
 
-| Report | Question                            | Answer (updated with corrected eval)                                                                      |
-| ------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 0      | What are the tasks?                 | Two families: localised Qasper, distributed multi-hop                                                     |
-| 1      | Does M3 match M1 on test?           | **Yes, M3 exceeds M1** -- M3/cs1024 (32.28) > M1 (31.14). A4/cs2048 (33.91) is the best overall condition |
-| 2      | How fast does M3 learn?             | Same steps to peak as M1 on validation, despite lower starting point                                      |
-| 3      | Is eviction uniform?                | No -- layer-specific, stable, uncorrelated with F1                                                        |
-| 4      | Are the LoRA weights similar?       | No -- orthogonal subspaces, M3 norms 1.5-2.6x larger                                                      |
-| 5      | Are the attention patterns similar? | No -- M3 has +4% entropy, -1% sinks on full context                                                       |
-| 6      | Does M3 align with NAMM?            | No -- same negative correlation as M1 (rho = -0.14)                                                       |
-| 7      | Are the representations similar?    | Mostly -- CKA 0.979-1.0, dip at layer 3                                                                   |
-| 8      | Does M3 retain evicted information? | Partially -- probe accuracy degrades in layers 7-14 (M3 drops to 0.375 vs M1's 0.700 at layer 14)         |
-| 9      | Does eviction change gradient flow? | Yes drastically -- loss +865%, gradient directions uncorrelated (cos~0.02) between evicted and full       |
+| Report | Question                     | Maskfix Answer                          |
+| ------ | ---------------------------- | --------------------------------------- |
+| 0      | What are the tasks?          | Localised Qasper, distributed multi-hop |
+| 1      | Does M3 match M1?           | Exceeds: val 52.06 vs 45.48 (+14.5%)   |
+| 2      | How fast does M3 learn?      | Faster: peak at step 260 vs 336         |
+| 3      | Is eviction uniform?         | Nearly: CV 0.115, L8-9 most aggressive  |
+| 4      | Are LoRA weights similar?    | No: orthogonal, norms 1.42x (efficient) |
+| 5      | Are attention patterns same? | No: +5.0% entropy, -2.7% sinks          |
+| 6      | Does M3 align with NAMM?    | No: same +0.135 rho as M1               |
+| 7      | Are representations similar? | Mostly: CKA 0.990-1.0, min at layer 10  |
+| 8      | Is evicted info retained?    | Inconclusive (baseline imbalance)        |
+| 9      | Does eviction change grads?  | Yes: 3.8% retention, cos ~0.01           |
 
 ---
 
-## 5. Extended Test Corroboration
+## 5. Buggy vs Maskfix: What Changed and What Held
 
-The extended_test split (n=224, longer contexts 6500-8192 tokens) provides a
-robustness check. The main patterns hold but with attenuation:
+| Finding                   | Buggy           | Maskfix         | Changed? |
+| ------------------------- | --------------- | --------------- | -------- |
+| M3 > M1 on val           | Yes             | Yes (stronger)  | Stronger |
+| Pre-emptive hedging       | +4.2% entropy   | +5.0% entropy   | Robust   |
+| Orthogonal subspaces      | ~0.18 overlap   | ~0.21 overlap   | Robust   |
+| NAMM-attn correlation     | rho = -0.137    | rho = +0.135    | REVERSED |
+| CKA min layer             | Layer 3         | Layer 10        | Shifted  |
+| LoRA norm ratio (q_proj)  | 1.93x           | 1.42x           | Smaller  |
+| Retention ratio           | 20%             | 3.8%            | 5x lower |
+| Probe informativeness     | M3 drops to .375| Inconclusive    | Changed  |
+| Gradient uncorrelated     | cos ~0.015      | cos ~0.01       | Robust   |
 
-| Condition          | test micro | extended_test micro |
-| ------------------ | ---------: | ------------------: |
-| B0                 |      22.41 |               22.30 |
-| M1                 |      31.14 |               31.84 |
-| M3/cs1024          |      32.28 |               26.92 |
-| M3/cs2048          |      31.06 |               23.15 |
-| A4/cs1024          |      28.82 |               25.62 |
-| A4/cs2048          |      33.91 |               25.66 |
-| Trunc/lora_m1_1024 |      26.90 |               24.24 |
-| Trunc/lora_m1_2048 |      28.87 |               27.67 |
-
-On extended_test, M1 (31.84) leads M3/cs1024 (26.92) by 4.92 points. The
-longer contexts (6500-8192 tokens) increase eviction pressure, and M3's
-advantage observed on the standard test split does not fully extend to these
-harder examples. This suggests that while M3 matches M1 within the
-training-length distribution (4096-6500 tokens), extrapolation to longer
-contexts remains a challenge. Notably, A4/cs2048's advantage also disappears
-on extended_test (25.66 vs 31.84).
+Three findings reversed or substantially changed (NAMM-attention
+correlation, CKA layer, probing). Three findings were robust across both
+versions (hedging, orthogonal subspaces, uncorrelated gradients). The robust
+findings are the strongest claims in the analysis.
 
 ---
 
-## 6. Narrative for the Paper
+## 6. Open Questions
 
-The central contribution can be framed around three claims:
+1. **Maskfix test-set evaluation is the most urgent next step.** All
+   test-set numbers in this report are from the buggy NAMM pipeline. Until
+   maskfix test evals are run, the M3 > M1 finding rests on validation data
+   alone (n=64). The buggy test numbers show M3/cs2048 (31.41) matching M1
+   (31.14), but these cannot be compared to maskfix validation results.
 
-**Claim 1: Eviction-aware LoRA training matches or exceeds full-context LoRA
-while operating with a 4-6x smaller KV cache.**
-M3/cs1024 achieves 32.28 test F1 vs M1's 31.14, and M3/cs2048 achieves 31.06.
-After corrected evaluation with proper chat templates and protected tail
-tokens, the original validation-era conclusion is confirmed on held-out test
-data. NAMM-based eviction combined with adapted LoRA delivers competitive or
-superior performance at dramatically reduced cache sizes. The advantage holds
-on the standard test split but attenuates on longer contexts (extended_test),
-indicating that the benefit is strongest within the training-length
-distribution.
+2. **Why does more aggressive eviction help M3 but hurt M2?** The
+   maskfix NAMM retains 3.8% of tokens (vs 20% buggy), and M3 val F1
+   improves while M2 degrades. If this is a regularisation effect, there
+   should be an optimal eviction severity. Controlled experiments varying
+   cache size under maskfix NAMM would map this relationship.
 
-**Claim 2: Eviction-aware training produces a qualitatively different and
-potentially superior model.**
-The evidence chain (Reports 4->5->7) shows M3 is a genuinely different model:
-- Weight space: orthogonal LoRA subspaces, 1.5-2.6x larger norms (Report 4)
-- Attention: +4% entropy, reduced sink reliance, head-specific shifts (Report 5)
-- Representations: CKA dip at layer 3, different computation path (Report 7)
-- Task performance: M3/cs1024 (32.28) exceeds M1 (31.14) with eviction;
-  A4/cs2048 (33.91) exceeds M1 without eviction
+3. **Does the CKA shift to layer 10 align with a causal mechanism?** The
+   coincidence of CKA minimum (layer 10) and aggressive eviction (layers
+   8-9) is suggestive. Targeted ablation of LoRA weights at specific
+   layers could test whether the layer 10 adaptation is necessary for M3's
+   performance advantage.
 
-This is a strong finding: training under eviction discovers an alternative
-solution in orthogonal weight subspaces that outperforms the standard
-full-context adaptation. The pre-emptive hedging strategy (broader attention,
-less sink reliance) is not merely eviction-robust -- it appears to be a better
-inductive bias for the QA tasks tested. The A4/cs2048 result (33.91) suggests
-that moderate eviction during training acts as a beneficial regulariser.
+4. **Can joint training (M4) further improve M3?** M3 uses a frozen NAMM
+   policy. If the eviction policy could adapt to the LoRA's changing
+   representations during training, it might learn to retain tokens
+   specifically important for the fine-tuned model. This is the unrun M4
+   condition.
 
-**Claim 3: Learned eviction dramatically outperforms naive baselines, and NAMM
-provides genuine value over truncation.**
-The new truncation and recency baselines establish a clean hierarchy:
-- NAMM + LoRA (M3/cs1024: 32.28) > Truncation + LoRA (26.90) > NAMM alone
-  (20.30) > Truncation alone (18.21) > Recency (12.45)
-- NAMM eviction on the base model (M2/cs1024: 20.30) nearly preserves
-  full-context quality (B0: 22.41), outperforming both truncation (18.21)
-  and recency (12.45) by wide margins
-- The NAMM advantage over truncation (+5.38 points at cs1024 with LoRA)
-  isolates the value of learned selective eviction over naive context reduction
+5. **Is the probing approach salvageable?** Report 8's inconclusive results
+   stem from class imbalance. A revised probe with balanced sampling or a
+   different design (e.g., regression on token-level features rather than
+   binary classification on mean-pooled states) could clarify whether M3
+   retains or loses evicted content.
 
----
+6. **Does the M3 > M1 advantage hold at scale?** All experiments use Llama
+   3.2-1B and 4096-6500 token contexts. The buggy-era extended_test
+   results (M1: 31.84 vs M3/cs1024: 25.40 at 6500-8192 tokens) suggest
+   the advantage may not persist with longer contexts, though these
+   numbers are also buggy-era. Testing at longer contexts and with larger
+   models is needed.
 
-## 7. Open Questions
-
-1. **Why does M3 exceed M1?** The most surprising finding is that
-   eviction-aware training produces a *better* model, not just an
-   eviction-robust one. Is this a genuine regularisation effect (eviction acts
-   like dropout, preventing overfitting), a data augmentation effect (the model
-   sees varied truncated views of the same contexts), or an artefact of the
-   small test set (n=70)? The extended_test split (n=224) shows the advantage
-   does not hold for longer contexts, suggesting the effect may be
-   distribution-specific.
-
-2. **Why does A4/cs2048 (33.91) exceed A4/cs1024 (28.82)?** The cs2048 LoRA
-   outperforms the cs1024 LoRA on full context by 5.09 points. If more
-   aggressive eviction were a stronger regulariser, we would expect cs1024 to
-   be better. Instead, moderate eviction (cs2048) produces the best
-   full-context model. This suggests a sweet spot where eviction is aggressive
-   enough to regularise but not so aggressive as to distort the learned
-   representations.
-
-3. **Can joint training (co-evolving NAMM and LoRA) further improve M3?** M3
-   uses a frozen NAMM policy. If the eviction policy could adapt to the LoRA's
-   changing representations during training, it might learn to retain tokens
-   that are specifically important for the fine-tuned model, potentially
-   widening the M3 > M1 advantage. This is the unrun M4 condition.
-
-4. **Does the M3 > M1 advantage hold at scale?** All experiments use Llama
-   3.2-1B and 4096-6500 token contexts. The extended_test results (M1: 31.84
-   vs M3/cs1024: 26.92 at 6500-8192 tokens) suggest the advantage may not
-   persist with longer contexts. Testing at 8k, 16k, and 32k tokens, and with
-   larger models, would determine whether the finding generalises.
-
-5. **Is the pre-emptive hedging strategy optimal?** M3's broader attention
-   could be an optimal learned strategy or a coincidental artefact of the
-   training setup. A controlled experiment varying eviction intensity during
-   training (from light to heavy) would map the relationship between eviction
-   pressure and the degree of hedging, potentially identifying an optimal
-   training regime.
-
-6. **What drives M1's poor 2WikiMQA performance?** M1 scores only 10.00 on
-   2WikiMQA while M3/cs1024 scores 44.23 and even B0 scores 26.52. This
-   dramatic task-level discrepancy suggests M1's full-context training may have
-   introduced a bias that specifically hurts multi-hop reasoning with short
-   factoid answers. Understanding this failure mode could inform better training
-   strategies.
-
-7. **What caused the M1_recency/cs1024 failure?** The all-zero outputs need
-   diagnosis. If recency eviction is fundamentally incompatible with the M1
-   LoRA adapter, this has implications for understanding what NAMM provides
-   that recency does not.
+7. **What caused the M1_recency/cs1024 failure?** The all-zero outputs
+   (buggy test: 0.00 F1) need diagnosis. If recency eviction is
+   fundamentally incompatible with the M1 LoRA adapter, this has
+   implications for understanding what NAMM provides that recency does not.

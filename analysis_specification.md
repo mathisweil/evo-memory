@@ -13,18 +13,18 @@ We compare three conditions:
 
 ## Analysis Status
 
-| Section | Topic                          | Status                                                                                                       |
-| ------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| §0      | Dataset characterisation       | DONE (`report_0/_report.md`)                                                                                 |
-| §1      | Per-task sensitivity           | DONE (`report_1/_report.md` )                                                          |
-| §2      | Adaptation rate                | DONE (`report_2/_report.md` )                                                          |
-| §3      | Per-layer retention            | DONE (`report_3/_report.md` )                                                          |
-| §4      | LoRA weight comparison         | DONE (`report_4/_report.md` )                                                          |
-| §5      | Attention entropy              | DONE (`report_5/_report.md` )                                                          |
-| §6      | Token importance alignment     | DONE (`report_6/_report.md` )                                                          |
-| §7      | CKA representation similarity  | DONE (`report_7/_report.md` )                                                          |
-| §8      | Probing for residual knowledge | DONE (`report_8/_report.md` )                                                          |
-| §9      | Gradient flow attribution      | DONE (`report_9/_report.md` )                                                          |
+| Section | Topic                         | Status | Report                  |
+| ------- | ----------------------------- | ------ | ----------------------- |
+| §0      | Dataset characterisation      | DONE   | `report_0/_report.md`   |
+| §1      | Per-task sensitivity          | DONE   | `report_1/_report.md`   |
+| §2      | Adaptation rate               | DONE   | `report_2/_report.md`   |
+| §3      | Per-layer retention           | DONE   | `report_3/_report.md`   |
+| §4      | LoRA weight comparison        | DONE   | `report_4/_report.md`   |
+| §5      | Attention entropy             | DONE   | `report_5/_report.md`   |
+| §6      | Token importance alignment    | DONE   | `report_6/_report.md`   |
+| §7      | CKA representation similarity | DONE   | `report_7/_report.md`   |
+| §8      | Probing for residual knowledge| DONE   | `report_8/_report.md`   |
+| §9      | Gradient flow attribution     | DONE   | `report_9/_report.md`   |
 
 ### Additional conditions not in the original spec
 
@@ -48,11 +48,11 @@ Checkpoints available locally (`experiment_artifacts/gcs/M2_cs1024_maskfix/`, `M
 
 Maskfix analyses completed (all §0–§9):
 - §0: No rerun needed (dataset characterisation)
-- §1–§3: Rewritten from WandB data (`_report_maskfix.md` in each report folder)
+- §1–§3: Rewritten from WandB data
 - §4, §5, §7: GPU analyses using merged LoRA weights (`run_maskfix_gpu_analyses.py`)
 - §6, §8, §9: GPU analyses using full NAMM infrastructure (`run_maskfix_namm_analyses.py`)
 
-Each report's `_report.md` now contains the maskfix (corrected) results. Previous buggy versions are available in git history.
+Each report's `_report.md` now contains the maskfix (corrected) results as the primary data. Previous buggy versions are available in git history.
 
 ---
 
@@ -99,7 +99,7 @@ A high sensitivity score means the task relies on information that NAMM tends to
 
 **Data needed:** Per-task best val F1 for M1 and M3 at each cache size (already in wandb).
 
-> **Update:** This analysis was redone with test-set F1 (not val F1 as originally specified). Key finding: M3/cs1024 (32.28 test micro F1) slightly exceeds M1 (31.14), counter to the hypothesis that eviction would uniformly hurt performance.
+> **Update:** The report now uses maskfix validation data. Key finding: M3 maskfix (val F1 52.06) substantially exceeds M1 (val F1 45.48), counter to the hypothesis that eviction would uniformly hurt performance. Buggy test-set results (M3: 23.52, M1: 31.14) showed M3 underperforming, but this was confounded by the attention mask bug.
 
 **Effort:** Low — analysis of existing metrics only.
 
@@ -309,4 +309,4 @@ Analyses 1–3 can be completed immediately from existing wandb data. Analyses 4
 
 ## 10 · Cross-Report Synthesis
 
-`analysis/_summary_report.md` synthesises findings across all completed reports (§0–§9), drawing out cross-cutting themes and the overall narrative. `analysis/_meta-analysis.md` provides an independent critique of the analysis pipeline, identifying limitations, potential confounds, and directions for further work. `analysis/report_10/` compares buggy vs maskfix NAMM training results.
+`analysis/_summary_report.md` synthesises findings across all completed reports (§0–§9), drawing out cross-cutting themes and the overall narrative. `analysis/_meta-analysis.md` provides an independent critique of the analysis pipeline, identifying limitations, potential confounds, and directions for further work.

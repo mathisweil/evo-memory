@@ -10,13 +10,13 @@
 
 This project fine-tunes LLaMA 3.2-1B-Instruct on a 5-task LongBench QA subset. All tasks require the model to read a long context passage and answer a question about it. The tasks differ in source dataset, reasoning requirements, and answer format.
 
-| Task       | Source Dataset                            | Domain             | Reasoning Type                |
-| ---------- | ----------------------------------------- | ------------------ | ----------------------------- |
-| Qasper     | Qasper (Dasigi et al., 2021)              | Scientific papers  | Single-passage retrieval      |
-| 2WikiMQA   | 2WikiMultihopQA (Ho et al., 2020)         | Wikipedia passages | Multi-hop reasoning           |
-| Qasper-E   | Qasper, LongBench-E variant               | Scientific papers  | Single-passage retrieval      |
-| HotpotQA-E | HotpotQA (Yang et al., 2018), LongBench-E | Wikipedia passages | Multi-hop (bridge/comparison) |
-| 2WikiMQA-E | 2WikiMultihopQA, LongBench-E variant      | Wikipedia passages | Multi-hop reasoning           |
+| Task       | Source Dataset                       | Domain            | Reasoning Type           |
+| ---------- | ------------------------------------ | ----------------- | ------------------------ |
+| Qasper     | Qasper (Dasigi+ 2021)               | Scientific papers | Single-passage retrieval |
+| 2WikiMQA   | 2WikiMultihopQA (Ho+ 2020)          | Wikipedia         | Multi-hop reasoning      |
+| Qasper-E   | Qasper, LongBench-E variant         | Scientific papers | Single-passage retrieval |
+| HotpotQA-E | HotpotQA (Yang+ 2018), LongBench-E | Wikipedia         | Multi-hop (bridge/comp.) |
+| 2WikiMQA-E | 2WikiMultihopQA, LongBench-E        | Wikipedia         | Multi-hop reasoning      |
 
 All tasks are evaluated using **token-level F1 score** (qa_f1_score).
 
@@ -216,13 +216,13 @@ To quantify how much of each context is actually needed to answer the question, 
 
 See `relevant_tokens.png`, `relevant_tokens_boxplot.png`, `answer_positions.png`, and `eviction_survival.png`.
 
-| Task       | Mean Relevant Tokens | % of Context | # Distinct Regions | Answer Occurrences | Answer Position |
-| ---------- | -------------------- | ------------ | ------------------ | ------------------ | --------------- |
-| Qasper     | **192**              | 3.9%         | 1.2                | 0.6                | 0.47 (mid)      |
-| 2WikiMQA   | **1124**             | 21.6%        | 5.6                | 2.9                | 0.38            |
-| Qasper-E   | **271**              | 5.2%         | 1.5                | 1.3                | 0.43            |
-| HotpotQA-E | **2034**             | 42.1%        | 9.3                | 8.4                | 0.21 (early)    |
-| 2WikiMQA-E | **1173**             | 22.8%        | 5.8                | 2.7                | 0.38            |
+| Task       | Mean Rel. Tokens | % Context | Regions | Ans. Occur. | Ans. Position |
+| ---------- | ---------------- | --------- | ------- | ----------- | ------------- |
+| Qasper     | **192**          | 3.9%      | 1.2     | 0.6         | 0.47 (mid)    |
+| 2WikiMQA   | **1124**         | 21.6%     | 5.6     | 2.9         | 0.38          |
+| Qasper-E   | **271**          | 5.2%      | 1.5     | 1.3         | 0.43          |
+| HotpotQA-E | **2034**         | 42.1%     | 9.3     | 8.4         | 0.21 (early)  |
+| 2WikiMQA-E | **1173**         | 22.8%     | 5.8     | 2.7         | 0.38          |
 
 **Key findings:**
 
@@ -264,13 +264,13 @@ HotpotQA-E is the only task where relevant tokens substantially exceed the cache
 
 ### 6.3 Eviction Sensitivity Summary
 
-| Task       | Info Locality | Sensitivity | Reasoning                                                                 |
-| ---------- | ------------- | ----------- | ------------------------------------------------------------------------- |
-| Qasper     | Localised     | **MEDIUM**  | Answer in one section; eviction may lose it, but structured context helps |
-| 2WikiMQA   | Distributed   | **HIGH**    | Must retain 2+ passages; loss of either is fatal                          |
-| Qasper-E   | Localised     | **MEDIUM**  | Same as Qasper                                                            |
-| HotpotQA-E | Distributed   | **HIGH**    | 2 gold passages among many distractors; both needed                       |
-| 2WikiMQA-E | Distributed   | **HIGH**    | Same as 2WikiMQA                                                          |
+| Task       | Locality    | Sensitivity | Reasoning                                       |
+| ---------- | ----------- | ----------- | ----------------------------------------------- |
+| Qasper     | Localised   | **MEDIUM**  | Single section; structured context aids eviction |
+| 2WikiMQA   | Distributed | **HIGH**    | Must retain 2+ passages; either lost is fatal    |
+| Qasper-E   | Localised   | **MEDIUM**  | Same as Qasper                                   |
+| HotpotQA-E | Distributed | **HIGH**    | 2 gold passages among many distractors           |
+| 2WikiMQA-E | Distributed | **HIGH**    | Same as 2WikiMQA                                 |
 
 ---
 
@@ -343,15 +343,15 @@ LoRA fine-tuning with a pre-trained (frozen) NAMM eviction policy active. The LL
 
 ### 8.2 Expected Trends Across Conditions
 
-| Trend                                                 | Prediction                                 | Confidence |
-| ----------------------------------------------------- | ------------------------------------------ | ---------- |
-| M1 > B0 for all tasks                                 | Yes, fine-tuning should help universally   | High       |
-| M2 < B0 for all tasks                                 | Yes, 80% eviction causes major degradation | High       |
-| M3 > M2 for all tasks                                 | Yes, LoRA compensates for eviction         | High       |
-| M3 < M1 for all tasks                                 | Likely, eviction still loses information   | Medium     |
-| Multi-hop tasks degrade more under eviction (M2)      | Yes, distributed info is harder to retain  | High       |
-| Qasper tasks benefit more from fine-tuning (B0 to M1) | Moderate, due to format learning           | Medium     |
-| _E variants track their base counterparts             | Yes, same task type                        | High       |
+| Trend                                            | Prediction                              | Conf.  |
+| ------------------------------------------------ | --------------------------------------- | ------ |
+| M1 > B0 for all tasks                            | Yes, fine-tuning helps universally      | High   |
+| M2 < B0 for all tasks                            | Yes, 80% eviction degrades all          | High   |
+| M3 > M2 for all tasks                            | Yes, LoRA compensates for eviction      | High   |
+| M3 < M1 for all tasks                            | Likely, eviction still loses info       | Medium |
+| Multi-hop degrades more under eviction (M2)      | Yes, distributed info harder to retain  | High   |
+| Qasper benefits more from fine-tuning (B0 to M1) | Moderate, due to format learning        | Medium |
+| _E variants track base counterparts              | Yes, same task type                     | High   |
 
 ### 8.3 Specific Predictions
 
