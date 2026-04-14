@@ -4,11 +4,11 @@
 
 ## 1. Symptom
 
-At an earlier working-point, M1 (`lora_rh_m1_instruct_5t.yaml`) trained at
+At an earlier working-point, M1 (`m1_lora_5t.yaml`) trained at
 ~11 GB VRAM on a 24 GB 3090 Ti with `batch_size=2,
-gradient_accumulation_steps=8`. M3 (`lora_rh_m4_instruct_5t.yaml`) OOM'd at
+gradient_accumulation_steps=8`. M3 (`m3_lora_frozen_namm_5t.yaml`) OOM'd at
 the same config — the only deltas were `namm_active: true` and
-`cache_size: 1024`. M4 (`joint_lora_m4_5t.yaml`) already pinned
+`cache_size: 1024`. M4 (`m4_joint_lora_5t.yaml`) already pinned
 `lora_batch_size=1, gradient_accumulation_steps=16`, matching what the
 training rules require.
 
@@ -79,12 +79,12 @@ Two additional, smaller contributors:
 `.claude/rules/training.md` already mandates
 `batch_size=1, gradient_accumulation_steps=16` for **all of M1, M3, and
 M4** (effective batch = 16 in every condition). M4
-(`joint_lora_m4_5t.yaml:52-53`) was already compliant; M1 and M3 had
+(`m4_joint_lora_5t.yaml:52-53`) was already compliant; M1 and M3 had
 drifted to `batch_size=2, grad_accum=8`.
 
-- `scripts/configs/lora_rh_m1_instruct_5t.yaml:33-34` — `batch_size:
+- `scripts/configs/m1_lora_5t.yaml:33-34` — `batch_size:
   1, gradient_accumulation_steps: 16`.
-- `scripts/configs/lora_rh_m4_instruct_5t.yaml:34-35` — `batch_size:
+- `scripts/configs/m3_lora_frozen_namm_5t.yaml:34-35` — `batch_size:
   1, gradient_accumulation_steps: 16`.
 
 This on its own is sufficient to stop the OOM: `batch_size=1` was the

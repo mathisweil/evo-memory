@@ -74,7 +74,7 @@ From the readiness review (`run_joint.py:567-570` and `_run_lora_stage`):
 (run_joint.py:773). The value is logged into `config_dict` so each
 joint run's wandb/experiment record shows whether it was active.
 
-`scripts/configs/joint_lora_m4_5t.yaml` sets
+`scripts/configs/m4_joint_lora_5t.yaml` sets
 `lora_early_stopping_patience: 20`, matching M1 / M3. Patience applies
 **per stage**: a single LoRA stage stops early after 20 evals without
 val F1 improvement; the outer loop then advances to the next NAMM stage
@@ -149,11 +149,11 @@ success criterion. Red flags:
 
 ```bash
 venv/bin/python scripts/run_joint.py \
-    --config scripts/configs/joint_lora_m4_5t.yaml \
+    --config scripts/configs/m4_joint_lora_5t.yaml \
     --run_name m4_joint_lora_matched
 ```
 
-All M4 hyperparameters live in `joint_lora_m4_5t.yaml`; no CLI
+All M4 hyperparameters live in `m4_joint_lora_5t.yaml`; no CLI
 overrides are required. The config sets `num_outer_loops=3`,
 `namm_iterations_per_stage=67`, `lora_epochs_per_stage=50`,
 `lora_early_stopping_patience=20`, `lora_eval_interval=14`, and M1-matched

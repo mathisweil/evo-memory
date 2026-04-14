@@ -13,10 +13,10 @@ non-obvious paths that audit missed.
 
 | Config | Script | Dead keys | Missing keys | Notes |
 |---|---|---|---|---|
-| `lora_rh_m1_instruct_5t.yaml` | `run_lora.py` | none | none | All keys → argparse (see `config_code_audit.md`). `min/max_conditioning_length` are intentionally NOT in this YAML; they come from the Hydra `run_config` preset. |
-| `lora_rh_m4_instruct_5t.yaml` | `run_lora.py` | none | none | Same surface as M1. |
-| `joint_lora_m4_5t.yaml` | `run_joint.py` | none | none | `min/max_conditioning_length`, `max_answer_tokens` are read via argparse by `run_joint.py` (it has its own copies; they do NOT come from Hydra for joint). |
-| `joint_default.yaml` | `run_joint.py` | none | none | Identical key surface as `joint_lora_m4_5t.yaml`. |
+| `m1_lora_5t.yaml` | `run_lora.py` | none | none | All keys → argparse (see `config_code_audit.md`). `min/max_conditioning_length` are intentionally NOT in this YAML; they come from the Hydra `run_config` preset. |
+| `m3_lora_frozen_namm_5t.yaml` | `run_lora.py` | none | none | Same surface as M1. |
+| `m4_joint_lora_5t.yaml` | `run_joint.py` | none | none | `min/max_conditioning_length`, `max_answer_tokens` are read via argparse by `run_joint.py` (it has its own copies; they do NOT come from Hydra for joint). |
+| `joint_default.yaml` | `run_joint.py` | none | none | Identical key surface as `m4_joint_lora_5t.yaml`. |
 | `eval_default.yaml` | `run_eval.py` | none | none | `batch_size: null` and `cache_size: null` resolve to the Hydra `run_config` defaults. |
 | `eval_main_table.yaml` | `run_eval.py` | none | none | All values overridable via CLI for per-condition runs. |
 
@@ -28,7 +28,7 @@ No dead keys were found. No missing argparse flags were found.
 
 ### `min_conditioning_length` / `max_conditioning_length` in `run_lora.py`
 
-The LoRA YAMLs (`lora_rh_m1_instruct_5t.yaml`, `lora_rh_m4_instruct_5t.yaml`)
+The LoRA YAMLs (`m1_lora_5t.yaml`, `m3_lora_frozen_namm_5t.yaml`)
 do **not** contain these keys, and `run_lora.py` does **not** define argparse
 flags for them. They are read from the Hydra `cfg` object:
 
@@ -76,10 +76,10 @@ they are listed for completeness:
 
 | Config | Key | Value | Script default |
 |---|---|---|---|
-| `lora_rh_m1_instruct_5t.yaml` | `split_seed` | 42 | 42 |
-| `lora_rh_m1_instruct_5t.yaml` | `lora_rank` | 8 | 8 |
-| `lora_rh_m4_instruct_5t.yaml` | `split_seed` | 42 | 42 (added by C1 fix) |
-| `lora_rh_m4_instruct_5t.yaml` | `lora_rank` | 8 | 8 |
+| `m1_lora_5t.yaml` | `split_seed` | 42 | 42 |
+| `m1_lora_5t.yaml` | `lora_rank` | 8 | 8 |
+| `m3_lora_frozen_namm_5t.yaml` | `split_seed` | 42 | 42 (added by C1 fix) |
+| `m3_lora_frozen_namm_5t.yaml` | `lora_rank` | 8 | 8 |
 
 After Part C fixes, every LoRA hyperparameter that matters for reproducibility
 is stated explicitly in the YAML.

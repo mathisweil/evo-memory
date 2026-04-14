@@ -140,7 +140,7 @@ After implementing the fix:
 
 1. **Run the smoke test again** to confirm M3 fits in memory with batch_size=2 (if Fix A) or batch_size=1 (if Fix B).
 
-2. **Update `lora_rh_m4_instruct_5t.yaml`** if batch_size needs to change:
+2. **Update `m3_lora_frozen_namm_5t.yaml`** if batch_size needs to change:
    ```yaml
    batch_size: 1                # NAMM active requires batch_size=1 for memory
    gradient_accumulation_steps: 16  # effective batch = 16
@@ -150,9 +150,9 @@ After implementing the fix:
    - **Option 1 (preferred for fairness):** Set M1 to batch_size=1 too. Slower but controlled.
    - **Option 2:** Keep M1 at batch_size=2 and document that effective batch is identical (16). Acknowledge the minor per-step gradient noise difference.
    
-   If you change M1's batch_size, update `lora_rh_m1_instruct_5t.yaml` to match.
+   If you change M1's batch_size, update `m1_lora_5t.yaml` to match.
 
-4. **Update `joint_lora_m4_5t.yaml`** — M4 also runs LoRA with NAMM active. It currently has `lora_batch_size: 1`. If the fix (A) allows batch_size=2 for NAMM-active training, update M4 too.
+4. **Update `m4_joint_lora_5t.yaml`** — M4 also runs LoRA with NAMM active. It currently has `lora_batch_size: 1`. If the fix (A) allows batch_size=2 for NAMM-active training, update M4 too.
 
 5. **If you modified any source files** (e.g., added `torch.no_grad()` around NAMM scoring), document the change and why it's safe (frozen NAMM doesn't need gradients; CMA-ES doesn't use autograd).
 
@@ -180,7 +180,7 @@ namm/llms/<file>.py                  # or wherever NAMM scoring happens
   — Added torch.no_grad() around NAMM scoring during LoRA training
 
 # If configs were modified:
-scripts/configs/lora_rh_m4_instruct_5t.yaml   # batch_size if changed
-scripts/configs/lora_rh_m1_instruct_5t.yaml   # batch_size if changed for fairness
-scripts/configs/joint_lora_m4_5t.yaml         # lora_batch_size if changed
+scripts/configs/m3_lora_frozen_namm_5t.yaml   # batch_size if changed
+scripts/configs/m1_lora_5t.yaml   # batch_size if changed for fairness
+scripts/configs/m4_joint_lora_5t.yaml         # lora_batch_size if changed
 ```

@@ -8,8 +8,9 @@ paths:
   - scripts/configs/lora_*.yaml
   - scripts/configs/joint_*.yaml
   - scripts/configs/es_*.yaml
-  - scripts/lora_rh_m1_instruct_5t.yaml
-  - scripts/lora_rh_m4_instruct_5t.yaml
+  - scripts/configs/m1_lora_5t.yaml
+  - scripts/configs/m3_lora_frozen_namm_5t.yaml
+  - scripts/configs/m4_joint_lora_5t.yaml
   - grad_lora_finetuning/**
   - es_finetuning/**
 ---
@@ -28,21 +29,19 @@ All four main conditions (M1, M2, M3, M4) MUST share the same data, base model, 
 
 ## Condition map
 
-The codebase predates the M-numbering. The historical method names do not match the spec one-to-one:
-
-| Spec | Method (in YAML / WandB) | Script | Config |
+| Spec | `method` (in YAML, flows to WandB) | Script | Config |
 |---|---|---|---|
-| M1 LoRA-only | `rh_m1_lora_instruct_5t` | `run_lora.py` | `scripts/configs/lora_rh_m1_instruct_5t.yaml` |
-| M3 LoRA + frozen NAMM | `rh_m4_frozen_5t` | `run_lora.py` | `scripts/configs/lora_rh_m4_instruct_5t.yaml` |
-| M4 joint LoRA + NAMM | `joint_lora` | `run_joint.py --adapter_type lora` | `scripts/configs/joint_lora_m4_5t.yaml` |
+| M1 LoRA-only | `m1_lora_5t` | `run_lora.py` | `scripts/configs/m1_lora_5t.yaml` |
+| M3 LoRA + frozen NAMM | `m3_lora_frozen_namm_5t` | `run_lora.py` | `scripts/configs/m3_lora_frozen_namm_5t.yaml` |
+| M4 joint LoRA + NAMM | `joint_lora` | `run_joint.py --adapter_type lora` | `scripts/configs/m4_joint_lora_5t.yaml` |
 
-You MUST NOT rename `rh_m4_frozen_5t` → `m3_*` or otherwise "fix" the historical naming. WandB run history, GCS checkpoint paths, and `experiments/experiment_N/m1_lora_only/...` directories all depend on the existing strings.
+Historical artefacts use the old strings (`rh_m1_lora_instruct_5t`, `rh_m4_frozen_5t`, `rh_m4_5t_cs*`) — they remain intact in WandB run history, GCS checkpoint paths under `gs://statistical-nlp/NAMM_checkpoints/pretrained/lora-m{1,4}-...`, on-disk `results/rh_*` directories, and `results/main_table_5t/M4/` (which contains M3 results). Do not rewrite those external strings; only the source-side names changed.
 
 ## LoRA hyperparameters
 
 - M1: `learning_rate=5e-5`, `num_epochs=150`, `batch_size=1`, `gradient_accumulation_steps=16` (effective batch = 16), `lora_dropout=0.1`. Default rank `r=8`, `alpha=16`. Sweep variants `r=4 alpha=8` and `r=16 alpha=32` are M1-r4 / M1-r16; you MUST keep `alpha = 2 * rank` when adjusting rank. `batch_size=1` (rather than the spec's older `4`) is used everywhere so M1, M3, M4 have identical per-step processing.
 - M3: MUST match M1 exactly except `namm_active=true` and `cache_size=1024`. That means `learning_rate=5e-5`, `lora_dropout=0.1`, `batch_size=1`, `gradient_accumulation_steps=16` (effective batch = 16). Any deviation is a confound — the M1-vs-M3 comparison is the paper's headline result. Historical M3 runs used `learning_rate=1e-4`, `lora_dropout=0.05`; those are now labelled "M3-tuned" and must be re-run (see `docs/m3_rerun_plan.md`).
-- M4: must call `run_joint.py --config scripts/configs/joint_lora_m4_5t.yaml --adapter_type lora --num_outer_loops 3 --namm_iterations_per_stage 67 --lora_epochs_per_stage 50`. Totals (201 NAMM gens, 150 LoRA epochs) MUST match M1+M2 budgets — that is what makes the comparison fair. LoRA hyperparameters inside each stage MUST match M1 (`learning_rate=5e-5`, `lora_dropout=0.1`, `lora_batch_size=1`, `gradient_accumulation_steps=16`). The 3-loop schedule supersedes the earlier 2-loop design (see `docs/m4_joint_training_analysis.md`).
+- M4: must call `run_joint.py --config scripts/configs/m4_joint_lora_5t.yaml --adapter_type lora --num_outer_loops 3 --namm_iterations_per_stage 67 --lora_epochs_per_stage 50`. Totals (201 NAMM gens, 150 LoRA epochs) MUST match M1+M2 budgets — that is what makes the comparison fair. LoRA hyperparameters inside each stage MUST match M1 (`learning_rate=5e-5`, `lora_dropout=0.1`, `lora_batch_size=1`, `gradient_accumulation_steps=16`). The 3-loop schedule supersedes the earlier 2-loop design (see `docs/m4_joint_training_analysis.md`).
 - M1, M3, M4 MUST use `early_stopping_patience=20` (or `lora_early_stopping_patience=20` for joint). The prior value of 5 was too aggressive for the 150-epoch schedule.
 - M1, M3, M4 MUST use `eval_interval=14` (or `lora_eval_interval=14` for joint) — enables best-of-N checkpoint selection at a practical wall-clock cadence.
 - You MUST keep `lora_target_modules=[q_proj, v_proj]` for all M-conditions.

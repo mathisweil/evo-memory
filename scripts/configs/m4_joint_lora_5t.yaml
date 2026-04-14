@@ -6,7 +6,7 @@
 #
 # Usage:
 #   python scripts/run_joint.py \
-#       --config scripts/configs/joint_lora_m4_5t.yaml \
+#       --config scripts/configs/m4_joint_lora_5t.yaml \
 #       --run_name m4_joint_lora
 
 # -- Experiment ---------------------------------------------------------------
@@ -71,6 +71,13 @@ filter_answers_by_tokens: 64
 
 # -- Evaluation ---------------------------------------------------------------
 batch_size: null
+
+# -- Wandb --------------------------------------------------------------------
+wandb_log: true
+wandb_entity: SNLP_NAMM
+wandb_project: Experiments
+wandb_run_name: null
+wandb_group_name: null
 
 # -- Advanced -----------------------------------------------------------------
 override: []

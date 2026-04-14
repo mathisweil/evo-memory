@@ -2,13 +2,13 @@
 # FAIR-01 compliant. See experiment_specification.md §3 M1.
 #
 # M1 is the anchor condition. All LoRA hyperparameters here MUST match the
-# corresponding keys in `lora_rh_m4_instruct_5t.yaml` (M3) and
-# `joint_lora_m4_5t.yaml` (M4). Length filtering (min/max_conditioning_length
+# corresponding keys in `m3_lora_frozen_namm_5t.yaml` (M3) and
+# `m4_joint_lora_5t.yaml` (M4). Length filtering (min/max_conditioning_length
 # =4096/6500) comes from the Hydra preset `run_config: namm_bam_i1_llama32_1b_5t`,
 # NOT from this YAML.
 #
 # Usage:
-#   python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml --run_name m1_r8
+#   python scripts/run_lora.py --config scripts/configs/m1_lora_5t.yaml --run_name m1_r8
 #
 # Rank sweep:
 #   --lora_rank 4 --lora_alpha 8      (M1-r4)
@@ -18,7 +18,7 @@
 # -- Experiment ---------------------------------------------------------------
 run_name: null
 experiment: null
-method: rh_m1_lora_instruct_5t
+method: m1_lora_5t  # Historical WandB runs used method: rh_m1_lora_instruct_5t (pre-rename)
 
 # -- LoRA hyperparameters -----------------------------------------------------
 lora_rank: 8

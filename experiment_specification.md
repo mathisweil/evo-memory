@@ -99,7 +99,7 @@ Supervised fine-tuning (SFT) with LoRA on the 5-task QA subset with full KV cach
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+    --config scripts/configs/m1_lora_5t.yaml \
     --run_name m1_r4 \
     --lora_rank 4 \
     --lora_alpha 8
@@ -109,7 +109,7 @@ python scripts/run_lora.py \
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+    --config scripts/configs/m1_lora_5t.yaml \
     --run_name m1_r8
 ```
 
@@ -117,7 +117,7 @@ python scripts/run_lora.py \
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+    --config scripts/configs/m1_lora_5t.yaml \
     --run_name m1_r16 \
     --lora_rank 16 \
     --lora_alpha 32
@@ -125,8 +125,8 @@ python scripts/run_lora.py \
 
 | Parameter                     | Value                                                                                  |
 | ----------------------------- | -------------------------------------------------------------------------------------- |
-| Config                        | `scripts/configs/lora_rh_m1_instruct_5t.yaml`                                          |
-| `method`                      | `rh_m1_lora_instruct_5t`                                                               |
+| Config                        | `scripts/configs/m1_lora_5t.yaml`                                          |
+| `method`                      | `m1_lora_5t` (historical: `rh_m1_lora_instruct_5t`)                                    |
 | `sft_mode`                    | true — supervised fine-tuning with chat template                                       |
 | `learning_rate`               | 5e-5                                                                                   |
 | `num_epochs`                  | 150                                                                                    |
@@ -207,15 +207,15 @@ LoRA is fine-tuned (SFT) while the frozen M2 NAMM is active during training. Thi
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+    --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
     --run_name m3_lora_frozen_namm \
     --namm_checkpoint <path-to-m2-checkpoint>
 ```
 
 | Parameter                     | Value                                                                                  |
 | ----------------------------- | -------------------------------------------------------------------------------------- |
-| Config                        | `scripts/configs/lora_rh_m4_instruct_5t.yaml`                                          |
-| `method`                      | `rh_m4_frozen_5t`                                                                      |
+| Config                        | `scripts/configs/m3_lora_frozen_namm_5t.yaml`                                          |
+| `method`                      | `m3_lora_frozen_namm_5t` (historical: `rh_m4_frozen_5t`)                               |
 | `sft_mode`                    | true — supervised fine-tuning with chat template                                       |
 | `namm_active`                 | true + NAMM checkpoint (required)                                                      |
 | `learning_rate`               | 5e-5 — MATCHES M1 (was 1e-4 in the first M3 runs; those are now labelled "M3-tuned", see §6 and `docs/m3_rerun_plan.md`) |
@@ -247,13 +247,13 @@ NAMM and LoRA are co-trained in alternating stages: Stage A evolves the NAMM for
 
 ```bash
 python scripts/run_joint.py \
-    --config scripts/configs/joint_lora_m4_5t.yaml \
+    --config scripts/configs/m4_joint_lora_5t.yaml \
     --run_name m4_joint_lora
 ```
 
 | Parameter                   | Value                                                                                  | Notes                                  |
 | --------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------- |
-| Config                      | `scripts/configs/joint_lora_m4_5t.yaml` (the M4 FAIR-01 preset)                        | `joint_default.yaml` is an ad-hoc preset — do not use it for the M4 paper run |
+| Config                      | `scripts/configs/m4_joint_lora_5t.yaml` (the M4 FAIR-01 preset)                        | `joint_default.yaml` is an ad-hoc preset — do not use it for the M4 paper run |
 | `adapter_type`              | `lora`                                                                                 |                                        |
 | `num_outer_loops`           | 3                                                                                      | Final adapter stage is `stage_2` (0-indexed) |
 | `namm_iterations_per_stage` | 67                                                                                     | 3 × 67 = 201 total — matches M2       |
@@ -347,7 +347,7 @@ python scripts/generate_report.py \
   "exact_match": 0.XXX,
   "num_samples": 70,
   "cache_size": 1024,
-  "method": "rh_m1_lora_instruct_5t"
+  "method": "m1_lora_5t"
 }
 ```
 
@@ -420,9 +420,9 @@ Single logical training run split across 3 WandB segments due to crashes/resumes
 
 ### M3 — LoRA with frozen NAMM at train-time
 
-These runs train LoRA adapters while the frozen M2 NAMM actively evicts KV cache tokens. Named `rh_m4_5t_cs*` in WandB (historical naming from the `rh_m4_frozen` method config).
+These runs train LoRA adapters while the frozen M2 NAMM actively evicts KV cache tokens. Historical WandB runs are named `rh_m4_5t_cs*` (predates the M-numbering — the file is now `m3_lora_frozen_namm_5t.yaml`).
 
-> **M3 must be re-run.** The runs in the table below used `learning_rate=1e-4` and `lora_dropout=0.05` — both differ from M1's `learning_rate=5e-5` and `lora_dropout=0.1`. This is a confound that invalidates any headline M1-vs-M3 comparison drawn from the tuned runs. The config at `scripts/configs/lora_rh_m4_instruct_5t.yaml` has been corrected (Part C1 of the 2026-04-14 config review) to match M1. See `docs/m3_rerun_plan.md` for the rerun command and WandB naming convention. The runs below are retained as the "M3-tuned" ablation.
+> **M3 must be re-run.** The runs in the table below used `learning_rate=1e-4` and `lora_dropout=0.05` — both differ from M1's `learning_rate=5e-5` and `lora_dropout=0.1`. This is a confound that invalidates any headline M1-vs-M3 comparison drawn from the tuned runs. The config at `scripts/configs/m3_lora_frozen_namm_5t.yaml` has been corrected (Part C1 of the 2026-04-14 config review) to match M1. See `docs/m3_rerun_plan.md` for the rerun command and WandB naming convention. The runs below are retained as the "M3-tuned" ablation.
 
 #### M3-tuned (pre-fix config — kept as secondary data point)
 
@@ -438,9 +438,10 @@ The cs1024 and cs2048 runs crashed before completing all 150 epochs but best che
 
 **Not yet started.** Will use run names `m3_cs{1024,2048,3072}_matched` and WandB group `m3_matched`.
 
-> **Naming note:** WandB names `rh_m4_5t_cs*` refer to M3 (frozen NAMM), not M4 (joint). The `rh_m4` prefix comes from the `rh_m4_frozen` method in the LoRA config. The NAMM checkpoint used by each M3 run is the corresponding M2 run at the same cache size.
-
-> **WARNING — results directory mislabelling:** The `results/main_table_5t/M4/` directory contains M3 (frozen NAMM) eval results, NOT M4 (joint) results. This mislabelling propagated from the `rh_m4_frozen` config name into `scripts/organize_eval_results.py` and all downstream plots/reports. The correct mapping is: `results/main_table_5t/M4/ → experiment spec M3`. Similarly, `A4/` ablations disable the frozen NAMM from M3 checkpoints, not from a joint M4 run. All analysis reports written before this note was added use "M4" to mean M3-frozen-NAMM.
+> **Historical naming:** WandB runs and GCS paths use `rh_m4_5t_cs*` for M3 runs and
+> `rh_m4_frozen` as the method name. This predates the current M-numbering. Config files
+> have been renamed to match the experiment specification (M3 = LoRA + frozen NAMM).
+> The `results/main_table_5t/M4/` directory contains M3 results, not M4 joint results.
 
 ### M4 — Joint LoRA + NAMM
 
@@ -483,7 +484,7 @@ Run these before committing to any full experiment to confirm the pipeline works
 
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+    --config scripts/configs/m1_lora_5t.yaml \
     --run_name smoke_m1 \
     --num_epochs 1 \
     --eval_interval 5 \
