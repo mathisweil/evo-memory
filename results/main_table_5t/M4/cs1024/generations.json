@@ -3,7 +3,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": "2",
+        "pred": "Yes",
         "answers": [
           "eight layers"
         ],
@@ -12,7 +12,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": "flickr dataset",
+        "pred": "European Flickr dataset",
         "answers": [
           " the same datasets as BIBREF7",
           "same datasets as BIBREF7"
@@ -32,7 +32,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "Unanswerable",
+        "pred": "What traditional linguistics features did they use?\n\nAnswer:",
         "answers": [
           "Unanswerable"
         ],
@@ -50,7 +50,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": "Gaussian-masked directional multi-head attention is a self-attention mechanism that uses a Gaussian mask to weight the directional information of the input sequences.",
+        "pred": "Gaussian-masked directional multi-head attention is a self-attention mechanism that combines the strengths of both Gaussian masking and directional attention.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "Unanswerable",
+        "pred": "\"Your\"\n\nThe \"USUAL\" AND \"THE \"MONTH'S\" TYPE OF PERSONATE\n\nThe \"USUAL\" AND \"THE \"USUAL\" AND \"THE \"USUAL\" AND \"THE \"USUAL\" AND \"THE \"USUAL\" AND \"THE \"USUAL\" AND \"THE \"USUAL\" AND \"THE \"USUAL\" AND \"THE \"US\"\n\nThe \"USUAL\" AND \"THE \"US\"\n\nThe \"US\"\n\nThe \"US\"\n\nThe \"US\"\n\nand \"The \"US\"\n\nThe \"US\" AND \"The \"US\" TO THE \"USUAL\" AND \"",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -70,7 +70,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "text classification",
+        "pred": "text classification, sentiment analysis",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -79,7 +79,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "Yes",
+        "pred": "The Slovenian dataset is a good example of how to use ELMo embeddings in a real-world context.",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "Unanswerable",
+        "pred": "I'd like to ask a question.",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "MLP (Modified Recurrent Neural Network)",
+        "pred": "I'm not sure the answer is \"no\" or \"yes\", but it's not a simple \"no\" or \"no\". We can use a different approach. One possible answer is that the question is not a yes or no \"no\" or \"no\", but it's not a yes or no \"no\" or \"no\", but it's not a yes or no \"no\". There are no \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -109,7 +109,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": "Yes",
+        "pred": "The \"new\" approach is to use the \"NER\" model, which is a type of NER (N embedded in the \"NER\" model, which is a type of NER (N the \"NER\" model, also known as the \"NER\" model, which is a type of NER, which is a type of NER, which is a type of NER, which is a type of NER, which is a type of NER, which is a type of NER, which is a type of NER, which is a type of NER, which is a type of NER",
         "answers": [
           "Yes",
           "Yes"
@@ -129,7 +129,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": "Unanswerable",
+        "pred": "Unsupervised learning of syntactic structure",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -141,7 +141,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": "Ajman",
+        "pred": "Empress Me, A 3rd Class Woman",
         "answers": [
           "Abu Dhabi"
         ],
@@ -150,7 +150,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": "Batavia",
+        "pred": "A small, but significant, question",
         "answers": [
           "Prenzlau"
         ],
@@ -159,7 +159,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": "Brooklyn",
+        "pred": "American director, American director",
         "answers": [
           "Pozna\u0144"
         ],
@@ -195,7 +195,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From Corleone To Brooklyn",
+        "pred": "From Corleone to Brooklyn",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -240,7 +240,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": "Fredrikstad",
+        "pred": "## The \"Big\" changes",
         "answers": [
           "K\u00f6ln"
         ],
@@ -251,7 +251,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": "Answer:",
+        "pred": "No",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -290,7 +290,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "A second-order co-ocurrence matrix is a matrix that contains the co-occurrence of two terms in a dataset.",
+        "pred": "A second-order co-occurrence matrix is a matrix where the entry at row i and column j represents the number of times that the terms i and j appear together in the corpus.",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -329,7 +329,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": "32,000",
+        "pred": "Our dataset is available at http://www.sfb1102.unienburg.de/?page=MCScript",
         "answers": [
           "13,939"
         ],
@@ -358,7 +358,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": "ROGUE metric",
+        "pred": "The article provides a detailed analysis of the text summarization pipeline using AMR for summarization.",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -397,7 +397,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": "F1 score",
+        "pred": "No, do not provide any explanation.",
         "answers": [
           "precision, recall , F1 score"
         ],
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Jaffrey",
+        "pred": "The 2020s are not related to the time of the year 2020.\n\n## Step 1:  The 2020s\n\nThe ",
         "answers": [
           "Marlborough"
         ],
@@ -454,7 +454,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": "Yes",
+        "pred": "## Step 1: The movie \"The Big Fix\" is a Brazilian film that tells a time of 10. The film \"The Big Fix\" is",
         "answers": [
           "yes"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": "Polypodium",
+        "pred": "## Step 1: The other two species are the Polymnia aurum and the Appalachian Mountains\nThe two species are the Appalachian Mountains and the Polonia",
         "answers": [
           "Polypodium"
         ],
@@ -472,7 +472,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "Noel",
+        "pred": "Brenda.",
         "answers": [
           "Albert"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "Free Music Archive",
+        "pred": "The song \"Live and Let Die\" was released on January 4, 1977, by the Rolling Stones, a British rock band.",
         "answers": [
           "A1 Recordings"
         ],
@@ -490,7 +490,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": "83",
+        "pred": "The population of the city that Munsonville is in the northwest corner of is 83.",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -499,7 +499,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Vodka",
+        "pred": "The \"Cuba Libre\" and \"Cuba Libre\" ingredients are:\n\n* The \"Cuba Libre\" ingredient is:\n\n* The \"Cuba Libre\"",
         "answers": [
           "lime"
         ],
@@ -526,7 +526,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": "12",
+        "pred": "GamesMaster has a sister publicatoin that is published how many times per year?\n\nYes, it is a magazine that is published every year.",
         "answers": [
           "13"
         ],
@@ -654,7 +654,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": "The University of Toledo",
+        "pred": "The American Film Institute",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -667,7 +667,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": "2",
+        "pred": "Yes",
         "answers": [
           "eight layers"
         ],
@@ -696,7 +696,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "Unanswerable",
+        "pred": "Cameras have been used to detect sarcasm, that involves detecting incongruity in language, that manifests over eye movement patterns.",
         "answers": [
           "Unanswerable"
         ],
@@ -714,7 +714,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": "Gaussian-masked directional multi-head attention is a self-attention mechanism that uses a Gaussian mask to weight the directional information of the input sequences.",
+        "pred": "I'm sorry, but I cannot provide a response that is not related to the question.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -724,7 +724,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "Unanswerable",
+        "pred": "Facebook, Twitter, and Reddit",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -734,7 +734,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "text classification, sentiment analysis",
+        "pred": " GE-FL, GE-FL, GE-FL, GE-FL, GE-FL, GE-FL, GE-FL, GE-FL",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "Yes",
+        "pred": "Polysystem: ELMoForManyLangs",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -753,7 +753,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "Unanswerable",
+        "pred": "The last  5 minutes were not the  5 minutes it's not the    # of the  #! the  # of the  #! the  # of the  #! the  #! the  #!\n\nThe last  # of the  #! the  #! the  #! the  #! the  #!\n\nThe  #! the  #! the  #! the  #! the  #! the  #!\n\nThe  #! the  #! the  #! the ! the ! the!\". The! was not the! the!",
         "answers": [
           "3606",
           "6946"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "MLP (Modified Neural Network)",
+        "pred": "and \"no\", \"yes\" and \"no\".\"\n\nThe last 2 parts of the United States\n\nThe last 2 parts of the United States\n\nThe United States\n\nThe United States\n\nThe United States\n\nThe \"no\" and \"yes\" were not included in the US, but the \"yes\" and \"no\" parts of the US, the \"no\" and \"yes\" were not included in the US, but the \"yes\" and \"no\" parts of the US, the \"no\" and \"yes\" were not included in the US, the \"yes\" and \"no\" were not included",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -783,7 +783,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": "No",
+        "pred": "Yes",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -793,7 +793,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": "Wall Street Journal",
+        "pred": "Unanswerable",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -982,7 +982,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": "Ajman",
+        "pred": "The first major achievement of Abdulaziz Nasser Al Shamsi was to sign a three-year contract as a coach.",
         "answers": [
           "Abu Dhabi"
         ],
@@ -1000,7 +1000,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": "Brooklyn",
+        "pred": "**\"The American Doctor Blake Mysteries\"**",
         "answers": [
           "Pozna\u0144"
         ],
@@ -1009,7 +1009,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": "London",
+        "pred": "In 1946, the husband of Maude Smith was born in London, England, as Thadis P. Leach",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -1027,7 +1027,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": "Bogdan \u021a\u0103ru\u0219",
+        "pred": "Wesley Barresi\nWesley Barresi  (born 3 May 1984) is a South African born first-class and Netherlands international cr",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -1036,7 +1036,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From Corleone To Brooklyn",
+        "pred": "The film is \"Homicide: The Love Story\" directed by Fred Barr.",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -1054,7 +1054,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": "Richard de Beauchamp, 13th Earl of Warwick",
+        "pred": "Berkeley's maternal grandfather was Sir John Berkeley, 1st Baronet.",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -1063,7 +1063,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": "Italia-Germania 4-3",
+        "pred": "Prince Peter, the writer, educator and activist, was born and raised on a farm in the Town of Arcadia",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -1072,7 +1072,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": "Milan",
+        "pred": " Kennedy",
         "answers": [
           "Milan"
         ],
@@ -1470,7 +1470,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": "Answer:",
+        "pred": "Answer: The attribution of under-translated words to the model.",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -1480,7 +1480,7 @@
       },
       {
         "prompt_idx": 164,
-        "pred": "Yes",
+        "pred": "No",
         "answers": [
           "No"
         ],
@@ -1509,7 +1509,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "A second-order co-occurrence matrix is a matrix where the entry at row i and column j represents the number of times that the terms i and j appear together in the corpus.",
+        "pred": "No",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -1519,7 +1519,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": "F1 score, accuracy",
+        "pred": "F1 score, accuracy, and precision.",
         "answers": [
           "precision, recall, F1 and accuracy",
           "precision, recall, F1 , accuracy "
@@ -1539,7 +1539,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": "by re-annotating the difficult subset with expert annotations",
+        "pred": "by re-annotating",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -1548,7 +1548,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": "32",
+        "pred": "32,000",
         "answers": [
           "13,939"
         ],
@@ -1587,7 +1587,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "Unanswerable",
+        "pred": "No",
         "answers": [
           "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
         ],
@@ -1596,7 +1596,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "Yes",
+        "pred": "Word embeddings, specifically the BERT and Word2Vec models, are explored in the paper.",
         "answers": [
           "Skip\u2013gram, CBOW",
           "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
@@ -1606,7 +1606,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": "Yes",
+        "pred": "How do they show that there is space for further improvement?",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -1625,7 +1625,7 @@
       },
       {
         "prompt_idx": 182,
-        "pred": "arXiv",
+        "pred": "arXiv dataset",
         "answers": [
           "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
         ],
@@ -1702,7 +1702,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": "The document-level encoder is novel because it uses a pre-trained BERT model as a general-purpose language model for summarization tasks.",
+        "pred": "The document-level encoder is novel because it uses a pre-trained BERT model as a general-purpose language model for summarization.",
         "answers": [
           "Bert model have a maximum length of 512; we overcome this limitation by adding more position embeddings, we insert external [cls] tokens at the start of each sentence, and each [cls] symbol collects features for the sentence preceding it, document representations are learned hierarchically"
         ],
@@ -1920,7 +1920,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": "Yes",
+        "pred": "I'd like to help you with that.\n\n## Step 1: The film \"The Trial of the Magic Box\" is a 2010 British comedy film",
         "answers": [
           "yes"
         ],
@@ -1929,7 +1929,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Jaffrey",
+        "pred": "Morristown",
         "answers": [
           "Marlborough"
         ],
@@ -1938,7 +1938,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": "Yes",
+        "pred": "Poles and foreigners who have been working with the British government have been working with the British government have been working with the British government have been working with the British",
         "answers": [
           "yes"
         ],
@@ -1965,7 +1965,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "Noel",
+        "pred": "## Step-by-Step Instructions to the \"Big Event\" Theatrical Production\n\nThe \"Big Event\" is a television show that aired in 1995",
         "answers": [
           "Albert"
         ],
@@ -1974,7 +1974,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "Universal",
+        "pred": "I don't know the answer to the question",
         "answers": [
           "A1 Recordings"
         ],
@@ -1983,7 +1983,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": "83",
+        "pred": "16,000",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Vodka",
+        "pred": "a drink",
         "answers": [
           "lime"
         ],
@@ -2001,7 +2001,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": "George Abbott was the director of the 1926 play \"Broadway Bound\" and the 1926 film \"Broadway Bound\".",
+        "pred": "George Abbott was a playwright and director, best known for his work on the Broadway play \"Broadway Bound\" and the film \"Broadway Melody of ",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -2019,7 +2019,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": "12",
+        "pred": "3",
         "answers": [
           "13"
         ],
@@ -2091,7 +2091,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": "No",
+        "pred": "No.",
         "answers": [
           "no"
         ],
@@ -2282,7 +2282,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "Hubba",
+        "pred": "Archduchess Maria Carolina of Austria",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],

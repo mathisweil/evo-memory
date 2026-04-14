@@ -48,6 +48,8 @@ CONDITIONS = [
     ("Trunc/plain_2048",  "Trunc plain 2048",        "#9467bd"),
     ("Trunc/lora_m1_1024","Trunc M1 LoRA 1024",      "#aec7e8"),
     ("Trunc/lora_m1_2048","Trunc M1 LoRA 2048",      "#5d8aa8"),
+    ("M1_under_NAMM/cs1024", "M1 under NAMM cs1024", "#ff9896"),
+    ("M1_under_NAMM/cs2048", "M1 under NAMM cs2048", "#d6616b"),
     ("M4/cs1024",         "M4 LoRA+NAMM cs1024", "#d62728"),
     ("M4/cs2048",         "M4 LoRA+NAMM cs2048", "#8c1a1b"),
     ("A4/cs1024_no_namm", "A4 (M4-cs1024 no NAMM)", "#e377c2"),

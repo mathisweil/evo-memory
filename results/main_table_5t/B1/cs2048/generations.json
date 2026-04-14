@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "unanswerable",
+        "pred": "I don't have a specific question to ask, but I can provide a general framework for achieving a causal explanation.\n\n## Step 1: Define the problem\nWe need to determine which causal explanation to use.\n\n## Step 2: Identify the causal explanation\nWe will use a causal explanation that involves a complex system, a specific algorithm, and a set of conditions that must be met in order to achieve a causal explanation.\n\nThe final answer is: There is no final answer, as the causal explanation is still being developed.",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -79,7 +79,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "unanswerable",
+        "pred": "Question: The question is: \"Can a word embedding model be used to represent a concept or idea in a way that is meaningful and useful?\"\n\nAnswer: \"Yes, a word embedding model can be used to represent a concept or idea in a way that is meaningful and useful. Word embeddings are a type of machine learning model that are used to represent words as vectors in a high-dimensional space. They are often used in natural language processing, machine learning, and data analysis. Word embeddings can be used to represent a concept or idea in a way that is meaningful and useful, such as by providing a clear and concise explanation of the concept or",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "unanswerable",
+        "pred": "The question is not a yes/no question, but rather a question that asks for a comparison between two things.\n\nThe first thing is a word, which is a simple word that is used to represent a word.\n\nThe second thing is a graph, which is a simple graph that is used to represent a graph.\n\nThe question is asking for a comparison between the word and the graph, but the question itself is asking for a comparison between the word and the graph.\n\nThe question is asking for a comparison between the word and the graph.\n\nThe question is asking for a comparison between the word and the graph.\n\nThe question is asking for a comparison between",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "unanswerable",
+        "pred": "I'm happy to help with this problem. Here are the steps:\n\n1. Determine the type of data to be used.\n2. Determine the type of data to be used.\n3. Determine the type of data to be used.\n\n## Step 1: Determine the type of data to be used.\n\n## Step 2: Determine the type of data to be used.\n\n## Step 3: Determine the type of data to be used.\n\n## Step 4: Determine the type of data to be used.\n\n## Step 5: Determine the type of data to be used.\n\n## Step 6: Determine the type of data to",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -109,7 +109,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": "unanswerable",
+        "pred": "Question not answered",
         "answers": [
           "Yes",
           "Yes"
@@ -141,7 +141,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": "I cannot find any information about a person named Nasser Al Qudwa.",
+        "pred": "I don't have the information to answer your question.",
         "answers": [
           "Abu Dhabi"
         ],
@@ -150,7 +150,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": "Dyrrhachium",
+        "pred": "The Imperial Palace is a historic building that was built in the late 19th century.",
         "answers": [
           "Prenzlau"
         ],
@@ -159,7 +159,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": "Dublin",
+        "pred": "Ireland",
         "answers": [
           "Pozna\u0144"
         ],
@@ -240,7 +240,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": "I am unable to find the information you are looking for.",
+        "pred": "I do not have a job or a job description.",
         "answers": [
           "K\u00f6ln"
         ],
@@ -427,7 +427,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": "No, the film \"The Brave One\" (2007) is a revenge film, not a biopic.",
+        "pred": "No, the film \"Thrill of a Lifetime\" (1937) is not a film about the Holocaust.",
         "answers": [
           "yes"
         ],
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Chatham",
+        "pred": "## CRUSADLES\n\n## Morals\n\n## Business\n\n## Goods\n\n## Morale\n\n## Businesses\n\n## Goods\n\n## Morale\n\n## Businesses",
         "answers": [
           "Marlborough"
         ],
@@ -454,7 +454,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": "Yes",
+        "pred": "Only in the film \"La Coup de la Force\" is there a character who is a bit of a rebel, but not a main character, but there",
         "answers": [
           "yes"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": "Australe",
+        "pred": "I'm not sure what I'm looking for, and I'm not sure what I want.\n\nThe more I think about it, the more I think about it",
         "answers": [
           "Polypodium"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "A1 Recordings",
+        "pred": "The song \"Extra\" was a single by American rapper Future. It was released in 2016.",
         "answers": [
           "A1 Recordings"
         ],
@@ -499,7 +499,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Coca-Cola",
+        "pred": "None",
         "answers": [
           "lime"
         ],
@@ -645,7 +645,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": "Bertrand.",
+        "pred": "Sancha of Castile (21 September 1154/1155 \u2013 11 December 1198) was the daughter of King Alfonso VII",
         "answers": [
           "Urraca of Le\u00f3n"
         ],
@@ -686,7 +686,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": "unanswerable",
+        "pred": "unpublished.",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -696,7 +696,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "unanswerable",
+        "pred": "I apologize, but I don't have a clear answer to the question.",
         "answers": [
           "Unanswerable"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "unanswerable",
+        "pred": "I can answer your question by providing a detailed answer, but I'll need to break it down into smaller parts to make it more manageable.\n\nThe first part of the question is: \"What is the purpose of this question?\"\n\nThe answer is: \"This is a question, and it's asking for a purpose.\"\n\nThe second part of the question is: \"What is the purpose of this question?\"\n\nThe answer is: \"This is a question, and it's asking for a purpose.\"\n\nThe third part of the question is: \"What is the purpose of this question?\"\n\nThe answer is: \"This is a question, and it's",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -753,7 +753,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "unanswerable",
+        "pred": "## The first step is to define the problem and the objective\n\n## The objective is to extract a word or a phrase that is meaningful and accurate\n\n## The process involves extracting text from a document, such as a news article, and then analyzing the word or phrase to determine its meaning and purpose\n\nThe final answer is $\\boxed{0}$",
         "answers": [
           "3606",
           "6946"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "unanswerable",
+        "pred": "I'm happy to help\n\nThe four-class classifier is trained to classify the data in the following way:\n\n* The four-class classifier is trained to classify the data in the following way: The data is classified as the data is classified as the data.\n* The data is classified as the data is classified as the data.\n* The data is classified as the data is classified as the data.\n* The data is classified as the data is classified as the data.\n* The data is classified as the data is classified as the data.\n* The data is classified as the data is classified as the data.\n* The data is classified as the data",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -982,7 +982,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": "I cannot find any information about a person named Nasser Al Qudwa.",
+        "pred": "The Order of the Prophet\n\nThe Order of the Prophet\n\nThe Order of the Prophet\n\nThe Order of the Prophet\n\nThe Order of the Prophet\n\nThe Order",
         "answers": [
           "Abu Dhabi"
         ],
@@ -1000,7 +1000,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": "Dublin",
+        "pred": "Since the exhibition, the museum has made significant changes to its collections and exhibitions, including the introduction of new technologies and digital media.",
         "answers": [
           "Pozna\u0144"
         ],
@@ -1009,7 +1009,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": "California",
+        "pred": "I was born in 1927, and I died in 1932, at the age of 5, in the village of Shadwell, in",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -1027,7 +1027,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": "Borussia Dortmund",
+        "pred": "Bryan Lobb",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -1036,7 +1036,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From 1923",
+        "pred": "From the 1980s onwards, the film \"Valley of Love\" was released, but it is likely that the film was released in the 198",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -1072,7 +1072,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": "Ireland",
+        "pred": "I was born in 1958.",
         "answers": [
           "Milan"
         ],
@@ -1090,7 +1090,7 @@
       },
       {
         "prompt_idx": 0,
-        "pred": "Tudor dynasty (1485-1509) \n\nTudor kings (1485-1603) \n\nTudor queens (1485-",
+        "pred": "Tudor dynasty (1485-1509) \n\nHouse of Lancaster (1399-1471) \nHouse of York (1461-1485",
         "answers": [
           "Ozalj"
         ],
@@ -1144,7 +1144,7 @@
       },
       {
         "prompt_idx": 11,
-        "pred": "Renzo Piano \n \n \n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n",
+        "pred": "United States\n\nPassage 5\n\nMichael Govan\nMichael Govan is a Canadian film director, screenwriter, and producer. He was born in ",
         "answers": [
           "America"
         ],
@@ -1162,7 +1162,7 @@
       },
       {
         "prompt_idx": 23,
-        "pred": "Kakshi Seizo Kaushalayam (Nepali: \u0915\u093e\u0915\u094d\u0937\u0940 \u0938\u0947\u0920\u094b \u0915\u094c\u0936\u0932\u094d\u092f\u093e\u092e) (N",
+        "pred": "Kathmandu Valley\nNepal\nChandigarh\nIndia\nBangladesh\nSri Lanka\nMaldives\nMauritius\n",
         "answers": [
           "Nepal"
         ],
@@ -1198,7 +1198,7 @@
       },
       {
         "prompt_idx": 32,
-        "pred": "Obi-Wan Kenobi\n\nAnakin Skywalker/Darth Vader\n\nLuke Skywalker\n\nChewbacca\n\nC-3PO\n\nR2-D2\n\n",
+        "pred": "Obrien, 1999.",
         "answers": [
           "East Francia"
         ],
@@ -1252,7 +1252,7 @@
       },
       {
         "prompt_idx": 60,
-        "pred": "Prince Ludwig of Mecklenburg-Schwerin (1724\u20131782) was the eldest son of Christian August, Duke of Mecklenburg",
+        "pred": "Prince Ludwig of Mecklenburg-Schwerin (1724\u20131782) was the second son of Frederick I, Duke of Mecklenburg",
         "answers": [
           "Prince Albert of Prussia"
         ],
@@ -1261,7 +1261,7 @@
       },
       {
         "prompt_idx": 67,
-        "pred": "Detained\n\nThe film is about a man who is detained by the police after he is caught with a gun.",
+        "pred": "Detained\n\nThe film is about a man who is detained by the authorities after he is caught with a gun.",
         "answers": [
           "Det Sande Ansigt"
         ],
@@ -1270,7 +1270,7 @@
       },
       {
         "prompt_idx": 68,
-        "pred": "Il texto anterior de la respuesta es:\n\n\"Alfred Chester Beatty and Ireland 1950-1968: A study in cultural politics, Glendale Press",
+        "pred": "Il r\u00e9ponse est: Il n'y a pas d'informations pour r\u00e9pondre \u00e0 cette question. \n\nCependant, si vous souhaitez une r\u00e9ponse,",
         "answers": [
           "Bomgay"
         ],
@@ -1279,7 +1279,7 @@
       },
       {
         "prompt_idx": 69,
-        "pred": "The answer is: There is no answer. The question is not well-defined.",
+        "pred": "The answer is: None of the above.",
         "answers": [
           "Preslav"
         ],
@@ -1288,7 +1288,7 @@
       },
       {
         "prompt_idx": 72,
-        "pred": "Israel. (Note: The question was not clear about the context, but based on the provided information, it can be inferred that the answer is \"Israel\".",
+        "pred": "American (USA)",
         "answers": [
           "America"
         ],
@@ -1306,7 +1306,7 @@
       },
       {
         "prompt_idx": 77,
-        "pred": "Gerard Depardieu",
+        "pred": "Gerard Aznavour",
         "answers": [
           "Fran\u00e7oise Hardy"
         ],
@@ -1315,7 +1315,7 @@
       },
       {
         "prompt_idx": 83,
-        "pred": "He was a 16-year-old boy.",
+        "pred": "Heads,  Tails,  Tails,  Tails,  Tails,  Tails,  Tails,  Tails, ",
         "answers": [
           "illness"
         ],
@@ -1351,7 +1351,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": "Trevor Cox (1946-2012) was a British film director, producer, and screenwriter. He is best known for directing the films Repo",
+        "pred": "Trevor Cox. (2012). Alex Cox. The Guardian. Retrieved from <https://www.theguardian.com/arts/2012/jun",
         "answers": [
           "Tombstone Rashomon"
         ],
@@ -1423,7 +1423,7 @@
       },
       {
         "prompt_idx": 125,
-        "pred": "Henri I, Duke of Nemours (1533-1589) was the first holder of the title of Duke of Nemours. He was the son",
+        "pred": "Henri I, Duke of Nemours (1533-1589) was the first holder of the title of Duke of Nemours.",
         "answers": [
           "Jacques"
         ],
@@ -1432,7 +1432,7 @@
       },
       {
         "prompt_idx": 135,
-        "pred": "Princess Charlotte of Saxe-Meining (1768-1842) was the daughter of Bernhard III, Duke of Saxe-Meining,",
+        "pred": "Princess Charlotte of Saxe-Weimar and Germany (1797-1873) was the daughter of King Frederick William II of Prussia and Queen Caroline",
         "answers": [
           "Duchy of Saxe-Gotha-Altenburg"
         ],
@@ -1441,7 +1441,7 @@
       },
       {
         "prompt_idx": 141,
-        "pred": "Forrest\n\n(John Templeton)",
+        "pred": "Forrest Temple (1766\u20131836) was an Irish-born British politician and lawyer. He was a member of the Irish Parliament and served as a Member",
         "answers": [
           "Italy"
         ],
@@ -1459,7 +1459,7 @@
       },
       {
         "prompt_idx": 153,
-        "pred": "Albert Faris (1874-1954) was an American cartoonist and illustrator. He is best known for his work on the comic strip \"The Far",
+        "pred": "Albert Faris (1870-1942) was an American cartoonist and illustrator. He is best known for his work on the comic strip \"The Far",
         "answers": [
           "Albertus Seba"
         ],
@@ -1653,7 +1653,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": "The given problem is related to the concept of word embeddings, which are used in natural language processing to represent words as vectors in a high-dimensional space. The goal is to capture the semantic meaning of words and phrases in a way that can be used for tasks such as text classification, sentiment analysis, and language translation.\n\nIn this problem, we are asked to analyze the relationship between two words, \"university\" and \"library\", and to determine whether they are related or not. We can represent these words as vectors in a high-dimensional space, where the x-axis represents the frequency of the word in a given corpus and the y-axis represents",
+        "pred": "The given problem is related to the concept of word embeddings, which are used in natural language processing to represent words as vectors in a high-dimensional space. The goal is to capture the semantic meaning of words and phrases in a way that is useful for tasks such as text classification, sentiment analysis, and language translation.\n\nIn this problem, we are asked to analyze the relationship between two words, \"university\" and \"library\", and to determine whether they are semantically related. We can represent the words as vectors in a high-dimensional space, where the x-axis represents the frequency of the word in a given corpus and the y-axis represents the",
         "answers": [
           "dimension corresponding to the concept that the particular word belongs to"
         ],
@@ -1682,7 +1682,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": "Future Work\n\nThis research has the potential to improve the efficiency and effectiveness of data-to-text models. Future work could involve exploring different architectures and techniques for improving the performance of these models, such as using more advanced machine learning algorithms or incorporating more domain-specific knowledge. Additionally, future work could involve exploring the use of more advanced techniques for handling out-of-vocabulary words and other challenges associated with text-to-data conversion.",
+        "pred": "Future Work\n\nThis research has the potential to improve the efficiency and effectiveness of data-to-text models. Future work could involve exploring different architectures and techniques for improving the performance of these models, such as using more advanced machine learning algorithms or incorporating additional data sources. Additionally, future research could focus on developing more robust and reliable data-to-text models, such as those that can handle noisy or incomplete data.",
         "answers": [
           "rther constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions",
           "to further constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions"
@@ -1711,7 +1711,7 @@
       },
       {
         "prompt_idx": 111,
-        "pred": "The question is whether the attention mechanism in the Transformer model is effective in capturing the relationships between different words in a sentence. The Transformer model uses self-attention mechanisms to weigh the importance of different words in a sentence, and the attention mechanism is designed to capture the relationships between different words.\n\nThe attention mechanism in the Transformer model is based on the idea of weighted dot products, where the weights are learned during training. The weights are used to compute the dot product between the query and key vectors, and the result is scaled by the temperature parameter. The scaled result is then used to compute the weighted sum of the value vectors.\n\nThe Transformer model uses",
+        "pred": "The question is asking for a concise answer. Here is a concise answer:\n\nThe Transformer architecture is a type of neural network that uses self-attention mechanisms to process sequential data. It is particularly useful for tasks such as machine translation, text summarization, and question answering. The Transformer architecture is based on the BERT (Bidirectional Encoder Representations from Transformers) model, which was introduced in 2018. It has since become a popular choice for many natural language processing tasks due to its ability to handle long-range dependencies in text data.",
         "answers": [
           "the attention heads in the proposed adaptively sparse Transformer can specialize more and with higher confidence",
           "We introduce sparse attention into the Transformer architecture"
@@ -1731,7 +1731,7 @@
       },
       {
         "prompt_idx": 118,
-        "pred": "Question: What is the main difference between a neural network and a machine learning algorithm?\n\nA) Neural network architecture\nB) Machine learning algorithm architecture\nC) Training data\nD) Model complexity\n\nAnswer: A) Neural network architecture\n\nExplanation: Neural networks are a type of machine learning algorithm that uses artificial neural networks to learn patterns in data. The main difference between a neural network and a machine learning algorithm is the architecture of the neural network, which is the structure and organization of the network's components, such as the number of layers, the type of connections between nodes, and the activation functions used. This architecture determines how the network",
+        "pred": "Question: What is the main difference between a neural network and a machine learning algorithm?\n\nA) Neural network architecture\nB) Machine learning algorithm architecture\nC) Training data\nD) Model complexity\n\nAnswer: A) Neural network architecture\n\nExplanation: Neural networks are a type of machine learning algorithm that uses artificial neural networks to learn patterns in data. The main difference between a neural network and a machine learning algorithm is the architecture of the neural network, which is the structure and organization of the network's components, such as the number of layers, the type of connections between nodes, and the activation functions used. This architecture determines the type of",
         "answers": [
           "50 human annotators ranked a random sample of 100 translations by Adequacy, Fluency and overall ranking on a 5-point scale.",
           "adequacy, precision and ranking values"
@@ -1751,7 +1751,7 @@
       },
       {
         "prompt_idx": 122,
-        "pred": "Question: What is the main difference between a question and a statement?\n\nAnswer: A question is a statement that seeks information, while a statement is a statement that makes a claim or assertion.\n\nExplanation: A question is a statement that is open-ended, seeking information or clarification, whereas a statement is a statement that is closed-ended, making a claim or assertion. This difference is reflected in the way questions are phrased, with questions often using words like \"what,\" \"where,\" \"when,\" and \"how,\" whereas statements often use words like \"I think,\" \"I believe,\" and \"I claim.\" Additionally, questions often have",
+        "pred": "Question: What is the main difference between a question and a statement?\n\nAnswer: A question is a statement that seeks information or clarification, whereas a statement is a statement that makes a claim or assertion.\n\nExplanation: A question is a statement that is open-ended, seeking information or clarification, whereas a statement is a statement that is closed-ended, making a claim or assertion. This is a key difference in the way questions and statements are used in language.",
         "answers": [
           "answer questions by obtaining information from KB tuples ",
           "hierarchical matching between questions and relations with residual learning"
@@ -1810,7 +1810,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": "KBQA systems are designed to improve the accuracy and efficiency of natural language processing tasks, such as question answering, text classification, and sentiment analysis. These systems typically involve the use of machine learning algorithms, such as deep learning and neural networks, to analyze and understand the structure and content of natural language.\n\nThe main components of a KBQA system include:\n\n1. **Knowledge Base**: A repository of knowledge that is used to answer questions and perform tasks. The knowledge base can be built from various sources, such as databases, web pages, and expert knowledge.\n2. **Question Answering Model**: A machine learning model that is trained to answer",
+        "pred": "KBQA systems are designed to improve the accuracy and efficiency of natural language processing tasks, such as question answering and text classification. These systems typically involve a combination of natural language processing (NLP) techniques, machine learning algorithms, and knowledge representation.\n\nThe main goal of a KBQA system is to enable computers to understand and respond to human language inputs, such as questions and statements. To achieve this, the system must be able to process and analyze the input language, identify relevant information, and generate a response that is relevant and accurate.\n\nThere are several key components that make up a KBQA system:\n\n1. **Knowledge Base**: This is",
         "answers": [
           "SimpleQuestions, WebQSP",
           "WebQSP, SimpleQuestions"
@@ -1840,7 +1840,7 @@
       },
       {
         "prompt_idx": 150,
-        "pred": "Question: What is the main difference between a neural network and a traditional machine learning model?\n\nAnswer: A neural network is a type of machine learning model that is inspired by the structure and function of the human brain, whereas a traditional machine learning model is a more general type of model that can be used for a wide range of tasks.\n\nKey differences:\n\n* Neural networks are designed to mimic the structure and function of the brain, with multiple layers of interconnected nodes (neurons) that process and transmit information.\n* Traditional machine learning models are more general and can be used for a wide range of tasks, such as classification, regression, and clustering",
+        "pred": "Question: What is the main difference between a neural network and a traditional computer program?\n\nAnswer: A neural network is a system of interconnected nodes or \"neurons\" that process information, whereas a traditional computer program is a set of instructions that are executed by a single computer.\n\nExplanation: Neural networks are inspired by the structure and function of the human brain, where neurons communicate with each other through electrical and chemical signals. In contrast, traditional computer programs are designed to perform specific tasks, such as calculations or data processing, using a set of pre-defined instructions.\n\nKey differences:\n\n* **Interconnectedness**: Neural networks are composed of interconnected nodes or",
         "answers": [
           "Conditional Copy (CC) model ",
           "delayed copy model (DEL),  template system (TEM), conditional copy (CC), NCP+CC (NCP)"
@@ -1860,7 +1860,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": "The dataset is a collection of tweets from a specific user, and it contains a list of words that are related to the user's tweets. The dataset is used to analyze the user's tweets and identify patterns and trends in their language use.",
+        "pred": "Unbiased Arabic offensive language dataset.",
         "answers": [
           "Frequent use of direct animal name calling, using simile and metaphors, through indirect speech like sarcasm, wishing evil to others, name alteration, societal stratification, immoral behavior and sexually related uses.",
           "Direct name calling, Simile and metaphor, Indirect speech, Wishing Evil, Name alteration, Societal stratification, Immoral behavior, Sexually related"
@@ -1920,7 +1920,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": "No, the film \"The Brave One\" (2007) is a revenge film, not a biopic.",
+        "pred": "**Note:** I am a writer, and I have written a pilot episode for a TV show. I have also been chosen to star in the show.\n\n**",
         "answers": [
           "yes"
         ],
@@ -1938,7 +1938,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": "No",
+        "pred": "The film takes place in the 1950s.\n\nThe film is a British film, directed by Pauline, and it is a film about the life of",
         "answers": [
           "yes"
         ],
@@ -1965,7 +1965,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "I cannot provide the answer to the question.",
+        "pred": "I was born in 1955, and I'm still alive today.",
         "answers": [
           "Albert"
         ],
@@ -1974,7 +1974,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "A1 Recordings",
+        "pred": "## NOLA\n\nIn 2013, the University of Texas included a number of books, including \"The Librarian\" by George, the \"liber",
         "answers": [
           "A1 Recordings"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Coca-Cola",
+        "pred": "None",
         "answers": [
           "lime"
         ],
@@ -2327,7 +2327,7 @@
       },
       {
         "prompt_idx": 101,
-        "pred": "Nils Sta\u00ebl von Holstein (1876\u20131953) was a Swedish lawyer and politician.",
+        "pred": "Sweden\nBoris Basil Bogoslovsky\nBoris Basil Bogoslovsky (29 April 1890, in Moscow, Russia \u2013 2 December",
         "answers": [
           "Sweden"
         ],
@@ -2336,7 +2336,7 @@
       },
       {
         "prompt_idx": 102,
-        "pred": "Faiz Muhammad Khan Bahadur, also known as Faiz Muhammad, was a renowned Indian poet, writer, and freedom fighter. He was born on ",
+        "pred": "Faiz Muhammad Khan Bahadur, also known as Faiz Muhammad, was a Pakistani politician.",
         "answers": [
           "Guillermo Capetillo"
         ],
@@ -2372,7 +2372,7 @@
       },
       {
         "prompt_idx": 110,
-        "pred": "Mikhail Mikhailovich Mikhailovich (born 1950) is a Russian-American artist, best known for his abstract expressionist paintings. He is a prominent figure",
+        "pred": "Mikhail Mikhailovich Mikhailovich (born 1950) is a Russian-American artist, best known for his abstract expressionist paintings, sculptures, and prints.",
         "answers": [
           "Sey\u00f0isfj\u00f6r\u00f0ur"
         ],
@@ -2381,7 +2381,7 @@
       },
       {
         "prompt_idx": 111,
-        "pred": "Pal Pal Dil Ke Paas is a 2019 Indian Hindi-language romantic drama film directed by Karan Johar. The film stars Anushka Sharma and",
+        "pred": "Pal Pal Dil Ke Paas is a 2019 Indian Hindi-language romantic drama film directed by Karan Johar. The film stars Anushka Sharma,",
         "answers": [
           "Another Earth"
         ],
@@ -2390,7 +2390,7 @@
       },
       {
         "prompt_idx": 112,
-        "pred": "Norway.",
+        "pred": "Duchess of Baden (1788-1857)",
         "answers": [
           "German"
         ],
@@ -2462,7 +2462,7 @@
       },
       {
         "prompt_idx": 128,
-        "pred": "ValeThe final answer is Vale.",
+        "pred": "ValeThe passage is about the life of Wale Adebanjo, a British actor.",
         "answers": [
           "Maria Marten, Or The Murder In The Red Barn"
         ],
@@ -2516,7 +2516,7 @@
       },
       {
         "prompt_idx": 138,
-        "pred": "Throwing (a)",
+        "pred": "Throwing (noun) or Throwing (verb)\n\n1. Throwing: to throw something, especially a ball, in the air.\n2. Throwing",
         "answers": [
           "Dona Mariquita Of My Heart"
         ],
@@ -2624,7 +2624,7 @@
       },
       {
         "prompt_idx": 158,
-        "pred": "Bashir bin Abdulaziz Al Saud\nBashir bin Abdulaziz Al Saud (born 1967) is a Saudi Arabian businessman and politician",
+        "pred": "Bashir bin Abdullah Al Ajmi (also known as Bashir Al Ajmi) is a Kuwaiti businessman and politician. He was born in 195",
         "answers": [
           "Saad Abdulrahman"
         ],
@@ -2633,7 +2633,7 @@
       },
       {
         "prompt_idx": 159,
-        "pred": "Maria of Naples, Duchess of Calabria, was born on 25 April 1553, in Naples, Italy. She was the daughter of King Charles",
+        "pred": "Maria of Naples, Duchess of Calabria, was born on 8 April 1567, in Naples, Italy. She was the daughter of King Charles",
         "answers": [
           "Neapolitan"
         ],
@@ -2669,7 +2669,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": "Konrad V Kantner (pl: K\u0105ty) was a Polish nobleman and a member of the Piast dynasty. He was born around 128",
+        "pred": "Konstantina Papagianni (born 1985) is a Greek-American artist, known for her vibrant and expressive paintings that explore themes of identity, culture",
         "answers": [
           "Konrad I of Ole\u015bnica"
         ],
@@ -2687,7 +2687,7 @@
       },
       {
         "prompt_idx": 168,
-        "pred": "The answer is: There is no answer. The question does not make sense.",
+        "pred": "The answer is: The answer is: The answer is: The answer is: The answer is: The answer is: The answer is: The answer is:",
         "answers": [
           "Oxford"
         ],

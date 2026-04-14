@@ -234,6 +234,39 @@ JOBS = [
         ),
     },
     {
+        "src": "lora_m1_namm_cs1024_5t",
+        "dst": "M1_under_NAMM/cs1024",
+        "name": "M1 LoRA (no NAMM training) + NAMM eviction cs1024",
+        "desc": "M1 LoRA evaluated under NAMM eviction it was NOT trained with. "
+                "Measures the distribution shift penalty: the LoRA adapted to "
+                "full-context attention patterns but now faces a post-eviction "
+                "cache. Compare with M4/cs1024 (LoRA trained WITH NAMM) to "
+                "quantify the value of training under eviction.",
+        "cmd": (
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --namm_checkpoint experiments/namm_only_runs/memory_evolution_hf/namm-training/"
+            "rh-multi-qa-5t-cma-es-p8-rMeanTrue-shared-8pop-8qs-256fixDel-llama32-1b-5t-cs1024/1337/ckpt.pt \\\n"
+            "    --lora_checkpoint results/rh_m1_lora_instruct_5t/42/best_ckpt.pt \\\n"
+            "    --filter_by_length 8192 --cache_size 1024 --batch_size 8 \\\n"
+            "    --splits test extended_test --run_label ext \\\n"
+            "    --output_dir eval_results/lora_m1_namm_cs1024_5t"
+        ),
+    },
+    {
+        "src": "lora_m1_namm_cs2048_5t",
+        "dst": "M1_under_NAMM/cs2048",
+        "name": "M1 LoRA (no NAMM training) + NAMM eviction cs2048",
+        "desc": "Same as M1_under_NAMM/cs1024 but at cache_size=2048.",
+        "cmd": (
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --namm_checkpoint eval_results/namm_cs2048_friend/ckpt.pt \\\n"
+            "    --lora_checkpoint results/rh_m1_lora_instruct_5t/42/best_ckpt.pt \\\n"
+            "    --filter_by_length 8192 --cache_size 2048 --batch_size 8 \\\n"
+            "    --splits test extended_test --run_label ext \\\n"
+            "    --output_dir eval_results/lora_m1_namm_cs2048_5t"
+        ),
+    },
+    {
         "src": "lora_m4_cs1024_5t_ablation",
         "dst": "A4/cs1024_no_namm",
         "name": "A4 — M4 (cs1024) LoRA, NAMM disabled (full cache)",

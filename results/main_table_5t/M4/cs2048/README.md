@@ -2,18 +2,18 @@
 
 Same as M4 cs1024 but with the cs=2048 NAMM and a LoRA trained against it.
 
-**Source run:** `eval_results/lora_m4_cs2048_5t/ext_20260412_141752/`
+**Source run:** `eval_results/lora_m4_cs2048_5t/ext_newbest_20260413_135804/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 39.68 | 23.41 |
-| lb/2wikimqa | 25.00 | 22.00 |
-| lb/qasper_e | 30.47 | 14.59 |
-| lb/hotpotqa_e | 35.51 | 29.55 |
-| lb/2wikimqa_e | 24.60 | 27.24 |
-| **mean F1** | **31.05** | **23.36** |
+| lb/qasper | 35.74 | 21.42 |
+| lb/2wikimqa | 25.00 | 22.67 |
+| lb/qasper_e | 29.86 | 22.52 |
+| lb/hotpotqa_e | 35.12 | 26.99 |
+| lb/2wikimqa_e | 31.41 | 23.93 |
+| **mean F1** | **31.43** | **23.51** |
 
 ## Command
 
