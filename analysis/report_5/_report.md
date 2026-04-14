@@ -86,21 +86,40 @@ layers (2, 5).
 
 ## Discussion
 
-### Why entropy is lower under eviction
+### Per-head entropy is lower, but total coverage is slightly higher
 
-With ~350 retained tokens vs ~5700 for M1, the attention distribution
-is over a much smaller set.  Evicted tokens have zero attention by
-construction (they are absent from the KV cache), so the entire
-probability mass is concentrated on ~6.5% of the original positions.
-This mechanically reduces entropy.
+The per-layer bar chart shows each individual head is more concentrated
+under eviction (lower per-head entropy).  But when attention is summed
+across all 16 layers × 32 heads and normalised into a single
+distribution over token positions, the entropy is slightly *higher* for
+M2/M3:
 
-### M2 ≈ M3: LoRA does not change attention entropy
+| Condition          | Total entropy (nats) | Effective positions |
+| ------------------ | -------------------: | ------------------: |
+| M1 (full context)  |                 3.61 |         ~37 of 5700 |
+| M2 (NAMM, no LoRA) |                 3.73 |          ~42 of 350 |
+| M3 (LoRA + NAMM)   |                 3.62 |          ~37 of 350 |
 
-The most notable finding is that M2 and M3 are nearly identical (-1.7%
-difference).  Despite M3's LoRA producing dramatically different weights
-(1.42x larger norms, near-orthogonal subspaces per Report 4) and M3
-achieving much higher val F1 (52.06 vs M2's 14.90), the attention
-entropy distributions are indistinguishable.
+These are not contradictory.  Each evicted head is individually more
+peaked (fewer tokens get attention from any single head), but different
+heads attend to *different* positions in the retained cache.  The
+collective coverage across all heads is slightly broader.  With only
+~350 tokens available, 512 head-layer slots (32 × 16) have to spread
+out — there aren't enough popular positions for all heads to pile onto
+the same few.
+
+M1's heads, by contrast, are individually less peaked but more
+redundant — many heads attend to the same positions within the full
+5700-token context.
+
+### M2 ≈ M3: LoRA does not change attention
+
+The most notable finding is that M2 and M3 are nearly identical on
+both measures.  Per-head entropy differs by only 1.7%.  Total entropy
+is 3.73 vs 3.62.  Despite M3's LoRA producing dramatically different
+weights (1.42x larger norms, near-orthogonal subspaces per Report 4)
+and M3 achieving much higher val F1 (52.06 vs M2's 14.90), the
+attention distributions are indistinguishable.
 
 This means M3's LoRA improves performance through mechanisms other than
 changing how attention is distributed — likely by transforming what
@@ -113,7 +132,7 @@ rather than which tokens receive attention (query-key interaction).
   near-orthogonal to M1's, yet produce the same entropy as M2 (no LoRA)
   under eviction.
 - **Report 6 (NAMM alignment):** NAMM scores weakly correlate with
-  attention (rho = +0.135).  M1, M2, M3 all show the same correlation.
+  attention.  M1, M2, M3 all show the same correlation.
 - **Report 3 (retention):** Mean retention ~6.5%, consistent with the
   cache sizes observed here.
 
@@ -121,8 +140,9 @@ rather than which tokens receive attention (query-key interaction).
 
 ## Plots
 
-| Plot                                                   | Description                                    |
-| ------------------------------------------------------ | ---------------------------------------------- |
-| [`attention_entropy.png`](plots/attention_entropy.png) | Per-layer entropy (M1 vs M2 vs M3)             |
-| [`entropy_heatmap.png`](plots/entropy_heatmap.png)     | Layer x head entropy heatmaps (M1 vs M3)       |
-| [`entropy_diff.png`](plots/entropy_diff.png)           | Entropy diff heatmap: M3 evicted minus M1       |
+| Plot                                                   | Description                                        |
+| ------------------------------------------------------ | -------------------------------------------------- |
+| [`attention_entropy.png`](plots/attention_entropy.png) | Per-layer per-head entropy (M1 vs M2 vs M3)        |
+| [`total_entropy.png`](plots/total_entropy.png)         | Total entropy across all layers and heads combined  |
+| [`entropy_heatmap.png`](plots/entropy_heatmap.png)     | Layer x head entropy heatmaps (M1 vs M3)           |
+| [`entropy_diff.png`](plots/entropy_diff.png)           | Entropy diff heatmap: M3 evicted minus M1           |
