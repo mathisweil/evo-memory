@@ -1,6 +1,12 @@
 # M1 LoRA-only — SFT fine-tuning on 5-task QA subset, no NAMM
 # FAIR-01 compliant. See experiment_specification.md §3 M1.
 #
+# M1 is the anchor condition. All LoRA hyperparameters here MUST match the
+# corresponding keys in `lora_rh_m4_instruct_5t.yaml` (M3) and
+# `joint_lora_m4_5t.yaml` (M4). Length filtering (min/max_conditioning_length
+# =4096/6500) comes from the Hydra preset `run_config: namm_bam_i1_llama32_1b_5t`,
+# NOT from this YAML.
+#
 # Usage:
 #   python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml --run_name m1_r8
 #
@@ -24,10 +30,12 @@ weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
 num_epochs: 150
-batch_size: 1
-gradient_accumulation_steps: 16
+batch_size: 1                # matches M3/M4 for controlled comparison despite M1 having memory headroom
+gradient_accumulation_steps: 16   # effective batch = 16
 max_seq_len: 7000
 sft_mode: true
+dtype: bfloat16
+always_save_checkpoint: true
 
 # -- NAMM (disabled for M1) ---------------------------------------------------
 namm_active: false
@@ -45,8 +53,8 @@ split_seed: 42
 # -- Evaluation ---------------------------------------------------------------
 eval_interval: 14
 log_interval: 2
-batch_size_eval: 1
-early_stopping_patience: 5
+batch_size_eval: 2            # matches M3 — no NAMM here means even more headroom
+early_stopping_patience: 20   # raised from 5 (too aggressive for 150-epoch schedule)
 
 # -- Wandb --------------------------------------------------------------------
 wandb_entity: SNLP_NAMM

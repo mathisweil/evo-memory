@@ -37,8 +37,8 @@ JOBS = [
         "desc": "Base Llama-3.2-1B-Instruct with no eviction, no fine-tuning. "
                 "Performance ceiling for the 5-task QA subset.",
         "cmd": (
-            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_plain_llama.py \\\n"
-            "    --filter_by_length 8192 --batch_size 16 \\\n"
+            "env CUDA_VISIBLE_DEVICES=0 python scripts/eval_namm_splits.py \\\n"
+            "    --plain --filter_by_length 8192 --batch_size 16 \\\n"
             "    --splits test extended_test --run_label ext \\\n"
             "    --output_dir eval_results/plain_baseline_5t"
         ),

@@ -74,6 +74,12 @@ def parse_args():
     parser.add_argument("--gradient_accumulation_steps", type=int, default=16)
     parser.add_argument("--max_seq_len", type=int, default=3500)
     parser.add_argument("--sft_mode", action="store_true", default=False)
+    parser.add_argument("--dtype", type=str, default="bfloat16",
+                        choices=["bfloat16", "float16", "float32"],
+                        help="Training dtype")
+    parser.add_argument("--always_save_checkpoint",
+                        action=argparse.BooleanOptionalAction, default=True,
+                        help="Save checkpoint after every eval interval")
 
     # NAMM config
     parser.add_argument("--namm_active", action="store_true", default=False)
@@ -305,9 +311,9 @@ def main():
         namm_active=args.namm_active,
         eval_interval=args.eval_interval,
         log_interval=args.log_interval,
-        always_save_checkpoint=True,
+        always_save_checkpoint=args.always_save_checkpoint,
         init_from=args.resume_checkpoint,
-        dtype='bfloat16',
+        dtype=args.dtype,
         sft_mode=args.sft_mode,
         train_frac=args.train_split,
         val_frac=args.val_split,
