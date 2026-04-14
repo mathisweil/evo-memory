@@ -5,6 +5,8 @@ eval_results/
 exp_local/
 exp/
 outputs/
+checkpoints/
+artifacts/
 
 # Weights & Biases
 wandb/
