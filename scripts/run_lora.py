@@ -14,7 +14,7 @@ Usage:
 
     # Quick smoke test:
     python scripts/run_lora.py --config scripts/configs/m1_lora_5t.yaml \
-        --run_name smoke --num_epochs 1 --eval_interval 999 --no-gcs --wandb_log false
+        --run_name smoke --num_epochs 1 --eval_interval 999 --no-gcs --no-wandb_log
 """
 
 import argparse
@@ -108,7 +108,7 @@ def parse_args():
     parser.add_argument("--resume_checkpoint", type=str, default=None)
 
     # Wandb
-    parser.add_argument("--wandb_log", type=bool, default=True)
+    parser.add_argument("--wandb_log", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--wandb_entity", type=str, default="SNLP_NAMM")
     parser.add_argument("--wandb_project", type=str, default="Experiments")
     parser.add_argument("--wandb_run_name", type=str, default=None)

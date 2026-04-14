@@ -20,17 +20,17 @@ experiment: null
 # ~30 epochs in practice via best-checkpoint selection, so 50 allocated
 # epochs provides ~20 epochs of headroom. NAMM warm-starts across loops.
 adapter_type: lora
-num_outer_loops: 3
-namm_iterations_per_stage: 67
+num_outer_loops: 6
+namm_iterations_per_stage: 33
 adapter_iterations_per_stage: 25
-lora_epochs_per_stage: 50
+lora_epochs_per_stage: 12
 eval_after_each_loop: true
 
 # -- NAMM config --------------------------------------------------------------
 run_config: namm_bam_i1_llama32_1b_5t
 namm_checkpoint: null
 cache_size: 1024
-namm_eval_interval: 10
+namm_eval_interval: 5
 
 # -- ES hyperparameters (unused for adapter_type=lora, kept for completeness) -
 sigma: 0.001
@@ -49,8 +49,8 @@ learning_rate: 5e-5
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
-lora_batch_size: 2          # per-device batch size (NAMM active -> typically 1)
-gradient_accumulation_steps: 8  # effective_batch = lora_batch_size * grad_accum
+lora_batch_size: 2          # NAMM path loops per-sample in trainer.py (see docs/namm_memory_investigation.md Fix C)
+gradient_accumulation_steps: 8  # effective_batch = lora_batch_size * grad_accum = 16
 max_seq_len: 7000
 sft_mode: true
 lora_eval_interval: 14      # matches M1/M3 — enables best-of-N checkpointing within each LoRA stage

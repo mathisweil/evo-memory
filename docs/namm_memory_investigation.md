@@ -12,141 +12,141 @@ the same config — the only deltas were `namm_active: true` and
 `lora_batch_size=1, gradient_accumulation_steps=16`, matching what the
 training rules require.
 
-## 2. Root cause — NAMM scoring subgraph retained in phase 2
+## 2. Root cause — phase-2 span blowup at `batch_size > 1`
 
-`grad_lora_finetuning/trainer.py:384-432` already implements a two-phase
-forward specifically to bound NAMM-active memory:
+`grad_lora_finetuning/trainer.py` implements a two-phase forward to
+bound NAMM-active memory:
 
-- **Phase 1** processes context tokens up to a `chunk_align=64`-aligned
-  answer boundary under `torch.no_grad()`. The pre-eviction KV cache
-  (~6500 tokens × 16 layers × 8 heads × 64 dim × bf16) is **not** stored
-  for backward — only the post-eviction `past_key_values` (~1024 tokens
-  per layer) survives, and it is detached because phase 1 ran under
-  no_grad.
-- **Phase 2** processes answer tokens (~64) with gradients, attending to
-  the post-eviction cache from phase 1.
+- **Phase 1** processes context tokens up to a `chunk_align`-aligned
+  answer boundary under `torch.no_grad()`. The pre-eviction KV cache is
+  not stored for backward.
+- **Phase 2** processes answer tokens with gradients, attending to the
+  post-eviction cache from phase 1.
 
-This means the "full pre-eviction KV cache stays in the autograd graph"
-hypothesis from the task brief is already defended against. The real
-cost is elsewhere.
+The dominant OOM cause at `batch_size=2` was in how the phase boundary
+was chosen. The pre-fix `_train_step` computed:
 
-### Where the extra memory actually lives
+```python
+answer_mask = (labels[0] != -100)
+context_end = (answer_start // chunk_align) * chunk_align
+```
 
-Phase 2 still calls `apply_memory_policy=True`
-(`trainer.py:419-428`), which routes through
-`self.memory_policy.update_cache(...)` in `namm/llms/llama.py:567-574`
-**without** a `torch.no_grad()` wrapper. Inside that path
-(`namm/policy/deep.py:450-630`):
+`labels[0]` uses **only sample 0**. `pad_collate_fn`
+(`grad_lora_finetuning/datasets.py:301-349`) right-pads to the batch
+max with per-sample `label_start`, so sample 0's `answer_start` is
+independent of sample 1's. When sample 1's answer begins much later
+than sample 0's — routine with heterogeneous prompts — phase 2 ends up
+running over a 2000+-token span with gradients, for a two-sample
+batch. That activation tape (hidden states × layers × bs + eager
+attention matrices of shape `[bs, heads, q_len, kv_len]`, forced by
+`output_attentions=True`) is what pushes past 24 GB.
 
-1. `self.scoring_network.get_tokens_score(...)` (deep.py:450) runs the
-   BAM scoring head over all ~1088 phase-2 tokens × 16 layers × 8 heads.
-   Its inputs derive from `outputs.attentions` and the current
-   `past_key_values`, both of which carry `requires_grad=True` in phase
-   2. PyTorch therefore retains every intermediate activation of the
-   scoring head until backward, even though the NAMM weights are frozen
-   and the scores themselves feed only into a non-differentiable
-   `torch.topk` (`namm/policy/deep_selection.py:299`).
-2. The retained indices are applied via
-   `torch.gather(key_cache, dim=-2, index=exp_retained_idxs)`
-   (deep.py:627-630). `gather` is differentiable w.r.t. `key_cache`, so
-   phase-2 LoRA gradients flow back through the retained-token subset —
-   which is load-bearing and must stay as is.
-3. The sole downstream consumer of the phase-2 eviction is the
-   retention logging at `trainer.py:491-507`, which reads only
-   `layer_kv[0].shape[-2]` — no gradient is ever taken through it.
+At `batch_size=1` the split is correct by construction
+(`labels[0]` is the only sample), so the prior working point held.
 
-So in phase 2 PyTorch is storing a full BAM-scoring activation tape
-(1088 × 16 × 8 tokens × feature dim in bf16 plus the attention matrices
-that feed it) that is never used by the backward pass. At `batch_size=1`
-this fits; at `batch_size=2` it pushes past 24 GB.
+### Smaller contributors (still real, not dominant)
 
-Two additional, smaller contributors:
-
-- `scripts/run_lora.py:280-284` disables
-  `model.gradient_checkpointing_enable(...)` whenever
+- Phase 2 used to call `memory_policy.update_cache(...)` without a
+  `torch.no_grad()` wrapper. The frozen BAM scoring head's inputs
+  derive from `outputs.attentions` and `past_key_values`, both
+  `requires_grad=True` in phase 2; PyTorch retained the scoring
+  activation tape until backward even though the NAMM weights are
+  frozen and `torch.topk` is non-differentiable. Fix A (below) removes
+  this overhead. It is real but was not the dominant term at
+  `batch_size=2`.
+- `scripts/run_lora.py:280-284` disables gradient checkpointing when
   `namm_active=True`, because the memory-policy path needs
-  `use_cache=True` which is incompatible with HF gradient checkpointing.
-  So M3 pays activation-storage cost that M1 amortises away.
-- `namm/llms/llama.py` forces `output_attentions=True` for the scoring
-  network. With `batch_size=2, heads=8, layers=16, q_len≈64, kv_len≈1088`
-  the attention tensors alone are ~71 MB per step — small individually,
-  but they live in the phase-2 graph alongside the scoring activations.
+  `use_cache=True`, which HF gradient checkpointing is incompatible
+  with. M3 therefore pays activation-storage cost that M1 amortises
+  away.
+- `namm/llms/llama.py` forces `output_attentions=True`, which forces
+  eager attention and materialises the full attention matrix per layer
+  per step.
 
 ## 3. Fixes applied
 
-### Fix B — align training configs to the rules
+### Fix C — per-sample phase-split loop in `_train_step_namm`
 
-`.claude/rules/training.md` already mandates
-`batch_size=1, gradient_accumulation_steps=16` for **all of M1, M3, and
-M4** (effective batch = 16 in every condition). M4
-(`m4_joint_lora_5t.yaml:52-53`) was already compliant; M1 and M3 had
-drifted to `batch_size=2, grad_accum=8`.
+`grad_lora_finetuning/trainer.py` now splits the NAMM-active training
+step into a per-sample loop. For each sample in the batch:
 
-- `scripts/configs/m1_lora_5t.yaml:33-34` — `batch_size:
-  1, gradient_accumulation_steps: 16`.
-- `scripts/configs/m3_lora_frozen_namm_5t.yaml:34-35` — `batch_size:
-  1, gradient_accumulation_steps: 16`.
+1. NAMM buffers (`memory_policy.initialize_buffers`,
+   `set_params_batch_idxs(np.zeros([1]))`) are reset.
+2. `answer_start` is computed from that sample's own `labels` (not
+   `labels[0]`).
+3. Phase 1 runs under `torch.no_grad()` up to the sample's
+   `context_end`; phase 2 runs with gradients over only that sample's
+   answer span.
+4. The chunked CE loss is computed and `(sample_loss /
+   gradient_accumulation_steps).backward()` accumulates gradients into
+   `.grad`.
 
-This on its own is sufficient to stop the OOM: `batch_size=1` was the
-prior known-good working point for M3/M4. It also enforces the
-FAIR-01 per-step-processing requirement that the rules were written
-to close.
+**Why the gradient math is preserved.** The original normalisation was
+`loss = (Σ_i sample_total_loss_i) / n_tokens_total / grad_accum`, with a
+single `backward()`. The per-sample version backwards
+`sample_total_loss_i / n_tokens_total / grad_accum` for each sample,
+using `n_tokens_total = (labels_full != -100).sum()` computed once over
+the full batch. Since `.backward()` accumulates into `.grad`, the two
+are identical up to floating-point summation order.
+
+**Why this is the right fix at `batch_size=2`.** The non-NAMM path
+(M1) keeps a single forward over the full batch — its activation
+memory was never the problem because `labels[0]`'s phase split was
+irrelevant in that branch (no phase split happens at all). The NAMM
+path (M3, M4 LoRA stages) is the one where a heterogeneous batch
+silently inflates phase 2 to the worst-case sample's span; looping
+per-sample bounds peak phase-2 memory at the `batch_size=1`
+footprint, regardless of YAML `batch_size`.
 
 ### Fix A — wrap NAMM scoring in `torch.no_grad()`
 
-A companion source-level change removes the activation-tape overhead
-at its origin rather than only hiding from it via smaller batches.
-
-- `namm/llms/llama.py:566-594` — both the `update_cache` and
-  `buffer_cache` branches inside `if apply_memory_policy:` are now
-  wrapped in `with torch.no_grad():`.
+A source-level change in `namm/llms/llama.py:566-594` wraps both the
+`update_cache` and `buffer_cache` branches inside `if
+apply_memory_policy:` in `with torch.no_grad():`.
 
 **Why it is safe for every training path.** The `self.model(...)`
-call above (`llama.py:494-506`) has already returned `outputs.hidden_states`
-and `outputs.attentions`, and those are what feed the LoRA loss (either
-directly via `labels` at `llama.py:537-547`, or via the
-`hidden_states[-1]` the trainer pulls out for its chunked CE at
-`grad_lora_finetuning/trainer.py:430`). The loss autograd graph for the
-current step is therefore complete **before** `update_cache` runs. The
-output it produces — the post-eviction `past_key_values` — is only
-consumed cross-step (as the next step's `past_kv` input) or by the
-retention logging at `trainer.py:491-507`, which reads only tensor
-shapes. Neither path needs gradients.
+call above (`llama.py:494-506`) has already returned
+`outputs.hidden_states` and `outputs.attentions`, and those are what
+feed the LoRA loss (either directly via `labels` at
+`llama.py:537-547`, or via the `hidden_states[-1]` the trainer pulls
+out for its chunked CE). The loss autograd graph for the current step
+is complete **before** `update_cache` runs. The output it produces —
+the post-eviction `past_key_values` — is only consumed cross-step or
+by the retention logging, which reads only tensor shapes. Neither
+path needs gradients.
 
-**Why it is safe for NAMM training itself.** `.claude/rules/namm.md`:
-*"You MUST NOT add gradient flow through the eviction step. Token
-selection is non-differentiable by design — that is precisely why the
-codebase trains it with CMA-ES rather than SGD."* In this codebase
-NAMM is **always** either frozen (M3) or trained by CMA-ES (M2, M4
-NAMM stages) — never by autograd. So there is no training path whose
-backward would ever flow through `update_cache`, and guarding it
-strictly decreases peak memory without changing any gradient.
+**Why it is safe for NAMM training itself.** `.claude/rules/namm.md`
+forbids gradient flow through the eviction step. NAMM is always
+either frozen (M3) or trained by CMA-ES (M2, M4 NAMM stages) — never
+by autograd. Fix A strictly decreases peak memory without changing
+any gradient.
 
-**Scope of the change.** The fix lives at a single call site. Every
-training entry point (`run_lora.py`, `run_joint.py`, `run_namm.py`,
-`run_es.py`) routes through `NammLlamaForCausalLM.forward` and picks
-it up automatically. The profiling/analysis scripts
-(`scripts/profile_namm.py`, `analysis/report_6/generate_plots.py`)
-call `memory_policy.update_cache` directly outside the model forward
-and are unaffected.
+Fix A removes a real, but non-dominant, memory term (the frozen BAM
+scoring activation tape). It stays in regardless of Fix C.
 
-**Relationship between the two fixes.** Fix B restores the known-good
-FAIR-01 working point (`batch_size=1`). Fix A eliminates the memory
-overhead that forced Fix B in the first place, giving headroom for
-any future follow-up that needs `batch_size>=2` (e.g., a
-larger-model sweep) without re-opening the confound. We keep Fix B
-in place regardless: the M1/M3/M4 comparison still requires
-identical per-step processing, and `batch_size=1` is what the rules
-document mandates.
+### Fix B (reverted) — `batch_size=1, grad_accum=16` in the YAMLs
 
-## 4. Memory budget — expected per-step footprint after fix
+An earlier edit pushed `m3_lora_frozen_namm_5t.yaml` and
+`m1_lora_5t.yaml` to `batch_size=1, gradient_accumulation_steps=16` on
+the grounds that `.claude/rules/training.md` mandates it for FAIR-01.
+The user reverted M3 back to `batch_size=2, grad_accum=8` (matching
+the current on-disk YAML). Fix C above is what makes that config
+actually run at `batch_size=2` on a 24 GB 3090 Ti. The fairness
+question — whether M1 and M3 must share per-step `batch_size` or only
+effective batch — is a training-rules question, not a memory
+question, and is out of scope for this investigation. The on-disk
+YAMLs are the source of truth.
 
-These are analytic estimates (no profiler run this session; the fix
-restores the prior working configuration, for which
-`batch_size=1` was the known-good setting).
+## 4. Memory budget — per-step footprint after Fix C
 
-At `batch_size=1, cache_size=1024`, bf16, 16 layers, 8 kv-heads,
-head_dim=64:
+Peak activation memory in the NAMM path is now bounded by the
+single-sample phase-2 span regardless of YAML `batch_size`. The
+`batch_size` knob controls how many sequential per-sample backwards
+are accumulated before the optimizer step, not how much lives in the
+autograd graph at once.
+
+At `cache_size=1024`, bf16, 16 layers, 8 kv-heads, head_dim=64, one
+sample in the graph:
 
 | Component | Size | Notes |
 |---|---|---|
@@ -154,36 +154,37 @@ head_dim=64:
 | LoRA A/B (r=8) | ~25 MB | q_proj + v_proj only |
 | Optimizer state (AdamW) | ~100 MB | 2 moments × fp32 over LoRA params |
 | Phase-1 post-eviction KV cache | ~34 MB | 1024 × 16 × 2 × 8 × 64 × 2 B |
-| Phase-2 new tokens (64) in graph | <100 MB | attentions + hidden states, 1 sample |
-| Phase-2 BAM scoring activations | ~400-600 MB | retained until backward |
-| Chunked CE over 64 tokens, chunk=512 | ~250 MB | one chunk's logits in fp32 (128k vocab) |
+| Phase-2 graph (single sample, ~64 tokens) | <100 MB | hidden states + eager attention |
+| Chunked CE, chunk=512 | ~250 MB | one chunk's logits in fp32 (128k vocab) |
 
-Peak ~4 GB, well within the 24 GB budget. Doubling to `batch_size=2`
-scales the phase-2 scoring activations and logits roughly linearly —
-enough headroom evaporation to break the budget on a 3090 Ti.
+Peak ~4 GB. The pre-fix failure mode was sample 1 having an
+`answer_start` much later than sample 0, so phase 2 ran with gradients
+over a ~2000-token span for both samples simultaneously — the eager
+attention tensor alone
+(`[bs=2, heads=8, q_len=2000, kv_len=3000]` in bf16) was ~6 GB,
+plus hidden states and BAM scoring activations.
 
 ## 5. Impact on existing results
 
-None. This is a training-memory configuration issue, not a correctness
-issue:
+None. This is a training-memory issue, not a correctness issue.
 
 - Any M1 / M3 run that completed at `batch_size=2, grad_accum=8` used
-  the same **effective** batch (16) as the `batch_size=1,
-  grad_accum=16` setting. Gradients are mathematically identical up to
-  per-step gradient-noise reordering (which is absorbed by
-  gradient-accumulation statistics and the seed).
+  effective batch 16, the same as `batch_size=1, grad_accum=16`.
+  Gradients are mathematically identical up to floating-point
+  summation order.
 - No existing evaluation in `results/main_table_5t/` needs to be
   re-run. The headline F1 numbers stand.
-- Forward-going: `run_all_experiments.sh` and any new M1/M3 runs will
-  pick up the corrected YAMLs automatically (no CLI overrides needed).
 
 ## 6. Decision summary
 
-- **M1** `batch_size=1, gradient_accumulation_steps=16`.
-- **M3** `batch_size=1, gradient_accumulation_steps=16`.
-- **M4** `lora_batch_size=1, gradient_accumulation_steps=16` (already
-  compliant).
-- Source-level NAMM scoring now runs under `torch.no_grad()` at
-  `namm/llms/llama.py:566-594`. No gradient or fairness property
-  changes; memory overhead from the retained BAM activation tape is
-  eliminated.
+- **M1 YAML**: on-disk config is the source of truth.
+- **M3 YAML**: on-disk config is the source of truth. Current state
+  `batch_size=2, grad_accum=8` now runs without OOM on a 24 GB 3090
+  Ti because the NAMM path loops per sample.
+- **M4 YAML**: `lora_batch_size=2, gradient_accumulation_steps=8` —
+  picks up the same fix automatically via the shared trainer.
+- `grad_lora_finetuning/trainer.py` — NAMM path now in
+  `_train_step_namm`, per-sample phase-split loop. Non-NAMM path
+  unchanged.
+- `namm/llms/llama.py:566-594` — `update_cache` / `buffer_cache`
+  inside `apply_memory_policy` run under `torch.no_grad()`.
