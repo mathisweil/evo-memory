@@ -42,8 +42,7 @@ scores are weakly positively correlated with attention (rho = +0.135). NAMM
 does track attention, though weakly. M3 does not reshape attention toward NAMM.
 
 **6. The attention entropy shift is robust.** M3 shows +5.0% entropy and
--2.7% sink reduction vs M1 (slightly larger effects than buggy: +4.2% and
--1.0%). The "pre-emptive hedging" pattern appears in both buggy and maskfix
+-2.7% sink reduction vs M1 (nearly identical to buggy: +5.2% and -2.4%). The "pre-emptive hedging" pattern appears in both buggy and maskfix
 data, confirming it is a genuine property of eviction-aware training.
 
 **7. Representational divergence shifts to deeper layers.** CKA mean is 0.995
@@ -137,9 +136,9 @@ Trunc, and A4 conditions do not use NAMM at inference and are unaffected.
 
 The dataset comprises 306 train / 64 val / 70 test samples (4096-6500 tokens
 each) plus 224 extended_test samples (6500-8192 tokens), with a divide between
-localised scientific paper QA (Qasper tasks, ~192 relevant tokens) and
-distributed multi-hop reasoning (2WikiMQA/HotpotQA, ~1100-2034 relevant tokens
-across 5-9 regions).
+localised scientific paper QA (Qasper tasks, ~515-701 relevant tokens) and
+distributed multi-hop reasoning (2WikiMQA/HotpotQA, ~1564-2222 relevant tokens
+across 9-12 regions).
 
 ### Naming warning
 
@@ -157,13 +156,13 @@ across 5-9 regions).
 
 The 5 tasks fall into two families with fundamentally different information
 structures:
-- **Qasper tasks:** Localised answers in scientific papers (~4% of tokens
-  relevant, ~1.3 regions)
-- **Multi-hop tasks:** Distributed answers across Wikipedia passages (~22-42%
-  of tokens relevant, ~5-9 regions)
+- **Qasper tasks:** Localised answers in scientific papers (~10-13% of tokens
+  relevant, ~3-5 regions)
+- **Multi-hop tasks:** Distributed answers across Wikipedia passages (~30-46%
+  of tokens relevant, ~9-12 regions)
 
-At cache=1024, an ideal eviction policy retains 97% of Qasper's relevant
-tokens but only 60% of HotpotQA-E's. This led to the prediction that
+At cache=1024, an ideal eviction policy retains 100% of Qasper's relevant
+tokens but only 46% of HotpotQA-E's. This led to the prediction that
 multi-hop tasks would suffer most from eviction. Report 1's maskfix
 validation data shows the opposite -- multi-hop tasks see the largest M3
 gains over M1.
@@ -263,8 +262,8 @@ different attention patterns:
 
 | Metric             | M1    | M3 (maskfix)  | M3 (buggy)    |
 | ------------------ | ----- | ------------- | ------------- |
-| Entropy shift      | --    | +5.0%         | +4.2%         |
-| Sink reduction     | --    | -2.7%         | -1.0%         |
+| Entropy shift      | --    | +5.0%         | +5.2%         |
+| Sink reduction     | --    | -2.7%         | -2.4%         |
 
 The pre-emptive hedging pattern (broader attention, reduced sink reliance)
 appears in both buggy and maskfix data, with slightly larger effect sizes
@@ -283,7 +282,7 @@ the broken attention.
 
 | Metric            | M1 (maskfix) | M3 (maskfix) | M1 (buggy) |
 | ----------------- | -----------: | -----------: | ---------: |
-| Mean Spearman rho |       +0.135 |       +0.135 |     -0.137 |
+| Mean Spearman rho |       +0.135 |       +0.140 |     -0.137 |
 
 With correct attention masks, NAMM scores are **weakly positively
 correlated** with attention (rho = +0.135). This makes more intuitive
@@ -291,7 +290,7 @@ sense: NAMM's spectrogram-based scoring, which uses attention patterns as
 input, produces retention scores that agree (weakly) with instantaneous
 attention magnitude.
 
-M1 and M3 show identical correlation (+0.135 for both), meaning M3
+M1 and M3 show nearly identical correlation (+0.135 and +0.140), meaning M3
 fine-tuning does not reshape attention toward or away from NAMM's
 preferences. The lack of co-adaptation is consistent across both buggy and
 maskfix analyses -- only the direction of the base correlation changed.
@@ -305,7 +304,7 @@ profile than the buggy analysis:
 | -------------- | --------- | --------- |
 | CKA mean       | 0.995     | 0.992     |
 | CKA minimum    | 0.990     | 0.979     |
-| Min at layer   | Layer 10  | Layer 3   |
+| Min at layer   | Layer 9   | Layer 3   |
 
 The divergence shift from layer 3 (buggy) to layer 9 (maskfix) is
 significant for the mechanistic interpretation. Under the buggy mask, the
@@ -425,7 +424,7 @@ The lack of M3-induced alignment shift (M1 and M3 both show rho = +0.135)
 remains consistent: M3 does not learn to cooperate with NAMM's eviction
 decisions.
 
-### 3.4 Layer 10 Replaces Layer 3 as the Adaptation Locus
+### 3.4 Layer 9 Replaces Layer 3 as the Adaptation Locus
 
 The buggy-era analysis identified layer 3 as the critical adaptation point,
 supported by convergent evidence from Reports 5, 7, 4, and 3. With maskfix
@@ -496,7 +495,7 @@ should be treated as suggestive rather than definitive.
 | Pre-emptive hedging       | +4.2% entropy   | +5.0% entropy   | Robust   |
 | Orthogonal subspaces      | ~0.18 overlap   | ~0.21 overlap   | Robust   |
 | NAMM-attn correlation     | rho = -0.137    | rho = +0.135    | REVERSED |
-| CKA min layer             | Layer 3         | Layer 10        | Shifted  |
+| CKA min layer             | Layer 3         | Layer 9         | Shifted  |
 | LoRA norm ratio (q_proj)  | 1.93x           | 1.42x           | Smaller  |
 | Retention ratio           | 20%             | 3.8%            | 5x lower |
 | Probe informativeness     | M3 drops to .375| Inconclusive    | Changed  |

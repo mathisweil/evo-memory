@@ -34,7 +34,7 @@ Specific strengths:
 3. **Reproducibility infrastructure.** WandB run IDs are documented in
    every report. Each report has a self-contained `generate_plots.py`
    that pulls data from WandB or checkpoint files. Plot filenames are
-   tagged `_maskfix` to distinguish from buggy-era outputs.
+   in `plots/` subdirectories within each report folder.
 
 4. **Honest about limitations.** Reports consistently flag the M3
    checkpoint maturity issue, small GPU-analysis sample sizes, and the
@@ -68,7 +68,7 @@ the adaptation might reorganise as training progresses. Specific risks:
   the 14.5% advantage over M1 could narrow.
 - **R4 LoRA norm ratios are snapshot-dependent.** Adapter norms
   typically grow during training. The current 1.42x ratio may increase.
-- **R7 divergence locus may move.** The layer-10 CKA minimum could
+- **R7 divergence locus may move.** The layer-9 CKA minimum could
   shift as later layers receive more gradient updates.
 - **R3 retention patterns are from the M2 NAMM, not M3.** The NAMM
   is frozen, so retention patterns themselves are stable -- but the
@@ -180,7 +180,7 @@ LoRA operate as complementary systems" narrative from the buggy analysis
 was wrong. Reports that cited this finding need to be read with this
 reversal in mind.
 
-**Report 7 (CKA): Layer shift from 3 to 10.** The buggy CKA minimum
+**Report 7 (CKA): Layer shift from 3 to 9.** The buggy CKA minimum
 was at layer 3 (CKA 0.979); with maskfix it is at layer 9 (CKA 0.990).
 The buggy mask forced early aggressive corrections, pushing divergence
 to layer 3. With correct masking, the adaptation defers to a later
@@ -205,7 +205,8 @@ holds. The subspace overlap changed modestly (0.18 to 0.21 for q_proj).
 
 **Report 5 (Attention Entropy): Hedging pattern persists.** Both
 buggy and maskfix M3 show higher entropy and lower sink fractions
-relative to M1, with similar magnitudes (+5.0% entropy, -2.7% sinks).
+relative to M1, with similar magnitudes (maskfix: +5.0%, -2.7%;
+buggy: +5.2%, -2.4%).
 This is arguably the most robust finding in the suite -- the hedging
 pattern survived a fundamental change to the attention mechanism.
 
@@ -329,7 +330,7 @@ The least reliable findings are:
 - Absolute F1 numbers (R1--R2): interim checkpoint, validation only
 - Probe results (R8): null result from a poorly calibrated task
 - Layer-specific convergence narratives: the layer-3 story collapsed
-  with maskfix; the layer-10 story may shift with further training
+  with maskfix; the layer-9 story may shift with further training
 
 The path forward is clear: complete M3 training, rerun the analyses,
 run test-set evaluations, and add statistical tests. The infrastructure
