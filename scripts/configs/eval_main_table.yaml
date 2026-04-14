@@ -1,0 +1,68 @@
+# FAIR-01 evaluation config — shared defaults for all main-table evals.
+#
+# This sets the common FAIR-01 eval parameters. Per-condition overrides
+# (checkpoint paths, cache_size, run_config) must be passed on the CLI.
+#
+# Usage examples:
+#
+#   # B0 (full cache, no NAMM):
+#   python scripts/run_eval.py --config scripts/configs/eval_main_table.yaml \
+#       --run_config full_cache_baseline_llama32_1b \
+#       --output_dir experiments/experiment_N/baseline
+#
+#   # B1 (recency eviction, cs=1024):
+#   python scripts/run_eval.py --config scripts/configs/eval_main_table.yaml \
+#       --run_config recency_baseline_llama32_1b \
+#       --cache_size 1024 \
+#       --output_dir experiments/experiment_N/es_recency/b1_recency
+#
+#   # M1-r8 (LoRA only, full cache eval):
+#   python scripts/run_eval.py --config scripts/configs/eval_main_table.yaml \
+#       --es_checkpoint experiments/.../m1_r8/checkpoints/best_ckpt.pt \
+#       --output_dir experiments/.../m1_r8/eval
+#
+#   # M2 (standalone NAMM):
+#   python scripts/run_eval.py --config scripts/configs/eval_main_table.yaml \
+#       --namm_checkpoint experiments/.../namm/ckpt.pt \
+#       --cache_size 1024 \
+#       --output_dir experiments/.../m2_namm/eval
+#
+#   # M3 (LoRA + frozen NAMM):
+#   python scripts/run_eval.py --config scripts/configs/eval_main_table.yaml \
+#       --es_checkpoint experiments/.../m3/checkpoints/best_ckpt.pt \
+#       --namm_checkpoint experiments/.../namm/ckpt.pt \
+#       --cache_size 1024 \
+#       --output_dir experiments/.../m3/eval
+#
+#   # M4 (joint, NAMM on):
+#   python scripts/run_eval.py --config scripts/configs/eval_main_table.yaml \
+#       --es_checkpoint experiments/.../m4/adapter/stage_1/ \
+#       --namm_checkpoint experiments/.../m4/namm/latest.pt \
+#       --cache_size 1024 \
+#       --output_dir experiments/.../m4/eval
+#
+#   # A4-off (M4 LoRA only, NAMM disabled):
+#   python scripts/run_eval.py --config scripts/configs/eval_main_table.yaml \
+#       --es_checkpoint experiments/.../m4/adapter/stage_1/ \
+#       --output_dir experiments/ablations/a4_modularity/m4_namm_off
+
+# -- Checkpoints (override per condition) ------------------------------------
+es_checkpoint: null
+namm_checkpoint: null
+
+# -- Model / eviction --------------------------------------------------------
+run_config: namm_bam_i1_llama32_1b_5t
+cache_size: null
+
+# -- Data (FAIR-01 fixed) ----------------------------------------------------
+filter_by_length: null
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+batch_size: null
+
+# -- Generation (FAIR-01: greedy) --------------------------------------------
+temperature: 0.0
+num_samples: 1
+
+# -- Output ------------------------------------------------------------------
+output_dir: null

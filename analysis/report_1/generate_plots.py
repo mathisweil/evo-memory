@@ -58,8 +58,8 @@ M3_RUNS = {
     3072: ["4sgkswa6"],
 }
 
-# B0 baseline logged in qfoxxi2m at step 0
-B0_RUN = "qfoxxi2m"
+# B0 baseline logged in kz6vqo2o (first M1 segment = true base model)
+B0_RUN = "kz6vqo2o"
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

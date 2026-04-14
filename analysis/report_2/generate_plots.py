@@ -344,8 +344,8 @@ def main():
 
     # ── Fetch baselines ──
     print("\nFetching baselines...")
-    # M1 baseline from qfoxxi2m (third segment of M1 run)
-    m1_baseline = get_baseline(api, "qfoxxi2m")
+    # M1 baseline from kz6vqo2o (first segment = true base model, before any training)
+    m1_baseline = get_baseline(api, "kz6vqo2o")
     print(f"  M1 baseline: {m1_baseline:.2f}")
 
     baselines = {"M1": m1_baseline}
@@ -414,13 +414,13 @@ def main():
             gap = (sub["lora/train_lb_avg_f1"] - sub["lora/val_lb_avg_f1"]).mean()
             print(f"  {cond}: gap (all {len(sub)} points) = {gap:.2f}")
 
-    # ── Generate report.md ──
+    # ── Generate _report.md ──
     write_report(data, baselines, steps_data, OUT_DIR)
     print("\nDone. All plots saved to:", OUT_DIR)
 
 
 def write_report(data, baselines, steps_data, out_dir):
-    """Write the analysis report as report.md."""
+    """Write the analysis report as _report.md."""
     # Gather stats for the report
     stats = {}
     for cond in CONDITIONS:
@@ -640,9 +640,10 @@ def write_report(data, baselines, steps_data, out_dir):
                  "M3 cs3072 was undertrained, preventing meaningful comparison. Between cs1024 and cs2048, "
                  "the larger cache converges moderately faster, but both reach comparable peak performance.")
     lines.append("")
+    pct_below = (1 - stats['M3 cs1024']['baseline'] / stats['M1']['baseline']) * 100
     lines.append(f"5. **The most striking finding is that M3 recovers from severe baseline degradation.** "
                  f"M3 cs1024 starts with a baseline of {stats['M3 cs1024']['baseline']:.2f} "
-                 f"(52% below M1's baseline of {stats['M1']['baseline']:.2f}) yet reaches a peak of "
+                 f"({pct_below:.0f}% below M1's baseline of {stats['M1']['baseline']:.2f}) yet reaches a peak of "
                  f"{stats['M3 cs1024']['best_val']:.2f} -- slightly *exceeding* M1's best of "
                  f"{stats['M1']['best_val']:.2f}. This suggests that LoRA can fully compensate for the "
                  "information loss from aggressive eviction, at least on average across tasks.")
@@ -656,7 +657,7 @@ def write_report(data, baselines, steps_data, out_dir):
     lines.append("- `steps_to_threshold.png` -- Steps to reach 50/75/90% of best val F1")
     lines.append("- `learning_curves_overlay.png` -- Raw val F1 with light smoothing")
 
-    report_path = os.path.join(out_dir, "report.md")
+    report_path = os.path.join(out_dir, "_report.md")
     with open(report_path, "w") as f:
         f.write("\n".join(lines) + "\n")
     print(f"  Saved {report_path}")

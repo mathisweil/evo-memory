@@ -5,16 +5,16 @@ to LoRAGradTrainer instead of ESTrainer. Runs WITHOUT torch.no_grad()
 around the training loop so autograd flows through LoRA A/B matrices.
 
 Usage:
-    # LoRA-only (m1 condition):
-    python scripts/run_lora.py --config scripts/configs/lora_default.yaml --run_name m1_test
+    # M1 LoRA-only (FAIR-01):
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml --run_name m1_r8
 
-    # LoRA + frozen NAMM (m4-frozen condition):
-    python scripts/run_lora.py --config scripts/configs/lora_default.yaml \
-        --namm_active --namm_checkpoint path/to/namm.pt --run_name m4_test
+    # M3 LoRA + frozen NAMM (FAIR-01):
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+        --run_name m3_lora_frozen_namm --namm_checkpoint path/to/namm.pt
 
     # Quick smoke test:
-    python scripts/run_lora.py --run_name test \
-        --num_epochs 1 --eval_interval 5 --max_seq_len 512
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+        --run_name smoke --num_epochs 1 --eval_interval 999 --no-gcs --wandb_log false
 """
 
 import argparse
@@ -41,6 +41,7 @@ from experiment_utils import (
     claim_run_gcs, load_config_defaults, load_hydra_config,
     EXPERIMENTS_DIR,
 )
+from utils.hydra_helpers import assert_fair01_test_size
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────
@@ -51,7 +52,7 @@ def parse_args():
         description="LoRA gradient fine-tuning of base LLM weights with optional NAMM")
 
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/configs/lora_default.yaml)")
+                        help="YAML config file (see scripts/configs/lora_rh_m1_instruct_5t.yaml)")
 
     # Experiment hierarchy
     parser.add_argument("--run_name", type=str, default=None,
@@ -73,6 +74,12 @@ def parse_args():
     parser.add_argument("--gradient_accumulation_steps", type=int, default=16)
     parser.add_argument("--max_seq_len", type=int, default=3500)
     parser.add_argument("--sft_mode", action="store_true", default=False)
+    parser.add_argument("--dtype", type=str, default="bfloat16",
+                        choices=["bfloat16", "float16", "float32"],
+                        help="Training dtype")
+    parser.add_argument("--always_save_checkpoint",
+                        action=argparse.BooleanOptionalAction, default=True,
+                        help="Save checkpoint after every eval interval")
 
     # NAMM config
     parser.add_argument("--namm_active", action="store_true", default=False)
@@ -93,6 +100,8 @@ def parse_args():
     parser.add_argument("--batch_size_eval", type=int, default=None)
     parser.add_argument("--early_stopping_patience", type=int, default=0,
                         help="Stop after N evals with no val F1 improvement (0 = disabled)")
+    parser.add_argument("--skip_baseline_eval", action="store_true", default=False,
+                        help="Skip pre-training F1 eval to reduce peak VRAM")
 
     # Checkpointing & GCS
     parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True)
@@ -188,32 +197,11 @@ def main():
 
     with torch.no_grad():
         (memory_policy, memory_model, memory_evaluator,
-         evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
-
-    # 1b. Swap to Recency (passthrough) policy when NAMM is inactive.
-    # make_eval_model() always instantiates the full NAMM scoring network
-    # from the Hydra config. When namm_active=False, running the full STFT +
-    # scoring pipeline on every generated token during eval is unnecessary
-    # and makes baseline eval ~10-20x slower.
-    if not args.namm_active:
-        from namm.policy.base import Recency
-        recency_policy = Recency(cache_size=args.cache_size)
-        # swap_memory_policy on the evaluator also swaps on its inner model
-        # (memory_model), so one call is sufficient.
-        memory_evaluator.swap_memory_policy(recency_policy)
-        memory_policy = recency_policy
-
-        # The Hydra config (namm_bam_i1_llama32_1b) sets max_memory_length=1024
-        # and batch_size="auto" — tuned for NAMM's small KV cache. Without NAMM
-        # eviction the KV cache grows to the full context length (~6500 tokens),
-        # so auto-detection underestimates memory (calibrated at 1024) and picks
-        # a batch size that OOMs or thrashes during actual generation. Fix both:
-        memory_evaluator.max_memory_length = memory_evaluator.max_conditioning_length
-        if memory_evaluator.batch_size == "auto":
-            memory_evaluator.batch_size = 1
-        print(f"Swapped to Recency policy (namm_active=False, "
-              f"cache_size={args.cache_size}, "
-              f"eval_batch_size={memory_evaluator.batch_size})")
+         evolution_algorithm, auxiliary_loss) = make_eval_model(
+             cfg=cfg,
+             namm_active=args.namm_active,
+             cache_size=args.cache_size,
+         )
 
     # 2. Load NAMM checkpoint if needed
     if args.namm_checkpoint:
@@ -263,12 +251,22 @@ def main():
 
     # 3c. Apply 3-way split for LoRA training with exact token-based filtering.
     # This ensures LoRA uses the same eligible set as NAMM training.
+    max_cond = cfg.get('max_conditioning_length', 6500)
+    min_cond = cfg.get('min_conditioning_length', None)
     task_sampler.apply_train_val_test_split(
         train_frac=args.train_split,
         val_frac=args.val_split,
-        max_conditioning_length=cfg.get('max_conditioning_length', 6500),
-        min_conditioning_length=cfg.get('min_conditioning_length', None),
+        max_conditioning_length=max_cond,
+        min_conditioning_length=min_cond,
         tokenizer=memory_evaluator.tokenizer,
+    )
+    assert_fair01_test_size(
+        task_sampler,
+        run_config=args.run_config,
+        train_frac=args.train_split,
+        val_frac=args.val_split,
+        min_conditioning_length=min_cond,
+        max_conditioning_length=max_cond,
     )
 
     # 3d. Wrap eval prompts in chat template to match SFT training format
@@ -313,9 +311,9 @@ def main():
         namm_active=args.namm_active,
         eval_interval=args.eval_interval,
         log_interval=args.log_interval,
-        always_save_checkpoint=True,
+        always_save_checkpoint=args.always_save_checkpoint,
         init_from=args.resume_checkpoint,
-        dtype='bfloat16',
+        dtype=args.dtype,
         sft_mode=args.sft_mode,
         train_frac=args.train_split,
         val_frac=args.val_split,
@@ -323,6 +321,7 @@ def main():
         min_conditioning_length=cfg.get('min_conditioning_length', None),
         max_answer_tokens=args.filter_answers_by_tokens,
         early_stopping_patience=args.early_stopping_patience,
+        skip_baseline_eval=args.skip_baseline_eval,
     )
 
     wandb_cfg = WandbConfig(
