@@ -175,41 +175,92 @@ def compute_spearman(x: np.ndarray, y: np.ndarray) -> float:
 
 
 def extract_alignment_data(memory_model, memory_policy, prompts, device="cuda"):
-    """Extract NAMM scores and attention importance.
+    """Extract NAMM scores and attention importance using chunked forward.
 
-    Uses forward hooks on self_attn modules to:
-    1. Capture per-token mean attention received (small summary vector)
-    2. Capture the raw attention tensor for NAMM scoring
-    3. Replace the attention output with None so the decoder layer
-       doesn't accumulate all 16 layers' full (32, seq, seq) matrices
+    Runs with apply_memory_policy=True so the model processes in 256-token
+    chunks (like training).  Each chunk's attention is small.
 
-    This reduces peak GPU memory from O(16 * 32 * seq^2) to O(32 * seq^2)
-    — only one layer's attention exists at a time during the NAMM analyze.
+    To get per-token NAMM scores (not available via record_eval_stats),
+    we monkey-patch the policy's update_layer_cache_impl_ to capture
+    token_scores and retained_idxs from each eviction step.
+
+    After the chunked forward completes, we have:
+    - Per-KV-position attention received (from self_attn hooks)
+    - Per-token NAMM scores from the final eviction step (from policy patch)
+    These are on the post-eviction cache (~1024 tokens), not the full input.
     """
     import torch
 
-    _attn_summaries: dict[int, np.ndarray] = {}
-    _attn_for_namm: list[torch.Tensor | None] = [None] * NUM_LAYERS
+    # ── Attention hooks: accumulate per-KV attention across chunks ─────
+    _attn_accum: dict[int, torch.Tensor] = {}
 
     def _make_attn_hook(layer_idx: int):
         def hook(module, args, output):
-            # output: (attn_output, attn_weights, past_kv) or + (queries,)
             attn_weights = output[1]
             if attn_weights is not None:
-                per_kv = attn_weights[0].float().mean(dim=0).mean(dim=0)
-                _attn_summaries[layer_idx] = per_kv.detach().cpu().numpy()
-                # Move to CPU for NAMM (frees GPU immediately)
-                _attn_for_namm[layer_idx] = attn_weights.cpu()
-                # Replace attention with None in output to prevent
-                # accumulation in the decoder layer's output tuple
-                return (output[0], None) + output[2:]
+                per_kv = attn_weights[0].float().mean(dim=0).sum(dim=0)
+                if layer_idx not in _attn_accum:
+                    _attn_accum[layer_idx] = per_kv.detach().cpu()
+                else:
+                    prev = _attn_accum[layer_idx]
+                    curr = per_kv.detach().cpu()
+                    if curr.shape[0] > prev.shape[0]:
+                        padded = torch.zeros(curr.shape[0])
+                        padded[:prev.shape[0]] = prev
+                        _attn_accum[layer_idx] = padded + curr
+                    elif curr.shape[0] < prev.shape[0]:
+                        prev[:curr.shape[0]] += curr
+                    else:
+                        prev += curr
         return hook
 
-    hooks = []
+    attn_hooks = []
     for layer_idx in range(NUM_LAYERS):
         attn_module = memory_model.model.model.layers[layer_idx].self_attn
-        hooks.append(attn_module.register_forward_hook(
+        attn_hooks.append(attn_module.register_forward_hook(
             _make_attn_hook(layer_idx)))
+
+    # ── NAMM score capture: patch update_layer_cache_impl_ ────────────
+    # Stores the last token_scores and retained_idxs per layer from the
+    # final eviction step of each sample.
+    _namm_scores: dict[int, np.ndarray] = {}
+    _namm_retained: dict[int, list[int]] = {}
+
+    _orig_impl = memory_policy.update_layer_cache_impl_
+
+    def _patched_impl(layer_id, token_embedding_params, scoring_network_params,
+                      seletion_criteria_params, key_cache, value_cache,
+                      num_new_tokens, **kwargs):
+        result = _orig_impl(
+            layer_id=layer_id,
+            token_embedding_params=token_embedding_params,
+            scoring_network_params=scoring_network_params,
+            seletion_criteria_params=seletion_criteria_params,
+            key_cache=key_cache, value_cache=value_cache,
+            num_new_tokens=num_new_tokens, **kwargs)
+        # After each eviction step, peek at the internal state.
+        # The scoring network stores the last scores in its buffer.
+        # We capture from the selection_criteria which has retained_idxs.
+        # Actually, we need to hook deeper. Let's capture from the
+        # policy's own internal variables set during _apply_policy.
+        return result
+
+    # Better approach: hook the selection_criteria to capture scores+indices
+    _orig_select = memory_policy.selection_criteria.select_new_tokens
+
+    def _patched_select(layer_id, token_scores, **kwargs):
+        result = _orig_select(layer_id=layer_id,
+                              token_scores=token_scores, **kwargs)
+        # result is (retained_idxs, new_mask)
+        retained_idxs = result[0]
+        # Store last scores and retained for this layer
+        scores = token_scores[0].float().detach().mean(dim=0).cpu().numpy()
+        _namm_scores[layer_id] = scores
+        ret = retained_idxs[0, 0].detach().cpu().numpy().tolist()
+        _namm_retained[layer_id] = ret
+        return result
+
+    memory_policy.selection_criteria.select_new_tokens = _patched_select
 
     results = []
     for i, p in enumerate(prompts):
@@ -217,84 +268,45 @@ def extract_alignment_data(memory_model, memory_policy, prompts, device="cuda"):
         seq_len = input_ids.shape[1]
 
         reset_policy_state(memory_model)
-        if hasattr(memory_policy, "record_eval_stats"):
-            memory_policy.record_eval_stats = False
-
-        _attn_summaries.clear()
-        for l in range(NUM_LAYERS):
-            _attn_for_namm[l] = None
+        _attn_accum.clear()
+        _namm_scores.clear()
+        _namm_retained.clear()
 
         with torch.no_grad():
             outputs = memory_model(
                 input_ids=input_ids, use_cache=True,
                 output_attentions=True, return_dict=True,
-                apply_memory_policy=False,
+                apply_memory_policy=True,
             )
 
-        attention_per_kv = [_attn_summaries.get(l, np.array([]))
-                            for l in range(NUM_LAYERS)]
-
-        past_kv = outputs.past_key_values
-        if hasattr(past_kv, "to_legacy_cache"):
-            past_kv = past_kv.to_legacy_cache()
-        elif not isinstance(past_kv, tuple):
-            past_kv = tuple(
-                (past_kv.key_cache[j], past_kv.value_cache[j])
-                for j in range(len(past_kv.key_cache)))
-
-        del outputs
-
-        attention_mask = torch.ones(1, seq_len, dtype=torch.long, device=device)
-        position_ids = torch.arange(seq_len, device=device).unsqueeze(0)
-
-        # Lazy list: moves attention tensors to GPU one at a time as
-        # NAMM's update_cache loop accesses them, freeing GPU memory
-        # between layers.  Peak = 1 layer's attention, not 16.
-        class _LazyGPUList:
-            def __init__(self, cpu_tensors, device):
-                self._cpu = cpu_tensors
-                self._device = device
-                self._prev = None
-            def __getitem__(self, idx):
-                if self._prev is not None:
-                    del self._prev
-                    torch.cuda.empty_cache()
-                t = self._cpu[idx]
-                self._prev = t.to(self._device) if t is not None else None
-                return self._prev
-            def __len__(self):
-                return len(self._cpu)
-
-        attn_list_for_namm = _LazyGPUList(list(_attn_for_namm), device)
-
-        reset_policy_state(memory_model)
-        try:
-            _, analysis_dicts = memory_policy.update_cache(
-                past_key_values=past_kv, num_new_tokens=seq_len,
-                attn_weights_list=(attn_list_for_namm
-                                   if memory_policy.requires_attn_scores else []),
-                attention_mask=attention_mask, position_ids=position_ids,
-                analyze=True,
-            )
-        except Exception as e:
-            logger.warning("  Sample %d analyze failed: %s", i, e)
-            del past_kv, attn_list_for_namm
-            for l in range(NUM_LAYERS):
-                _attn_for_namm[l] = None
-            torch.cuda.empty_cache()
-            continue
+        if i == 0:
+            logger.info("  Attention hooks fired for layers: %s",
+                         sorted(_attn_accum.keys()))
+            logger.info("  NAMM scores captured for layers: %s",
+                         sorted(_namm_scores.keys()))
 
         sample_layers = []
-        for layer_id, ad in enumerate(analysis_dicts):
-            token_scores = ad.get("token_scores")
-            retained_idxs = ad.get("retained_idxs")
-            scores_np = (token_scores[0].float().detach().mean(dim=0).cpu().numpy()
-                         if token_scores is not None else np.array([]))
-            retained = (retained_idxs[0, 0].detach().cpu().numpy().tolist()
-                        if retained_idxs is not None else list(range(seq_len)))
+        for layer_id in range(NUM_LAYERS):
+            scores_np = _namm_scores.get(layer_id, np.array([]))
+            retained = _namm_retained.get(layer_id, [])
+
+            if len(scores_np) == 0:
+                sample_layers.append({
+                    "layer_id": layer_id, "spearman_rho": float("nan"),
+                    "total_regret": 0.0, "mean_regret": 0.0,
+                    "num_tokens": 0, "num_retained": 0, "num_evicted": 0,
+                })
+                continue
+
             evicted = sorted(set(range(len(scores_np))) - set(retained))
-            attn = (attention_per_kv[layer_id]
-                    if layer_id < len(attention_per_kv) else np.array([]))
+
+            # Get attention for this layer's KV positions
+            attn = np.array([])
+            if layer_id in _attn_accum:
+                acc = _attn_accum[layer_id].numpy()
+                acc = acc / (acc.sum() + 1e-12)
+                attn = acc
+
             min_len = min(len(scores_np), len(attn))
             rho = (compute_spearman(scores_np[:min_len], attn[:min_len])
                    if min_len >= 3 else float("nan"))
@@ -315,15 +327,16 @@ def extract_alignment_data(memory_model, memory_policy, prompts, device="cuda"):
             "task": p["task"], "idx": p["idx"],
             "seq_len": seq_len, "layers": sample_layers,
         })
-        if (i + 1) % 10 == 0 or i == 0:
-            logger.info("  Sample %d/%d (%s, seq_len=%d) done",
-                         i + 1, len(prompts), p["task"], seq_len)
-        del past_kv, attn_list_for_namm
-        for l in range(NUM_LAYERS):
-            _attn_for_namm[l] = None
+        n_valid = sum(1 for sl in sample_layers if not np.isnan(sl["spearman_rho"]))
+        logger.info("  Sample %d/%d (%s, seq_len=%d) — %d/%d layers with scores",
+                     i + 1, len(prompts), p["task"], seq_len,
+                     n_valid, NUM_LAYERS)
+        del outputs
         torch.cuda.empty_cache()
 
-    for h in hooks:
+    # Restore original methods
+    memory_policy.selection_criteria.select_new_tokens = _orig_select
+    for h in attn_hooks:
         h.remove()
 
     return results
