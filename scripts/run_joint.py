@@ -41,6 +41,8 @@ import sys
 import time
 from datetime import datetime
 
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
 import numpy as np
 import torch
 
