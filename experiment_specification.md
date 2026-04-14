@@ -130,11 +130,13 @@ python scripts/run_lora.py \
 | `sft_mode`                    | true — supervised fine-tuning with chat template                                       |
 | `learning_rate`               | 5e-5                                                                                   |
 | `num_epochs`                  | 150                                                                                    |
-| `batch_size`                  | 4                                                                                      |
-| `gradient_accumulation_steps` | 4 (effective batch = 16)                                                               |
+| `batch_size`                  | 1 — matches M3/M4 for controlled comparison (was 4 in earlier drafts)                  |
+| `gradient_accumulation_steps` | 16 (effective batch = 16)                                                              |
 | `max_seq_len`                 | 7000                                                                                   |
 | `namm_active`                 | false — full KV cache during training                                                  |
-| `eval_interval`               | 2 steps                                                                                |
+| `eval_interval`               | 14 steps (was 2 in earlier drafts — kept at 14 for practical wall-clock)               |
+| `batch_size_eval`             | 2                                                                                      |
+| `early_stopping_patience`     | 20 (≈14 epochs; raised from 5 which was too aggressive for 150-epoch schedule)         |
 | `lora_rank`                   | 8                                                                                      |
 | `lora_alpha`                  | 16                                                                                     |
 | `lora_dropout`                | 0.1                                                                                    |
@@ -143,7 +145,7 @@ python scripts/run_lora.py \
 | `weight_decay`                | 0.01                                                                                   |
 | `max_grad_norm`               | 1.0                                                                                    |
 | Tasks                         | 5-task QA: qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e                          |
-| Splits                        | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (306 train / 64 val / 70 test)      |
+| Splits                        | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (306 train / 64 val / 69 test)      |
 | Filtering                     | `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64` |
 | `seed`                        | 42                                                                                     |
 | Output                        | `experiments/experiment_N/m1_lora_only/{m1_r4,m1_r8,m1_r16}/`                          |
@@ -216,16 +218,18 @@ python scripts/run_lora.py \
 | `method`                      | `rh_m4_frozen_5t`                                                                      |
 | `sft_mode`                    | true — supervised fine-tuning with chat template                                       |
 | `namm_active`                 | true + NAMM checkpoint (required)                                                      |
-| `learning_rate`               | 1e-4                                                                                   |
+| `learning_rate`               | 5e-5 — MATCHES M1 (was 1e-4 in the first M3 runs; those are now labelled "M3-tuned", see §6 and `docs/m3_rerun_plan.md`) |
 | `num_epochs`                  | 150                                                                                    |
 | `batch_size`                  | 1                                                                                      |
 | `gradient_accumulation_steps` | 16 (effective batch = 16)                                                              |
 | `max_seq_len`                 | 7000                                                                                   |
 | `lora_rank`                   | 8                                                                                      |
 | `lora_alpha`                  | 16                                                                                     |
-| `lora_dropout`                | 0.05                                                                                   |
+| `lora_dropout`                | 0.1 — MATCHES M1 (was 0.05 in the first M3 runs)                                       |
 | `lora_target_modules`         | `[q_proj, v_proj]`                                                                     |
-| `eval_interval`               | 2 steps                                                                                |
+| `eval_interval`               | 14 steps                                                                               |
+| `batch_size_eval`             | 2                                                                                      |
+| `early_stopping_patience`     | 20                                                                                     |
 | `cache_size`                  | 1024                                                                                   |
 | Tasks                         | 5-task QA: qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e                          |
 | Splits                        | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (306 train / 64 val / 70 test)      |
@@ -241,26 +245,25 @@ NAMM and LoRA are co-trained in alternating stages: Stage A evolves the NAMM for
 
 ```bash
 python scripts/run_joint.py \
-    --config scripts/configs/joint_default.yaml \
-    --run_name m4_joint_lora \
-    --adapter_type lora \
-    --num_outer_loops 2 \
-    --namm_iterations_per_stage 100 \
-    --lora_epochs_per_stage 75 \
-    --lora_rank 8 \
-    --cache_size 1024
+    --config scripts/configs/joint_lora_m4_5t.yaml \
+    --run_name m4_joint_lora
 ```
 
 | Parameter                   | Value                                                                                  | Notes                                  |
 | --------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------- |
-| Config                      | `scripts/configs/joint_default.yaml`                                                   |                                        |
-| `adapter_type`              | `lora`                                                                                 | Overrides config default of `es`       |
+| Config                      | `scripts/configs/joint_lora_m4_5t.yaml` (the M4 FAIR-01 preset)                        | `joint_default.yaml` is an ad-hoc preset — do not use it for the M4 paper run |
+| `adapter_type`              | `lora`                                                                                 |                                        |
 | `num_outer_loops`           | 2                                                                                      |                                        |
 | `namm_iterations_per_stage` | 100                                                                                    | 2 × 100 = 200 total — matches M2       |
 | `lora_epochs_per_stage`     | 75                                                                                     | 2 × 75 = 150 total epochs — matches M1 |
 | `lora_rank`                 | 8                                                                                      | Matches M1-r8                          |
 | `lora_alpha`                | 16                                                                                     | Matches M1                             |
 | `learning_rate`             | 5e-5                                                                                   | Matches M1                             |
+| `lora_dropout`              | 0.1                                                                                    | Matches M1                             |
+| `lora_batch_size`           | 1                                                                                      | Matches M1/M3                          |
+| `gradient_accumulation_steps` | 16                                                                                   | Effective batch = 16                   |
+| `max_seq_len`               | 7000                                                                                   | Matches M1                             |
+| `lora_eval_interval`        | 14                                                                                     | Mid-stage best-checkpointing (was 999999 pre-C3 fix) |
 | `sft_mode`                  | true                                                                                   | Matches M1                             |
 | `cache_size`                | 1024                                                                                   | NAMM evicts during training            |
 | `namm_checkpoint`           | null — cold-start                                                                      | No pretrained checkpoint               |
@@ -270,7 +273,7 @@ python scripts/run_joint.py \
 | Filtering                   | `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64` |                                        |
 | Output                      | `experiments/experiment_N/joint_lora/m4_joint_lora/`                                   |                                        |
 
-> The default `joint_default.yaml` may need overrides to match the M1/M2 hyperparameters above. Ensure the LoRA stages use SFT mode with the same learning rate and batch size as M1.
+> M4 asymmetries to report in the paper: each LoRA stage runs a fresh 75-epoch warmup+cosine schedule (not one continuous 150-epoch curve), and `early_stopping_patience` is not applied inside joint LoRA stages (each stage runs to its full epoch budget). See `docs/m4_readiness_review.md`.
 
 ---
 
@@ -417,6 +420,10 @@ Single logical training run split across 3 WandB segments due to crashes/resumes
 
 These runs train LoRA adapters while the frozen M2 NAMM actively evicts KV cache tokens. Named `rh_m4_5t_cs*` in WandB (historical naming from the `rh_m4_frozen` method config).
 
+> **M3 must be re-run.** The runs in the table below used `learning_rate=1e-4` and `lora_dropout=0.05` — both differ from M1's `learning_rate=5e-5` and `lora_dropout=0.1`. This is a confound that invalidates any headline M1-vs-M3 comparison drawn from the tuned runs. The config at `scripts/configs/lora_rh_m4_instruct_5t.yaml` has been corrected (Part C1 of the 2026-04-14 config review) to match M1. See `docs/m3_rerun_plan.md` for the rerun command and WandB naming convention. The runs below are retained as the "M3-tuned" ablation.
+
+#### M3-tuned (pre-fix config — kept as secondary data point)
+
 | Cache | WandB run name    | WandB ID   | State    | Epochs | Steps | Best val avg F1      | GCS checkpoint                                                                          |
 | ----- | ----------------- | ---------- | -------- | ------ | ----- | -------------------- | --------------------------------------------------------------------------------------- |
 | 1024  | `rh_m4_5t_cs1024` | `ovosogkj` | crashed  | 25     | 609   | **45.59** (step 340) | `gs://statistical-nlp/NAMM_checkpoints/pretrained/lora-m4-frozen-5t-cs1024-llama32-1b/` |
@@ -424,6 +431,10 @@ These runs train LoRA adapters while the frozen M2 NAMM actively evicts KV cache
 | 3072  | `rh_m4_5t_cs3072` | `4sgkswa6` | finished | 4      | 117   | 33.37                | **not uploaded**                                                                        |
 
 The cs1024 and cs2048 runs crashed before completing all 150 epochs but best checkpoints were saved before crash. The cs3072 run finished but at only epoch 4 — may need rerunning with more epochs.
+
+#### M3-matched (post-fix config, matching M1 exactly except NAMM)
+
+**Not yet started.** Will use run names `m3_cs{1024,2048,3072}_matched` and WandB group `m3_matched`.
 
 > **Naming note:** WandB names `rh_m4_5t_cs*` refer to M3 (frozen NAMM), not M4 (joint). The `rh_m4` prefix comes from the `rh_m4_frozen` method in the LoRA config. The NAMM checkpoint used by each M3 run is the corresponding M2 run at the same cache size.
 
@@ -480,7 +491,7 @@ M3 maskfix cs1024 already exceeds both buggy M3 (45.59) and M1 (45.48) by ~6.5 p
 | 2    | B1 — recency eviction eval    | **done** (cs1024: 12.45, cs2048: 13.78)                                                   |
 | 3    | M1-LoRA — rank sweep          | **partial** (r=8 done, test micro 31.14; r=4, r=16 not started)                           |
 | 4    | M2 — standalone NAMM          | **done** (cs1024: 20.30, cs2048: 17.40; cs3072 finished but GCS upload pending)           |
-| 5    | M3-LoRA — LoRA + frozen NAMM  | **done** (cs1024: 32.28, cs2048: 31.06; cs3072 may need more epochs)                      |
+| 5    | M3-LoRA — LoRA + frozen NAMM  | **rerun needed**: tuned runs done (cs1024: 32.28, cs2048: 31.06) with lr/dropout mismatch; matched runs not yet started |
 | 6    | M4-LoRA — joint LoRA + NAMM   | **not started**                                                                           |
 | 7    | A1 — LoRA rank sweep analysis | **not started** (r=4, r=16 not trained)                                                   |
 | 8    | A4 — NAMM disabled at eval    | **done** (run on M3 ckpts, not M4; cs1024_no_namm: 28.82, cs2048_no_namm: 33.91)          |

@@ -1,31 +1,36 @@
+# DEPRECATED: This config uses a 3-task subset and the non-5t run_config.
+# For FAIR-01 compliant M3 runs, use lora_rh_m4_instruct_5t.yaml instead.
+# Kept for reproducibility of prior runs (WandB: rh_m4_5t_cs1024, ovosogkj etc).
+#
 # Usage:
-#   python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct.yaml --run_name rh_m1_test
+#   python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct.yaml \
+#       --run_name rh_m4_test --namm_checkpoint path/to/namm_ckpt.pt
 
 # ── Experiment ──────────────────────────────────────────────────────────
 run_name: null
 experiment: null
-method: rh_m1_lora_instruct
+method: rh_m4_frozen
 
-# ── LoRA hyperparameters (rhautier's) ──────────────────────────────────
+# ── LoRA hyperparameters (rhautier's m4 — lower lr for NAMM stability) ─
 lora_rank: 8
 lora_target_modules: [q_proj, v_proj]
 lora_alpha: 16
-lora_dropout: 0.1
-learning_rate: 5e-5
+lora_dropout: 0.05
+learning_rate: 1e-4
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
 num_epochs: 150
-batch_size: 4
-gradient_accumulation_steps: 4
+batch_size: 1
+gradient_accumulation_steps: 16
 max_seq_len: 7000
 sft_mode: true
 
 # ── NAMM ────────────────────────────────────────────────────────────────
-namm_active: false
-namm_checkpoint: null
+namm_active: true
+namm_checkpoint: null      # REQUIRED: set via CLI --namm_checkpoint
 run_config: namm_bam_i1_llama32_1b
-cache_size: null
+cache_size: 1024
 
 # ── Data ────────────────────────────────────────────────────────────────
 filter_by_tokens: null
@@ -50,10 +55,19 @@ checkpoint_every: 0
 resume_checkpoint: null
 
 # ── Advanced ────────────────────────────────────────────────────────────
+# NAMM architecture overrides must match the checkpoint's config exactly.
+# Task list matches rhautier's multi-task setup.
 override:
-  - "task_sampler.tasks=[lb/qasper,lb/multifieldqa_en,lb/2wikimqa,lb/qasper_e,lb/hotpotqa_e,lb/2wikimqa_e]"
+  - "task_sampler.tasks=[lb/qasper,lb/multifieldqa_en,lb/2wikimqa]"
   - "max_position_id=8192"
-  - "min_conditioning_length=100"
   - "max_conditioning_length=6500"
   - "max_new_tokens=64"
   - "max_gen_tokens=64"
+  - "batch_size=1"
+  - "pop_size=1"
+  - "per_layer=false"
+  - "memory_policy_fixed_delay=256"
+  - "scoring_attn_num_heads=1"
+  - "scoring_attn_bias=true"
+  - "scoring_attn_masking_strategy=backward"
+  - "scoring_reduction_mode=null"

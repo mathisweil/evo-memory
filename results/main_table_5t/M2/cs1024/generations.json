@@ -3,7 +3,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": "unanswerable",
+        "pred": "Question: How many layers does the UTCNN model have?\n\nAnswer: The UTCNN model has 2 layers.",
         "answers": [
           "eight layers"
         ],
@@ -22,7 +22,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": "The paper uses the following clinical datasets:\n\n1. NUBes-PHI (a multilingual clinical dataset)\n2. MEDDOCAN 2019 (a shared task dataset for detecting and classifying sensitive information in clinical text)",
+        "pred": "The paper uses the MEDDOCAN 2019 shared task dataset and the NUBes-PHI dataset.",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -32,7 +32,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "They used linguistic features such as word order, sentence structure, and word meanings.",
+        "pred": "I cannot answer the question.",
         "answers": [
           "Unanswerable"
         ],
@@ -50,7 +50,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": "Gaussian-masked directional multi-head attention is a self-attention mechanism used in the Transformer encoder to capture directional features in a sequence input. It combines the strengths of self-attention and directional attention to improve the model's ability to capture local and long-range dependencies in the input sequence.",
+        "pred": "Gaussian-masked directional multi-head attention is a self-attention mechanism used in the Transformer encoder to capture directional features and improve the ability to predict the label of gaps in Chinese word segmentation.",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "They considered both Twitter and Facebook.",
+        "pred": "\"Since 2013\"\n\nThe \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The \"VIBER\" (2020) \"The",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -79,7 +79,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "unanswerable",
+        "pred": "Since the article doesn't explicitly state what the ELMo models are, I'll provide a general explanation.\n\nThe ELMo models are a type of neural network designed to process and understand human language. They are typically trained on large datasets, such as the GloVe model, which is a pre-trained English model.\n\nThe GloVe model is a pre-trained English model. The ELMo models are a type of neural network designed to process and understand human language. They are typically trained on large datasets, such as the GloVe model, which is a pre-trained English model.\n\nThe ELMo models are a type of neural network",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "unanswerable",
+        "pred": "I can help with the following steps to answer the question \"How many words in the text?\"\n\n## Step 1: Preprocess the text to extract the number of words in the text\nThe text is preprocessed and tokenized into a list of words, and the number of words in the list is 1000. The preprocessed text is then used to be used to train the model.\n\n## Step 1: Preprocess the text to extract the number of words in the text\nThe preprocessed text is then used to be used to train the model.\n\n## Step 2: Tokenize the text into words\nThe pre",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "unanswerable",
+        "pred": "I can help with that. The \"correct\" answer is not \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"not\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\" or \"no\" or \"no\" or \"yes\"",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -109,7 +109,7 @@
       },
       {
         "prompt_idx": 178,
-        "pred": "Yes",
+        "pred": "\"Because we are not'solely' bound by the \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and \"standard\" and",
         "answers": [
           "Yes",
           "Yes"
@@ -119,7 +119,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": "unanswerable",
+        "pred": "It seems like the question is asking if the approach only evaluates on English datasets, but the article doesn't explicitly state this. However, based on the information provided, it appears that the approach is designed to evaluate the performance of language models on a wide range of tasks, including POS tagging, unsupervised dependency parsing, and others.\n\nGiven the context of the article, it appears that the approach is designed to evaluate the performance of language models on a wide range of tasks, including POS tagging, unsupervised dependency parsing, and others.\n\nSo, to answer the question: No, the approach does not only evaluate on English datasets.",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -129,7 +129,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": "unanswerable",
+        "pred": "It seems like the question is asking for the datasets that the authors evaluate on, but the text doesn't provide the answer. If you provide the answer, I'll be happy to help.\n\nHowever, I can provide a possible answer based on the context of the article. The authors are evaluating datasets on POS induction and unsupervised learning tasks.\n\nIf you're looking for a concise answer, I can say that the authors evaluate datasets on POS induction and unsupervised learning tasks.\n\nIf you're looking for a more detailed answer, I can say that the authors evaluate datasets on POS induction and unsupervised learning tasks, specifically on the Penn",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -141,7 +141,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": "Ajman",
+        "pred": "I cannot provide information on the place of birth of Abdulaziz Nasser Al Shamsi's wife, as it is not mentioned in the provided passages.",
         "answers": [
           "Abu Dhabi"
         ],
@@ -150,7 +150,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": "Batavia",
+        "pred": "**Wife's Name:** Princess Elisabeth\n\n**Birthplace:** Prince Edward's Castle, York\n\n**Note:** The wife, Princess Elisabeth, was",
         "answers": [
           "Prenzlau"
         ],
@@ -159,7 +159,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": "Brooklyn",
+        "pred": "I cannot provide the answer. The director of film Edges Of The Lord was born in Brooklyn, New York, on May 7, 1868.",
         "answers": [
           "Pozna\u0144"
         ],
@@ -168,7 +168,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": "Pembroke, Wales",
+        "pred": "London",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -195,7 +195,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From Corleone To Brooklyn",
+        "pred": "I cannot provide information on films that were released in 1979.",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -213,7 +213,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": "Richard de Beauchamp, 13th Earl of Warwick",
+        "pred": "Richard De Beauchamp, 13th Earl of Warwick",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -240,7 +240,7 @@
       },
       {
         "prompt_idx": 156,
-        "pred": "I cannot verify where the director of the 1938 film Nanon died.",
+        "pred": "The answer is that the director of film, Nan, died of a heart attack, which occurred in 1938, while working as a director for the \"",
         "answers": [
           "K\u00f6ln"
         ],
@@ -251,7 +251,7 @@
     "lb/qasper_e": [
       {
         "prompt_idx": 162,
-        "pred": "unanswerable",
+        "pred": "I can't provide a response to this question as it appears to be a duplicate of the original article.",
         "answers": [
           "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
           "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
@@ -280,7 +280,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": "Yes",
+        "pred": "No, they did not collect the two datasets.",
         "answers": [
           "No",
           "No"
@@ -329,7 +329,7 @@
       },
       {
         "prompt_idx": 171,
-        "pred": "unanswerable",
+        "pred": "It seems like the question is asking for a specific answer, but the question itself is a yes/no question. The question is asking for the size of their dataset, but the answer is \"unanswerable\".",
         "answers": [
           "13,939"
         ],
@@ -338,7 +338,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": "Question: What is the name of the clinical workbench used to develop the NLP model?\n\nAnswer: unanswerable\n\nQuestion: What is the name of the model used to extract medication tags from doctor-patient conversation transcripts?\n\nAnswer: unanswerable\n\nQuestion: What is the name of the model used to extract medication tags from doctor-patient conversation transcripts?\n\nAnswer: unanswerable\n\nQuestion: What is the name of the model used to extract medication tags from doctor-patient conversation transcripts?\n\nAnswer: unanswerable\n\nQuestion: What is the name of the model used to extract medication tags from doctor-patient conversation transcripts?\n\nAnswer",
+        "pred": "Question: What is the name of the model used for MR extraction?\n\nAnswer:unanswerable\n\nQuestion: What is the name of the ASR service used for MR extraction?\n\nAnswer:unanswerable\n\nQuestion: What is the name of the clinical setting where the MR extraction was performed?\n\nAnswer:unanswerable\n\nQuestion: What is the percentage of medications that were correctly extracted by the model?\n\nAnswer:73.58% \n\nQuestion: What is the name of the model that was used for MR extraction?\n\nAnswer:unanswerable\n\nQuestion: What is the name of the clinical setting where the MR extraction was performed?\n\nAnswer",
         "answers": [
           "Yes",
           "Yes"
@@ -348,7 +348,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "unanswerable",
+        "pred": "I cannot provide an answer to this question. Can you please provide more information about your question?",
         "answers": [
           "Yes",
           "Yes"
@@ -358,7 +358,7 @@
       },
       {
         "prompt_idx": 174,
-        "pred": "ROGUE metric.",
+        "pred": "It seems like you've already read the article, and I'll summarize it for you.\n\nThe article discusses the use of AMR (Artificially Modified Robot) for text summarization. The author presents a new method for extracting summary graph, which outperformed previous methods.\n\nThe article does not provide any further information or context. It seems like a straightforward explanation of the use of AMR for text summarization.\n\nIf you have any questions or need further clarification, please let me know.\n\n(And if you're still having trouble, I can try to explain it to you. But I think I know what you're getting at.)\n\n",
         "answers": [
           "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
           "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
@@ -397,7 +397,7 @@
       },
       {
         "prompt_idx": 181,
-        "pred": "unanswerable",
+        "pred": "It seems like you've already read the article, and I'll provide a concise answer.\n\nThe article discusses the use of metrics in evaluation, specifically in the context of automated propaganda detection.\n\nThe article mentions that metrics are used to evaluate the performance of automated systems, such as those used in propaganda detection.\n\nThe article also mentions that metrics are used to evaluate the performance of other systems, such as those used in natural language processing.\n\nThe article provides a detailed explanation of the metrics used in evaluation, including the use of metrics in the context of automated systems and other systems.\n\nI hope this helps clarify the metrics used in evaluation.\n\nPlease let me know",
         "answers": [
           "precision, recall , F1 score"
         ],
@@ -427,7 +427,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": "No",
+        "pred": "I can only confirm that the film is a 1939 American pre-Code Western film, directed by Warren Arledge, and written by Warren Arledge and",
         "answers": [
           "yes"
         ],
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Jaffrey",
+        "pred": "## Step 1: The first step is to understand the question.\nThe \"how\" and \"what\" are the \"why\" and \"when\" of",
         "answers": [
           "Marlborough"
         ],
@@ -454,7 +454,7 @@
       },
       {
         "prompt_idx": 94,
-        "pred": "Yes",
+        "pred": "I think there was a mix-up in the last few minutes. Nelson. Bielinsky was a Brazilian film director, actor, and writer. He was also",
         "answers": [
           "yes"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": "Aichryson",
+        "pred": "It seems that you have not given a full name.\n\n## Step 1:  The \"Polypodium\" is a type of fern that is native to",
         "answers": [
           "Polypodium"
         ],
@@ -472,7 +472,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "I cannot verify the middle name of the actor who hosted the 24th People's Choice Awards.",
+        "pred": "I cannot provide the answer to the question \"What is the middle name of the actor who hosted the 24th People's Choice Awards with Reba McEnt",
         "answers": [
           "Albert"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "Pathe Records",
+        "pred": "The answer is \"The Devil\" is a song by the devil, and the answer is \"The Devil's\" 2017 album, \"The Devil's",
         "answers": [
           "A1 Recordings"
         ],
@@ -490,7 +490,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": "83",
+        "pred": "I cannot answer the question. Is there a way to resolve the issue?",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -499,7 +499,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Vodka",
+        "pred": "\"An ingredient in both Cosmopolitan and Cuba Libre?\"\n\nThis is the answer.",
         "answers": [
           "lime"
         ],
@@ -526,7 +526,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": "2",
+        "pred": "Only give me the answer and do not output any other other information.\n\nAnswer: The criteria Edge used when compiling the list were simple: each game was eligible,",
         "answers": [
           "13"
         ],
@@ -537,7 +537,7 @@
     "lb/2wikimqa_e": [
       {
         "prompt_idx": 107,
-        "pred": "Yes",
+        "pred": "No",
         "answers": [
           "yes"
         ],
@@ -546,7 +546,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": "Kiplangat Sang",
+        "pred": "Kiplangatang",
         "answers": [
           "Kiplangat Sang"
         ],
@@ -564,7 +564,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": "There is no information about Andrew, Duke of Slavonia's father's date of death in the given passages.",
+        "pred": "There is no mention of Andrew, Duke of Slavonia's father in the given passages.",
         "answers": [
           "6 August 1272"
         ],
@@ -667,7 +667,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": "unanswerable",
+        "pred": "I'm sorry, but I cannot provide a response to this question.",
         "answers": [
           "eight layers"
         ],
@@ -696,7 +696,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "They used linguistic features such as word order, sentence structure, and word meanings.",
+        "pred": "I cannot provide any information on the traditional features used by the system. If the question cannot be answered based on the information in the article, write \"unanswerable\". If the question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not provide any explanation.\n\nThe system used to detect sarcasm, that derives insights from human cognition, that manifests over eye movement patterns. We hypothesized that the system would be able to detect sarcasm, and that the system would be able to detect sarcasm.\n\nThe system used to detect sarcasm, that derives insights from human cognition, that manifests over",
         "answers": [
           "Unanswerable"
         ],
@@ -714,7 +714,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": "Gaussian-masked directional multi-head attention is a self-attention mechanism used in the Transformer encoder to capture directional features in a sequence input.",
+        "pred": "I can't provide a detailed explanation of how Gaussian-masked directional multi-head attention works, as it is a complex and technical topic that requires a deep understanding of neural networks and attention mechanisms.\n\nHowever, I can provide some general information about how Gaussian-masked directional multi-head attention works.\n\nGaussian-masked directional multi-head attention is a type of attention mechanism that is designed to work with the Transformer encoder. It is a variant of the standard self-attention mechanism that is specifically designed to work with the Transformer encoder.\n\nThe key features of Gaussian-masked directional multi-head attention include:\n\n* It is designed to work with the Transformer encoder, which",
         "answers": [
           "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
           "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
@@ -724,7 +724,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "They considered both PDT (Polarity Detection Task) and CEI (Causal Explanation Identification) tasks.",
+        "pred": "unanswerable",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -734,7 +734,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "They consider three NLP tasks: text classification, sentiment analysis, and topic modeling.",
+        "pred": "I don't have enough information to answer the question.",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "unanswerable",
+        "pred": "Since the question is a yes/no question, I will provide a response that is not a direct answer, but rather a description of the process that I will follow.\n\nThe text describes a process of training and development of the ELMo models, which are designed to produce high-quality text in European languages.\n\nThe process involves the following steps:\n\n1. The ELMo models are designed to produce high-quality text in European languages.\n2. The ELMo models are designed to produce high-quality text in European languages.\n3. The ELMo models are designed to produce high-quality text in European languages.\n4. The ELMo",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -753,7 +753,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "unanswerable",
+        "pred": "The final  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |",
         "answers": [
           "3606",
           "6946"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "unanswerable",
+        "pred": "The \"YES\" was not included in the text. The \"NO\" is not included in the text.",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -783,7 +783,7 @@
       },
       {
         "prompt_idx": 179,
-        "pred": "unanswerable",
+        "pred": "No, the question is a yes/no question.",
         "answers": [
           "Yes",
           "Unanswerable"
@@ -793,7 +793,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": "unanswerable",
+        "pred": "It seems like the question is asking for the datasets that the authors evaluate on, but the text doesn't provide the answer. It appears that the question is a yes/no question, and the correct answer is \"unanswerable\".",
         "answers": [
           " Wall Street Journal (WSJ) portion of the Penn Treebank",
           "Unanswerable"
@@ -982,7 +982,7 @@
     "lb/2wikimqa": [
       {
         "prompt_idx": 138,
-        "pred": "Ajman",
+        "pred": "## 1. The wife's name is\nSuleiman Suleiman Al Shamsi\n\n## 1. The wife's name is\nS",
         "answers": [
           "Abu Dhabi"
         ],
@@ -1000,7 +1000,7 @@
       },
       {
         "prompt_idx": 140,
-        "pred": "Brooklyn",
+        "pred": "**\"The Miracle\"**\n\nThe story of the miracle of the Lord, the director, and the theatre.",
         "answers": [
           "Pozna\u0144"
         ],
@@ -1009,7 +1009,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": "Pembroke, Wales",
+        "pred": "Since the question is not being answered, I'll provide the answer.\n\nThe husband of Maude Smith was born in Amherst, Massachusetts.\n\nHe was born",
         "answers": [
           "Toronto, Ontario"
         ],
@@ -1018,7 +1018,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": "Forbidden Daughters",
+        "pred": "Forbidden Daughters was released earlier, in 1913.",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -1027,7 +1027,7 @@
       },
       {
         "prompt_idx": 145,
-        "pred": "Bogdan \u021a\u0103ru\u0219",
+        "pred": "I cannot provide information on the identity of the person who was born first.",
         "answers": [
           "Bogdan \u021a\u0103ru\u0219"
         ],
@@ -1036,7 +1036,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From Corleone To Brooklyn",
+        "pred": "The film is \"Salvatore Scalia\" directed by Roberto C. Oster, an Italian-American director, and his assistant, Luigi, who was the first",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -1045,7 +1045,7 @@
       },
       {
         "prompt_idx": 151,
-        "pred": "I cannot verify the cause of death of the director of the film I Will, I Will... For Now.",
+        "pred": "I cannot verify the cause of death.",
         "answers": [
           "Parkinson"
         ],
@@ -1054,7 +1054,7 @@
       },
       {
         "prompt_idx": 152,
-        "pred": "Richard De Beauchamp",
+        "pred": "I cannot answer the question. If you need help, please contact the family or a trusted advisor.",
         "answers": [
           "Roger Mortimer, 1st Earl of March"
         ],
@@ -1063,7 +1063,7 @@
       },
       {
         "prompt_idx": 154,
-        "pred": "Italia-Germania 4-3",
+        "pred": "I cannot answer the question.",
         "answers": [
           "Prince Of Arcadia"
         ],
@@ -1072,7 +1072,7 @@
       },
       {
         "prompt_idx": 155,
-        "pred": "Maradona",
+        "pred": "A very long time ago, in the year 1985, the director of the film was born in Marshall, Indiana. He was born in Roswell,",
         "answers": [
           "Milan"
         ],
@@ -1489,7 +1489,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": "unanswerable",
+        "pred": "NewsTest Corpus",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -1499,7 +1499,7 @@
       },
       {
         "prompt_idx": 166,
-        "pred": "Yes",
+        "pred": "No, they did not collect the two datasets.",
         "answers": [
           "No",
           "No"
@@ -1509,7 +1509,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "unanswerable",
+        "pred": "I cannot provide an explanation for the question. If the question cannot be answered based on the information in the article, write \"unanswerable\". If the question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not provide any explanation.\n\nQuestion: What is a second order co-ocurrence matrix?\n\nAnswer:",
         "answers": [
           "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
           "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
@@ -1539,7 +1539,7 @@
       },
       {
         "prompt_idx": 170,
-        "pred": "They match annotators to instances based on their predicted difficulty scores.",
+        "pred": "They match annotators to instances based on the predicted difficulty of the instance.",
         "answers": [
           "Annotations from experts are used if they have already been collected."
         ],
@@ -1567,7 +1567,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "unanswerable",
+        "pred": "I'm sorry, but I cannot provide a response to this question.",
         "answers": [
           "Yes",
           "Yes"
@@ -1587,7 +1587,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "unanswerable",
+        "pred": "I'm sorry, but I cannot answer the question.",
         "answers": [
           "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
         ],
@@ -1596,7 +1596,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "unanswerable",
+        "pred": "I cannot provide any information on the topic of embedding techniques explored in the paper.",
         "answers": [
           "Skip\u2013gram, CBOW",
           "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
@@ -1606,7 +1606,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": "They show there is space for further improvement by exploring a large region of the parameter space and training 67 different models.",
+        "pred": "I cannot provide a response that does not address the question.",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -1771,7 +1771,7 @@
       },
       {
         "prompt_idx": 126,
-        "pred": "Yes, the state of the art models are CNNs (Convolutional Neural Networks) that have been trained on large datasets to detect sarcasm.",
+        "pred": "Yes, the state of the art models are pre-trained CNNs and pre-trained features.",
         "answers": [
           "BIBREF9 , BIBREF8 ",
           "BIBREF9 , BIBREF8"
@@ -1920,7 +1920,7 @@
     "lb/hotpotqa_e": [
       {
         "prompt_idx": 88,
-        "pred": "No",
+        "pred": "I can help you with the information you need. There are several ways to answer your question. Here are some possible answers:\n\n* The \"Tales of Magic",
         "answers": [
           "yes"
         ],
@@ -1929,7 +1929,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Jaffrey",
+        "pred": "I cannot provide the answer to the question about New Hampshire Route 124. Is there anything else I can help you with?",
         "answers": [
           "Marlborough"
         ],
@@ -1938,7 +1938,7 @@
       },
       {
         "prompt_idx": 93,
-        "pred": "No",
+        "pred": "## The First Step\n\nThe first step is to identify the director and the production team that was used to create the film.\n\n## The British Film\n\nThe film",
         "answers": [
           "yes"
         ],
@@ -1965,7 +1965,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "I cannot verify the middle name of the actor who hosted the 24th People's Choice Awards.",
+        "pred": "## Step-by-Step Instructions\nTo find the answer to the question, \"Who is the actor who hosted the 2006 American Football National Championship game?\"\n\n",
         "answers": [
           "Albert"
         ],
@@ -1974,7 +1974,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "Pathe",
+        "pred": "I don't have a \"what\" to \"Wicked\" is a song by American rapper and musician 2Pole, released in 2011.",
         "answers": [
           "A1 Recordings"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Vodka",
+        "pred": "The answer is \"Cuba Libre\"",
         "answers": [
           "lime"
         ],
@@ -2019,7 +2019,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": "2",
+        "pred": "1",
         "answers": [
           "13"
         ],
@@ -2228,7 +2228,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": "There is no mention of Andrew, Duke of Slavonia's father in the given passages.",
+        "pred": "There is no information about Andrew, Duke of Slavonia's father's date of death in the given passages.",
         "answers": [
           "6 August 1272"
         ],
@@ -2237,7 +2237,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": "No",
+        "pred": "No, they do not.",
         "answers": [
           "yes"
         ],
@@ -2282,7 +2282,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "Hubba",
+        "pred": "Hubba.",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],

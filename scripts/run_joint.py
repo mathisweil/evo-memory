@@ -213,11 +213,22 @@ def parse_args():
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--max_grad_norm", type=float, default=1.0)
     parser.add_argument("--warmup_ratio", type=float, default=0.03)
+    parser.add_argument("--lora_batch_size", type=int, default=1,
+                        help="Per-device batch size for LoRA training stages "
+                             "(NAMM active -> typically 1)")
     parser.add_argument("--gradient_accumulation_steps", type=int, default=16)
     parser.add_argument("--max_seq_len", type=int, default=3500)
     parser.add_argument("--sft_mode",
                         action=argparse.BooleanOptionalAction, default=True,
                         help="FAIR-01 M4: true (chat-template, answer-only loss)")
+    parser.add_argument("--lora_eval_interval", type=int, default=999999,
+                        help="Eval interval within LoRA stages "
+                             "(999999 = skip periodic eval)")
+    parser.add_argument("--lora_log_interval", type=int, default=10,
+                        help="Logging interval within LoRA stages")
+    parser.add_argument("--dtype", type=str, default="bfloat16",
+                        choices=["bfloat16", "float16", "float32"],
+                        help="Training dtype for LoRA stages")
 
     # Data (FAIR-01 fixed)
     parser.add_argument("--train_split", type=float, default=0.7)
@@ -301,16 +312,19 @@ def main():
     else:
         total_epochs = (args.num_outer_loops
                         * args.lora_epochs_per_stage)
-        eff_batch = args.gradient_accumulation_steps  # batch_size=1
+        eff_batch = (args.lora_batch_size
+                     * args.gradient_accumulation_steps)
         print(f"  lora_epochs/stage : {args.lora_epochs_per_stage}")
         print(f"  total_lora_epochs : {total_epochs}")
         print(f"  lora_rank         : {args.lora_rank}")
         print(f"  lora_targets      : {args.lora_target_modules}")
         print(f"  learning_rate     : {args.learning_rate}")
+        print(f"  lora_batch_size   : {args.lora_batch_size}")
         print(f"  grad_accum_steps  : "
               f"{args.gradient_accumulation_steps}")
         print(f"  effective_batch   : {eff_batch}")
         print(f"  max_seq_len       : {args.max_seq_len}")
+        print(f"  dtype             : {args.dtype}")
     print("  -- Data --")
     print(f"  train_split       : {args.train_split}")
     print(f"  val_split         : {args.val_split}")
@@ -380,7 +394,7 @@ def main():
     )
     test_idxs = task_sampler.get_split_indices('test')
     print(f"  Test split size: {n_test} prompts across "
-          f"{len(test_idxs)} tasks (FAIR-01 target: 69)")
+          f"{len(test_idxs)} tasks (FAIR-01 target: 70)")
 
     # MemoryTrainer expects these attributes on the task_sampler (it reads
     # training_tasks_subset / test_tasks_subset directly).  TaskSampler
@@ -505,9 +519,13 @@ def main():
             "lora_target_modules": args.lora_target_modules,
             "lora_alpha": args.lora_alpha,
             "learning_rate": args.learning_rate,
+            "lora_batch_size": args.lora_batch_size,
             "gradient_accumulation_steps": args.gradient_accumulation_steps,
             "max_seq_len": args.max_seq_len,
             "sft_mode": args.sft_mode,
+            "lora_eval_interval": args.lora_eval_interval,
+            "lora_log_interval": args.lora_log_interval,
+            "dtype": args.dtype,
         })
 
     config_path = os.path.join(run_dir, "config.json")
@@ -729,18 +747,18 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
         max_seq_len=args.max_seq_len,
         task_names=task_names,
         num_epochs=args.lora_epochs_per_stage,
-        batch_size=1,
+        batch_size=args.lora_batch_size,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         learning_rate=args.learning_rate,
         weight_decay=args.weight_decay,
         max_grad_norm=args.max_grad_norm,
         warmup_ratio=args.warmup_ratio,
         namm_active=True,
-        eval_interval=999999,  # Skip periodic eval during adapter stage
-        log_interval=10,
+        eval_interval=args.lora_eval_interval,
+        log_interval=args.lora_log_interval,
         always_save_checkpoint=True,
         init_from=None,
-        dtype='bfloat16',
+        dtype=args.dtype,
         sft_mode=args.sft_mode,
         train_frac=args.train_split,
         val_frac=args.val_split,

@@ -1,19 +1,24 @@
-"""Evaluate a NAMM checkpoint on the exact train/val/test splits used during
-NAMM training (3-way 70/15/15 split with token-length filtering).
+"""Evaluate on the exact train/val/test splits used during NAMM training
+(3-way 70/15/15 split with token-length filtering).
 
-This script replicates the filtering and splitting logic from run_namm.py so
-that the evaluation uses *identical* sample sets to those seen during training.
+Supports NAMM checkpoints, LoRA checkpoints, recency baselines, truncation
+baselines, and plain LLaMA baselines (--plain). This is the single canonical
+eval entry point for all conditions.
 
 Usage:
+    # NAMM checkpoint:
     python eval_namm_splits.py \
         --namm_checkpoint exp_local/pretrained/namm_pretrained_romain.pt \
-        --splits train val test \
-        --cache_size 1024
+        --splits train val test --cache_size 1024
 
-    # With a custom Hydra run config:
+    # LoRA + NAMM:
     python eval_namm_splits.py \
-        --run_config namm_bam_i1_llama32_1b_5t \
-        --namm_checkpoint path/to/checkpoint.pt
+        --lora_checkpoint path/to/best_ckpt.pt \
+        --namm_checkpoint path/to/namm.pt \
+        --cache_size 1024 --splits test
+
+    # Plain LLaMA baseline (no NAMM wrapper, no eviction):
+    python eval_namm_splits.py --plain --splits test extended_test
 """
 
 import argparse
@@ -32,6 +37,7 @@ if REPO_ROOT not in sys.path:
 
 import hydra
 from hydra import compose, initialize
+from namm.evaluation.evaluator import MemoryHFEvaluator
 from namm.run_utils import make_eval_model, make_task_sampler
 from es_finetuning.device import get_device
 
@@ -84,6 +90,11 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Evaluate NAMM checkpoint on exact training splits "
                     "(3-way 70/15/15 with token filtering)")
+    parser.add_argument("--plain", action="store_true",
+                        help="Load plain LLaMA (no NAMM wrapper, no eviction). "
+                             "Equivalent to the old eval_plain_llama.py script. "
+                             "Incompatible with --namm_checkpoint and "
+                             "--use_classic_recency.")
     parser.add_argument("--namm_checkpoint", type=str, default=None,
                         help="Path to NAMM checkpoint (.pt file)")
     parser.add_argument("--lora_checkpoint", type=str, default=None,
@@ -152,15 +163,32 @@ def parse_args():
 def main():
     args = parse_args()
 
+    # ── Validate flag combinations ─────────────────────────────────────────
+    if args.plain:
+        if args.namm_checkpoint:
+            raise ValueError("--plain is incompatible with --namm_checkpoint")
+        if args.use_classic_recency:
+            raise ValueError("--plain is incompatible with --use_classic_recency")
+        if args.truncate_input_to is not None:
+            raise ValueError("--plain is incompatible with --truncate_input_to")
+        if args.lora_checkpoint:
+            raise ValueError(
+                "--plain + --lora_checkpoint is not supported. To evaluate "
+                "a LoRA checkpoint without NAMM, omit --plain and omit "
+                "--namm_checkpoint (the NAMM wrapper will use init params "
+                "with a large cache_size, effectively no eviction).")
+
     # ── Resolve output directory ────────────────────────────────────────────
     if args.output_dir:
         parent_dir = args.output_dir
-    else:
+    elif args.namm_checkpoint:
         ckpt_dir = os.path.dirname(os.path.abspath(args.namm_checkpoint))
         if os.path.basename(ckpt_dir) == "checkpoints":
             parent_dir = os.path.dirname(ckpt_dir)
         else:
             parent_dir = ckpt_dir
+    else:
+        parent_dir = os.path.join(REPO_ROOT, "eval_results", "plain_baseline")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     subfolder = (f"{args.run_label}_{timestamp}"
                  if args.run_label else timestamp)
@@ -202,94 +230,109 @@ def main():
                     job_name="eval_namm_splits"):
         cfg = compose(config_name="config", overrides=overrides)
 
-    # ── Build NAMM model ────────────────────────────────────────────────────
-    print("Building model...")
-    with torch.no_grad():
-        (memory_policy, memory_model, memory_evaluator,
-         evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
-    memory_model.to(device)
-    memory_evaluator.device = device
-
-    # ── Optional: swap to CLASSIC recency (last-N) policy ───────────────────
-    # The default --no-checkpoint path (eval_mode=recency_baseline) uses
-    # untrained DeepMP at scoring_initializer=0, which is NOT the StreamingLLM-
-    # style last-N baseline from the NAMM paper. --use_classic_recency replaces
-    # the entire eviction policy with namm.policy.base.Recency, which slices
-    # `key_cache[..., -cache_size:, :]` deterministically every step.
-    if args.use_classic_recency:
-        if args.namm_checkpoint:
-            raise ValueError(
-                "--use_classic_recency cannot be combined with "
-                "--namm_checkpoint. The classic recency policy replaces "
-                "the entire eviction policy and is incompatible with a "
-                "trained NAMM checkpoint.")
-        # NB: --lora_checkpoint IS allowed with --use_classic_recency.
-        # LoRA modifies LM weights; recency operates on the KV cache.
-        # The two are orthogonal — applying both gives a "finetuned model
-        # under naive eviction" baseline. The LoRA load below runs after
-        # the policy swap; PeftModel.get_peft_model wraps memory_model.model
-        # without touching the memory_policy attribute.
-        from namm.policy.base import Recency
-        cs = args.cache_size or cfg.get('cache_size', 1024)
-        recency_policy = Recency(cache_size=cs)
-        # swap_memory_policy on the evaluator also swaps on its inner model
-        # (memory_model), mirroring the run_lora.py --namm_active=False path.
-        memory_evaluator.swap_memory_policy(recency_policy)
-        memory_policy = recency_policy
-        eval_mode = "classic_recency"
-        print(f"  Swapped to classic Recency policy (last-{cs} tokens)")
-
-    # ── Load NAMM checkpoint or use init params (recency baseline) ──────────
-    if args.use_classic_recency or args.truncate_input_to is not None:
-        # Already handled above (classic recency or truncation swap).
-        # Skip the NAMM/init-param branches — the active policy is a
-        # parameter-free Recency with no scoring net.
-        pass
-    elif args.namm_checkpoint:
-        print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
-        ckpt = torch.load(args.namm_checkpoint, map_location="cpu",
-                          weights_only=False)
-        evo_state = ckpt['evolution_state']
-        print(f"  Checkpoint iter: {ckpt['iter_num']}, "
-              f"best_val: {ckpt['best_val_loss']:.6f}")
-
-        # Use CMA-ES mean (matches training eval when prefer_mean_to_best=true)
-        prefer_mean = cfg.get('prefer_mean_to_best', True)
-        if prefer_mean and 'mean' in evo_state:
-            params_vec = evo_state['mean']
-            print(f"  Using CMA-ES mean (prefer_mean_to_best={prefer_mean})")
-        else:
-            params_vec = evo_state['best_member']
-            print(f"  Using best_member")
-        params = params_vec.unsqueeze(0).to(device)
-        memory_model.set_memory_params(params)
-
-        buffers_prefix = 'stored_buffers_to_save.'
-        buffers_dict = {
-            k[len(buffers_prefix):]: v.to(device)
-            for k, v in evo_state.items()
-            if k.startswith(buffers_prefix)
-        }
-        if buffers_dict:
-            memory_model.load_buffers_dict(buffers_dict=buffers_dict)
-        print(f"  NAMM loaded ({params_vec.shape[0]} params)")
-        eval_mode = "namm"
+    # ── Build model ──────────────────────────────────────────────────────────
+    memory_policy = None
+    memory_model = None
+    if args.plain:
+        # Plain LLaMA: no NAMM wrapper, no eviction policy.
+        print("Loading plain LLaMA (no NAMM wrapper)...")
+        with torch.no_grad():
+            pretrained_llm = hydra.utils.call(
+                cfg.pretrained_llm, _convert_="object")
+            tokenizer_for_model = hydra.utils.call(cfg.tokenizer)
+        pretrained_llm = pretrained_llm.to(device)
+        pretrained_llm.eval()
+        filter_by = cfg.get('filter_by_length', 8192)
+        memory_evaluator = MemoryHFEvaluator(
+            model=pretrained_llm,
+            tokenizer=tokenizer_for_model,
+            eval_max_batch_size=args.batch_size or cfg.get(
+                'eval_max_batch_size', 4),
+            batch_size=args.batch_size or cfg.get('batch_size', 4),
+            max_conditioning_length=filter_by,
+            max_memory_length=filter_by,
+            max_gen_tokens=cfg.get("max_gen_tokens", 512),
+            add_bos_token=cfg.get("add_bos_token", True),
+            device=device,
+        )
+        eval_mode = "plain"
+        print(f"  Model: {pretrained_llm.config._name_or_path} "
+              f"(is_memory_model={memory_evaluator.is_memory_model})")
     else:
-        # No checkpoint: use init params (scoring_initializer=0 → all scores ≈ 0
-        # → selection keeps most recent tokens = recency eviction baseline)
-        init_param = memory_policy.get_init_param_values()
-        params = init_param.unsqueeze(0).to(device)
-        memory_model.set_memory_params(params)
-        print("  No checkpoint — using init params (recency eviction baseline)")
-        eval_mode = "recency_baseline"
+        print("Building NAMM model...")
+        with torch.no_grad():
+            (memory_policy, memory_model, memory_evaluator,
+             evolution_algorithm, auxiliary_loss) = make_eval_model(cfg=cfg)
+        memory_model.to(device)
+        memory_evaluator.device = device
 
-    # Recency has no learnable params / no batch idxs / no per-step stat
-    # buffers — skip the DynamicMemoryPolicy bookkeeping in that case.
-    if not args.use_classic_recency and args.truncate_input_to is None:
-        batch_idxs = np.zeros([1])
-        memory_policy.set_params_batch_idxs(batch_idxs)
-        memory_policy.record_eval_stats = True
-        memory_policy.initialize_stat_objects()
+    # ── NAMM policy setup (skipped for --plain) ─────────────────────────────
+    if not args.plain:
+        # Optional: swap to CLASSIC recency (last-N) policy.
+        # The default --no-checkpoint path (eval_mode=recency_baseline) uses
+        # untrained DeepMP at scoring_initializer=0, which is NOT the
+        # StreamingLLM-style last-N baseline. --use_classic_recency replaces
+        # the entire eviction policy with namm.policy.base.Recency.
+        if args.use_classic_recency:
+            if args.namm_checkpoint:
+                raise ValueError(
+                    "--use_classic_recency cannot be combined with "
+                    "--namm_checkpoint.")
+            from namm.policy.base import Recency
+            cs = args.cache_size or cfg.get('cache_size', 1024)
+            recency_policy = Recency(cache_size=cs)
+            memory_evaluator.swap_memory_policy(recency_policy)
+            memory_policy = recency_policy
+            eval_mode = "classic_recency"
+            print(f"  Swapped to classic Recency policy (last-{cs} tokens)")
+
+        # Load NAMM checkpoint or use init params (recency baseline)
+        if args.use_classic_recency or args.truncate_input_to is not None:
+            pass  # Already handled above
+        elif args.namm_checkpoint:
+            print(f"Loading NAMM checkpoint: {args.namm_checkpoint}")
+            ckpt = torch.load(args.namm_checkpoint, map_location="cpu",
+                              weights_only=False)
+            evo_state = ckpt['evolution_state']
+            print(f"  Checkpoint iter: {ckpt['iter_num']}, "
+                  f"best_val: {ckpt['best_val_loss']:.6f}")
+
+            prefer_mean = cfg.get('prefer_mean_to_best', True)
+            if prefer_mean and 'mean' in evo_state:
+                params_vec = evo_state['mean']
+                print(f"  Using CMA-ES mean "
+                      f"(prefer_mean_to_best={prefer_mean})")
+            else:
+                params_vec = evo_state['best_member']
+                print(f"  Using best_member")
+            params = params_vec.unsqueeze(0).to(device)
+            memory_model.set_memory_params(params)
+
+            buffers_prefix = 'stored_buffers_to_save.'
+            buffers_dict = {
+                k[len(buffers_prefix):]: v.to(device)
+                for k, v in evo_state.items()
+                if k.startswith(buffers_prefix)
+            }
+            if buffers_dict:
+                memory_model.load_buffers_dict(buffers_dict=buffers_dict)
+            print(f"  NAMM loaded ({params_vec.shape[0]} params)")
+            eval_mode = "namm"
+        else:
+            init_param = memory_policy.get_init_param_values()
+            params = init_param.unsqueeze(0).to(device)
+            memory_model.set_memory_params(params)
+            print("  No checkpoint — using init params "
+                  "(recency eviction baseline)")
+            eval_mode = "recency_baseline"
+
+        # Policy bookkeeping (DynamicMemoryPolicy only — classic Recency
+        # and plain LLaMA have no learnable params/stat buffers).
+        if not args.use_classic_recency and args.truncate_input_to is None:
+            batch_idxs = np.zeros([1])
+            memory_policy.set_params_batch_idxs(batch_idxs)
+            memory_policy.record_eval_stats = True
+            memory_policy.initialize_stat_objects()
 
     # ── Load LoRA checkpoint (optional) ─────────────────────────────────────
     if args.lora_checkpoint:
@@ -298,22 +341,20 @@ def main():
                                weights_only=False)
         if 'lora_state_dict' not in lora_ckpt:
             raise ValueError(
-                f"Checkpoint at {args.lora_checkpoint} has no 'lora_state_dict' "
-                f"key. Top-level keys: {list(lora_ckpt.keys())[:10]}")
+                f"Checkpoint at {args.lora_checkpoint} has no "
+                f"'lora_state_dict' key. Top-level keys: "
+                f"{list(lora_ckpt.keys())[:10]}")
         lora_cfg = lora_ckpt.get('lora_config', {})
         lora_rank = lora_cfg.get('rank', 8)
         lora_targets = lora_cfg.get('target_modules', ['q_proj', 'v_proj'])
         print(f"  lora_config: rank={lora_rank} targets={lora_targets} "
               f"step={lora_ckpt.get('best_step', '?')} "
               f"val={lora_ckpt.get('best_val_score', '?')}")
-        # Inject LoRA adapters into memory_model.model. Mirrors the call in
-        # scripts/run_lora.py:289 so the saved state dict keys line up.
+
+        # Inject LoRA adapters into memory_model.model.
         memory_model.apply_lora_adapters(
             rank=lora_rank, target_modules=lora_targets)
-        # Move newly-created LoRA params to the eval device (apply_lora_adapters
-        # casts them to float32 on CPU).
         memory_model.to(device)
-        # Copy weights — pattern from grad_lora_finetuning/trainer.py:626-633.
         loaded = 0
         missing = []
         lora_sd = lora_ckpt['lora_state_dict']
@@ -322,23 +363,23 @@ def main():
                 p.data.copy_(lora_sd[n].to(p.device, dtype=p.dtype))
                 loaded += 1
         for k in lora_sd:
-            found = any(n == k for n, _ in memory_model.model.named_parameters())
+            found = any(
+                n == k
+                for n, _ in memory_model.model.named_parameters())
             if not found:
                 missing.append(k)
         print(f"  Loaded {loaded}/{len(lora_sd)} LoRA tensors")
         if missing:
             raise RuntimeError(
-                f"LoRA checkpoint has {len(missing)} keys not present in "
-                f"the model after apply_lora_adapters; first few: "
+                f"LoRA checkpoint has {len(missing)} keys not present "
+                f"in the model after apply_lora_adapters; first few: "
                 f"{missing[:5]}")
         if loaded == 0:
             raise RuntimeError(
-                "LoRA checkpoint had matching keys but 0 tensors were copied "
-                "— check rank/targets and model wrapping.")
-        eval_mode = (eval_mode + "+lora") if args.namm_checkpoint else "lora"
-    elif not args.namm_checkpoint:
-        # No NAMM, no LoRA — pure recency baseline. Already set above.
-        pass
+                "LoRA checkpoint had matching keys but 0 tensors were "
+                "copied — check rank/targets and model wrapping.")
+        eval_mode = ((eval_mode + "+lora") if args.namm_checkpoint
+                     else "lora")
 
     # ── Optional: tail-only input truncation (StreamingLLM rolling-window) ──
     # When --truncate_input_to N is set, EVERY prompt is reduced to its last
@@ -544,21 +585,26 @@ def main():
         }
 
         # Snapshot RAW per-layer per-step eviction arrays BEFORE
-        # get_param_stats(reset=True) clears them. Classic Recency has no
-        # such buffers, so the snapshot is empty there.
-        if not args.use_classic_recency:
+        # get_param_stats(reset=True) clears them. Plain/Recency modes have
+        # no such buffers, so the snapshot is empty there.
+        has_policy_stats = (
+            memory_policy is not None
+            and not args.use_classic_recency
+            and not args.plain
+        )
+        if has_policy_stats:
             eviction_traces_per_split[split_name] = (
                 _snapshot_raw_eviction_arrays(memory_policy))
         else:
             eviction_traces_per_split[split_name] = {}
 
         # Collect eviction/cache stats from memory policy (DynamicMemoryPolicy
-        # only — classic Recency has neither method nor buffers).
-        if args.use_classic_recency:
-            mem_stats = {}
-        else:
+        # only — classic Recency and plain LLaMA have no stats).
+        if has_policy_stats:
             mem_stats = memory_policy.get_param_stats(reset=True)
             memory_policy.initialize_stat_objects()
+        else:
+            mem_stats = {}
         eviction_summary = {}
         if mem_stats:
             dyn_cache = mem_stats.get('mem_stats/overall/dynamic_cache_sizes', None)

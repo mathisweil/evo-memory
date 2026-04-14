@@ -1,57 +1,49 @@
-# LoRA-only training on 5-task QA dataset (>4096 tokens).
-# Dropped multifieldqa_en (too few long prompts).
+# DEPRECATED: Pre-FAIR-01 ES config. Uses train_split=0.8 and
+# full_cache_es_llama32_1b run_config (single-task Qasper).
+# No FAIR-01 compliant ES-only config exists yet — M2 uses run_namm.py.
 #
 # Usage:
-#   python scripts/run_lora.py --config scripts/lora_rh_m1_instruct_5t.yaml --run_name rh_m1_5t
+#   python scripts/run_es.py --config scripts/configs/es_m1_only.yaml --run_name m1_es
 
 # ── Experiment ──────────────────────────────────────────────────────────
 run_name: null
 experiment: null
-method: rh_m1_lora_instruct_5t
+method: es_only
 
-# ── LoRA hyperparameters ──────────────────────────────────────────────
-lora_rank: 8
-lora_target_modules: [q_proj, v_proj]
-lora_alpha: 16
-lora_dropout: 0.1
-learning_rate: 5e-5
-weight_decay: 0.01
-max_grad_norm: 1.0
-warmup_ratio: 0.03
-num_epochs: 150
-batch_size: 4
-gradient_accumulation_steps: 4
-max_seq_len: 7000
-sft_mode: true
+# ── ES hyperparameters ──────────────────────────────────────────────────
+sigma: 0.001
+alpha: 0.0005
+population_size: 8
+num_iterations: 300        # FAIR-01 anchor: matches M2 NAMM generation count
+noise_mode: correlated
+initial_seed: 33
+mini_batch_size: 16
 
 # ── NAMM ────────────────────────────────────────────────────────────────
-namm_active: false
-namm_checkpoint: null
-run_config: namm_bam_i1_llama32_1b_5t
-cache_size: null
+namm_checkpoint: null      # No NAMM — full KV cache during training
+run_config: full_cache_es_llama32_1b  # No eviction policy; Qasper task
+cache_size: null           # No limit — run_config sets cache_size = max_position_id
 
 # ── Data ────────────────────────────────────────────────────────────────
+filter_by_length: null
 filter_by_tokens: null
 filter_answers_by_tokens: 64
-train_split: 0.7
-val_split: 0.15
-split_seed: 42
+train_split: 0.8           # FAIR-01: must match all other conditions
+split_seed: 42             # FAIR-01: deterministic split
 
 # ── Evaluation ──────────────────────────────────────────────────────────
-eval_interval: 2
-log_interval: 5
-batch_size_eval: 4
+batch_size: null           # Auto-detected from run_config
+n_examples: 10
+temperature: 0.0           # FAIR-01: greedy decoding
+eval_temperature: 0.0
+num_samples: 1
+eval_num_samples: 1
 
 # ── Checkpointing & GCS ────────────────────────────────────────────────
 gcs: true
-checkpoint_every: 0
+checkpoint_every: 10
+save_every: 0
 resume_checkpoint: null
 
 # ── Advanced ────────────────────────────────────────────────────────────
-override:
-  - "task_sampler.tasks=[lb/qasper,lb/2wikimqa,lb/qasper_e,lb/hotpotqa_e,lb/2wikimqa_e]"
-  - "max_position_id=8192"
-  - "max_conditioning_length=6500"
-  - "min_conditioning_length=4096"
-  - "max_new_tokens=64"
-  - "max_gen_tokens=64"
+override: []

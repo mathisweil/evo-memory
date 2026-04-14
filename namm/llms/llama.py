@@ -487,7 +487,7 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
 
         output_attentions = (
             output_attentions or self.memory_policy.requires_attn_scores)
-        
+
         output_queries = (
             output_queries or self.memory_policy.requires_queries)
 
@@ -595,11 +595,23 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
             output = (logits,) + outputs[1:]
             return (loss,) + output if loss is not None else output
 
+        # When skip_lm_head is True the caller only needs the last hidden
+        # state (for chunked CE in _train_step).  Returning the full
+        # outputs.hidden_states tuple would pin all 17 intermediate layer
+        # activations in memory, defeating gradient checkpointing (M1).
+        # Returning just (hidden_states,) lets the 16 intermediates be
+        # freed when this function returns -- saving ~460 MB for
+        # seq_len=7000.
+        if skip_lm_head and hidden_states is not None:
+            return_hidden = (hidden_states,)
+        else:
+            return_hidden = outputs.hidden_states
+
         return CausalMemoryLMOutputWithPast(
             loss=loss,
             logits=logits,
             past_key_values=outputs.past_key_values,
-            hidden_states=outputs.hidden_states,
+            hidden_states=return_hidden,
             attentions=outputs.attentions,
             query_states=outputs.query_states,
             position_ids=position_ids,
@@ -795,6 +807,7 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
             attn_weights = attn_weights + causal_mask
         else:
             kv_len = key_states.shape[-2]
+            q_len = query_states.shape[-2]
             # After NAMM eviction, different layers may have slightly different
             # KV cache sizes.  The 4D causal_mask from _update_causal_mask is
             # computed using layer-0's length, so it can be too narrow for
@@ -803,7 +816,35 @@ class LlamaMemoryAttention(LlamaAttention, MemoryAttention):
             if attention_mask.shape[-1] < kv_len:
                 pad_size = kv_len - attention_mask.shape[-1]
                 attention_mask = F.pad(attention_mask, (pad_size, 0), value=0)
-            causal_mask = attention_mask[:, :, :, -kv_len:]
+            # After NAMM eviction compacts the KV cache, attention_mask may be
+            # much wider than kv_len (it tracks cumulative prompt length, not
+            # the post-eviction cache size). The naive slice [-kv_len:] grabs
+            # the wrong region of the mask, eventually causing all positions
+            # to be masked → uniform attention. Fix: when the mismatch is
+            # large, build a fresh causal mask sized to the actual kv_len.
+            mask_kv_mismatch = attention_mask.shape[-1] - kv_len
+            if mask_kv_mismatch > q_len:
+                # The mask is significantly oversized — NAMM eviction has
+                # compacted the cache. Build a proper causal mask: all cache
+                # positions are unmasked (the new query tokens can attend to
+                # everything in the post-eviction cache), with standard
+                # causal masking within the new chunk.
+                dtype = hidden_states.dtype
+                min_dtype = torch.finfo(dtype).min
+                causal_mask = torch.zeros(
+                    (1, 1, q_len, kv_len), dtype=dtype,
+                    device=hidden_states.device)
+                # Apply causal mask within the new chunk: query i can only
+                # attend to cache positions + new positions 0..i
+                if q_len > 1:
+                    cache_len = kv_len - q_len
+                    chunk_mask = torch.full(
+                        (q_len, q_len), fill_value=min_dtype,
+                        dtype=dtype, device=hidden_states.device)
+                    chunk_mask = torch.triu(chunk_mask, diagonal=1)
+                    causal_mask[:, :, :, cache_len:] = chunk_mask
+            else:
+                causal_mask = attention_mask[:, :, :, -kv_len:]
             attn_weights = attn_weights + causal_mask
 
         # TPU: mask out evicted cache entries so they don't affect attention.

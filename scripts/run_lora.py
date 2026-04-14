@@ -5,16 +5,16 @@ to LoRAGradTrainer instead of ESTrainer. Runs WITHOUT torch.no_grad()
 around the training loop so autograd flows through LoRA A/B matrices.
 
 Usage:
-    # LoRA-only (m1 condition):
-    python scripts/run_lora.py --config scripts/configs/lora_default.yaml --run_name m1_test
+    # M1 LoRA-only (FAIR-01):
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml --run_name m1_r8
 
-    # LoRA + frozen NAMM (m4-frozen condition):
-    python scripts/run_lora.py --config scripts/configs/lora_default.yaml \
-        --namm_active --namm_checkpoint path/to/namm.pt --run_name m4_test
+    # M3 LoRA + frozen NAMM (FAIR-01):
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+        --run_name m3_lora_frozen_namm --namm_checkpoint path/to/namm.pt
 
     # Quick smoke test:
-    python scripts/run_lora.py --run_name test \
-        --num_epochs 1 --eval_interval 5 --max_seq_len 512
+    python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+        --run_name smoke --num_epochs 1 --eval_interval 999 --no-gcs --wandb_log false
 """
 
 import argparse
@@ -52,7 +52,7 @@ def parse_args():
         description="LoRA gradient fine-tuning of base LLM weights with optional NAMM")
 
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/configs/lora_default.yaml)")
+                        help="YAML config file (see scripts/configs/lora_rh_m1_instruct_5t.yaml)")
 
     # Experiment hierarchy
     parser.add_argument("--run_name", type=str, default=None,
@@ -74,6 +74,12 @@ def parse_args():
     parser.add_argument("--gradient_accumulation_steps", type=int, default=16)
     parser.add_argument("--max_seq_len", type=int, default=3500)
     parser.add_argument("--sft_mode", action="store_true", default=False)
+    parser.add_argument("--dtype", type=str, default="bfloat16",
+                        choices=["bfloat16", "float16", "float32"],
+                        help="Training dtype")
+    parser.add_argument("--always_save_checkpoint",
+                        action=argparse.BooleanOptionalAction, default=True,
+                        help="Save checkpoint after every eval interval")
 
     # NAMM config
     parser.add_argument("--namm_active", action="store_true", default=False)
@@ -94,6 +100,8 @@ def parse_args():
     parser.add_argument("--batch_size_eval", type=int, default=None)
     parser.add_argument("--early_stopping_patience", type=int, default=0,
                         help="Stop after N evals with no val F1 improvement (0 = disabled)")
+    parser.add_argument("--skip_baseline_eval", action="store_true", default=False,
+                        help="Skip pre-training F1 eval to reduce peak VRAM")
 
     # Checkpointing & GCS
     parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True)
@@ -303,9 +311,9 @@ def main():
         namm_active=args.namm_active,
         eval_interval=args.eval_interval,
         log_interval=args.log_interval,
-        always_save_checkpoint=True,
+        always_save_checkpoint=args.always_save_checkpoint,
         init_from=args.resume_checkpoint,
-        dtype='bfloat16',
+        dtype=args.dtype,
         sft_mode=args.sft_mode,
         train_frac=args.train_split,
         val_frac=args.val_split,
@@ -313,6 +321,7 @@ def main():
         min_conditioning_length=cfg.get('min_conditioning_length', None),
         max_answer_tokens=args.filter_answers_by_tokens,
         early_stopping_patience=args.early_stopping_patience,
+        skip_baseline_eval=args.skip_baseline_eval,
     )
 
     wandb_cfg = WandbConfig(

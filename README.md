@@ -35,14 +35,13 @@ evo-memory/
 │   ├── check_eviction_stats.py   #   diagnostic tool for NAMM token retention
 │   ├── generate_paper_figures.py #   paper figure generation
 │   └── configs/                  #   YAML hyperparameter presets
-│       ├── es_default.yaml       #   ES hyperparameter defaults
-│       ├── es_m1_only.yaml       #   ES-only condition (no NAMM)
-│       ├── lora_default.yaml     #   LoRA base defaults
-│       ├── lora_m1_only.yaml     #   m1 condition (LoRA only, no NAMM)
-│       ├── lora_rh_m1_instruct.yaml  #   m1 multi-task variant
-│       ├── lora_rh_m4_instruct.yaml  #   m4 condition (LoRA + frozen NAMM)
-│       ├── joint_default.yaml    #   joint training defaults
-│       └── eval_default.yaml     #   evaluation configuration
+│       ├── lora_rh_m1_instruct_5t.yaml  #   M1 LoRA-only (FAIR-01, 5-task)
+│       ├── lora_rh_m4_instruct_5t.yaml  #   M3 LoRA + frozen NAMM (FAIR-01, 5-task)
+│       ├── joint_lora_m4_5t.yaml        #   M4 joint LoRA + NAMM (FAIR-01, 5-task)
+│       ├── joint_default.yaml           #   joint training defaults
+│       ├── eval_default.yaml            #   evaluation configuration
+│       ├── eval_main_table.yaml         #   main table evaluation config
+│       └── deprecated/                  #   pre-FAIR-01 configs (reproducibility only)
 │
 ├── es_finetuning/                # ES optimizer module
 │   ├── config.py                 #   ESConfig dataclass
@@ -148,15 +147,12 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 
 | Experiment | Script | Config | Required Args | Key Optional Args |
 |---|---|---|---|---|
-| **Train NAMM** | `scripts/run_namm.py` | `config/config.yaml` (Hydra) | `'run@_global_=<preset>'` | `threshold_only`, `scoring_initializer`, `save_checkpoint_every`, `trainer_config.max_iters` |
-| **ES — no NAMM** | `scripts/run_es.py` | `scripts/configs/es_default.yaml` | `--run_name` | `--num_iterations`, `--population_size`, `--sigma`, `--alpha` |
-| **ES + frozen NAMM** | `scripts/run_es.py` | `scripts/configs/es_default.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--num_iterations` |
-| **LoRA only** (m1) | `scripts/run_lora.py` | `scripts/configs/lora_m1_only.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
-| **LoRA multi-task** (rh-m1) | `scripts/run_lora.py` | `scripts/configs/lora_rh_m1_instruct.yaml` | `--run_name` | `--num_epochs`, `--eval_interval` |
-| **LoRA + frozen NAMM** (rh-m4) | `scripts/run_lora.py` | `scripts/configs/lora_rh_m4_instruct.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
-| **Joint NAMM + ES** | `scripts/run_joint.py` | `scripts/configs/joint_default.yaml` | `--run_name`, `--adapter_type es` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--adapter_iterations_per_stage` |
-| **Joint NAMM + LoRA** | `scripts/run_joint.py` | `scripts/configs/joint_default.yaml` | `--run_name`, `--adapter_type lora` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
+| **Train NAMM** (M2) | `scripts/run_namm.py` | `config/config.yaml` (Hydra) | `'run@_global_=<preset>'` | `threshold_only`, `scoring_initializer`, `save_checkpoint_every`, `trainer_config.max_iters` |
+| **LoRA only** (M1) | `scripts/run_lora.py` | `scripts/configs/lora_rh_m1_instruct_5t.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
+| **LoRA + frozen NAMM** (M3) | `scripts/run_lora.py` | `scripts/configs/lora_rh_m4_instruct_5t.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
+| **Joint NAMM + LoRA** (M4) | `scripts/run_joint.py` | `scripts/configs/joint_lora_m4_5t.yaml` | `--run_name` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
 | **Evaluate** | `scripts/run_eval.py` | `scripts/configs/eval_default.yaml` | — | `--es_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--num_samples` |
+| **Evaluate splits** | `scripts/eval_namm_splits.py` | — | `--run_config` | `--lora_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--splits` |
 
 ### NAMM eviction modes
 
@@ -256,54 +252,34 @@ python scripts/run_namm.py \
 ### Example commands
 
 ```bash
-# Smoke test (ES, no NAMM)
-python scripts/run_es.py --run_name smoke \
-    --num_iterations 2 --population_size 2 --mini_batch_size 2 --no-gcs
+# M1 LoRA-only (FAIR-01)
+python scripts/run_lora.py \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml --run_name m1_r8
 
-# ES + frozen NAMM
-python scripts/run_es.py --config scripts/configs/es_default.yaml --run_name es_namm_run \
-    --namm_checkpoint exp_local/pretrained/namm.pt --cache_size 1024
+# M3 LoRA + frozen NAMM (FAIR-01)
+python scripts/run_lora.py \
+    --config scripts/configs/lora_rh_m4_instruct_5t.yaml --run_name m3_lora \
+    --namm_checkpoint path/to/m2_checkpoint.pt
 
-# LoRA only (m1)
-python scripts/run_lora.py --config scripts/configs/lora_m1_only.yaml --run_name m1_run
+# M4 Joint NAMM + LoRA (FAIR-01)
+python scripts/run_joint.py \
+    --config scripts/configs/joint_lora_m4_5t.yaml --run_name m4_joint_lora
 
-# LoRA multi-task (rh-m1)
-python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct.yaml --run_name rh_m1_run
-
-# LoRA + frozen NAMM (rh-m4)
-python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct.yaml --run_name rh_m4_run \
-    --namm_checkpoint exp_local/pretrained/namm.pt
-
-# Evaluate ES checkpoint
-python scripts/run_eval.py \
-    --es_checkpoint experiments/experiment_1/es_namm/my_run/checkpoints/es_checkpoint_final.pt \
-    --namm_checkpoint exp_local/pretrained/namm.pt
+# Evaluate with NAMM + LoRA on test split
+python scripts/eval_namm_splits.py \
+    --run_config namm_bam_i1_llama32_1b_5t \
+    --lora_checkpoint path/to/best_ckpt.pt \
+    --namm_checkpoint path/to/namm.pt \
+    --cache_size 1024 --splits test
 
 # Evaluate baseline (no fine-tuning, no NAMM)
-python scripts/run_eval.py
+python scripts/run_eval.py --run_config full_cache_baseline_llama32_1b
 
-# Joint NAMM + ES (alternating)
-python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
-    --run_name joint_es_run --adapter_type es \
-    --num_outer_loops 5 --namm_iterations_per_stage 50 \
-    --adapter_iterations_per_stage 25
+# Run all remaining experiments in dependency order
+bash scripts/run_all_experiments.sh
 
-# Joint NAMM + LoRA (alternating)
-python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
-    --run_name joint_lora_run --adapter_type lora \
-    --num_outer_loops 5 --namm_iterations_per_stage 50 \
-    --lora_epochs_per_stage 1
-
-# Joint with pre-trained NAMM warm-start
-python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
-    --run_name joint_warm --adapter_type es \
-    --namm_checkpoint exp_local/pretrained/namm.pt
-
-# Joint smoke test
-python scripts/run_joint.py --run_name test --adapter_type es \
-    --num_outer_loops 2 --namm_iterations_per_stage 3 \
-    --adapter_iterations_per_stage 2 --population_size 2 \
-    --mini_batch_size 2
+# Smoke tests only
+bash scripts/run_all_experiments.sh --smoke-only
 ```
 
 ---

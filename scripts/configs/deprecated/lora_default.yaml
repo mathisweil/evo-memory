@@ -1,4 +1,8 @@
-# LoRA gradient fine-tuning default configuration
+# DEPRECATED: Generic LoRA defaults (non-FAIR-01). Uses 3-task run_config,
+# train_split=0.8, sft_mode=false. For FAIR-01 runs use one of:
+#   - lora_rh_m1_instruct_5t.yaml (M1 LoRA-only)
+#   - lora_rh_m4_instruct_5t.yaml (M3 LoRA + frozen NAMM)
+#
 # Usage: python scripts/run_lora.py --config scripts/configs/lora_default.yaml --run_name my_run
 # CLI args override values in this file.
 
