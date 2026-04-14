@@ -467,6 +467,16 @@ Earlier killed attempt: `facswin9`.
 
 M3 maskfix cs1024 already exceeds both buggy M3 (45.59) and M1 (45.48) by ~6.5 points at only ~43% through training. Multi-hop tasks see the largest gains: HotpotQA-E +14.3, 2WikiMQA-E +19.5, 2WikiMQA +12.0.
 
+#### Maskfix checkpoints
+
+Local: `experiment_artifacts/gcs/M2_cs1024_maskfix/ckpt.pt`, `experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt` (downloaded from WandB artifacts).
+
+GCS backup: `gs://statistical-nlp/evo-memory/checkpoints_backup_20260414/` contains:
+- `namm_cs1024_maskfix/ckpt.pt` — M2 maskfix NAMM policy
+- `lora_m4_cs1024_maskfix/best_ckpt_step260_val52.06.pt` — M3 maskfix LoRA (best so far)
+- `namm_fix/llama.py` — the corrected attention mask code
+- All original (buggy) checkpoints for reference
+
 ### M4 — Joint LoRA + NAMM
 
 **Not yet started.** No runs matching the M4 joint training protocol exist in WandB.

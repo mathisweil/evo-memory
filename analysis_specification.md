@@ -15,17 +15,17 @@ We compare three conditions:
 
 | Section | Topic                          | Status                                                                                                       |
 | ------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| §0      | Dataset characterisation       | DONE (`report_0`)                                                                                            |
-| §1      | Per-task sensitivity           | DONE (`report_1`, rewritten with test-set data)                                                              |
-| §2      | Adaptation rate                | DONE (`report_2`, training dynamics)                                                                         |
-| §3      | Per-layer retention            | DONE (`report_3`)                                                                                            |
-| §4      | LoRA weight comparison         | DONE (`report_4`)                                                                                            |
-| §5      | Attention entropy              | DONE (`report_5`)                                                                                            |
-| §6      | Token importance alignment     | DONE (`report_6`)                                                                                            |
-| §7      | CKA representation similarity  | DONE (`report_7`)                                                                                            |
-| §8      | Probing for residual knowledge | DONE (`report_8`). 40 samples, linear probes per layer. M3 degrades in layers 7-14.                          |
-| §9      | Gradient flow attribution      | DONE (`report_9`). 60 samples, instrumented fwd+bwd. Eviction loss +865%, gradients uncorrelated (cos~0.02). |
-| §10     | Maskfix comparison             | DONE (`report_10`). Buggy vs fixed attention mask. M2 maskfix worse (14.90 vs 27.90); M3 maskfix better (52.06 vs 45.59, still running). |
+| §0      | Dataset characterisation       | DONE (`report_0/_report.md`)                                                                                 |
+| §1      | Per-task sensitivity           | DONE (`report_1/_report.md` + `_report_maskfix.md`)                                                          |
+| §2      | Adaptation rate                | DONE (`report_2/_report.md` + `_report_maskfix.md`)                                                          |
+| §3      | Per-layer retention            | DONE (`report_3/_report.md` + `_report_maskfix.md`)                                                          |
+| §4      | LoRA weight comparison         | DONE (`report_4/_report.md` + `_report_maskfix.md`)                                                          |
+| §5      | Attention entropy              | DONE (`report_5/_report.md` + `_report_maskfix.md`)                                                          |
+| §6      | Token importance alignment     | DONE (`report_6/_report.md`). Maskfix rerun pending (needs NAMM infrastructure).                             |
+| §7      | CKA representation similarity  | DONE (`report_7/_report.md` + `_report_maskfix.md`)                                                          |
+| §8      | Probing for residual knowledge | DONE (`report_8/_report.md`). Maskfix rerun pending (needs NAMM infrastructure).                             |
+| §9      | Gradient flow attribution      | DONE (`report_9/_report.md`). Maskfix rerun pending (needs NAMM infrastructure).                             |
+| §10     | Maskfix comparison             | DONE (`report_10/_report.md`). Buggy vs fixed attention mask overview.                                       |
 
 ### Additional conditions not in the original spec
 
@@ -45,7 +45,15 @@ Maskfix reruns retrain M2 and M3 with the corrected attention mask:
 - **M2 maskfix cs2048** (`jip3a3dm`): running
 - **M3 maskfix cs1024** (`h0bzg6on`): running, val F1 52.06 at step 260 (exceeds buggy 45.59 and M1 45.48)
 
-See `analysis/report_10/` for the full comparison.
+Checkpoints available locally (`experiment_artifacts/gcs/M2_cs1024_maskfix/`, `M3_cs1024_maskfix/`) and backed up to GCS (`gs://statistical-nlp/evo-memory/checkpoints_backup_20260414/`).
+
+Maskfix analyses completed:
+- §1–§3: Rewritten from WandB data (`_report_maskfix.md` in each report folder)
+- §4, §5, §7: GPU analyses using maskfix checkpoints (`_report_maskfix.md` + `*_maskfix.png` plots)
+- §6, §8, §9: Pending (require full NAMM infrastructure with device placement fixes)
+- §10: Overview comparison (`report_10/_report.md`)
+
+See `analysis/report_10/` for the buggy-vs-maskfix overview and `analysis/run_maskfix_gpu_analyses.py` for the GPU analysis script.
 
 ---
 
