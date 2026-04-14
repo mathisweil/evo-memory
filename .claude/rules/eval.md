@@ -2,10 +2,10 @@
 description: Rules for evaluation, reporting, and figure generation
 paths:
   - scripts/run_eval.py
+  - scripts/eval_namm_splits.py
   - scripts/generate_report.py
   - scripts/generate_paper_figures.py
-  - scripts/generate_comparison_plots.py
-  - scripts/generate_run_plots.py
+  - scripts/plot_main_table.py
   - scripts/configs/eval_default.yaml
   - config/run/full_cache_baseline_llama32_1b.yaml
   - config/run/recency_baseline_llama32_1b.yaml

@@ -1,0 +1,63 @@
+# DEPRECATED: This config uses a 6-task subset and the non-5t run_config.
+# For FAIR-01 compliant M1 runs, use lora_rh_m1_instruct_5t.yaml instead.
+# Kept for reproducibility of prior runs (WandB: rh_m1_5t_v2, kz6vqo2o etc).
+#
+# Usage:
+#   python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct.yaml --run_name rh_m1_test
+
+# ── Experiment ──────────────────────────────────────────────────────────
+run_name: null
+experiment: null
+method: rh_m1_lora_instruct
+
+# ── LoRA hyperparameters (rhautier's) ──────────────────────────────────
+lora_rank: 8
+lora_target_modules: [q_proj, v_proj]
+lora_alpha: 16
+lora_dropout: 0.1
+learning_rate: 5e-5
+weight_decay: 0.01
+max_grad_norm: 1.0
+warmup_ratio: 0.03
+num_epochs: 150
+batch_size: 4
+gradient_accumulation_steps: 4
+max_seq_len: 7000
+sft_mode: true
+
+# ── NAMM ────────────────────────────────────────────────────────────────
+namm_active: false
+namm_checkpoint: null
+run_config: namm_bam_i1_llama32_1b
+cache_size: null
+
+# ── Data ────────────────────────────────────────────────────────────────
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+train_split: 0.7
+val_split: 0.15
+split_seed: 42
+
+# ── Evaluation ──────────────────────────────────────────────────────────
+eval_interval: 25
+log_interval: 5
+batch_size_eval: 4
+early_stopping_patience: 5  # stop after 5 evals (~125 steps) with no val F1 improvement
+
+# ── Wandb ─────────────────────────────────────────────────────────────
+wandb_entity: SNLP_NAMM
+wandb_project: Experiments
+
+# ── Checkpointing & GCS ────────────────────────────────────────────────
+gcs: true
+checkpoint_every: 0
+resume_checkpoint: null
+
+# ── Advanced ────────────────────────────────────────────────────────────
+override:
+  - "task_sampler.tasks=[lb/qasper,lb/multifieldqa_en,lb/2wikimqa,lb/qasper_e,lb/hotpotqa_e,lb/2wikimqa_e]"
+  - "max_position_id=8192"
+  - "min_conditioning_length=100"
+  - "max_conditioning_length=6500"
+  - "max_new_tokens=64"
+  - "max_gen_tokens=64"

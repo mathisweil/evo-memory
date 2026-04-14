@@ -42,6 +42,7 @@ Usage:
 
 import csv
 import dataclasses
+import gc
 import os
 import shutil
 import time
@@ -70,36 +71,31 @@ from namm.trainer import WandbConfig
 class LoRATrainerConfig:
     """All hyperparameters for LoRAGradTrainer.
 
-    Locked values (do not override without explicit reason):
-      - max_seq_len=3500 (leaves headroom in 4096-token RoPE window)
-      - num_epochs=3
-      - batch_size=1 (VRAM budget on 4070Ti)
-      - gradient_accumulation_steps=16 (effective batch = 16)
-      - learning_rate=2e-4
-      - max_grad_norm=1.0
-      - warmup_ratio=0.03
+    All values are set via YAML configs in scripts/configs/ and CLI args.
+    See lora_rh_m1_instruct_5t.yaml (M1) and joint_lora_m4_5t.yaml (M4)
+    for FAIR-01 compliant defaults.
     """
     out_dir: str
-    method: str                     # 'lora_grad' — used in artifact dir: results/{method}/{seed}/
-    seed: int                       # 1337 default — used in artifact dir
+    method: str                     # e.g. 'rh_m1_lora_instruct_5t'
+    seed: int                       # split seed (FAIR-01: 42)
 
-    max_seq_len: int                # 3500 (locked)
-    task_names: List[str]           # e.g. ['qasper', 'narrativeqa', 'passage_retrieval_en']
+    max_seq_len: int                # max sequence length for SFT truncation
+    task_names: List[str]           # e.g. ['qasper', 'narrativeqa', ...]
 
-    num_epochs: int                 # 3 (locked)
-    batch_size: int                 # 1 (locked)
-    gradient_accumulation_steps: int  # 16 (locked)
-    learning_rate: float            # 2e-4 (locked)
-    weight_decay: float             # 0.01
-    max_grad_norm: float            # 1.0 (locked)
-    warmup_ratio: float             # 0.03 (locked)
+    num_epochs: int                 # training epochs per run/stage
+    batch_size: int                 # per-device batch size
+    gradient_accumulation_steps: int  # effective_batch = batch_size * grad_accum
+    learning_rate: float
+    weight_decay: float
+    max_grad_norm: float
+    warmup_ratio: float
 
-    namm_active: bool               # False for m1; True for m4-frozen
-    eval_interval: int              # save checkpoint every N gradient updates
+    namm_active: bool               # False for M1; True for M3/M4
+    eval_interval: int              # eval every N gradient updates
     log_interval: int               # wandb log every N gradient updates
     always_save_checkpoint: bool
-    init_from: Optional[str]        # path to ckpt (NAMM ckpt for m4, LoRA ckpt for resume)
-    dtype: str                      # 'bfloat16'
+    init_from: Optional[str]        # path to resume checkpoint; None = fresh
+    dtype: str                      # 'bfloat16', 'float16', or 'float32'
     sft_mode: bool = False          # True -> SFTDataset; False -> NTPDataset
     train_frac: float = 0.7         # fraction of each task's examples used for training
     val_frac: float = 0.15          # fraction used for validation (best checkpoint selection)
@@ -107,6 +103,7 @@ class LoRATrainerConfig:
     early_stopping_patience: int = 0  # stop after N evals with no val F1 improvement (0 = disabled)
     min_conditioning_length: int = None  # min prompt tokens (skip shorter prompts)
     max_answer_tokens: int = None        # max answer tokens (skip samples with longer answers)
+    skip_baseline_eval: bool = False     # skip pre-training eval to save VRAM on small GPUs
 
 
 # ---------------------------------------------------------------------------
@@ -231,6 +228,7 @@ class LoRAGradTrainer:
             collate_fn=collate_fn,
             num_workers=0,
             drop_last=True,
+            pin_memory=torch.cuda.is_available(),
         )
         print(f"LoRAGradTrainer: dataset has {len(dataset)} samples, "
               f"{len(self.dataloader)} batches/epoch.")
@@ -355,8 +353,8 @@ class LoRAGradTrainer:
             (unscaled_loss_float, past_key_values_out)
         """
         cfg = self.trainer_config
-        input_ids = batch['input_ids'].to(self.device)
-        labels = batch['labels'].to(self.device)
+        input_ids = batch['input_ids'].to(self.device, non_blocking=True)
+        labels = batch['labels'].to(self.device, non_blocking=True)
 
         # NAMM-active: reset KV cache and memory policy buffers before each doc
         if cfg.namm_active:
@@ -373,6 +371,14 @@ class LoRAGradTrainer:
                         "(initialize_buffers / reset_kv_cache / reset). "
                         "Proceeding without KV-cache reset."
                     )
+            # The preceding baseline eval (via evaluate_lb) sets
+            # _flat_param_idxs per-chunk to a length equal to the last chunk
+            # size. Training uses batch_size=1, but the stale batch_idxs
+            # would make get_additional_shared_params return a tensor sized
+            # for the eval chunk, not this step's batch. Reset to match the
+            # actual per-step batch.
+            self.memory_policy.set_params_batch_idxs(
+                np.zeros([input_ids.shape[0]], dtype=np.int64))
             past_key_values = None
 
         if cfg.namm_active:
@@ -448,6 +454,13 @@ class LoRAGradTrainer:
             shift_hidden = hidden_states[:, :-1, :].contiguous()
             shift_labels = labels[:, 1:].contiguous()
 
+        # Free outputs early -- only shift_hidden/shift_labels and _past_kv
+        # are needed beyond this point.  Releasing attentions, query_states,
+        # and (via O1) intermediate hidden states reclaims VRAM before the
+        # chunked CE and backward pass.
+        _past_kv = getattr(outputs, 'past_key_values', None)
+        del outputs, hidden_states
+
         # Chunked cross-entropy
         lm_head = self.model.lm_head
 
@@ -468,17 +481,18 @@ class LoRAGradTrainer:
             )
             del chunk_logits
 
+        del shift_hidden, shift_labels
+
         loss = total_loss / n_tokens.clamp(min=1)
         loss = loss / cfg.gradient_accumulation_steps
         loss.backward()
 
         # ANLYS-01: per-layer token retention logging
         self._last_retention_dict = {}
-        if cfg.namm_active and hasattr(outputs, 'past_key_values') \
-                and outputs.past_key_values is not None:
+        if cfg.namm_active and _past_kv is not None:
             n_input = input_ids.shape[1]
             if n_input > 0:
-                for layer_i, layer_kv in enumerate(outputs.past_key_values):
+                for layer_i, layer_kv in enumerate(_past_kv):
                     if layer_kv is not None and layer_kv[0] is not None:
                         n_retained = layer_kv[0].shape[-2]
                         self._last_retention_dict[f'retention/layer_{layer_i}'] = (
@@ -492,7 +506,7 @@ class LoRAGradTrainer:
                         stacklevel=2,
                     )
 
-        return loss.item() * cfg.gradient_accumulation_steps, getattr(outputs, 'past_key_values', None)
+        return loss.item() * cfg.gradient_accumulation_steps, _past_kv
 
     def _optimizer_step(self):
         """Clip gradients, step optimizer + scheduler, zero grads."""
@@ -518,7 +532,7 @@ class LoRAGradTrainer:
         # 1. Build and save the state dictionary once
         checkpoint = {
             'lora_state_dict': {
-                n: p.data.clone()
+                n: p.data.detach().cpu().clone()
                 for n, p in self.model.model.named_parameters()
                 if p.requires_grad
             },
@@ -853,12 +867,13 @@ class LoRAGradTrainer:
             self._write_wandb_id()
 
         # --- Baseline evaluation (before training) on val set ---
-        if self.task_sampler is not None:
+        if self.task_sampler is not None and not cfg.skip_baseline_eval:
             print("=== Baseline evaluation on VAL set (before LoRA training) ===")
             self.model.eval()
+            gc.collect()
             torch.cuda.empty_cache()
             try:
-                with torch.no_grad():
+                with torch.inference_mode():
                     baseline_scores = self._evaluate_f1(split='val')
                 for k, v in baseline_scores.items():
                     print(f"  {k}: {v:.2f}")
@@ -867,10 +882,11 @@ class LoRAGradTrainer:
                                      for k, v in baseline_scores.items()}
                     wandb.log(baseline_dict, step=0)
                 print("=== Baseline debug generation (3 val samples) ===")
-                with torch.no_grad():
+                with torch.inference_mode():
                     self._debug_generate(n=3, split='val')
             except (torch.cuda.OutOfMemoryError, ValueError) as e:
                 print(f"WARNING: Baseline eval OOM — skipping. ({e})")
+                gc.collect()
                 torch.cuda.empty_cache()
 
         # --- Training summary (FAIR-01) ---
@@ -991,16 +1007,21 @@ class LoRAGradTrainer:
 
                         if self.task_sampler is not None:
                             self.model.eval()
+                            gc.collect()
                             torch.cuda.empty_cache()
                             try:
-                                with torch.no_grad():
+                                with torch.inference_mode():
                                     val_scores = self._evaluate_f1(split='val')
-                                    # Evaluate on a train subsample (same size as val) for overfitting detection
+                                    gc.collect()
+                                    torch.cuda.empty_cache()
                                     val_n = sum(len(v) for v in self.task_sampler.get_split_indices('val').values())
                                     train_scores = self._evaluate_f1(split='train', num_samples=val_n)
+                                    gc.collect()
+                                    torch.cuda.empty_cache()
                                     self._debug_generate(n=3, split='val')
                             except (torch.cuda.OutOfMemoryError, ValueError) as e:
                                 print(f"WARNING: Periodic eval OOM at step {global_step} — skipping. ({e})")
+                                gc.collect()
                                 torch.cuda.empty_cache()
                                 val_scores = {}
                                 train_scores = {}
@@ -1078,11 +1099,13 @@ class LoRAGradTrainer:
         if self.task_sampler is not None:
             print("=== Debug generation (10 TEST samples) ===")
             self.model.eval()
-            with torch.no_grad():
+            gc.collect()
+            torch.cuda.empty_cache()
+            with torch.inference_mode():
                 self._debug_generate(n=10, split='test')
 
             print("=== Final evaluation on TEST set (all samples) ===")
-            with torch.no_grad():
+            with torch.inference_mode():
                 final_scores = self._evaluate_f1(split='test', num_samples=None)
             for k, v in final_scores.items():
                 print(f"  {k}: {v:.2f}")

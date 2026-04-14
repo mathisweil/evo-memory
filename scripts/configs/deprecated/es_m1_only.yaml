@@ -1,0 +1,49 @@
+# DEPRECATED: Pre-FAIR-01 ES config. Uses train_split=0.8 and
+# full_cache_es_llama32_1b run_config (single-task Qasper).
+# No FAIR-01 compliant ES-only config exists yet — M2 uses run_namm.py.
+#
+# Usage:
+#   python scripts/run_es.py --config scripts/configs/es_m1_only.yaml --run_name m1_es
+
+# ── Experiment ──────────────────────────────────────────────────────────
+run_name: null
+experiment: null
+method: es_only
+
+# ── ES hyperparameters ──────────────────────────────────────────────────
+sigma: 0.001
+alpha: 0.0005
+population_size: 8
+num_iterations: 300        # FAIR-01 anchor: matches M2 NAMM generation count
+noise_mode: correlated
+initial_seed: 33
+mini_batch_size: 16
+
+# ── NAMM ────────────────────────────────────────────────────────────────
+namm_checkpoint: null      # No NAMM — full KV cache during training
+run_config: full_cache_es_llama32_1b  # No eviction policy; Qasper task
+cache_size: null           # No limit — run_config sets cache_size = max_position_id
+
+# ── Data ────────────────────────────────────────────────────────────────
+filter_by_length: null
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+train_split: 0.8           # FAIR-01: must match all other conditions
+split_seed: 42             # FAIR-01: deterministic split
+
+# ── Evaluation ──────────────────────────────────────────────────────────
+batch_size: null           # Auto-detected from run_config
+n_examples: 10
+temperature: 0.0           # FAIR-01: greedy decoding
+eval_temperature: 0.0
+num_samples: 1
+eval_num_samples: 1
+
+# ── Checkpointing & GCS ────────────────────────────────────────────────
+gcs: true
+checkpoint_every: 10
+save_every: 0
+resume_checkpoint: null
+
+# ── Advanced ────────────────────────────────────────────────────────────
+override: []

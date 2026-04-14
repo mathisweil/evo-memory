@@ -7,6 +7,34 @@ We compare three conditions:
 - **M2** — NAMM eviction policy trained alone (no LoRA, frozen LLM)
 - **M3** — LoRA fine-tuned with frozen NAMM active during training
 
+> **Naming note:** What is called M3 in this specification is labelled "M4" in `results/main_table_5t/`. See `experiment_specification.md` for the full naming warning.
+
+---
+
+## Analysis Status
+
+| Section | Topic                          | Status                                          |
+| ------- | ------------------------------ | ----------------------------------------------- |
+| §0      | Dataset characterisation       | DONE (`report_0`)                               |
+| §1      | Per-task sensitivity           | DONE (`report_1`, rewritten with test-set data) |
+| §2      | Adaptation rate                | DONE (`report_2`, training dynamics)            |
+| §3      | Per-layer retention            | DONE (`report_3`)                               |
+| §4      | LoRA weight comparison         | DONE (`report_4`)                               |
+| §5      | Attention entropy              | DONE (`report_5`)                               |
+| §6      | Token importance alignment     | DONE (`report_6`)                               |
+| §7      | CKA representation similarity  | DONE (`report_7`)                               |
+| §8      | Probing for residual knowledge | NOT DONE                                        |
+| §9      | Gradient flow attribution      | NOT DONE                                        |
+
+### Additional conditions not in the original spec
+
+The following conditions have been evaluated but were not covered in the original three-condition design:
+
+- **B1** (recency baseline) — now evaluated.
+- **A4** (NAMM disabled at eval) — now evaluated on M3 checkpoints (not M4 joint as originally planned).
+- **Truncation baselines** (Trunc/plain, Trunc/lora_m1) — new conditions added during evaluation.
+- **M1_recency** — attempted but broken (all zeros); not usable.
+
 ---
 
 ## 0 · Dataset Characterisation and Performance Hypotheses
@@ -51,6 +79,8 @@ A high sensitivity score means the task relies on information that NAMM tends to
 **Hypothesis:** Tasks requiring precise detail retrieval from specific locations (Qasper) will show higher eviction sensitivity than tasks solvable from distributed contextual cues (2WikiMQA, HotpotQA). M3 fine-tuning should partially close the gap, but more so for the distributed-cue tasks.
 
 **Data needed:** Per-task best val F1 for M1 and M3 at each cache size (already in wandb).
+
+> **Update:** This analysis was redone with test-set F1 (not val F1 as originally specified). Key finding: M3/cs1024 (32.28 test micro F1) slightly exceeds M1 (31.14), counter to the hypothesis that eviction would uniformly hurt performance.
 
 **Effort:** Low — analysis of existing metrics only.
 
@@ -242,16 +272,22 @@ A high sensitivity score means the task relies on information that NAMM tends to
 
 ## Recommended Execution Order
 
-| Priority | Analysis | Section | Effort | New code? |
-|----------|----------|---------|--------|-----------|
-| 1 | Per-task eviction sensitivity | §1 | Low | No |
-| 2 | Adaptation rate / learning efficiency | §2 | Low | Minimal |
-| 3 | Per-layer retention patterns | §3 | Low | Minimal |
-| 4 | LoRA weight comparison | §4 | Medium | Checkpoint loading |
-| 5 | Attention entropy shift | §5 | Medium | Inference hooks |
-| 6 | Token importance alignment | §6 | Medium | NAMM hooks |
-| 7 | CKA representation similarity | §7 | Medium | Inference + CKA lib |
-| 8 | Probing for residual knowledge | §8 | High | Probe training |
-| 9 | Gradient flow attribution | §9 | High | Training instrumentation |
+| Priority | Analysis                              | Section | Effort | New code?                |
+| -------- | ------------------------------------- | ------- | ------ | ------------------------ |
+| 1        | Per-task eviction sensitivity         | §1      | Low    | No                       |
+| 2        | Adaptation rate / learning efficiency | §2      | Low    | Minimal                  |
+| 3        | Per-layer retention patterns          | §3      | Low    | Minimal                  |
+| 4        | LoRA weight comparison                | §4      | Medium | Checkpoint loading       |
+| 5        | Attention entropy shift               | §5      | Medium | Inference hooks          |
+| 6        | Token importance alignment            | §6      | Medium | NAMM hooks               |
+| 7        | CKA representation similarity         | §7      | Medium | Inference + CKA lib      |
+| 8        | Probing for residual knowledge        | §8      | High   | Probe training           |
+| 9        | Gradient flow attribution             | §9      | High   | Training instrumentation |
 
 Analyses 1–3 can be completed immediately from existing wandb data. Analyses 4–7 each require one or two inference passes over the test set. Analyses 8–9 require new training or probe-training runs.
+
+---
+
+## 10 · Cross-Report Synthesis
+
+`analysis/_summary_report.md` synthesises findings across all completed reports (§0–§7), drawing out cross-cutting themes and the overall narrative. `analysis/_meta-analysis.md` provides an independent critique of the analysis pipeline, identifying limitations, potential confounds, and directions for further work.
