@@ -49,14 +49,14 @@ learning_rate: 5e-5
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
-lora_batch_size: 2          # per-device batch size (NAMM active -> typically 1)
-gradient_accumulation_steps: 8  # effective_batch = lora_batch_size * grad_accum
+lora_batch_size: 1          # per-device batch size (NAMM active -> typically 1)
+gradient_accumulation_steps: 16  # effective_batch = lora_batch_size * grad_accum
 max_seq_len: 7000
 sft_mode: true
 lora_eval_interval: 14      # matches M1/M3 — enables best-of-N checkpointing within each LoRA stage
 lora_log_interval: 2       # logging interval within LoRA stages
 lora_early_stopping_patience: 20   # matches M1/M3; applies per-stage, outer loop continues
-lora_eval_batch_size: 8     # per-stage eval batch size during LoRA Stage B; matches M1/M3 batch_size_eval=8. null = inherit global evaluator setting.
+lora_eval_batch_size: 4     # per-stage eval batch size during LoRA Stage B; matches M1/M3 batch_size_eval=8. null = inherit global evaluator setting.
 dtype: bfloat16
 
 # -- Data (FAIR-01) -----------------------------------------------------------
