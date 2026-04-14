@@ -8,9 +8,8 @@ Fine-tuning LLaMA 3.2-1B-Instruct via evolutionary strategies (ES) or LoRA while
 
 ```
 evo-memory/
-├── Makefile                      # build orchestration (setup, logins, TPU lifecycle)
 ├── pyproject.toml                # Python metadata + all dependencies (single source of truth)
-├── requirements.lock             # pinned dependency versions (committed to git)
+├── uv.lock                       # uv-managed lockfile (committed to git)
 ├── .env.example                  # environment variable template
 │
 ├── config/                       # Hydra configuration (used by run_namm.py)
@@ -36,14 +35,13 @@ evo-memory/
 │   ├── check_eviction_stats.py   #   diagnostic tool for NAMM token retention
 │   ├── generate_paper_figures.py #   paper figure generation
 │   └── configs/                  #   YAML hyperparameter presets
-│       ├── es_default.yaml       #   ES hyperparameter defaults
-│       ├── es_m1_only.yaml       #   ES-only condition (no NAMM)
-│       ├── lora_default.yaml     #   LoRA base defaults
-│       ├── lora_m1_only.yaml     #   m1 condition (LoRA only, no NAMM)
-│       ├── lora_rh_m1_instruct.yaml  #   m1 multi-task variant
-│       ├── lora_rh_m4_instruct.yaml  #   m4 condition (LoRA + frozen NAMM)
-│       ├── joint_default.yaml    #   joint training defaults
-│       └── eval_default.yaml     #   evaluation configuration
+│       ├── lora_rh_m1_instruct_5t.yaml  #   M1 LoRA-only (FAIR-01, 5-task)
+│       ├── lora_rh_m4_instruct_5t.yaml  #   M3 LoRA + frozen NAMM (FAIR-01, 5-task)
+│       ├── joint_lora_m4_5t.yaml        #   M4 joint LoRA + NAMM (FAIR-01, 5-task)
+│       ├── joint_default.yaml           #   joint training defaults
+│       ├── eval_default.yaml            #   evaluation configuration
+│       ├── eval_main_table.yaml         #   main table evaluation config
+│       └── deprecated/                  #   pre-FAIR-01 configs (reproducibility only)
 │
 ├── es_finetuning/                # ES optimizer module
 │   ├── config.py                 #   ESConfig dataclass
@@ -79,95 +77,45 @@ evo-memory/
 
 ---
 
-## Prerequisites
+## Setup
 
-| Requirement | Purpose |
-|---|---|
-| **[uv](https://docs.astral.sh/uv/)** | Fast Rust-based Python package manager (creates venv, installs deps) |
-| **make** | Orchestrates hardware-specific setup, logins, and TPU lifecycle |
-
-### `uv` Setup on UCL GPU Machines
-
-Home directories on UCL GPU machines have strict storage limits. Configure `uv` to use the quota directory for its cache.
-
-Install `uv` if not already present:
+Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# GPU (CUDA 12.1)
+uv sync --extra gpu
+
+# CPU only
+uv sync --extra cpu
+
+# TPU
+uv sync --extra tpu
+
+# Dev tools (add to any of the above)
+uv sync --extra gpu --extra dev
 ```
 
-Add the following to your `~/.cshrc` file to update your path and set the cache directory permanently:
+`uv sync` creates `.venv/`, resolves against `uv.lock`, and installs the project in editable mode. Activate with `source .venv/bin/activate`, or prefix commands with `uv run` to skip activation.
+
+On UCL GPU machines, home directories have strict storage quotas. Point `uv`'s cache at the quota directory before syncing:
 
 ```csh
-set path = ( $HOME/.local/bin $path )
 setenv UV_CACHE_DIR $QUOTA_DIR/uv_cache
 ```
 
-Apply the changes to your current session:
-
-```csh
-source ~/.cshrc
-```
-
-**Note:** `make` is pre-installed on macOS and most Linux distributions. On Ubuntu/Debian, install with `sudo apt install build-essential`.
-
----
-
-## Setup & Installation
-
-### 1. Clone and configure
+## Service logins
 
 ```bash
-git clone https://github.com/mathisweil/evo-memory.git
-cd evo-memory
-cp .env.example .env              # then edit .env (see Configuration below)
+# HuggingFace (required for gated LLaMA 3.2)
+huggingface-cli login
+
+# Weights & Biases
+wandb login
 ```
 
-### 2. Run the setup target for your hardware
+For GCS access, authenticate with `gcloud auth application-default login`.
 
-| Target | When to use |
-|---|---|
-| `make setup-local` | Laptops, workstations, or any machine with optional CUDA. Installs PyTorch from the default PyPI index. |
-| `make setup-gpu GPU=N` | Dedicated CUDA GPU server. Pulls PyTorch CUDA 12.1 wheels. Pass `GPU=N` to pin a device (e.g. `make setup-gpu GPU=2`). |
-| `make setup-tpu` | Google Cloud TPU VM. Installs PyTorch + XLA from Google's TPU index, syncs the XLA compilation cache from GCS. |
-| `make setup-ucl-gpu` | UCL CSH cluster. Loads the `cuda` environment module, installs CUDA 12.1 wheels, generates `activate.csh` for tcsh. |
-
-```bash
-make setup-local              # example: local development
-```
-
-Each target creates a `uv`-managed virtualenv (Python 3.10), installs platform-specific PyTorch wheels, then installs all remaining dependencies from `pyproject.toml` via `uv pip install -e "."`. Activation scripts (`activate.sh`, `activate.csh`) are generated automatically.
-
-### 3. Log in to required services
-
-```bash
-make hf-login                 # required: gated LLaMA 3.2 access
-```
-
-Optional logins (run individually or all at once with `make logins`):
-
-```bash
-make wandb-login              # only needed when wandb_log=true
-make gcs-auth                 # GCS access (installs gcloud CLI if missing)
-make install-claude           # Claude Code CLI (installs Node.js via nvm if needed)
-```
-
-### 4. Activate in subsequent shells
-
-```bash
-source activate.sh            # bash / zsh — auto-detects TPU vs GPU
-source activate.csh           # csh / tcsh (UCL machines)
-```
-
-### Other useful targets
-
-```bash
-make lock                     # pin dependency versions to requirements.lock
-make smoke                    # quick sanity check (ES, 2 iterations, no GCS)
-make clean                    # remove venv, caches, stamps, activation scripts
-make clean-cache              # remove HF + XLA caches only (keeps venv)
-make help                     # list all available targets
-```
+Copy `.env.example` to `.env` and fill in the values listed under [Configuration](#configuration).
 
 ---
 
@@ -183,7 +131,7 @@ cp .env.example .env
 |---|---|---|---|
 | `LLM_MODEL_PATH` | **Yes** | — | HuggingFace model ID or local path (e.g. `meta-llama/Llama-3.2-1B-Instruct`) |
 | `HF_CACHE_DIR` | No | `<repo>/.hf_cache` | HuggingFace cache directory |
-| `CUDA_VISIBLE_DEVICES` | No | `0` | GPU index (also settable via `make setup-gpu GPU=N`) |
+| `CUDA_VISIBLE_DEVICES` | No | `0` | GPU index |
 | `NAMM_CKPT` | Eval only | — | Path to a trained NAMM checkpoint |
 | `WANDB_API_KEY` | No | — | Only needed when `wandb_log=true` |
 | `GCS_BUCKET` | TPU/cloud | `statistical-nlp` | GCS bucket name |
@@ -199,15 +147,12 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 
 | Experiment | Script | Config | Required Args | Key Optional Args |
 |---|---|---|---|---|
-| **Train NAMM** | `scripts/run_namm.py` | `config/config.yaml` (Hydra) | `'run@_global_=<preset>'` | `threshold_only`, `scoring_initializer`, `save_checkpoint_every`, `trainer_config.max_iters` |
-| **ES — no NAMM** | `scripts/run_es.py` | `scripts/configs/es_default.yaml` | `--run_name` | `--num_iterations`, `--population_size`, `--sigma`, `--alpha` |
-| **ES + frozen NAMM** | `scripts/run_es.py` | `scripts/configs/es_default.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--num_iterations` |
-| **LoRA only** (m1) | `scripts/run_lora.py` | `scripts/configs/lora_m1_only.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
-| **LoRA multi-task** (rh-m1) | `scripts/run_lora.py` | `scripts/configs/lora_rh_m1_instruct.yaml` | `--run_name` | `--num_epochs`, `--eval_interval` |
-| **LoRA + frozen NAMM** (rh-m4) | `scripts/run_lora.py` | `scripts/configs/lora_rh_m4_instruct.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
-| **Joint NAMM + ES** | `scripts/run_joint.py` | `scripts/configs/joint_default.yaml` | `--run_name`, `--adapter_type es` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--adapter_iterations_per_stage` |
-| **Joint NAMM + LoRA** | `scripts/run_joint.py` | `scripts/configs/joint_default.yaml` | `--run_name`, `--adapter_type lora` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
+| **Train NAMM** (M2) | `scripts/run_namm.py` | `config/config.yaml` (Hydra) | `'run@_global_=<preset>'` | `threshold_only`, `scoring_initializer`, `save_checkpoint_every`, `trainer_config.max_iters` |
+| **LoRA only** (M1) | `scripts/run_lora.py` | `scripts/configs/lora_rh_m1_instruct_5t.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
+| **LoRA + frozen NAMM** (M3) | `scripts/run_lora.py` | `scripts/configs/lora_rh_m4_instruct_5t.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
+| **Joint NAMM + LoRA** (M4) | `scripts/run_joint.py` | `scripts/configs/joint_lora_m4_5t.yaml` | `--run_name` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
 | **Evaluate** | `scripts/run_eval.py` | `scripts/configs/eval_default.yaml` | — | `--es_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--num_samples` |
+| **Evaluate splits** | `scripts/eval_namm_splits.py` | — | `--run_config` | `--lora_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--splits` |
 
 ### NAMM eviction modes
 
@@ -259,57 +204,82 @@ python scripts/run_namm.py \
     split_max_conditioning_length=6500
 ```
 
+#### Cache-size sweep (5-task QA)
+
+Train NAMM at different KV-cache budgets on the same 5-task LongBench QA subset to compare how budget affects eviction quality. All three runs share the `namm_bam_i1_llama32_1b_5t` base config; only `cache_size`, `max_memory_length`, and the run-name suffix differ.
+
+```bash
+# cache_size=1024 (~6h, ~10 GB peak on RTX 3090 Ti)
+python scripts/run_namm.py \
+    run@_global_=namm_bam_i1_llama32_1b_5t \
+    filter_by_length=8192 \
+    cache_size=1024 max_memory_length=1024 \
+    run_name_suffix=llama32-1b-5t-cs1024
+
+# cache_size=2048 (~8h, ~14 GB peak)
+python scripts/run_namm.py \
+    run@_global_=namm_bam_i1_llama32_1b_5t \
+    filter_by_length=8192 \
+    cache_size=2048 max_memory_length=2048 \
+    run_name_suffix=llama32-1b-5t-cs2048
+
+# cache_size=4096 (~14h, ~20 GB peak — batch_size must drop to 2)
+python scripts/run_namm.py \
+    run@_global_=namm_bam_i1_llama32_1b_5t \
+    filter_by_length=8192 \
+    cache_size=4096 max_memory_length=4096 \
+    batch_size=2 eval_max_batch_size=2 \
+    run_name_suffix=llama32-1b-5t-cs4096
+```
+
+`max_memory_length` must equal `cache_size` — it's the physical KV buffer limit. `filter_by_length=8192` caps RoPE position embeddings. At `cache_size=4096`, `batch_size=4` OOMs on 24 GB GPUs; drop to `2`.
+
+5-task LongBench QA split (prompts in [4096, 6500] tokens):
+
+| Task | Train | Val | Test |
+|---|---|---|---|
+| `lb/qasper` | 60 | 13 | 14 |
+| `lb/2wikimqa` | 56 | 12 | 12 |
+| `lb/qasper_e` | 77 | 16 | 17 |
+| `lb/hotpotqa_e` | 51 | 10 | 12 |
+| `lb/2wikimqa_e` | 62 | 13 | 14 |
+| **Total** | **306** | **64** | **69** |
+
+#### Resuming interrupted runs
+
+`scratch=true` (default) starts fresh. To resume from `latest.pt` in the run's output directory, append `scratch=false` to any of the commands above. The best checkpoint (`ckpt.pt`) is only overwritten when `val_tasks_aggregate` improves.
+
 ### Example commands
 
 ```bash
-# Smoke test (ES, no NAMM) — also: make smoke
-python scripts/run_es.py --run_name smoke \
-    --num_iterations 2 --population_size 2 --mini_batch_size 2 --no-gcs
+# M1 LoRA-only (FAIR-01)
+python scripts/run_lora.py \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml --run_name m1_r8
 
-# ES + frozen NAMM
-python scripts/run_es.py --config scripts/configs/es_default.yaml --run_name es_namm_run \
-    --namm_checkpoint exp_local/pretrained/namm.pt --cache_size 1024
+# M3 LoRA + frozen NAMM (FAIR-01)
+python scripts/run_lora.py \
+    --config scripts/configs/lora_rh_m4_instruct_5t.yaml --run_name m3_lora \
+    --namm_checkpoint path/to/m2_checkpoint.pt
 
-# LoRA only (m1)
-python scripts/run_lora.py --config scripts/configs/lora_m1_only.yaml --run_name m1_run
+# M4 Joint NAMM + LoRA (FAIR-01)
+python scripts/run_joint.py \
+    --config scripts/configs/joint_lora_m4_5t.yaml --run_name m4_joint_lora
 
-# LoRA multi-task (rh-m1)
-python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct.yaml --run_name rh_m1_run
-
-# LoRA + frozen NAMM (rh-m4)
-python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct.yaml --run_name rh_m4_run \
-    --namm_checkpoint exp_local/pretrained/namm.pt
-
-# Evaluate ES checkpoint
-python scripts/run_eval.py \
-    --es_checkpoint experiments/experiment_1/es_namm/my_run/checkpoints/es_checkpoint_final.pt \
-    --namm_checkpoint exp_local/pretrained/namm.pt
+# Evaluate with NAMM + LoRA on test split
+python scripts/eval_namm_splits.py \
+    --run_config namm_bam_i1_llama32_1b_5t \
+    --lora_checkpoint path/to/best_ckpt.pt \
+    --namm_checkpoint path/to/namm.pt \
+    --cache_size 1024 --splits test
 
 # Evaluate baseline (no fine-tuning, no NAMM)
-python scripts/run_eval.py
+python scripts/run_eval.py --run_config full_cache_baseline_llama32_1b
 
-# Joint NAMM + ES (alternating)
-python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
-    --run_name joint_es_run --adapter_type es \
-    --num_outer_loops 5 --namm_iterations_per_stage 50 \
-    --adapter_iterations_per_stage 25
+# Run all remaining experiments in dependency order
+bash scripts/run_all_experiments.sh
 
-# Joint NAMM + LoRA (alternating)
-python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
-    --run_name joint_lora_run --adapter_type lora \
-    --num_outer_loops 5 --namm_iterations_per_stage 50 \
-    --lora_epochs_per_stage 1
-
-# Joint with pre-trained NAMM warm-start
-python scripts/run_joint.py --config scripts/configs/joint_default.yaml \
-    --run_name joint_warm --adapter_type es \
-    --namm_checkpoint exp_local/pretrained/namm.pt
-
-# Joint smoke test
-python scripts/run_joint.py --run_name test --adapter_type es \
-    --num_outer_loops 2 --namm_iterations_per_stage 3 \
-    --adapter_iterations_per_stage 2 --population_size 2 \
-    --mini_batch_size 2
+# Smoke tests only
+bash scripts/run_all_experiments.sh --smoke-only
 ```
 
 ---
@@ -362,14 +332,7 @@ Requires GLIBC >= 2.28 (Ubuntu 20.04+).
 
 ## TPU (Google Cloud)
 
-Use `make setup-tpu` for first-time setup (see [Setup & Installation](#setup--installation)).
-
-**Restart a preempted/stopped spot VM:**
-
-```bash
-make tpu-restart-v6e          # spot v6e-8 in europe-west4-a
-make tpu-restart-v4           # on-demand v4-8 in us-central2-b
-```
+Install with `uv sync --extra tpu` on the TPU VM (see [Setup](#setup)).
 
 First XLA run takes ~20 min for compilation. The cache is synced to/from GCS automatically. Spot VM preemption triggers a SIGTERM for emergency checkpoint upload; re-run with the same `--run_name` to resume.
 

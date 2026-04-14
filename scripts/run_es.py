@@ -143,7 +143,7 @@ def parse_args():
 
     # Config file (defaults that CLI args override)
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/configs/es_default.yaml)")
+                        help="YAML config file (see scripts/configs/deprecated/es_default.yaml)")
 
     # Experiment hierarchy
     parser.add_argument("--run_name", type=str, default=None,

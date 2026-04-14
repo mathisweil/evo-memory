@@ -20,6 +20,7 @@ from namm.run_utils import (
     make_task_sampler,
     stochasticity_setup,
 )
+from utils.hydra_helpers import assert_fair01_test_size
 
 
 @hydra.main(version_base=None, config_path='../config', config_name='config')
@@ -49,7 +50,7 @@ def main(cfg: DictConfig):
     torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
     torch.backends.cudnn.allow_tf32 = True  # allow tf32 on cudnn
 
-    with torch.no_grad():
+    with torch.inference_mode():
         (memory_policy, memory_model, memory_evaluator, evolution_algorithm,
             auxiliary_loss) = make_eval_model(cfg=cfg, log_prefix=log_prefix)
 
@@ -120,6 +121,20 @@ def main(cfg: DictConfig):
             tokenizer=tokenizer,
         )
 
+        if master_process:
+            run_choice = (
+                hydra.core.hydra_config.HydraConfig.get()
+                .runtime.choices.get('run@_global_', '')
+            )
+            assert_fair01_test_size(
+                task_sampler,
+                run_config=run_choice,
+                train_frac=train_frac,
+                val_frac=val_frac,
+                min_conditioning_length=min_cond,
+                max_conditioning_length=max_cond,
+            )
+
         trainer = hydra.utils.instantiate(
             cfg.trainer,
             evaluation_model=memory_evaluator,
@@ -131,7 +146,7 @@ def main(cfg: DictConfig):
         if cfg.wandb_config.wandb_log and master_process:
             wandb_init(cfg=cfg)
 
-        with torch.no_grad():
+        with torch.inference_mode():
             trainer.train()
 
         if is_ddp:
@@ -139,5 +154,5 @@ def main(cfg: DictConfig):
 
 
 if __name__ == "__main__":
-    with torch.no_grad():
+    with torch.inference_mode():
         main()

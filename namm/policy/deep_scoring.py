@@ -478,7 +478,7 @@ class GeneralizedScoring(ScoringNetwork):
             split_sizes=self.parameter_dim_per_submodule,
             dim=-1,
             )
-        
+
         for stateless_module, p in zip(
             self.stateless_modules_list, parameters_per_submodule):
             stateless_module.load_parameters(

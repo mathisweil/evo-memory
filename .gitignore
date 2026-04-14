@@ -1,6 +1,7 @@
 # Experiment outputs and checkpoints
 experiments/
 experiment_artifacts/
+eval_results/
 exp_local/
 exp/
 outputs/
@@ -41,21 +42,18 @@ venv/
 # XLA compilation cache (TPU)
 .xla_cache/
 
-# Personal working notes
-notes.md
-report.md
-
 # ES smoke test outputs (legacy, now under experiments/)
 es_smoke_test*/
 .env
 
-# uv / Makefile generated files
+# uv generated files
 .venv/
-.make/
 .uv_cache/
 .pip_cache/
-activate.sh
-activate.csh
 
 namm_efficiency_audit_report.md
 namm_efficiency_benchmark_report.md
+
+# Run script artifacts
+scripts/run_all_experiments.log
+scripts/experiment_summary.txt

@@ -1,7 +1,10 @@
 import copy
+import logging
 import math
 import os
 import numpy as np
+
+logger = logging.getLogger(__name__)
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union, Any, List
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
@@ -239,11 +242,21 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
 
         Forces LoRA parameters to float32 regardless of base model dtype,
         preventing bfloat16 underflow at ES sigma=0.001.
+
+        lora_alpha defaults to ``2 * rank`` — the convention used by the
+        M1/M3 YAMLs and required by the FAIR-01 comparison. The M1 sweep
+        (``r ∈ {4, 8, 16}``) keeps this ratio fixed.
         """
         if target_modules is None:
             target_modules = ['q_proj', 'v_proj']
         if lora_alpha is None:
-            lora_alpha = rank
+            lora_alpha = 2 * rank
+            logger.warning(
+                "apply_lora_adapters: lora_alpha not provided; defaulting to "
+                "2 * rank = %d. FAIR-01 expects callers to set lora_alpha "
+                "explicitly so the M1 sweep ratio is auditable.",
+                lora_alpha,
+            )
         peft_config = LoraConfig(
             r=rank,
             target_modules=target_modules,
@@ -582,11 +595,23 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
             output = (logits,) + outputs[1:]
             return (loss,) + output if loss is not None else output
 
+        # When skip_lm_head is True the caller only needs the last hidden
+        # state (for chunked CE in _train_step).  Returning the full
+        # outputs.hidden_states tuple would pin all 17 intermediate layer
+        # activations in memory, defeating gradient checkpointing (M1).
+        # Returning just (hidden_states,) lets the 16 intermediates be
+        # freed when this function returns -- saving ~460 MB for
+        # seq_len=7000.
+        if skip_lm_head and hidden_states is not None:
+            return_hidden = (hidden_states,)
+        else:
+            return_hidden = outputs.hidden_states
+
         return CausalMemoryLMOutputWithPast(
             loss=loss,
             logits=logits,
             past_key_values=outputs.past_key_values,
-            hidden_states=outputs.hidden_states,
+            hidden_states=return_hidden,
             attentions=outputs.attentions,
             query_states=outputs.query_states,
             position_ids=position_ids,
