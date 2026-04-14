@@ -20,8 +20,8 @@ are included for completeness but should be interpreted with caution.
 121.5% -- M3 under eviction does not merely match full-context M1 but
 substantially surpasses it. Multi-hop tasks see the largest gains.
 
-**2. M3 converges faster than M1.** M3 reaches its peak at step 260 (~43%
-through training) vs M1's peak at step 336. M3 also starts from a higher
+**2. M3 converges faster than M1.** M3 reaches its peak at step 260
+(run killed at step 425) vs M1's peak at step 336. M3 also starts from a higher
 baseline (23.70 vs M1's initial). The negative train-val gap suggests
 eviction acts as a regulariser.
 
@@ -213,10 +213,10 @@ M3 converges faster and starts higher than M1:
 | Initial val F1        | --    | 23.70    |
 | Best val F1           | 45.48 | 52.06    |
 | Step at peak          | 336   | 260      |
-| Training progress     | --    | ~43%     |
+| Training progress     | --    | 260/425 (killed) |
 | Train-val gap         | --    | Negative |
 
-M3 reaches its peak at roughly 43% through training (step 260 of ~600),
+M3 reaches its peak at roughly step 260 of 425 (run killed),
 while M1 peaks later at step 336. M3's higher starting baseline (23.70)
 suggests that the NAMM-equipped model begins from a stronger position, not
 a weaker one as previously assumed. The negative train-val gap is consistent

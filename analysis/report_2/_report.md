@@ -2,7 +2,7 @@
 
 > All values are **validation F1** (not test).
 > Naming follows M0--M3 convention throughout.
-> M3 checkpoint is step 260 (~43% through training); final metrics may shift.
+> M3 checkpoint is step 260 (best at step 260 of 425 before kill); final metrics may shift.
 
 ## 1. Baseline Performance Under Eviction
 
@@ -45,7 +45,7 @@ representations.
 |:-----------------------|-------:|
 | Best val F1            |  52.06 |
 | Best step              |    260 |
-| Total steps (planned)  |   ~608 |
+| Total steps (planned)  |    425 (killed) |
 | Baseline val F1        |  23.70 |
 | Gain over baseline     | +28.36 |
 | Gain over M1 (45.48)  |  +6.58 |
@@ -119,7 +119,7 @@ more robust learned representations.
 
 ## 7. Caveats
 
-- M3 has completed only ~43% of training (step 260 of ~608). The best step and
+- M3 has completed only step 260 of 425 (run killed). The best step and
   final metrics may shift as training continues.
 - All numbers are validation F1, not test F1.
 - The train-val gap is computed at the best validation checkpoint.

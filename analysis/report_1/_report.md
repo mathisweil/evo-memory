@@ -2,7 +2,7 @@
 
 > All values are **validation F1** (not test).
 > Naming follows M0--M3 convention throughout.
-> M3 checkpoint is step 260 (~43% through training); final metrics may shift.
+> M3 checkpoint is step 260 (best at step 260 of 425 before kill); final metrics may shift.
 
 ## 1. Per-Task Best Validation F1
 
@@ -19,7 +19,7 @@ Best step / best iter:
 
 - M1: step 0 (LoRA alone, no eviction)
 - M2: iter 170 (WandB `z5bo4n8k`)
-- M3: step 260 of ~608 (WandB `h0bzg6on`)
+- M3: step 260 (run killed at step 425) (WandB `h0bzg6on`)
 
 ## 2. M3 Gain Over M1: (M3 - M1) / M1
 
@@ -99,8 +99,8 @@ genuine eviction quality.
 
 ## 6. Caveats
 
-- M3 has completed only ~43% of training (step 260 of ~608). The final best
-  val F1 may change.
+- M3 training was killed at step 425; best val F1 at step 260. The run
+  did not complete and final metrics may differ.
 - All numbers are validation F1, not test F1. Final conclusions require test-set
   evaluation.
 

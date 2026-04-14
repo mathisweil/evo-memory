@@ -2,7 +2,7 @@
 
 > Last updated: 2026-04-14.
 > Status: All reports (0--9) rewritten with maskfix data. M3 maskfix
-> training ~43% complete (step 260 of ~608). No maskfix test-set evals.
+> training step 260 of 425 (run killed). No maskfix test-set evals.
 
 > **Naming warning:** Reports use the M0--M3 convention from the
 > experiment specification. Results directories and some older code
@@ -52,14 +52,14 @@ Specific strengths:
 ### 2.1 The M3 maskfix checkpoint is immature
 
 The maskfix M3 run (`h0bzg6on`) has completed only step 260 of an
-estimated 608 steps (~43% of training). Every maskfix number in every
+425 steps before kill. Every maskfix number in every
 report is an interim result from a partially-trained model. This is
 the single most important caveat in the analysis suite.
 
 The consequences are not merely that "numbers might change slightly."
 The reports themselves show that M3 was still improving at step 260
 (Report 2: 90% of the improvement range reached at step 222, but best
-val F1 still rising). A model at 43% through training may have a
+val F1 still rising). A model at 61% through its (incomplete) training may have a
 qualitatively different internal structure from the converged model --
 the adaptation might reorganise as training progresses. Specific risks:
 
@@ -257,7 +257,7 @@ n=10--15 especially need uncertainty quantification.
 
 In priority order:
 
-1. **Complete M3 maskfix training.** The current checkpoint is at ~43%.
+1. **Complete M3 maskfix training.** The current checkpoint is at step 260 of 425 (run killed).
    All maskfix analyses are interim. Training must finish before any
    result can be considered final.
 

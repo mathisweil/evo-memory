@@ -15,7 +15,7 @@
 All comparisons use **full-context inputs** (no NAMM eviction at inference). Prompts: 10 test samples at 1024 tokens from LongBench tasks.
 
 - **M1:** LoRA fine-tuned, full context, no eviction (baseline; best val F1 45.48)
-- **M3:** LoRA + frozen NAMM, best checkpoint (step 260, val F1 52.06, ~43% through training; WandB `h0bzg6on`)
+- **M3:** LoRA + frozen NAMM, best checkpoint (step 260, val F1 52.06, run killed at step 425; WandB `h0bzg6on`)
 
 ---
 
@@ -57,7 +57,7 @@ The q_proj ratio (1.42x) exceeds the v_proj ratio (1.16x), suggesting that most 
 
 ### Note on checkpoint maturity
 
-The M3 checkpoint is from step 260 (~43% through training). Despite being early-stopped, M3's val F1 (52.06) substantially exceeds M1 (45.48), suggesting the adapter is efficient rather than undertrained. If anything, the norm ratios might increase slightly with further training, though the subspace direction is unlikely to shift given how orthogonal the adaptation already is.
+The M3 checkpoint is from step 260 (run killed at step 425). Despite being early-stopped, M3's val F1 (52.06) substantially exceeds M1 (45.48), suggesting the adapter is efficient rather than undertrained. If anything, the norm ratios might increase slightly with further training, though the subspace direction is unlikely to shift given how orthogonal the adaptation already is.
 
 ---
 

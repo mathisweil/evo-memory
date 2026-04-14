@@ -3,7 +3,7 @@
 > All values are **validation F1** (not test) where applicable.
 > Retention patterns are **training-time** values extracted from WandB logs.
 > Naming follows M0--M3 convention throughout.
-> M3 checkpoint is step 260 (~43% through training); retention patterns may shift.
+> M3 checkpoint is step 260 (best at step 260 of 425 before kill); retention patterns may shift.
 
 ## 1. Per-Layer Retention
 
@@ -148,7 +148,7 @@ eviction strategy correlates with the higher M3 val F1 (52.06 vs 45.59).
 
 - These are training-time retention patterns from WandB logs, not inference-time.
   Retention behaviour may differ at evaluation time.
-- M3 has completed only ~43% of training. Retention patterns may shift as
+- M3 has completed only step 260 of 425 (run killed). Retention patterns may shift as
   training continues and the NAMM policy evolves further.
 - Retention values are averages over the training data distribution and may vary
   substantially across individual examples.
