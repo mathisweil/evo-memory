@@ -50,7 +50,16 @@ with `batch_idxs = np.zeros([1])` (`trainer.py:767-768`). During test eval,
 
 ## Split sizes
 
-From FAIR-01: `train=306`, `val=64`, `test=69` after length filtering.
+From FAIR-01, after length filtering: `train=306`, `val=64`, `test=70` —
+verified directly from `results/main_table_5t/*/cs1024/results.json`
+(`n_prompts_total: 70` on every `test` split). Per-task test counts:
+qasper=14, 2wikimqa=12, qasper_e=18, hotpotqa_e=12, 2wikimqa_e=14.
+
+Earlier docs said `test=69`; that was an off-by-one error. The split is
+built per task by `namm/tasks.py:320-326` with
+`n_train=int(n*0.7)`, `n_val=int(n*0.15)`, `n_test=n-n_train-n_val`.
+Because `int(...)` truncates rather than rounds, the remainder ends up in
+`test`, which is why test ≥ val despite both having nominal 15% fractions.
 
 ## Conclusion
 
@@ -63,7 +72,7 @@ generalisation loss on a small (64) val split:
    best-of-50 max is an upward-biased estimator of generalisation.
 2. 64 samples → roughly ±5 F1 noise per eval. The reported val F1 is the peak
    of a noisy series; the corresponding test F1 is a single point measurement
-   on a disjoint 69-sample set, both small enough to have similar variance but
+   on a disjoint 70-sample set, both small enough to have similar variance but
    the test set does not get "best-of" selection.
 
 ## Implication for the paper

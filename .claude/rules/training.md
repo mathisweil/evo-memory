@@ -21,7 +21,7 @@ paths:
 All four main conditions (M1, M2, M3, M4) MUST share the same data, base model, and eval-time memory budget. If you change one of these in any training script or YAML preset, you MUST change it everywhere.
 
 - You MUST keep the 5-task QA subset: `qasper, 2wikimqa, qasper_e, hotpotqa_e, 2wikimqa_e`. The Hydra task override is `task@_global_=rh_multi_qa_5t`.
-- You MUST keep `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (yields 306 train / 64 val / 69 test).
+- You MUST keep `train_frac=0.7`, `val_frac=0.15`, `split_seed=42` (yields 306 train / 64 val / 70 test — verified from `results/main_table_5t/*/cs1024/results.json`; per-task test: qasper=14, 2wikimqa=12, qasper_e=18, hotpotqa_e=12, 2wikimqa_e=14).
 - You MUST keep `min_conditioning_length=4096`, `max_conditioning_length=6500`, `max_answer_tokens=64`.
 - You MUST keep all conditions starting from raw `meta-llama/Llama-3.2-1B-Instruct` weights with no pretrained adapters.
 - You MUST evaluate every condition with `cache_size=1024` and greedy decoding (`temperature=0.0`).
@@ -32,17 +32,19 @@ The codebase predates the M-numbering. The historical method names do not match 
 
 | Spec | Method (in YAML / WandB) | Script | Config |
 |---|---|---|---|
-| M1 LoRA-only | `rh_m1_lora_instruct_5t` | `run_lora.py` | `scripts/lora_rh_m1_instruct_5t.yaml` |
-| M3 LoRA + frozen NAMM | `rh_m4_frozen_5t` | `run_lora.py` | `scripts/lora_rh_m4_instruct_5t.yaml` |
-| M4 joint LoRA + NAMM | `joint_lora` | `run_joint.py --adapter_type lora` | `scripts/configs/joint_default.yaml` |
+| M1 LoRA-only | `rh_m1_lora_instruct_5t` | `run_lora.py` | `scripts/configs/lora_rh_m1_instruct_5t.yaml` |
+| M3 LoRA + frozen NAMM | `rh_m4_frozen_5t` | `run_lora.py` | `scripts/configs/lora_rh_m4_instruct_5t.yaml` |
+| M4 joint LoRA + NAMM | `joint_lora` | `run_joint.py --adapter_type lora` | `scripts/configs/joint_lora_m4_5t.yaml` |
 
 You MUST NOT rename `rh_m4_frozen_5t` → `m3_*` or otherwise "fix" the historical naming. WandB run history, GCS checkpoint paths, and `experiments/experiment_N/m1_lora_only/...` directories all depend on the existing strings.
 
 ## LoRA hyperparameters
 
-- M1: `learning_rate=5e-5`, `num_epochs=150`, `batch_size=4`, `gradient_accumulation_steps=4` (effective batch = 16). Default rank `r=8`, `alpha=16`. Sweep variants `r=4 alpha=8` and `r=16 alpha=32` are M1-r4 / M1-r16; you MUST keep `alpha = 2 * rank` when adjusting rank.
-- M3: `learning_rate=1e-4`, `num_epochs=150`, `batch_size=1`, `gradient_accumulation_steps=16` (effective batch = 16). The smaller per-step batch is intentional — NAMM eviction state is per-sequence and the larger batch OOMs.
-- M4: must call `run_joint.py --adapter_type lora --num_outer_loops 2 --namm_iterations_per_stage 100 --lora_epochs_per_stage 75`. Totals (200 NAMM gens, 150 LoRA epochs) MUST match M1+M2 budgets — that is what makes the comparison fair.
+- M1: `learning_rate=5e-5`, `num_epochs=150`, `batch_size=1`, `gradient_accumulation_steps=16` (effective batch = 16), `lora_dropout=0.1`. Default rank `r=8`, `alpha=16`. Sweep variants `r=4 alpha=8` and `r=16 alpha=32` are M1-r4 / M1-r16; you MUST keep `alpha = 2 * rank` when adjusting rank. `batch_size=1` (rather than the spec's older `4`) is used everywhere so M1, M3, M4 have identical per-step processing.
+- M3: MUST match M1 exactly except `namm_active=true` and `cache_size=1024`. That means `learning_rate=5e-5`, `lora_dropout=0.1`, `batch_size=1`, `gradient_accumulation_steps=16` (effective batch = 16). Any deviation is a confound — the M1-vs-M3 comparison is the paper's headline result. Historical M3 runs used `learning_rate=1e-4`, `lora_dropout=0.05`; those are now labelled "M3-tuned" and must be re-run (see `docs/m3_rerun_plan.md`).
+- M4: must call `run_joint.py --config scripts/configs/joint_lora_m4_5t.yaml --adapter_type lora --num_outer_loops 3 --namm_iterations_per_stage 67 --lora_epochs_per_stage 50`. Totals (201 NAMM gens, 150 LoRA epochs) MUST match M1+M2 budgets — that is what makes the comparison fair. LoRA hyperparameters inside each stage MUST match M1 (`learning_rate=5e-5`, `lora_dropout=0.1`, `lora_batch_size=1`, `gradient_accumulation_steps=16`). The 3-loop schedule supersedes the earlier 2-loop design (see `docs/m4_joint_training_analysis.md`).
+- M1, M3, M4 MUST use `early_stopping_patience=20` (or `lora_early_stopping_patience=20` for joint). The prior value of 5 was too aggressive for the 150-epoch schedule.
+- M1, M3, M4 MUST use `eval_interval=14` (or `lora_eval_interval=14` for joint) — enables best-of-N checkpoint selection at a practical wall-clock cadence.
 - You MUST keep `lora_target_modules=[q_proj, v_proj]` for all M-conditions.
 - You MUST keep `sft_mode=true` (chat-template formatted prompt, answer-only loss).
 
@@ -62,4 +64,4 @@ You MUST NOT rename `rh_m4_frozen_5t` → `m3_*` or otherwise "fix" the historic
 
 ## Output paths
 
-Training runs MUST write under `experiments/experiment_N/<condition>/<run_name>/` with `config.json`, `results.json`, and `checkpoints/` subdirectories. `joint_*` runs additionally produce `namm/latest.pt` and `adapter/stage_K/` subdirectories. Stage indices are 0-based: with `--num_outer_loops 2`, the final adapter stage is `stage_1`.
+Training runs MUST write under `experiments/experiment_N/<condition>/<run_name>/` with `config.json`, `results.json`, and `checkpoints/` subdirectories. `joint_*` runs additionally produce `namm/latest.pt` and `adapter/stage_K/` subdirectories. Stage indices are 0-based: with `--num_outer_loops 3`, the final adapter stage is `stage_2`.
