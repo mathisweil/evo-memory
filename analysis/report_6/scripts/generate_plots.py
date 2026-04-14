@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Analysis 6: Token Importance Alignment (M1 vs M3 maskfix)
+Analysis 6: Token Importance Alignment (M1 vs M3)
 ==========================================================
 Loads pre-computed NAMM-score-vs-attention alignment data from
 data/maskfix_alignment_data.json and generates three plots. No GPU required.
@@ -37,7 +37,7 @@ import numpy as np
 #
 # Checkpoint paths used during data generation:
 #   M1 LoRA:          experiment_artifacts/gcs/M1/best_ckpt.pt
-#   M3 maskfix LoRA:  experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
+#   M3 LoRA:  experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
 #   M2 NAMM:          experiment_artifacts/gcs/M2_cs1024_maskfix/ckpt.pt
 #
 # To regenerate maskfix_alignment_data.json, re-run the GPU script above.
@@ -59,10 +59,10 @@ plt.rcParams.update({
     "axes.labelsize": 12,
 })
 
-# Condition styling -- M1 vs M3 maskfix only
-COLORS = {"M1": "#d62728", "M3_maskfix": "#1f77b4"}
-LABELS = {"M1": "M1 (LoRA full-context)", "M3_maskfix": "M3 maskfix (LoRA + frozen NAMM)"}
-CONDITION_ORDER = ["M1", "M3_maskfix"]
+# Condition styling -- M1 vs M3 only
+COLORS = {"M1": "#d62728", "M3": "#1f77b4"}
+LABELS = {"M1": "M1 (LoRA full-context)", "M3": "M3 (LoRA + frozen NAMM)"}
+CONDITION_ORDER = ["M1", "M3"]
 
 
 # =============================================================================
@@ -98,7 +98,7 @@ def load_data() -> dict:
                         ...
                     ]
                 },
-                "M3_maskfix": { ... same structure ... }
+                "M3": { ... same structure ... }
             }
         }
     """
@@ -296,7 +296,7 @@ def plot_alignment_shift(conditions: dict) -> None:
     ax.set_xticklabels([task_display.get(t, t) for t in task_names])
     ax.axhline(0, color="grey", linestyle=":", alpha=0.5)
     ax.set_ylabel("Mean Spearman rho (NAMM score vs attention)")
-    ax.set_title("Alignment Shift: M1 vs M3 maskfix\n"
+    ax.set_title("Alignment Shift: M1 vs M3\n"
                  "(Does M3 fine-tuning improve NAMM-attention alignment?)")
     ax.legend()
     ax.grid(True, alpha=0.3, axis="y")

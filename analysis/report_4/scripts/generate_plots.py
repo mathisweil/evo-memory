@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Analysis 4: LoRA Weight Comparison (M1 vs M3 maskfix)
+Analysis 4: LoRA Weight Comparison (M1 vs M3)
 =====================================================
 Loads pre-computed weight analysis data from maskfix_data.npz and generates
 four comparison plots. No GPU required.
@@ -37,7 +37,7 @@ import numpy as np
 #
 # Checkpoint paths used during data generation:
 #   M1 LoRA:          experiment_artifacts/gcs/M1/best_ckpt.pt
-#   M3 maskfix LoRA:  experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
+#   M3 LoRA:  experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
 #
 # To regenerate maskfix_data.npz, re-run the GPU script above.
 # =============================================================================
@@ -97,7 +97,7 @@ def plot_weight_magnitude(data: dict[str, np.ndarray]) -> None:
         ax.bar(layers - width / 2, m1_norms, width,
                label="M1 (full ctx)", color=M1_COLOR, alpha=0.85)
         ax.bar(layers + width / 2, m3_norms, width,
-               label="M3 maskfix", color=M3_COLOR, alpha=0.85)
+               label="M3", color=M3_COLOR, alpha=0.85)
         ax.set_xlabel("Layer")
         ax.set_ylabel("||B @ A||_F")
         ax.set_title(f"Effective LoRA Update Norm -- {proj}")
@@ -105,7 +105,7 @@ def plot_weight_magnitude(data: dict[str, np.ndarray]) -> None:
         ax.legend()
         ax.grid(axis="y", alpha=0.3)
 
-    fig.suptitle("Per-Layer LoRA Weight Magnitude: M1 vs M3 maskfix",
+    fig.suptitle("Per-Layer LoRA Weight Magnitude: M1 vs M3",
                  fontsize=13, fontweight="bold")
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     out = PLOT_DIR / "weight_magnitude.png"
@@ -136,7 +136,7 @@ def plot_singular_values(data: dict[str, np.ndarray]) -> None:
                label="M1" if layer == 0 else None,
                color=M1_COLOR, alpha=0.85)
         ax.bar(x + 0.2, sv_m3, 0.4,
-               label="M3 maskfix" if layer == 0 else None,
+               label="M3" if layer == 0 else None,
                color=M3_COLOR, alpha=0.85)
         ax.set_title(f"Layer {layer}", fontsize=9)
         ax.set_xticks(x)
@@ -146,9 +146,9 @@ def plot_singular_values(data: dict[str, np.ndarray]) -> None:
             ax.set_ylabel("Singular value")
         ax.grid(axis="y", alpha=0.3)
 
-    fig.suptitle("Singular Value Spectrum of B@A (q_proj): M1 vs M3 maskfix",
+    fig.suptitle("Singular Value Spectrum of B@A (q_proj): M1 vs M3",
                  fontsize=13, fontweight="bold")
-    fig.legend(["M1 (full ctx)", "M3 maskfix"], loc="upper right", fontsize=10)
+    fig.legend(["M1 (full ctx)", "M3"], loc="upper right", fontsize=10)
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     out = PLOT_DIR / "singular_values.png"
     fig.savefig(out)
@@ -174,7 +174,7 @@ def plot_subspace_overlap(data: dict[str, np.ndarray]) -> None:
            label="v_proj", color=M3_COLOR, alpha=0.85)
     ax.set_xlabel("Layer")
     ax.set_ylabel("Mean cosine of principal angles")
-    ax.set_title("Subspace Overlap Between M1 and M3 maskfix LoRA Column Spaces",
+    ax.set_title("Subspace Overlap Between M1 and M3 LoRA Column Spaces",
                  fontsize=12, fontweight="bold")
     ax.set_xticks(layers)
     ax.set_ylim(0, 1.05)
@@ -207,7 +207,7 @@ def plot_norm_ratio(data: dict[str, np.ndarray]) -> None:
                label="ratio = 1 (equal)")
     ax.set_xlabel("Layer")
     ax.set_ylabel("||M3 B@A||_F / ||M1 B@A||_F")
-    ax.set_title("Norm Ratio (M3 maskfix / M1): Which Layers Work Harder Under Eviction?",
+    ax.set_title("Norm Ratio (M3 / M1): Which Layers Work Harder Under Eviction?",
                  fontsize=12, fontweight="bold")
     ax.set_xticks(layers)
     ax.legend()

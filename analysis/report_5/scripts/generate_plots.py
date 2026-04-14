@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Analysis 5: Attention Entropy Shift Under Eviction (M1 vs M3 maskfix)
+Analysis 5: Attention Entropy Shift Under Eviction (M1 vs M3)
 =====================================================================
 Loads pre-computed attention entropy/sink data from maskfix_data.npz and
 generates three comparison plots. No GPU required.
@@ -36,7 +36,7 @@ import numpy as np
 #
 # Checkpoint paths used during data generation:
 #   M1 LoRA:          experiment_artifacts/gcs/M1/best_ckpt.pt
-#   M3 maskfix LoRA:  experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
+#   M3 LoRA:  experiment_artifacts/gcs/M3_cs1024_maskfix/best_ckpt.pt
 #   M2 NAMM:          experiment_artifacts/gcs/M2_cs1024_maskfix/ckpt.pt
 #
 # To regenerate maskfix_data.npz, re-run the GPU script above.
@@ -72,8 +72,8 @@ def load_data() -> dict[str, np.ndarray]:
     Expected keys (used -- ignoring m3bug_ prefix):
         m1_entropy:   (16, 32) -- per-layer per-head mean entropy, M1
         m1_sinks:     (16, 32) -- per-layer per-head mean sink fraction, M1
-        m3mf_entropy: (16, 32) -- per-layer per-head mean entropy, M3 maskfix
-        m3mf_sinks:   (16, 32) -- per-layer per-head mean sink fraction, M3 maskfix
+        m3mf_entropy: (16, 32) -- per-layer per-head mean entropy, M3
+        m3mf_sinks:   (16, 32) -- per-layer per-head mean sink fraction, M3
     """
     if not DATA_FILE.exists():
         raise FileNotFoundError(
@@ -114,7 +114,7 @@ def plot_attention_entropy(data: dict[str, np.ndarray]) -> None:
     ax_ent.bar(layers - width / 2, m1_ent, width,
                label="M1 (full context)", color=M1_COLOR, alpha=0.85)
     ax_ent.bar(layers + width / 2, m3_ent, width,
-               label="M3 maskfix (evicted)", color=M3_COLOR, alpha=0.85)
+               label="M3 (evicted)", color=M3_COLOR, alpha=0.85)
     ax_ent.set_ylabel("Attention Entropy (nats)")
     ax_ent.set_title("Per-Layer Mean Attention Entropy", fontsize=12)
     ax_ent.legend(fontsize=10)
@@ -124,7 +124,7 @@ def plot_attention_entropy(data: dict[str, np.ndarray]) -> None:
     ax_snk.bar(layers - width / 2, m1_snk, width,
                label="M1 (full context)", color=M1_COLOR, alpha=0.85)
     ax_snk.bar(layers + width / 2, m3_snk, width,
-               label="M3 maskfix (evicted)", color=M3_COLOR, alpha=0.85)
+               label="M3 (evicted)", color=M3_COLOR, alpha=0.85)
     ax_snk.set_xlabel("Layer")
     ax_snk.set_ylabel("Attention Mass on First-5 Tokens")
     ax_snk.set_title("Per-Layer Mean Sink Fraction", fontsize=12)
@@ -132,7 +132,7 @@ def plot_attention_entropy(data: dict[str, np.ndarray]) -> None:
     ax_snk.legend(fontsize=10)
     ax_snk.grid(axis="y", alpha=0.3)
 
-    fig.suptitle("Attention Entropy and Sink Analysis: M1 vs M3 maskfix",
+    fig.suptitle("Attention Entropy and Sink Analysis: M1 vs M3",
                  fontsize=13, fontweight="bold")
     fig.tight_layout(rect=[0, 0, 1, 0.96])
     out = PLOT_DIR / "attention_entropy.png"
@@ -168,11 +168,11 @@ def plot_entropy_heatmap(data: dict[str, np.ndarray]) -> None:
                      vmin=vmin, vmax=vmax, origin="lower")
     ax2.set_xlabel("Head")
     ax2.set_ylabel("Layer")
-    ax2.set_title("M3 maskfix (evicted)", fontsize=12)
+    ax2.set_title("M3 (evicted)", fontsize=12)
     ax2.set_xticks(range(0, NUM_HEADS, 4))
     ax2.set_yticks(range(NUM_LAYERS))
 
-    fig.suptitle("Per-Head Attention Entropy by Layer: M1 vs M3 maskfix",
+    fig.suptitle("Per-Head Attention Entropy by Layer: M1 vs M3",
                  fontsize=13, fontweight="bold")
     fig.colorbar(im2, ax=[ax1, ax2], label="Entropy (nats)", shrink=0.8)
     out = PLOT_DIR / "entropy_heatmap.png"
@@ -195,7 +195,7 @@ def plot_entropy_diff(data: dict[str, np.ndarray]) -> None:
                    vmin=-abs_max, vmax=abs_max, origin="lower")
     ax.set_xlabel("Head")
     ax.set_ylabel("Layer")
-    ax.set_title("Entropy Difference (M3 maskfix - M1)\n"
+    ax.set_title("Entropy Difference (M3 - M1)\n"
                  "Red = M3 higher entropy, Blue = M1 higher entropy",
                  fontsize=12, fontweight="bold")
     ax.set_xticks(range(0, NUM_HEADS, 4))
@@ -231,7 +231,7 @@ def print_summary(data: dict[str, np.ndarray]) -> None:
     print(f"M3 sinks:  mean={m3_snk.mean():.4f}, std={m3_snk.std():.4f}")
 
     print("\n--- Per-Layer Mean Entropy ---")
-    print(f"{'Layer':>5} | {'M1':>10} | {'M3 maskfix':>12} | {'Diff':>10}")
+    print(f"{'Layer':>5} | {'M1':>10} | {'M3':>12} | {'Diff':>10}")
     print("-" * 45)
     m1_layer = m1_ent.mean(axis=1)
     m3_layer = m3_ent.mean(axis=1)

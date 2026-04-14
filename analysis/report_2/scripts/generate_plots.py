@@ -1,6 +1,6 @@
 """Report 2 -- Adaptation Rate and Learning Efficiency (Mask-Fix).
 
-Pulls training curves from WandB for M1 (full-context LoRA) and M3 maskfix
+Pulls training curves from WandB for M1 (full-context LoRA) and M3
 (LoRA + frozen NAMM with corrected attention mask) and generates:
   1. learning_curves_overlay.png -- raw val F1 with light smoothing
   2. normalised_improvement.png  -- normalised improvement curves [0, 1]
@@ -34,17 +34,17 @@ OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "p
 M1_RUN_IDS = ["kz6vqo2o", "x9a4smmf", "qfoxxi2m"]
 M1_BASELINE_RUN = "kz6vqo2o"
 
-# M3 maskfix: LoRA + frozen NAMM, cs1024
+# M3: LoRA + frozen NAMM, cs1024
 M3_MASKFIX_RUN_ID = "h0bzg6on"
 
-CONDITIONS = ["M1", "M3 maskfix"]
+CONDITIONS = ["M1", "M3"]
 CONDITION_COLORS = {
     "M1": "#d62728",
-    "M3 maskfix": "#1f77b4",
+    "M3": "#1f77b4",
 }
 CONDITION_LINESTYLES = {
     "M1": "-",
-    "M3 maskfix": "--",
+    "M3": "--",
 }
 
 SMOOTH_WINDOW = 5
@@ -249,15 +249,15 @@ def main() -> None:
         f"--{m1_df['lora/global_step'].max():.0f}"
     )
 
-    print(f"Fetching M3 maskfix data ({M3_MASKFIX_RUN_ID})...")
+    print(f"Fetching M3 data ({M3_MASKFIX_RUN_ID})...")
     m3_df = fetch_lora_history(api, [M3_MASKFIX_RUN_ID])
     print(
-        f"  M3 maskfix: {len(m3_df)} rows, steps "
+        f"  M3: {len(m3_df)} rows, steps "
         f"{m3_df['lora/global_step'].min():.0f}"
         f"--{m3_df['lora/global_step'].max():.0f}"
     )
 
-    data = {"M1": m1_df, "M3 maskfix": m3_df}
+    data = {"M1": m1_df, "M3": m3_df}
 
     print("\nFetching baselines...")
     m1_baseline = get_baseline(api, M1_BASELINE_RUN)
@@ -268,9 +268,9 @@ def main() -> None:
         m3_baseline = m1_baseline
         print(f"  M3 baseline not found, falling back to M1 baseline: {m1_baseline:.2f}")
     else:
-        print(f"  M3 maskfix baseline: {m3_baseline:.2f}")
+        print(f"  M3 baseline: {m3_baseline:.2f}")
     print(f"  M1 baseline: {m1_baseline:.2f}")
-    baselines = {"M1": m1_baseline, "M3 maskfix": m3_baseline}
+    baselines = {"M1": m1_baseline, "M3": m3_baseline}
 
     print("\nSummary:")
     for cond in CONDITIONS:

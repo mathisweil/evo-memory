@@ -1,6 +1,6 @@
 """Report 3 -- Per-Layer Retention Pattern Analysis (Mask-Fix).
 
-Pulls retention data from WandB for M3 maskfix (LoRA + frozen NAMM with
+Pulls retention data from WandB for M3 corrected (LoRA + frozen NAMM with
 corrected attention mask) and generates:
   1. layer_retention_profile.png  -- mean retention ratio per layer
   2. retention_heatmap.png        -- heatmap of retention over training
@@ -35,9 +35,9 @@ OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "p
 NUM_LAYERS = 16
 LAYER_COLS = [f"retention/layer_{i}" for i in range(NUM_LAYERS)]
 
-# M3 maskfix run (LoRA + frozen NAMM, cs1024, corrected attention mask)
+# M3 corrected run (LoRA + frozen NAMM, cs1024, corrected attention mask)
 M3_MASKFIX_RUN_ID = "h0bzg6on"
-M3_LABEL = "M3 maskfix cs1024"
+M3_LABEL = "M3 cs1024"
 M3_COLOR = "#1f77b4"
 
 SMOOTH_WINDOW = 15
