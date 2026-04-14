@@ -77,7 +77,7 @@ The 14-point gap is concerning but likely explained by (a) checkpoint selection 
 
 ### Actual config comparison
 
-| Parameter | M1 (lora_rh_m1_instruct_5t.yaml) | M3 (lora_rh_m4_instruct_5t.yaml) | Match? |
+| Parameter | M1 (m1_lora_5t.yaml) | M3 (m3_lora_frozen_namm_5t.yaml) | Match? |
 |-----------|-----------------------------------|-----------------------------------|--------|
 | `learning_rate` | 5e-5 | 1e-4 | **NO** (2x higher for M3) |
 | `lora_dropout` | 0.1 | 0.05 | **NO** (half for M3) |
@@ -95,7 +95,7 @@ The 14-point gap is concerning but likely explained by (a) checkpoint selection 
 
 ### Analysis
 
-**Learning rate confound (2x):** M3 uses `learning_rate=1e-4` vs M1's `5e-5`. This is the most serious confound. If M3 outperforms M1, we cannot cleanly attribute it to NAMM presence — the higher LR could be responsible. The M3 config comment says "lower lr for NAMM stability" (in lora_rh_m4_instruct.yaml:15), but 1e-4 is actually HIGHER than M1's 5e-5.
+**Learning rate confound (2x):** M3 uses `learning_rate=1e-4` vs M1's `5e-5`. This is the most serious confound. If M3 outperforms M1, we cannot cleanly attribute it to NAMM presence — the higher LR could be responsible. The M3 config comment says "lower lr for NAMM stability" (in deprecated/m3_lora_frozen_namm.yaml:14), but 1e-4 is actually HIGHER than M1's 5e-5.
 
 **Possible justification:** With NAMM active, gradients may be noisier (evicted tokens change the loss landscape each step), requiring a higher LR to escape local optima. However, this argument is post-hoc and untested. A reviewer could equally argue the higher LR causes M3 to overfit faster.
 
@@ -194,9 +194,9 @@ M4 has not been run. Before running it:
 
 ### `joint_default.yaml` vs spec mismatches
 
-The `joint_default.yaml` has `learning_rate: 2e-4` (4x M1's 5e-5). The spec says M4 should use `learning_rate: 5e-5`. The corrected config `joint_lora_m4_5t.yaml` uses `5e-5`. **Use `joint_lora_m4_5t.yaml`, not `joint_default.yaml`, for M4.**
+The `joint_default.yaml` has `learning_rate: 2e-4` (4x M1's 5e-5). The spec says M4 should use `learning_rate: 5e-5`. The corrected config `m4_joint_lora_5t.yaml` uses `5e-5`. **Use `m4_joint_lora_5t.yaml`, not `joint_default.yaml`, for M4.**
 
-The `joint_default.yaml` has `max_seq_len: 3500`. M1 uses `max_seq_len: 7000`. The corrected `joint_lora_m4_5t.yaml` has `3500`. Given prompts are 4096-6500 tokens, `max_seq_len=3500` may truncate answer tokens. Check if this is intentional.
+The `joint_default.yaml` has `max_seq_len: 3500`. M1 uses `max_seq_len: 7000`. The corrected `m4_joint_lora_5t.yaml` has `3500`. Given prompts are 4096-6500 tokens, `max_seq_len=3500` may truncate answer tokens. Check if this is intentional.
 
 ---
 
@@ -238,7 +238,7 @@ True. However:
 | M1 vs M3 hyperparameter confound (LR, dropout) | **Paper-weakening** | Run M3 with M1's hyperparameters as additional condition |
 | M1_recency all zeros (wrong eviction mode) | **Paper-blocking** | Re-run with `--use_classic_recency` |
 | Val-test gap (~14 points) | **Paper-weakening** | Investigate chat template in eval; acknowledge in paper |
-| M4 not run | **Paper-blocking** | Run M4 with `joint_lora_m4_5t.yaml` |
+| M4 not run | **Paper-blocking** | Run M4 with `m4_joint_lora_5t.yaml` |
 | A1 rank sweep incomplete | **Paper-weakening** | Run M1-r4 and M1-r16 |
 | A4 uses M3 checkpoints, not M4 | **Paper-weakening** | Re-run A4 on M4 checkpoints after M4 completes |
 | M2/cs2048 underperforms cs1024 | **Acknowledge** | Frame as "NAMM is most valuable under tight budgets" |

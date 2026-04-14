@@ -44,6 +44,12 @@ from datetime import datetime
 import numpy as np
 import torch
 
+try:
+    import wandb
+    _HAS_WANDB = True
+except ImportError:
+    _HAS_WANDB = False
+
 logging.getLogger("transformers.generation.stopping_criteria").setLevel(logging.ERROR)
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -261,6 +267,15 @@ def parse_args():
                              "after. When unset, LoRA stages inherit the "
                              "global evaluator batch size.")
 
+    # Wandb (single top-level run spans the whole joint training;
+    # NAMM per-iter stats and tracker stage/loop metrics log into it).
+    parser.add_argument("--wandb_log",
+                        action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--wandb_entity", type=str, default="SNLP_NAMM")
+    parser.add_argument("--wandb_project", type=str, default="Experiments")
+    parser.add_argument("--wandb_run_name", type=str, default=None)
+    parser.add_argument("--wandb_group_name", type=str, default=None)
+
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
 
@@ -433,12 +448,17 @@ def main():
     namm_trainer_config.eval_only = False
     namm_trainer_config.init_from = None
 
+    # Sub-trainer wandb config. NAMM (MemoryTrainer) logs step-less, so its
+    # per-iter CMA-ES stats attach cleanly to the shared top-level run we
+    # open below. We still point project/entity/group at the canonical
+    # values for config-capture purposes.
+    wandb_enabled = bool(args.wandb_log and _HAS_WANDB)
     namm_wandb_config = WandbConfig(
-        wandb_log=False,
-        wandb_project="Experiments",
-        wandb_entity="SNLP_NAMM",
-        wandb_run_name=args.run_name,
-        wandb_group_name=experiment_name,
+        wandb_log=wandb_enabled,
+        wandb_project=args.wandb_project,
+        wandb_entity=args.wandb_entity,
+        wandb_run_name=(args.wandb_run_name or args.run_name),
+        wandb_group_name=(args.wandb_group_name or experiment_name),
     )
 
     namm_trainer = MemoryTrainer(
@@ -551,7 +571,26 @@ def main():
         json.dump(config_dict, f, indent=2)
     print(f"Config saved: {config_path}")
 
-    # ── 10. Alternating training loop ────────────────────────────────────
+    # ── 10. Open the top-level wandb run ─────────────────────────────────
+    # A single wandb run spans the whole joint training. NAMM Stage A
+    # emits step-less `wandb.log` calls that auto-advance within this run,
+    # and `JointMetricsTracker` logs stage/loop metrics here too. LoRA
+    # Stage B keeps wandb_log=False at the sub-trainer level because its
+    # explicit `step=global_step` would collide across the N stages on a
+    # shared run; stage-end LoRA metrics still reach wandb via the tracker.
+
+    wandb_run = None
+    if wandb_enabled:
+        wandb_run = wandb.init(
+            project=args.wandb_project,
+            entity=args.wandb_entity,
+            name=(args.wandb_run_name or args.run_name)[:127],
+            group=(args.wandb_group_name or experiment_name)[:127],
+            config={"method": method, **config_dict},
+        )
+        print(f"Wandb run: {wandb_run.url if wandb_run is not None else '(n/a)'}")
+
+    # ── 11. Alternating training loop ────────────────────────────────────
 
     history = {
         "outer_loop": [],
@@ -562,7 +601,7 @@ def main():
     }
     tracker = JointMetricsTracker(
         output_dir=run_dir,
-        wandb_run=None,
+        wandb_run=wandb_run,
         detailed_diagnostics=args.detailed_diagnostics,
     )
     total_start = time.time()
@@ -720,6 +759,9 @@ def main():
     print(f"Figures: {tracker.figures_dir}")
     print(f"{'='*60}")
 
+    if wandb_run is not None:
+        wandb.finish()
+
 
 # ── Stage B runners ──────────────────────────────────────────────────────
 
@@ -808,10 +850,14 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
         early_stopping_patience=args.lora_early_stopping_patience,
     )
 
+    # LoRA sub-trainer wandb stays off: its explicit `step=global_step`
+    # would collide across multiple Stage B invocations on the shared
+    # top-level run. Per-stage LoRA metrics (final_loss, val_f1, weight
+    # norms) reach wandb via `JointMetricsTracker.log_adapter_stage_end`.
     lora_wandb_config = WandbConfig(
         wandb_log=False,
-        wandb_project="Experiments",
-        wandb_entity="SNLP_NAMM",
+        wandb_project=args.wandb_project,
+        wandb_entity=args.wandb_entity,
         wandb_run_name=f"{args.run_name}_lora_stage{stage_idx}",
         wandb_group_name=experiment_name,
     )

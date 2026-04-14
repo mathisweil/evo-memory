@@ -62,18 +62,18 @@ When you change anything that affects either training context or eval context, a
 |---|---|---|---|---|---|---|
 | **B0** | none | — | none | ∞ | `run_eval.py` | `full_cache_baseline_llama32_1b` |
 | **B1** | none | — | recency heuristic | 1024 | `run_eval.py` | `recency_baseline_llama32_1b` |
-| **M1** | LoRA r∈{4,8,16}, SFT | off (full cache) | none (eval row uses 1024) | 1024 | `run_lora.py` | `scripts/lora_rh_m1_instruct_5t.yaml` |
+| **M1** | LoRA r∈{4,8,16}, SFT | off (full cache) | none (eval row uses 1024) | 1024 | `run_lora.py` | `scripts/configs/m1_lora_5t.yaml` |
 | **M2** | none (frozen LLM) | CMA-ES (200 gens) | learned NAMM | 1024 | `run_namm.py` | `run@_global_=namm_bam_i1_llama32_1b_5t` |
-| **M3** | LoRA r=8, SFT | frozen M2 NAMM | frozen M2 NAMM | 1024 | `run_lora.py` | `scripts/lora_rh_m4_instruct_5t.yaml` |
-| **M4** | LoRA r=8, SFT | co-trained NAMM | co-trained NAMM | 1024 | `run_joint.py --adapter_type lora` | `scripts/configs/joint_lora_m4_5t.yaml` |
+| **M3** | LoRA r=8, SFT | frozen M2 NAMM | frozen M2 NAMM | 1024 | `run_lora.py` | `scripts/configs/m3_lora_frozen_namm_5t.yaml` |
+| **M4** | LoRA r=8, SFT | co-trained NAMM | co-trained NAMM | 1024 | `run_joint.py --adapter_type lora` | `scripts/configs/m4_joint_lora_5t.yaml` |
 
 **Compute parity is part of the design.** M4 runs 3 outer loops × (67 NAMM gens + 50 LoRA epochs) = 201 NAMM generations and 150 LoRA epochs total — exactly matching M2 and M1. Any refactor that lets M4's totals drift from M1+M2 invalidates the comparison even if the per-step code is correct. The 3-loop schedule supersedes an earlier 2×(100+75) design; see `docs/m4_joint_training_analysis.md`.
 
 ## Naming quirks (the ones that bite when reading code)
 
-- **M3 ↔ `rh_m4_frozen_5t`.** The M3 condition appears in configs, scripts, and WandB as `rh_m4_frozen_5t` / `lora_rh_m4_instruct_5t.yaml`. The "m4" in those identifiers is a historical artifact from before the M-numbering existed. When reading code, "rh_m4_frozen" is M3, not M4. Do not "fix" this by renaming — GCS paths and WandB run history depend on the existing strings.
+- **M3 historical naming.** The M3 condition was renamed in source from `rh_m4_frozen_5t` / `lora_rh_m4_instruct_5t.yaml` to `m3_lora_frozen_namm_5t` / `m3_lora_frozen_namm_5t.yaml`. The "m4" in the historical identifier is a leftover from before the M-numbering existed — it has nothing to do with M4 (joint). Historical artefacts still reference the old strings: WandB run names (`rh_m4_5t_cs*`), GCS checkpoint paths (`gs://.../lora-m4-frozen-5t-...`), and the on-disk `results/main_table_5t/M4/` directory all contain M3 results. Do not rename those external strings.
 - **M4 only ever means joint.** M4 uses `run_joint.py`, never `run_lora.py`.
-- **`rh_*` is a project tag**, not a paper concept.
+- **`rh_*` is a historical project tag** that no longer appears in current source — only in external artefacts (WandB, GCS, results dirs).
 - **Stages are 0-indexed.** With `--num_outer_loops 3` (the M4 schedule), the final adapter checkpoint is `adapter/stage_2/`.
 - **`namm/latest.pt` is overwritten every NAMM stage.** It always reflects the most recent stage; it is not a "best so far" checkpoint.
 

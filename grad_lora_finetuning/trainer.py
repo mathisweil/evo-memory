@@ -72,11 +72,11 @@ class LoRATrainerConfig:
     """All hyperparameters for LoRAGradTrainer.
 
     All values are set via YAML configs in scripts/configs/ and CLI args.
-    See lora_rh_m1_instruct_5t.yaml (M1) and joint_lora_m4_5t.yaml (M4)
+    See m1_lora_5t.yaml (M1) and m4_joint_lora_5t.yaml (M4)
     for FAIR-01 compliant defaults.
     """
     out_dir: str
-    method: str                     # e.g. 'rh_m1_lora_instruct_5t'
+    method: str                     # e.g. 'm1_lora_5t'
     seed: int                       # split seed (FAIR-01: 42)
 
     max_seq_len: int                # max sequence length for SFT truncation

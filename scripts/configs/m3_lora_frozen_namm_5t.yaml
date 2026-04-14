@@ -1,9 +1,8 @@
 # M3 LoRA + frozen NAMM — SFT fine-tuning on 5-task QA subset with NAMM active
 # FAIR-01 compliant. See experiment_specification.md §3 M3.
 #
-# Historical naming: "rh_m4_frozen" predates the M-numbering. M3 in the spec
-# corresponds to the rh_m4_frozen method. Do NOT rename — WandB and GCS paths
-# depend on it.
+# Historical naming: WandB runs and GCS paths use `rh_m4_frozen` / `rh_m4_5t_cs*`.
+# This predates the current M-numbering — those external strings stay as-is.
 #
 # Hyperparameters MUST match M1 exactly except `namm_active: true` and
 # `cache_size: 1024`. Any other deviation confounds the M1-vs-M3 comparison.
@@ -12,14 +11,14 @@
 #
 # Usage:
 #   python scripts/run_lora.py \
-#       --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+#       --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
 #       --run_name m3_lora_frozen_namm \
 #       --namm_checkpoint <path-to-m2-checkpoint>
 
 # -- Experiment ---------------------------------------------------------------
 run_name: null
 experiment: null
-method: rh_m4_frozen_5t
+method: m3_lora_frozen_namm_5t  # Historical WandB runs used method: rh_m4_frozen_5t (pre-rename)
 
 # -- LoRA hyperparameters (MUST match M1 exactly) -----------------------------
 lora_rank: 8

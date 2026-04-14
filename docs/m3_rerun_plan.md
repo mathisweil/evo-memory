@@ -5,13 +5,13 @@
 The M3 runs already in WandB used `learning_rate=1e-4` and `lora_dropout=0.05`,
 while M1 used `learning_rate=5e-5` and `lora_dropout=0.1`. Those two
 differences confound the M1-vs-M3 comparison that the paper hinges on. After
-the Part C1 fix, `lora_rh_m4_instruct_5t.yaml` matches M1 exactly except for
+the Part C1 fix, `m3_lora_frozen_namm_5t.yaml` matches M1 exactly except for
 `namm_active: true` and `cache_size: 1024`. M3 must be re-run with the new
 config.
 
 ## The corrected M3 hyperparameters
 
-From `scripts/configs/lora_rh_m4_instruct_5t.yaml`:
+From `scripts/configs/m3_lora_frozen_namm_5t.yaml`:
 
 ```yaml
 learning_rate: 5e-5        # MATCHES M1 (was 1e-4)
@@ -35,7 +35,7 @@ run_config: namm_bam_i1_llama32_1b_5t
 
 ```bash
 venv/bin/python scripts/run_lora.py \
-    --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+    --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
     --run_name m3_cs1024_matched \
     --namm_checkpoint experiments/experiment_N/m2_namm/<best-m2>/namm/latest.pt \
     --wandb_group_name m3_matched

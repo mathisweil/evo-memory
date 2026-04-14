@@ -2,7 +2,7 @@
 # Usage: python scripts/run_joint.py --config scripts/configs/joint_default.yaml --run_name my_run
 # CLI args override values in this file.
 #
-# For the paper's M4-LoRA run, use `joint_lora_m4_5t.yaml` instead — this file
+# For the paper's M4-LoRA run, use `m4_joint_lora_5t.yaml` instead — this file
 # provides safe defaults for ad-hoc joint runs, NOT the fairness-audited M4 config.
 
 # ── Experiment ──────────────────────────────────────────────────────────

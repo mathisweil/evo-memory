@@ -135,7 +135,7 @@ if [[ $START_PHASE -le 0 ]] && [[ "$SKIP_SMOKE" == "false" ]]; then
 
     run_step "smoke_m1" \
         $PY scripts/run_lora.py \
-            --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+            --config scripts/configs/m1_lora_5t.yaml \
             --run_name smoke_m1 \
             --num_epochs 1 \
             --eval_interval 999 \
@@ -148,7 +148,7 @@ if [[ $START_PHASE -le 0 ]] && [[ "$SKIP_SMOKE" == "false" ]]; then
 
     run_step "smoke_m4_joint" \
         $PY scripts/run_joint.py \
-            --config scripts/configs/joint_lora_m4_5t.yaml \
+            --config scripts/configs/m4_joint_lora_5t.yaml \
             --run_name smoke_m4_joint \
             --num_outer_loops 1 \
             --namm_iterations_per_stage 2 \
@@ -223,7 +223,7 @@ fi
 
 # ── Phase 3: M3-matched cs1024 ────────────────────────────────────────────
 # Priority 1 per claude_code_remaining_work.md §5. The M3 config
-# (lora_rh_m4_instruct_5t.yaml) is already corrected: lr=5e-5, dropout=0.1,
+# (m3_lora_frozen_namm_5t.yaml) is already corrected: lr=5e-5, dropout=0.1,
 # early_stopping_patience=20. No CLI overrides required; just --run_name
 # and the M2 checkpoint. See docs/m3_rerun_plan.md.
 M3_CS1024_OK=false
@@ -235,7 +235,7 @@ if [[ $START_PHASE -le 3 ]]; then
     else
         if run_step "m3_cs1024_matched" \
             $PY scripts/run_lora.py \
-                --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+                --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
                 --run_name m3_cs1024_matched \
                 --namm_checkpoint "$M2_CS1024_CKPT" \
                 --wandb_group_name m3_matched \
@@ -271,7 +271,7 @@ if [[ $START_PHASE -le 4 ]]; then
         M3_CS2048_OK=false
         if run_step "m3_cs2048_matched" \
             $PY scripts/run_lora.py \
-                --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+                --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
                 --run_name m3_cs2048_matched \
                 --namm_checkpoint "$M2_CS2048_CKPT" \
                 --cache_size 2048 \
@@ -308,7 +308,7 @@ if [[ $START_PHASE -le 5 ]]; then
         ok=false
         if run_step "$run_name" \
             $PY scripts/run_lora.py \
-                --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
+                --config scripts/configs/m1_lora_5t.yaml \
                 --run_name "$run_name" \
                 --lora_rank "$rank" \
                 --lora_alpha "$alpha" \
@@ -335,7 +335,7 @@ if [[ $START_PHASE -le 5 ]]; then
 fi
 
 # ── Phase 6: M4 joint LoRA + NAMM ─────────────────────────────────────────
-# Priority 5. All M4 hyperparameters are pinned in joint_lora_m4_5t.yaml
+# Priority 5. All M4 hyperparameters are pinned in m4_joint_lora_5t.yaml
 # (num_outer_loops=3, 67 NAMM + 50 LoRA per stage, early_stopping_patience=20,
 # lora_eval_interval=14, LR and dropout matched to M1). No CLI overrides.
 M4_OK=false
@@ -345,7 +345,7 @@ if [[ $START_PHASE -le 6 ]]; then
 
     if run_step "m4_joint_lora" \
         $PY scripts/run_joint.py \
-            --config scripts/configs/joint_lora_m4_5t.yaml \
+            --config scripts/configs/m4_joint_lora_5t.yaml \
             --run_name m4_joint_lora; then
         M4_OK=true
     fi

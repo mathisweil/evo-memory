@@ -10,7 +10,7 @@ difference that is unexplained (i.e. not forced by NAMM memory constraints).
 
 ## LoRA Hyperparameters
 
-| Parameter | M1 `_5t.yaml` | M3 `_5t.yaml` | M4 `joint_lora_m4_5t.yaml` | Match? | Notes |
+| Parameter | M1 `m1_lora_5t.yaml` | M3 `m3_lora_frozen_namm_5t.yaml` | M4 `m4_joint_lora_5t.yaml` | Match? | Notes |
 |---|---|---|---|---|---|
 | `learning_rate` | 5e-5 | 5e-5 | 5e-5 | YES | Was 1e-4 in M3 pre-fix — a 2x confound |
 | `lora_rank` | 8 | 8 | 8 | YES | |
