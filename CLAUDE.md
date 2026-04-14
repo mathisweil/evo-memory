@@ -17,5 +17,5 @@ Fine-tuning Llama-3.2-1B-Instruct via LoRA or ES while a NAMM (Cetin et al., ICL
 
 - Editing `scripts/run_lora.py`, `scripts/run_joint.py`, `scripts/run_es.py`, `grad_lora_finetuning/**`, `es_finetuning/**`, or any `scripts/configs/lora_*.yaml` / `joint_*.yaml` / `es_*.yaml` → read `@.claude/rules/training.md`.
 - Editing `scripts/run_namm.py`, `namm/**`, `config/policy/**`, `config/run/namm_*.yaml`, or `config/evolution/**` → read `@.claude/rules/namm.md`.
-- Editing `scripts/run_eval.py`, `scripts/generate_report.py`, `scripts/generate_paper_figures.py`, `scripts/generate_comparison_plots.py`, or `scripts/configs/eval_default.yaml` → read `@.claude/rules/eval.md`.
+- Editing `scripts/run_eval.py`, `scripts/eval_namm_splits.py`, `scripts/generate_report.py`, `scripts/generate_paper_figures.py`, `scripts/plot_main_table.py`, or `scripts/configs/eval_default.yaml` → read `@.claude/rules/eval.md`.
 - When a coding decision depends on *why* the experiment is structured the way it is (which M-condition a script belongs to, whether a refactor preserves FAIR-01, what `rh_m4_frozen` actually means, why eviction is non-differentiable, how to interpret an unexpected eval result) → load `@.claude/skills/research-context/SKILL.md`.

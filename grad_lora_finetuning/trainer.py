@@ -71,36 +71,31 @@ from namm.trainer import WandbConfig
 class LoRATrainerConfig:
     """All hyperparameters for LoRAGradTrainer.
 
-    Locked values (do not override without explicit reason):
-      - max_seq_len=3500 (leaves headroom in 4096-token RoPE window)
-      - num_epochs=3
-      - batch_size=1 (VRAM budget on 4070Ti)
-      - gradient_accumulation_steps=16 (effective batch = 16)
-      - learning_rate=2e-4
-      - max_grad_norm=1.0
-      - warmup_ratio=0.03
+    All values are set via YAML configs in scripts/configs/ and CLI args.
+    See lora_rh_m1_instruct_5t.yaml (M1) and joint_lora_m4_5t.yaml (M4)
+    for FAIR-01 compliant defaults.
     """
     out_dir: str
-    method: str                     # 'lora_grad' — used in artifact dir: results/{method}/{seed}/
-    seed: int                       # 1337 default — used in artifact dir
+    method: str                     # e.g. 'rh_m1_lora_instruct_5t'
+    seed: int                       # split seed (FAIR-01: 42)
 
-    max_seq_len: int                # 3500 (locked)
-    task_names: List[str]           # e.g. ['qasper', 'narrativeqa', 'passage_retrieval_en']
+    max_seq_len: int                # max sequence length for SFT truncation
+    task_names: List[str]           # e.g. ['qasper', 'narrativeqa', ...]
 
-    num_epochs: int                 # 3 (locked)
-    batch_size: int                 # 1 (locked)
-    gradient_accumulation_steps: int  # 16 (locked)
-    learning_rate: float            # 2e-4 (locked)
-    weight_decay: float             # 0.01
-    max_grad_norm: float            # 1.0 (locked)
-    warmup_ratio: float             # 0.03 (locked)
+    num_epochs: int                 # training epochs per run/stage
+    batch_size: int                 # per-device batch size
+    gradient_accumulation_steps: int  # effective_batch = batch_size * grad_accum
+    learning_rate: float
+    weight_decay: float
+    max_grad_norm: float
+    warmup_ratio: float
 
-    namm_active: bool               # False for m1; True for m4-frozen
-    eval_interval: int              # save checkpoint every N gradient updates
+    namm_active: bool               # False for M1; True for M3/M4
+    eval_interval: int              # eval every N gradient updates
     log_interval: int               # wandb log every N gradient updates
     always_save_checkpoint: bool
-    init_from: Optional[str]        # path to ckpt (NAMM ckpt for m4, LoRA ckpt for resume)
-    dtype: str                      # 'bfloat16'
+    init_from: Optional[str]        # path to resume checkpoint; None = fresh
+    dtype: str                      # 'bfloat16', 'float16', or 'float32'
     sft_mode: bool = False          # True -> SFTDataset; False -> NTPDataset
     train_frac: float = 0.7         # fraction of each task's examples used for training
     val_frac: float = 0.15          # fraction used for validation (best checkpoint selection)
