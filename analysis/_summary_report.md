@@ -47,7 +47,7 @@ does track attention, though weakly. M3 does not reshape attention toward NAMM.
 data, confirming it is a genuine property of eviction-aware training.
 
 **7. Representational divergence shifts to deeper layers.** CKA mean is 0.995
-(min 0.990 at layer 10). Under the buggy mask, the CKA minimum was at layer 3
+(min 0.990 at layer 9). Under the buggy mask, the CKA minimum was at layer 3
 (0.979). This changes the mechanistic story: the locus of M3's adaptation is
 in deeper layers, not the early-middle layers previously identified.
 
@@ -75,7 +75,7 @@ checkpoints. The key narrative changes are:
 - **Report 6 (NAMM-attention correlation):** The "complementary signals"
   narrative was wrong. The anti-correlation (rho = -0.137) was an artefact
   of broken attention. Correct NAMM shows positive correlation (rho = +0.135).
-- **Report 7 (CKA):** Divergence shifts from layer 3 (buggy) to layer 10
+- **Report 7 (CKA):** Divergence shifts from layer 3 (buggy) to layer 9
   (maskfix). The "layer 3 critical adaptation point" narrative no longer holds.
 - **Report 4 (LoRA norms):** Norms are 26% smaller with maskfix (1.42x vs
   1.93x q_proj ratio), indicating more efficient adaptation.
@@ -307,7 +307,7 @@ profile than the buggy analysis:
 | CKA minimum    | 0.990     | 0.979     |
 | Min at layer   | Layer 10  | Layer 3   |
 
-The divergence shift from layer 3 (buggy) to layer 10 (maskfix) is
+The divergence shift from layer 3 (buggy) to layer 9 (maskfix) is
 significant for the mechanistic interpretation. Under the buggy mask, the
 "layer 3 critical adaptation point" narrative (Section 3.5 of the old
 report) tied together multiple reports. With maskfix, the maximum
@@ -374,7 +374,7 @@ Weight space (Report 4)          Function space (5, 6, 7)
 --------------------------       ---------------------------
 Orthogonal LoRA subspaces   ->   +5.0% entropy, -2.7% sinks
 M3 norms 1.42x (efficient) ->   Positive NAMM correlation
-                             ->   CKA min at layer 10 (0.990)
+                             ->   CKA min at layer 9 (0.990)
 
 Gradient signal (Report 9)       Task space (Report 1)
 --------------------------       ----------------------
@@ -385,7 +385,7 @@ Uncorrelated gradients      ->   M1 val F1: 45.48
 
 M3 learns in near-orthogonal weight subspaces with more efficient
 perturbations (smaller norms). It develops broader attention patterns
-(hedging) and produces representations that diverge most at layer 10
+(hedging) and produces representations that diverge most at layer 9
 (near the eviction hotspot at layers 8-9). Despite operating under
 extreme eviction (3.8% retention), M3 exceeds M1's validation performance
 by 14.5%.
@@ -429,7 +429,7 @@ decisions.
 
 The buggy-era analysis identified layer 3 as the critical adaptation point,
 supported by convergent evidence from Reports 5, 7, 4, and 3. With maskfix
-data, the CKA minimum shifts to layer 10 (Report 7), and the most aggressive
+data, the CKA minimum shifts to layer 9 (Report 7), and the most aggressive
 eviction occurs at layers 8-9 (Report 3).
 
 The revised picture: M3's LoRA adapts representations most strongly in the
@@ -482,7 +482,7 @@ should be treated as suggestive rather than definitive.
 | 4      | Are LoRA weights similar?    | No: orthogonal, norms 1.42x (efficient) |
 | 5      | Are attention patterns same? | No: +5.0% entropy, -2.7% sinks          |
 | 6      | Does M3 align with NAMM?    | No: same +0.135 rho as M1               |
-| 7      | Are representations similar? | Mostly: CKA 0.990-1.0, min at layer 10  |
+| 7      | Are representations similar? | Mostly: CKA 0.990-1.0, min at layer 9  |
 | 8      | Is evicted info retained?    | Inconclusive (baseline imbalance)        |
 | 9      | Does eviction change grads?  | Yes: 3.8% retention, cos ~0.01           |
 
@@ -523,10 +523,10 @@ findings are the strongest claims in the analysis.
    should be an optimal eviction severity. Controlled experiments varying
    cache size under maskfix NAMM would map this relationship.
 
-3. **Does the CKA shift to layer 10 align with a causal mechanism?** The
-   coincidence of CKA minimum (layer 10) and aggressive eviction (layers
+3. **Does the CKA shift to layer 9 align with a causal mechanism?** The
+   coincidence of CKA minimum (layer 9) and aggressive eviction (layers
    8-9) is suggestive. Targeted ablation of LoRA weights at specific
-   layers could test whether the layer 10 adaptation is necessary for M3's
+   layers could test whether the layer 9 adaptation is necessary for M3's
    performance advantage.
 
 4. **Can joint training (M4) further improve M3?** M3 uses a frozen NAMM

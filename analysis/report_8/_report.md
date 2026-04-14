@@ -33,7 +33,7 @@ evicted. 40 test samples from the 5-task QA subset.
 | Mean probe accuracy         | 0.599 | 0.513 |  0.600 |
 | Std probe accuracy          | 0.131 | 0.145 |    --  |
 | Mean accuracy gap (M1 - M3) | 0.085 |   --  |    --  |
-| Max gap layer               |     8 |   --  |    --  |
+| Max gap layer               |   7,9 |   --  |    --  |
 | Max gap magnitude           | 0.200 |   --  |    --  |
 
 ### Probe Accuracy by Layer
@@ -48,9 +48,9 @@ evicted. 40 test samples from the 5-task QA subset.
 | Layer 4   |           * |           * |              * |  0.600 |
 | Layer 5   |           * |           * |              * |  0.600 |
 | Layer 6   |           * |           * |              * |  0.600 |
-| Layer 7   |           * |           * |              * |  0.600 |
-| Layer 8   |           * |           * |      **0.200** |  0.600 |
-| Layer 9   |           * |           * |              * |  0.600 |
+| Layer 7   |           * |           * |      **0.200** |  0.600 |
+| Layer 8   |           * |           * |          0.125 |  0.600 |
+| Layer 9   |           * |           * |      **0.200** |  0.600 |
 | Layer 10  |           * |           * |              * |  0.600 |
 | Layer 11  |           * |           * |              * |  0.600 |
 | Layer 12  |           * |           * |              * |  0.600 |
@@ -78,7 +78,7 @@ evicted. 40 test samples from the 5-task QA subset.
    gap reflects noise in below-baseline predictions rather than meaningful
    information loss.
 
-4. **Max gap is at layer 8.** The largest M1--M3 divergence is at layer 8
+4. **Max gap is at layers 7 and 9.** The largest M1--M3 divergence (0.200) is at layers 7 and 9
    (gap = 0.200). This aligns with the NAMM's more aggressive eviction
    in layers 2--8 (Report 3).
 

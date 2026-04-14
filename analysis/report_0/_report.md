@@ -1,6 +1,6 @@
 # Report 0: Dataset Characteristics and Performance Hypotheses
 
-> **TL;DR:** The 5 tasks split into two families: Qasper tasks (scientific paper QA, diverse answer types, ~192 relevant tokens per prompt in ~1.2 regions) and multi-hop tasks (2WikiMQA, HotpotQA — short factoid answers, ~1100-2034 relevant tokens across 5-9 regions). At cache=1024, Qasper's relevant tokens fit easily (97% survival) while HotpotQA-E's exceed the budget (only 60% survival). We predict multi-hop tasks will suffer most from eviction, while Qasper's localised answers are easier to preserve. These predictions are tested against actual results in Report 1 — where they turn out to be partially wrong.
+> **TL;DR:** The 5 tasks split into two families: Qasper tasks (scientific paper QA, diverse answer types, ~515-701 relevant tokens per prompt in ~3-5 regions) and multi-hop tasks (2WikiMQA, HotpotQA — short factoid answers, ~1564-2222 relevant tokens across 9-12 regions). At cache=1024, Qasper's relevant tokens fit easily (100% survival) while HotpotQA-E's exceed the budget (only 46% survival). We predict multi-hop tasks will suffer most from eviction, while Qasper's localised answers are easier to preserve. These predictions are tested against actual results in Report 1 — where they turn out to be partially wrong.
 
 > **Purpose:** Characterise the five LongBench QA tasks used in our experiments and form hypotheses about expected relative performance under each experimental condition — *before* examining any results.
 
@@ -216,30 +216,30 @@ See `plots/relevant_tokens.png`, `plots/relevant_tokens_boxplot.png`, `plots/ans
 
 | Task       | Mean Rel. Tokens | % Context | Regions | Ans. Occur. | Ans. Position |
 | ---------- | ---------------- | --------- | ------- | ----------- | ------------- |
-| Qasper     | **192**          | 3.9%      | 1.2     | 0.6         | 0.47 (mid)    |
-| 2WikiMQA   | **1124**         | 21.6%     | 5.6     | 2.9         | 0.38          |
-| Qasper-E   | **271**          | 5.2%      | 1.5     | 1.3         | 0.43          |
-| HotpotQA-E | **2034**         | 42.1%     | 9.3     | 8.4         | 0.21 (early)  |
-| 2WikiMQA-E | **1173**         | 22.8%     | 5.8     | 2.7         | 0.38          |
+| Qasper     | **515**          | 10.1%     | 3.4     | 1.3         | 0.47 (mid)    |
+| 2WikiMQA   | **1578**         | 30.4%     | 9.2     | 3.0         | 0.39          |
+| Qasper-E   | **701**          | 13.2%     | 4.5     | 4.8         | 0.44          |
+| HotpotQA-E | **2222**         | 45.5%     | 11.9    | 11.6        | 0.25 (early)  |
+| 2WikiMQA-E | **1564**         | 30.2%     | 9.0     | 3.7         | 0.38          |
 
 **Key findings:**
 
-- **Qasper tasks have very sparse relevant content** (~190-270 tokens, 4-5% of context, ~1.3 regions). The answer comes from a single localised passage. At cache=1024, essentially all relevant tokens fit — an ideal eviction policy could retain them with 97%+ probability.
-- **Multi-hop tasks have much denser relevant content** (~1100-2000 tokens, 22-42% of context, 5-9 regions). The answer entity appears multiple times across different passages, and question entities are scattered throughout.
-- **HotpotQA-E is the most demanding**: 2034 mean relevant tokens across 9.3 regions — exceeding the cache=1024 budget. Even an ideal policy cannot retain all relevant tokens at cs1024. The answer entity appears 8.4 times on average, suggesting it is mentioned across many distractor passages (not just the 2 gold ones).
-- **Answer position differs**: HotpotQA-E answers tend to appear early (0.21), while Qasper answers are mid-document (0.47). This means a recency-based policy would systematically evict HotpotQA-E's early answer occurrences.
+- **Qasper tasks have moderately sparse relevant content** (~515-701 tokens, 10-13% of context, ~3-5 regions). The answer comes from a relatively localised passage. At cache=1024, all relevant tokens fit — an ideal eviction policy could retain them with 100% probability.
+- **Multi-hop tasks have much denser relevant content** (~1564-2222 tokens, 30-46% of context, 9-12 regions). The answer entity appears multiple times across different passages, and question entities are scattered throughout.
+- **HotpotQA-E is the most demanding**: 2222 mean relevant tokens across 11.9 regions — exceeding the cache=1024 budget by more than 2x. Even an ideal policy cannot retain all relevant tokens at cs1024. The answer entity appears 11.6 times on average, suggesting it is mentioned across many distractor passages (not just the 2 gold ones).
+- **Answer position differs**: HotpotQA-E answers tend to appear early (0.25), while Qasper answers are mid-document (0.47). This means a recency-based policy would systematically evict HotpotQA-E's early answer occurrences.
 
 **Estimated relevant token survival** (assuming an ideal eviction policy that prioritises relevant tokens):
 
 | Task       | cache=1024 |
 | ---------- | ---------- |
-| Qasper     | 97%        |
-| 2WikiMQA   | 83%        |
-| Qasper-E   | 96%        |
-| HotpotQA-E | **60%**    |
-| 2WikiMQA-E | 82%        |
+| Qasper     | 100%       |
+| 2WikiMQA   | 65%        |
+| Qasper-E   | 100%       |
+| HotpotQA-E | **46%**    |
+| 2WikiMQA-E | 65%        |
 
-HotpotQA-E is the only task where relevant tokens substantially exceed the cache budget at cs1024. This should make it the most eviction-sensitive task under our initial hypothesis — but as Report 1 shows, the actual results tell a different story.
+HotpotQA-E is the most extreme case, with relevant tokens exceeding the cache budget by more than 2x at cs1024 (46% survival). The 2WikiMQA tasks also exceed the budget (65% survival). Only Qasper tasks fit entirely within the cache. This should make multi-hop tasks the most eviction-sensitive under our initial hypothesis — but as Report 1 shows, the actual results tell a different story.
 
 ### 6.3 Per-Task Information Locality
 

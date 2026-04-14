@@ -1,6 +1,6 @@
 # Analysis 7 -- CKA Representation Similarity
 
-> **TL;DR:** M3 representations remain very close to M1 in CKA space (mean 0.995, min 0.990 at layer 10). The LoRA perturbation is small -- CKA exceeds 0.99 at every layer -- confirming that the eviction-aware adapter operates within the same representational neighbourhood as the full-context baseline. The point of maximum divergence at layer 10 suggests the adaptation concentrates in later, semantic-integration layers rather than early positional/syntactic ones. This is consistent with the smaller LoRA norms found in Report 4.
+> **TL;DR:** M3 representations remain very close to M1 in CKA space (mean 0.995, min 0.990 at layer 9). The LoRA perturbation is small -- CKA exceeds 0.99 at every layer -- confirming that the eviction-aware adapter operates within the same representational neighbourhood as the full-context baseline. The point of maximum divergence at layer 9 suggests the adaptation concentrates in later, semantic-integration layers rather than early positional/syntactic ones. This is consistent with the smaller LoRA norms found in Report 4.
 
 ---
 
@@ -27,15 +27,15 @@ CKA = 1.0 means identical representations (up to linear transform); CKA = 0.0 me
 | ------------- | -------: |
 | Mean CKA      |   0.9952 |
 | Min CKA       |   0.9901 |
-| Min CKA layer | layer 10 |
+| Min CKA layer | layer 9 |
 | Max CKA       |   1.0000 |
 | Max CKA layer |  layer 0 |
 
-CKA starts at 1.0 at the embedding/early layers (shared tokenizer and minimal LoRA effect) and dips slightly at layer 10, the point of maximum divergence.
+CKA starts at 1.0 at the embedding/early layers (shared tokenizer and minimal LoRA effect) and dips slightly at layer 9, the point of maximum divergence.
 
 ### The Divergence at Layer 10 Is Mild
 
-The minimum CKA of 0.990 is well within the range typical of LoRA-adapted models of the same architecture (>0.95). With rank-8 LoRA in a 2048-dimensional space, the adapter produces at most a ~1% representational shift at its most divergent layer. The model computes slightly different things at layer 10 but stays firmly in the same representational neighbourhood as M1.
+The minimum CKA of 0.990 is well within the range typical of LoRA-adapted models of the same architecture (>0.95). With rank-8 LoRA in a 2048-dimensional space, the adapter produces at most a ~1% representational shift at its most divergent layer. The model computes slightly different things at layer 9 but stays firmly in the same representational neighbourhood as M1.
 
 ### Divergence Concentrates in Later Layers
 
@@ -55,9 +55,9 @@ Prior to fixing the attention mask bug, M3-buggy (step 600, val F1 45.59) showed
 | ------------- | -------------: | -------: |
 | Mean CKA      |         0.9952 |   0.9921 |
 | Min CKA       |         0.9901 |   0.9788 |
-| Min CKA layer |       layer 10 |  layer 3 |
+| Min CKA layer |       layer 9 |  layer 3 |
 
-The shift in divergence point from layer 3 to layer 10 is notable. The buggy mask forced the model to make early, aggressive corrections to compensate for corrupted attention patterns, pushing divergence to layer 3 (CKA 0.979). With correct masking, the adaptation defers to layer 10 where it serves a more natural semantic-integration purpose, and the divergence is less severe (0.990 vs 0.979). Both variants maintained very high CKA (>0.97 everywhere), confirming these are quantitative rather than qualitative differences.
+The shift in divergence point from layer 3 to layer 9 is notable. The buggy mask forced the model to make early, aggressive corrections to compensate for corrupted attention patterns, pushing divergence to layer 3 (CKA 0.979). With correct masking, the adaptation defers to layer 9 where it serves a more natural semantic-integration purpose, and the divergence is less severe (0.990 vs 0.979). Both variants maintained very high CKA (>0.97 everywhere), confirming these are quantitative rather than qualitative differences.
 
 ---
 
@@ -67,7 +67,7 @@ The shift in divergence point from layer 3 to layer 10 is notable. The buggy mas
 | ----------------- | --------------------- | -------------------------------------------------- |
 | 4 (LoRA wts)      | Weight-space diff     | Norms 1.42x base; overlap marginally above chance  |
 | 5 (Attention)      | Attention patterns    | Identical entropy/sinks; hedging not mask artefact |
-| 7 (CKA, this)     | Repr. similarity      | M3 close to M1 (mean 0.995); diverge at layer 10  |
+| 7 (CKA, this)     | Repr. similarity      | M3 close to M1 (mean 0.995); diverge at layer 9  |
 
 A coherent picture: the eviction-aware adapter achieves strong performance (val F1 52.06 vs M1 45.48) with moderate LoRA norms, near-identical attention patterns, and high representational similarity to M1. The adaptation is efficient -- it changes just enough in later layers to handle eviction constraints without distorting the base model's representations.
 
@@ -75,7 +75,7 @@ A coherent picture: the eviction-aware adapter achieves strong performance (val 
 
 ## Note on Checkpoint Maturity
 
-The M3 checkpoint (step 260, ~43% through training) has not completed training. The representational profile may evolve as training continues -- the divergence point at layer 10 could shift or deepen. The current results should be interpreted as a snapshot of the best-performing checkpoint available.
+The M3 checkpoint (step 260, ~43% through training) has not completed training. The representational profile may evolve as training continues -- the divergence point at layer 9 could shift or deepen. The current results should be interpreted as a snapshot of the best-performing checkpoint available.
 
 ---
 

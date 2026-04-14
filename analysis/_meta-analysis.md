@@ -27,7 +27,7 @@ Specific strengths:
 2. **Converging evidence from independent measurements.** Weight-space
    analysis (R4: orthogonal subspaces), attention patterns (R5: hedging),
    token alignment (R6: weak positive correlation), and CKA (R7: high
-   similarity, divergence at layer 10) all independently support the claim
+   similarity, divergence at layer 9) all independently support the claim
    that M3 learns a qualitatively different but representationally mild
    adaptation.
 
@@ -181,7 +181,7 @@ was wrong. Reports that cited this finding need to be read with this
 reversal in mind.
 
 **Report 7 (CKA): Layer shift from 3 to 10.** The buggy CKA minimum
-was at layer 3 (CKA 0.979); with maskfix it is at layer 10 (CKA 0.990).
+was at layer 3 (CKA 0.979); with maskfix it is at layer 9 (CKA 0.990).
 The buggy mask forced early aggressive corrections, pushing divergence
 to layer 3. With correct masking, the adaptation defers to a later
 semantic-integration layer. This also changes the cross-report
