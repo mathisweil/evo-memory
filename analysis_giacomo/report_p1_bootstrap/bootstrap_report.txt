@@ -1,0 +1,180 @@
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs1024 vs Trunc/lora_1024 (overall)
+  M4/cs1024 minus Trunc/lora_1024, n=224
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+2.68 F1  95% CI [-2.49, +7.86]  p=0.3160 ns  excludes 0: no
+  macro: delta=+2.32 F1  95% CI [-2.68, +7.22]  p=0.3636 ns  excludes 0: no
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          54    +8.69      13       5    36
+  2WikiMQA-E        61    +3.52      14       7    40
+  HotpotQA-E        31    +3.89       5       2    24
+  Qasper            32    -0.11      11      12     9
+  Qasper-E          46    -4.37      15      18    13
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs1024 vs Trunc/lora_1024 (genuinely-hard)
+  M4/cs1024 minus Trunc/lora_1024, n=54
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+35.47 F1  95% CI [+25.23, +46.32]  p=0.0000 ***  excludes 0: YES
+  macro: delta=+33.22 F1  95% CI [+22.85, +43.99]  p=0.0000 ***  excludes 0: YES
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          16   +43.90      10       0     6
+  2WikiMQA-E        14   +40.51       8       0     6
+  HotpotQA-E         7   +33.33       3       0     4
+  Qasper             9   +25.69       6       1     2
+  Qasper-E           8   +22.65       5       3     0
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs2048 vs Trunc/lora_2048 (overall)
+  M4/cs2048 minus Trunc/lora_2048, n=224
+──────────────────────────────────────────────────────────────────────
+  micro: delta=-4.52 F1  95% CI [-9.50, +0.34]  p=0.0676 ns  excludes 0: no
+  macro: delta=-5.98 F1  95% CI [-10.88, -1.11]  p=0.0156 *  excludes 0: YES
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          54    +3.27       7       6    41
+  2WikiMQA-E        61    +3.41      11       8    42
+  HotpotQA-E        31   -12.30       2       5    24
+  Qasper            32    -7.21       7      15    10
+  Qasper-E          46   -17.09       7      26    13
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs1024 vs M4/cs2048 (budget inversion)
+  M4/cs1024 minus M4/cs2048, n=224
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+3.77 F1  95% CI [-0.48, +8.02]  p=0.0860 ns  excludes 0: no
+  macro: delta=+4.68 F1  95% CI [+0.46, +8.92]  p=0.0284 *  excludes 0: YES
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          54    +5.27       8       4    42
+  2WikiMQA-E        61    -4.73       8      11    42
+  HotpotQA-E        31   +11.65       6       2    23
+  Qasper            32    +1.98      14       8    10
+  Qasper-E          46    +9.19      19       7    20
+
+──────────────────────────────────────────────────────────────────────
+  M1 vs M4/cs1024 (full-context headroom)
+  M1 minus M4/cs1024, n=224
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+4.93 F1  95% CI [-0.64, +10.45]  p=0.0852 ns  excludes 0: no
+  macro: delta=+5.38 F1  95% CI [-0.15, +10.87]  p=0.0572 ns  excludes 0: no
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          54    -3.68      10      12    32
+  2WikiMQA-E        61    +9.41      12      10    39
+  HotpotQA-E        31    +6.62       7       3    21
+  Qasper            32   +10.53      17      10     5
+  Qasper-E          46    +4.03      23      13    10
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs1024 vs M2/cs1024 (LoRA contribution)
+  M4/cs1024 minus M2/cs1024, n=224
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+6.27 F1  95% CI [+1.86, +10.78]  p=0.0060 **  excludes 0: YES
+  macro: delta=+7.28 F1  95% CI [+2.79, +11.82]  p=0.0014 **  excludes 0: YES
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          54    +3.52      11       8    35
+  2WikiMQA-E        61    +0.47      14      11    36
+  HotpotQA-E        31   +14.85       7       0    24
+  Qasper            32    +5.90      12      11     9
+  Qasper-E          46   +11.65      24       8    14
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs1024 vs Trunc/lora_1024 (overall)
+  M4/cs1024 minus Trunc/lora_1024, n=70
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+5.37 F1  95% CI [-3.80, +14.84]  p=0.2512 ns  excludes 0: no
+  macro: delta=+6.19 F1  95% CI [-3.45, +15.91]  p=0.1974 ns  excludes 0: no
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          12   +17.72       4       1     7
+  2WikiMQA-E        14    +1.36       3       1    10
+  HotpotQA-E        12    +9.56       2       0    10
+  Qasper            14    +2.95       4       5     5
+  Qasper-E          18    -0.64       3       5    10
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs1024 vs Trunc/lora_1024 (genuinely-hard)
+  M4/cs1024 minus Trunc/lora_1024, n=18
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+37.24 F1  95% CI [+18.55, +56.91]  p=0.0000 ***  excludes 0: YES
+  macro: delta=+38.88 F1  95% CI [+21.05, +57.64]  p=0.0000 ***  excludes 0: YES
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA           3   +70.86       3       0     0
+  2WikiMQA-E         3   +30.16       2       0     1
+  HotpotQA-E         4   +25.00       1       0     3
+  Qasper             5   +31.08       3       0     2
+  Qasper-E           3   +37.28       2       1     0
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs2048 vs Trunc/lora_2048 (overall)
+  M4/cs2048 minus Trunc/lora_2048, n=70
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+2.20 F1  95% CI [-4.45, +8.99]  p=0.5236 ns  excludes 0: no
+  macro: delta=+2.14 F1  95% CI [-3.92, +8.47]  p=0.4998 ns  excludes 0: no
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          12    -2.56       0       1    11
+  2WikiMQA-E        14    +3.17       2       1    11
+  HotpotQA-E        12    +1.56       1       0    11
+  Qasper            14    +8.12       3       2     9
+  Qasper-E          18    +0.44       5       4     9
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs1024 vs M4/cs2048 (budget inversion)
+  M4/cs1024 minus M4/cs2048, n=70
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+1.21 F1  95% CI [-6.25, +8.74]  p=0.7522 ns  excludes 0: no
+  macro: delta=+2.21 F1  95% CI [-5.11, +9.67]  p=0.5522 ns  excludes 0: no
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          12   +19.23       3       0     9
+  2WikiMQA-E        14    -1.81       3       1    10
+  HotpotQA-E        12    +7.95       1       1    10
+  Qasper            14   -10.38       1       4     9
+  Qasper-E          18    -3.92       2       3    13
+
+──────────────────────────────────────────────────────────────────────
+  M1 vs M4/cs1024 (full-context headroom)
+  M1 minus M4/cs1024, n=70
+──────────────────────────────────────────────────────────────────────
+  micro: delta=-1.13 F1  95% CI [-11.77, +9.63]  p=0.8406 ns  excludes 0: no
+  macro: delta=-3.00 F1  95% CI [-13.55, +7.34]  p=0.5726 ns  excludes 0: no
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          12   -34.23       0       5     7
+  2WikiMQA-E        14    +7.37       2       3     9
+  HotpotQA-E        12   -12.95       2       2     8
+  Qasper            14   +15.73       8       3     3
+  Qasper-E          18    +9.07      10       2     6
+
+──────────────────────────────────────────────────────────────────────
+  M4/cs1024 vs M2/cs1024 (LoRA contribution)
+  M4/cs1024 minus M2/cs1024, n=70
+──────────────────────────────────────────────────────────────────────
+  micro: delta=+11.98 F1  95% CI [+3.25, +21.14]  p=0.0062 **  excludes 0: YES
+  macro: delta=+12.14 F1  95% CI [+3.50, +21.30]  p=0.0066 **  excludes 0: YES
+
+  Per-task breakdown:
+  Task               n    delta  A wins  B wins  Ties
+  2WikiMQA          12   +16.67       2       0    10
+  2WikiMQA-E        14    -1.37       3       1    10
+  HotpotQA-E        12   +25.95       4       0     8
+  Qasper            14    +0.99       3       4     7
+  Qasper-E          18   +18.46       6       2    10

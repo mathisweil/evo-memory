@@ -1,0 +1,22 @@
+task,prompt_idx,condition,pred_len_words,gold_answers,pred_preview,f1,token_overlap,gold_tokens
+2WikiMQA,140,M1,3,Poznań," Brooklyn, New York",0.0,0,1
+2WikiMQA,140,B0,3,Poznań,"Brooklyn, New York",0.0,0,1
+2WikiMQA,142,B0,3,"Toronto, Ontario","Poughkeepsie, New York",0.0,0,2
+2WikiMQA,156,B0,10,Köln,I cannot verify where the director of the 1938 film Nanon died.,0.0,0,1
+2WikiMQA-E,117,M4/cs1024,2,"Sydney, Australia",Tel Aviv,0.0,0,2
+2WikiMQA-E,141,B0,2,8 April 1643,December 1697,0.0,0,3
+2WikiMQA-E,142,M4/cs1024,4,Israeli,Hood Museum of Art,0.0,0,1
+2WikiMQA-E,142,B0,10,Israeli,I cannot verify the birthplace of the director of the film The Messenger (2009).,0.0,0,1
+2WikiMQA-E,147,M1,3,Princess Maria Immaculata of Bourbon-Two Sicilies, Hubba bint Hulail,0.0,0,6
+2WikiMQA-E,147,B0,3,Princess Maria Immaculata of Bourbon-Two Sicilies,Hubba bint Hulail,0.0,0,6
+2WikiMQA-E,154,B0,12,Nice,I cannot verify the cause of death of the director of the 1959 film Temptation.,0.0,0,1
+2WikiMQA-E,172,M1,3,Warsaw School of Economics, Carnegie Mellon University,0.0,0,4
+2WikiMQA-E,172,B0,3,Warsaw School of Economics,Carnegie Mellon University,0.0,0,4
+HotpotQA-E,97,B0,16,Albert,I cannot verify the middle name of the actor who hosted the 24th People's Choice Awards with Reba McEntire.,0.0,0,1
+HotpotQA-E,113,B0,2,lime,Cranberry juice,0.0,0,1
+Qasper,159,M1,9, the same datasets as BIBREF7; same datasets as BIBREF7, European network of nature protected sites Natura 2000 dataset,0.0,0,4
+Qasper,159,M4/cs1024,2, the same datasets as BIBREF7; same datasets as BIBREF7,flickr dataset,0.0,0,4
+Qasper-E,165,M4/cs1024,3,"Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017); Europarl tests from 2006, 2007, 2008; WMT newstest 2014.",News in Europe,0.0,0,17
+Qasper-E,170,M4/cs1024,2,Annotations from experts are used if they have already been collected.,by re-annotating,0.0,0,11
+Qasper-E,177,M1,8,"Skip–gram, CBOW; integrated vector-res, vector-faith, Skip–gram, CBOW"," Word embeddings, including word2vec, and a retrofitting vector method.",0.0,0,5
+Qasper-E,183,B0,8,No; No,"Yes, they recommend translating the premise and hypothesis together.",0.0,0,1

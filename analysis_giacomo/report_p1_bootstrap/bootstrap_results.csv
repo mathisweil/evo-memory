@@ -1,0 +1,25 @@
+split,comparison,mode,n,observed_delta,ci_low,ci_high,p_value,significant_05,ci_excludes_zero
+extended_test,M4/cs1024 vs Trunc/lora_1024 (overall),micro,224,2.679,-2.491,7.865,0.316,False,False
+extended_test,M4/cs1024 vs Trunc/lora_1024 (overall),macro,224,2.325,-2.681,7.223,0.3636,False,False
+extended_test,M4/cs1024 vs Trunc/lora_1024 (genuinely-hard),micro,54,35.467,25.234,46.319,0.0,True,True
+extended_test,M4/cs1024 vs Trunc/lora_1024 (genuinely-hard),macro,54,33.216,22.846,43.994,0.0,True,True
+extended_test,M4/cs2048 vs Trunc/lora_2048 (overall),micro,224,-4.525,-9.501,0.345,0.0676,False,False
+extended_test,M4/cs2048 vs Trunc/lora_2048 (overall),macro,224,-5.984,-10.883,-1.11,0.0156,True,True
+extended_test,M4/cs1024 vs M4/cs2048 (budget inversion),micro,224,3.768,-0.476,8.016,0.086,False,False
+extended_test,M4/cs1024 vs M4/cs2048 (budget inversion),macro,224,4.675,0.455,8.925,0.0284,True,True
+extended_test,M1 vs M4/cs1024 (full-context headroom),micro,224,4.926,-0.644,10.446,0.0852,False,False
+extended_test,M1 vs M4/cs1024 (full-context headroom),macro,224,5.385,-0.152,10.874,0.0572,False,False
+extended_test,M4/cs1024 vs M2/cs1024 (LoRA contribution),micro,224,6.266,1.861,10.784,0.006,True,True
+extended_test,M4/cs1024 vs M2/cs1024 (LoRA contribution),macro,224,7.278,2.792,11.817,0.0014,True,True
+test,M4/cs1024 vs Trunc/lora_1024 (overall),micro,70,5.374,-3.801,14.839,0.2512,False,False
+test,M4/cs1024 vs Trunc/lora_1024 (overall),macro,70,6.19,-3.453,15.913,0.1974,False,False
+test,M4/cs1024 vs Trunc/lora_1024 (genuinely-hard),micro,70,5.374,-3.801,14.839,0.2512,False,False
+test,M4/cs1024 vs Trunc/lora_1024 (genuinely-hard),macro,70,6.19,-3.453,15.913,0.1974,False,False
+test,M4/cs2048 vs Trunc/lora_2048 (overall),micro,70,2.198,-4.452,8.991,0.5236,False,False
+test,M4/cs2048 vs Trunc/lora_2048 (overall),macro,70,2.144,-3.917,8.472,0.4998,False,False
+test,M4/cs1024 vs M4/cs2048 (budget inversion),micro,70,1.213,-6.254,8.739,0.7522,False,False
+test,M4/cs1024 vs M4/cs2048 (budget inversion),macro,70,2.213,-5.108,9.674,0.5522,False,False
+test,M1 vs M4/cs1024 (full-context headroom),micro,70,-1.135,-11.773,9.632,0.8406,False,False
+test,M1 vs M4/cs1024 (full-context headroom),macro,70,-3.001,-13.548,7.342,0.5726,False,False
+test,M4/cs1024 vs M2/cs1024 (LoRA contribution),micro,70,11.979,3.245,21.137,0.0062,True,True
+test,M4/cs1024 vs M2/cs1024 (LoRA contribution),macro,70,12.142,3.502,21.296,0.0066,True,True

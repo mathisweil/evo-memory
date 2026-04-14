@@ -1,0 +1,122 @@
+task,prompt_idx,condition,pred_len_words,gold_answers,pred_preview,f1,token_overlap,gold_tokens
+2WikiMQA,1,M1,2,John the Baptist, Diana Weston,0.0,0,2
+2WikiMQA,1,M4/cs1024,2,John the Baptist,Oscar Wilde,0.0,0,2
+2WikiMQA,1,B0,5,John the Baptist,Princess Elizabeth of Great Britain,0.0,0,2
+2WikiMQA,4,M1,3,Edward Watson, Shaybah ibn Hāshim,0.0,0,2
+2WikiMQA,4,M4/cs1024,3,Edward Watson,Abraham de Sondes,0.0,0,2
+2WikiMQA,4,B0,2,Edward Watson,Abdul Muttalib,0.0,0,2
+2WikiMQA,11,M1,2,America, United States,0.0,0,1
+2WikiMQA,11,M4/cs1024,2,America,United States,0.0,0,1
+2WikiMQA,22,M1,3,Leustach Rátót, Shaybah ibn Hāshim,0.0,0,2
+2WikiMQA,22,M4/cs1024,2,Leustach Rátót,Abdul Muttalib,0.0,0,2
+2WikiMQA,22,B0,2,Leustach Rátót,Abd al-Muttalib,0.0,0,2
+2WikiMQA,31,B0,2,Constantinople,Eyüp Cemetery,0.0,0,1
+2WikiMQA,32,M1,2,East Francia, Naudingen (Donaueschingen),0.0,0,2
+2WikiMQA,32,B0,2,East Francia,Naudingen (Donaueschingen),0.0,0,2
+2WikiMQA,51,M4/cs1024,2,Sweden,United States,0.0,0,1
+2WikiMQA,72,B0,9,America,The nationality of the director of the film Postmortem (1998) is Irish.,0.0,0,1
+2WikiMQA,93,M4/cs1024,6,13 March 1753,"Marie-Thérèse de Bourbon, Duchess of Orléans",0.0,0,3
+2WikiMQA,93,B0,22,13 March 1753,I don't have enough information to answer the question. The passage only mentions that Antoine Philippe's mother was Lou,0.0,0,3
+2WikiMQA,105,M1,3,Dudley Russell, Juan René Serrano,0.0,0,2
+2WikiMQA,105,M4/cs1024,6,Dudley Russell,Juan René Serrano was born first.,0.0,0,2
+2WikiMQA,105,B0,6,Dudley Russell,Juan René Serrano was born first.,0.0,0,2
+2WikiMQA,112,M1,2,Morocco," Karachi, Pakistan.",0.0,0,1
+2WikiMQA,112,B0,2,Morocco,"Karachi, Pakistan.",0.0,0,1
+2WikiMQA,116,B0,6,Gura Humorului,Brian Kennedy was born in Dublin.,0.0,0,2
+2WikiMQA,118,M1,2,Adolf II of Berg, John Westley,0.0,0,4
+2WikiMQA,118,M4/cs1024,2,Adolf II of Berg,Abdul Muttalib,0.0,0,4
+2WikiMQA,118,B0,2,Adolf II of Berg,Abdul Muttalib,0.0,0,4
+2WikiMQA,125,M1,5,Jacques," Louis d'Armagnac, Duke of Nemours",0.0,0,1
+2WikiMQA,125,M4/cs1024,5,Jacques,"Jean d'Armagnac, Duke of Nemours",0.0,0,1
+2WikiMQA,125,B0,5,Jacques,"Louis d'Armagnac, Duke of Nemours",0.0,0,1
+2WikiMQA,140,M1,3,Poznań," Brooklyn, New York",0.0,0,1
+2WikiMQA,140,B0,3,Poznań,"Brooklyn, New York",0.0,0,1
+2WikiMQA,142,B0,3,"Toronto, Ontario","Poughkeepsie, New York",0.0,0,2
+2WikiMQA,156,B0,10,Köln,I cannot verify where the director of the 1938 film Nanon died.,0.0,0,1
+2WikiMQA-E,109,M1,2,Barkin Ladi," Jos, Nigeria",0.0,0,2
+2WikiMQA-E,109,B0,13,Barkin Ladi,I cannot verify the place of birth of the director of film Confusion Na Wa.,0.0,0,2
+2WikiMQA-E,110,M1,2,Seyðisfjörður," Bloomington, Indiana.",0.0,0,1
+2WikiMQA-E,110,M4/cs1024,2,Seyðisfjörður,"Burlington, Vermont",0.0,0,1
+2WikiMQA-E,110,B0,6,Seyðisfjörður,"He was born in Bloomington, Indiana.",0.0,0,1
+2WikiMQA-E,117,M4/cs1024,2,"Sydney, Australia",Tel Aviv,0.0,0,2
+2WikiMQA-E,119,M1,3,The Rebellion Of The Brides, Arizona Gang Busters,0.0,0,3
+2WikiMQA-E,119,M4/cs1024,3,The Rebellion Of The Brides,Arizona Gang Busters,0.0,0,3
+2WikiMQA-E,119,B0,3,The Rebellion Of The Brides,Arizona Gang Busters,0.0,0,3
+2WikiMQA-E,128,M1,2,"Maria Marten, Or The Murder In The Red Barn", Viva Knievel!,0.0,0,7
+2WikiMQA-E,128,M4/cs1024,2,"Maria Marten, Or The Murder In The Red Barn",Viva Knievel!,0.0,0,7
+2WikiMQA-E,128,B0,2,"Maria Marten, Or The Murder In The Red Barn",Viva Knievel!,0.0,0,7
+2WikiMQA-E,130,M1,3,Lady Anne Campbell, Margaret de Stafford,0.0,0,3
+2WikiMQA-E,130,M4/cs1024,3,Lady Anne Campbell,Margaret de Stafford,0.0,0,3
+2WikiMQA-E,130,B0,3,Lady Anne Campbell,Margaret de Stafford,0.0,0,3
+2WikiMQA-E,136,M1,2,Everything'S Ducky, Karthika (Film),0.0,0,2
+2WikiMQA-E,136,M4/cs1024,2,Everything'S Ducky,Karthika (Film),0.0,0,2
+2WikiMQA-E,136,B0,2,Everything'S Ducky,Karthika (Film),0.0,0,2
+2WikiMQA-E,138,M1,4,Dona Mariquita Of My Heart, Throw Momma From The Train,0.0,0,5
+2WikiMQA-E,138,M4/cs1024,4,Dona Mariquita Of My Heart,Throw Momma From The Train,0.0,0,5
+2WikiMQA-E,138,B0,4,Dona Mariquita Of My Heart,Throw Momma From The Train,0.0,0,5
+2WikiMQA-E,140,M1,2,UCLA, University College-Dublin,0.0,0,1
+2WikiMQA-E,140,M4/cs1024,4,UCLA,University of Paris VII.,0.0,0,1
+2WikiMQA-E,140,B0,24,UCLA,I don't have enough information to answer the question. The passage only mentions that Ian Barry was the director of fil,0.0,0,1
+2WikiMQA-E,141,B0,2,8 April 1643,December 1697,0.0,0,3
+2WikiMQA-E,142,M4/cs1024,4,Israeli,Hood Museum of Art,0.0,0,1
+2WikiMQA-E,142,B0,10,Israeli,I cannot verify the birthplace of the director of the film The Messenger (2009).,0.0,0,1
+2WikiMQA-E,146,M1,3,Nandlal Nehru, Viscount Ogawa Mataji,0.0,0,2
+2WikiMQA-E,146,M4/cs1024,11,Nandlal Nehru,"Field Marshal Sir William Crofton Croft, 1st Baron Crofton of Cholmondeley",0.0,0,2
+2WikiMQA-E,146,B0,2,Nandlal Nehru,Ogawa Mataji,0.0,0,2
+2WikiMQA-E,147,M1,3,Princess Maria Immaculata of Bourbon-Two Sicilies, Hubba bint Hulail,0.0,0,6
+2WikiMQA-E,147,B0,3,Princess Maria Immaculata of Bourbon-Two Sicilies,Hubba bint Hulail,0.0,0,6
+2WikiMQA-E,149,M1,3,Yale, New York City.,0.0,0,1
+2WikiMQA-E,149,M4/cs1024,5,Yale,"New York City, New York",0.0,0,1
+2WikiMQA-E,149,B0,9,Yale,I cannot verify where Francis W. Rockwell's father studied.,0.0,0,1
+2WikiMQA-E,154,B0,12,Nice,I cannot verify the cause of death of the director of the 1959 film Temptation.,0.0,0,1
+2WikiMQA-E,155,M1,4,Hanuman Patal Vijay, Young And Dangerous: The Prequel,0.0,0,3
+2WikiMQA-E,155,M4/cs1024,4,Hanuman Patal Vijay,Young And Dangerous: The Prequel,0.0,0,3
+2WikiMQA-E,155,B0,9,Hanuman Patal Vijay,Young And Dangerous: The Prequel was directed by Andrew Lau.,0.0,0,3
+2WikiMQA-E,156,M1,3,Niall mac Cernaig Sotal, Shaybah ibn Hāshim,0.0,0,4
+2WikiMQA-E,156,B0,2,Niall mac Cernaig Sotal,Abd al-Muṭṭalib,0.0,0,4
+2WikiMQA-E,159,B0,8,Neapolitan,"Joanna, Duchess of Durazzo's mother died in 1343.",0.0,0,1
+2WikiMQA-E,160,M1,3,Oriental Nights, Pieces Of A Woman,0.0,0,2
+2WikiMQA-E,160,M4/cs1024,3,Oriental Nights,Pieces Of A Woman,0.0,0,2
+2WikiMQA-E,160,B0,3,Oriental Nights,Pieces Of A Woman,0.0,0,2
+2WikiMQA-E,167,M1,2,Fer Corb, Prithvipati Shah,0.0,0,2
+2WikiMQA-E,167,M4/cs1024,3,Fer Corb,Princess Nia Segamain,0.0,0,2
+2WikiMQA-E,168,M1,2,Oxford," Safed, Israel.",0.0,0,1
+2WikiMQA-E,168,M4/cs1024,6,Oxford,"Goodhart's father, Goodhart's father is a sculptor.",0.0,0,1
+2WikiMQA-E,168,B0,8,Oxford,I cannot verify where Philip Goodhart's father works.,0.0,0,1
+2WikiMQA-E,172,M1,3,Warsaw School of Economics, Carnegie Mellon University.,0.0,0,4
+2WikiMQA-E,172,B0,3,Warsaw School of Economics,Carnegie Mellon University,0.0,0,4
+2WikiMQA-E,174,M1,3,Salvage With A Smile, Cry Of The Hunted,0.0,0,3
+2WikiMQA-E,174,M4/cs1024,3,Salvage With A Smile,Cry Of The Hunted,0.0,0,3
+2WikiMQA-E,174,B0,3,Salvage With A Smile,Cry Of The Hunted,0.0,0,3
+2WikiMQA-E,177,M1,2,Laodice V, Cleopatra Thea,0.0,0,2
+2WikiMQA-E,177,M4/cs1024,2,Laodice V,Cleopatra Thea,0.0,0,2
+2WikiMQA-E,177,B0,2,Laodice V,Cleopatra Thea,0.0,0,2
+2WikiMQA-E,181,M1,5,Charles Louis," Ernst I, Prince of Hohenlohe-Langenburg",0.0,0,2
+2WikiMQA-E,181,M4/cs1024,3,Charles Louis,Ernst von Wittelsbach,0.0,0,2
+2WikiMQA-E,181,B0,5,Charles Louis,"Ernst I, Prince of Hohenlohe-Langenburg",0.0,0,2
+HotpotQA-E,97,B0,16,Albert,I cannot verify the middle name of the actor who hosted the 24th People's Choice Awards with Reba McEntire.,0.0,0,1
+HotpotQA-E,113,B0,2,lime,Cranberry juice,0.0,0,1
+HotpotQA-E,118,M1,9,flowering plants," Aspidistra is a perennial herb, and Arbutus is a perennial shrub.",0.0,0,2
+HotpotQA-E,122,M4/cs1024,12,filibuster,"The 1919 Mississippi gubernatorial election incumbent Democrat was a master of the ""art of the deal.""",0.0,0,1
+HotpotQA-E,122,B0,4,filibuster,The 1919 Mississippi gubernatorial election.,0.0,0,1
+HotpotQA-E,127,M1,2,Canadian-American Association of Professional Baseball, Atlantic League.,0.0,0,5
+HotpotQA-E,127,M4/cs1024,4,Canadian-American Association of Professional Baseball,American Football League (AFL),0.0,0,5
+HotpotQA-E,127,B0,2,Canadian-American Association of Professional Baseball,Atlantic League,0.0,0,5
+HotpotQA-E,129,M1,2,Tie Domi, Bob Jones,0.0,0,2
+HotpotQA-E,129,M4/cs1024,2,Tie Domi,Bob Probert,0.0,0,2
+HotpotQA-E,129,B0,2,Tie Domi,Bob Smith,0.0,0,2
+HotpotQA-E,140,M1,2,Prudential Center," Detroit, Michigan",0.0,0,2
+HotpotQA-E,140,M4/cs1024,3,Prudential Center,"East Lansing, Michigan",0.0,0,2
+Qasper,30,M4/cs1024,13,"four machine translation tasks: German -> English, Japanese -> English, Romanian -> English, English -> German;  four machine translation tasks, IWSLT 2017 German $\rightarrow $ English BIBREF27, KFTT Japanese $\rightarrow $ English BIBREF28, WMT 2016 Romanian $\rightarrow $ English BIBREF29, WMT 2014 English $\rightarrow $ German BIBREF30",I can only provide a yes/no answer to this question. Here is the answer:  Yes,0.0,0,19
+Qasper,63,M1,2,"pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17; M2M Transformer", a strong baseline,0.0,0,29
+Qasper,159,M1,9, the same datasets as BIBREF7; same datasets as BIBREF7, European network of nature protected sites Natura 2000 dataset,0.0,0,4
+Qasper,159,M4/cs1024,2, the same datasets as BIBREF7; same datasets as BIBREF7,flickr dataset,0.0,0,4
+Qasper,174,M4/cs1024,82,"bag-of-words model, CNN",## Step 1: Identify the question type The question is asking about the performance of a question classification model co,0.024,1,3
+Qasper-E,100,M1,4,"POS, gender/number and stem POS"," surface, morphological, syntactic features.",0.0,0,4
+Qasper-E,100,M4/cs1024,82,"POS, gender/number and stem POS","Arabic diacritics, Arabic morphology, Arabic syntax, Arabic semantics, Arabic phonology, Arabic morphology, Arabic morph",0.0,0,4
+Qasper-E,110,M1,13,"Bert model have a maximum length of 512; we overcome this limitation by adding more position embeddings, we insert external [cls] tokens at the start of each sentence, and each [cls] symbol collects features for the sentence preceding it, document representations are learned hierarchically"," It uses a novel approach to document-level encoding, which is not mentioned in the article.",0.037,1,36
+Qasper-E,120,M1,2,"pivot-based translation relying on a helping language BIBREF10, nduction of phrase tables from monolingual data BIBREF14 , attentional RNN-based model (RNMT) BIBREF2, Transformer model BIBREF18, bi-directional model BIBREF11, multi-to-multi (M2M) model BIBREF8, back-translation BIBREF17; M2M Transformer", a strong baseline,0.0,0,29
+Qasper-E,123,M4/cs1024,2,BIBREF7;  reward learning algorithm BIBREF7,Answer: BIBREF4,0.0,0,4
+Qasper-E,165,M4/cs1024,3,"Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017); Europarl tests from 2006, 2007, 2008; WMT newstest 2014.",News in Europe,0.0,0,17
+Qasper-E,177,M1,8,"Skip–gram, CBOW; integrated vector-res, vector-faith, Skip–gram, CBOW"," Word embeddings, including word2vec, and a retrofitting vector method.",0.0,0,5
+Qasper-E,183,B0,8,No; No,"Yes, they recommend translating the premise and hypothesis together.",0.0,0,1
