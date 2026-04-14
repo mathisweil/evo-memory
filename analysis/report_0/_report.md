@@ -207,8 +207,6 @@ At cache_size=1024 with contexts of 4096-6500 tokens, approximately **75-80% of 
 | Cache Size | Approx. Tokens Retained | Approx. % Evicted |
 | ---------- | ----------------------- | ----------------- |
 | 1024       | 1024 of ~5000           | ~80%              |
-| 2048       | 2048 of ~5000           | ~60%              |
-| 3072       | 3072 of ~5000           | ~40%              |
 
 ### 6.2 Relevant Token Analysis
 
@@ -233,13 +231,13 @@ See `relevant_tokens.png`, `relevant_tokens_boxplot.png`, `answer_positions.png`
 
 **Estimated relevant token survival** (assuming an ideal eviction policy that prioritises relevant tokens):
 
-| Task       | cache=1024 | cache=2048 | cache=3072 |
-| ---------- | ---------- | ---------- | ---------- |
-| Qasper     | 97%        | 100%       | 100%       |
-| 2WikiMQA   | 83%        | 95%        | 98%        |
-| Qasper-E   | 96%        | 98%        | 100%       |
-| HotpotQA-E | **60%**    | 87%        | 98%        |
-| 2WikiMQA-E | 82%        | 95%        | 99%        |
+| Task       | cache=1024 |
+| ---------- | ---------- |
+| Qasper     | 97%        |
+| 2WikiMQA   | 83%        |
+| Qasper-E   | 96%        |
+| HotpotQA-E | **60%**    |
+| 2WikiMQA-E | 82%        |
 
 HotpotQA-E is the only task where relevant tokens substantially exceed the cache budget at cs1024. This should make it the most eviction-sensitive task under our initial hypothesis — but as Report 1 shows, the actual results tell a different story.
 
@@ -373,11 +371,11 @@ LoRA fine-tuning with a pre-trained (frozen) NAMM eviction policy active. The LL
 - `prompt_templates.png` — Full prompt templates for each task.
 - `length_distributions.png` — Context length and answer length distributions for eligible samples.
 - `answer_types.png` — Stacked bar chart showing answer type breakdown per task.
-- `eviction_analysis.png` — Token eviction rates at different cache sizes and retention distribution at cs=1024.
+- `eviction_analysis.png` — Token eviction rates and retention distribution at cs=1024.
 - `relevant_tokens.png` — Mean relevant tokens, relevant fraction, and number of distinct relevant regions per task.
 - `relevant_tokens_boxplot.png` — Box plot of relevant token distributions per task, with cache size reference lines.
 - `answer_positions.png` — Distribution of first answer occurrence position within context (0=start, 1=end).
-- `eviction_survival.png` — Estimated fraction of relevant tokens surviving at each cache size, assuming ideal eviction.
+- `eviction_survival.png` — Estimated fraction of relevant tokens surviving at cs=1024, assuming ideal eviction.
 
 ---
 

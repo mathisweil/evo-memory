@@ -526,7 +526,7 @@ def plot_eviction_analysis(stats):
     """Visualise how much context is evicted at different cache sizes."""
     fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 
-    cache_sizes = [1024, 2048, 3072]
+    cache_sizes = [1024]
     colors = ["#3498db", "#e74c3c", "#2ecc71", "#f39c12", "#9b59b6"]
 
     # Panel 1: % of tokens evicted per task at each cache size
