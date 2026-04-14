@@ -726,8 +726,17 @@ class ParamMemoryPolicy(MemoryPolicy):
     def set_params(self, params) -> None:
         if self.lazy_param_num and self.param_pop_size is None:
             lazy_pop_dim = params.shape[0]
-            self.initialize_pop_params_buffers(param_pop_size=lazy_pop_dim)
-            self.to(device=params.device)
+            # Escape any outer `torch.inference_mode()` context (e.g.
+            # MemoryTrainer.train is decorated with `@torch.inference_mode()`).
+            # Registering new buffers and calling `self.to(device)` inside
+            # inference mode would permanently tag `pop_params`,
+            # `pop_shared_params`, and the moved `rotary_offset` as inference
+            # tensors -- which then cannot be mutated in a later `torch.no_grad`
+            # context (M3/M4 LoRA phase-1 forward writes `rotary_offset` via
+            # `update_layer_rotary_offset`).
+            with torch.inference_mode(False), torch.no_grad():
+                self.initialize_pop_params_buffers(param_pop_size=lazy_pop_dim)
+                self.to(device=params.device)
         params, pop_shared_params = params.split(
             [self.total_base_param_size, self.additional_shared_params], dim=-1)
         reshaped_params = params.view(self.param_pop_size,
