@@ -206,20 +206,23 @@ def get_prompts(
 
 def extract_entropy_full_context(
     memory_model: Any, prompts: list[dict], device: str = "cuda",
-) -> tuple[np.ndarray, np.ndarray]:
-    """Returns (per_head_entropy, union_entropy).
+) -> tuple[np.ndarray, float]:
+    """Returns (per_head_entropy, total_attention_entropy).
 
-    per_head_entropy: (NUM_LAYERS, NUM_HEADS) mean per-head entropy
-    union_entropy:    (NUM_LAYERS,) entropy of head-averaged distribution
+    per_head_entropy:         (NUM_LAYERS, NUM_HEADS) mean per-head entropy
+    total_attention_entropy:  scalar — entropy of total attention received
+                              per token, summed across all layers and heads,
+                              averaged over samples
     """
     import torch
 
     entropy_sum = torch.zeros(NUM_LAYERS, NUM_HEADS)
-    union_entropy_sum = torch.zeros(NUM_LAYERS)
+    total_entropy_sum = 0.0
     count = 0
 
     for i, p in enumerate(prompts):
         input_ids = p["input_ids"].to(device)
+        seq_len = input_ids.shape[1]
         reset_policy_state(memory_model)
         with torch.no_grad():
             outputs = memory_model(
@@ -227,6 +230,8 @@ def extract_entropy_full_context(
                 output_attentions=True, return_dict=True,
                 apply_memory_policy=False,
             )
+        # Accumulate total attention each token receives across all layers/heads
+        total_attn = torch.zeros(seq_len)
         for layer_idx, layer_attn in enumerate(outputs.attentions):
             attn = layer_attn[0].float()
             attn_last = attn[:, -1, :]  # (n_heads, seq)
@@ -234,10 +239,14 @@ def extract_entropy_full_context(
             attn_clamped = attn_last.clamp(min=1e-12)
             h = -(attn_clamped * attn_clamped.log()).sum(dim=-1)
             entropy_sum[layer_idx] += h.cpu()
-            # Union: average across heads, then entropy
-            union_dist = attn_last.mean(dim=0).clamp(min=1e-12)  # (seq,)
-            h_union = -(union_dist * union_dist.log()).sum()
-            union_entropy_sum[layer_idx] += h_union.cpu()
+            # Sum attention received per token across heads
+            total_attn += attn_last.sum(dim=0).cpu()  # (seq,)
+        # Normalise to a distribution over token positions, compute entropy
+        total_attn = total_attn.clamp(min=1e-12)
+        total_attn = total_attn / total_attn.sum()
+        h_total = -(total_attn * total_attn.log()).sum().item()
+        total_entropy_sum += h_total
+
         count += 1
         if (i + 1) % 50 == 0 or i == 0:
             logger.info("  Full-ctx sample %d/%d done (seq_len=%d)",
@@ -245,7 +254,7 @@ def extract_entropy_full_context(
         del outputs
         torch.cuda.empty_cache()
 
-    return (entropy_sum / count).numpy(), (union_entropy_sum / count).numpy()
+    return (entropy_sum / count).numpy(), total_entropy_sum / count
 
 
 # ---------------------------------------------------------------------------
@@ -254,12 +263,12 @@ def extract_entropy_full_context(
 
 def extract_entropy_with_eviction(
     memory_model: Any, prompts: list[dict], device: str = "cuda",
-) -> tuple[np.ndarray, np.ndarray, list[dict]]:
-    """Returns (per_head_entropy, union_entropy, sample_info)."""
+) -> tuple[np.ndarray, float, list[dict]]:
+    """Returns (per_head_entropy, total_attention_entropy, sample_info)."""
     import torch
 
     entropy_sum = torch.zeros(NUM_LAYERS, NUM_HEADS)
-    union_entropy_sum = torch.zeros(NUM_LAYERS)
+    total_entropy_sum = 0.0
     sample_info: list[dict] = []
     count = 0
 
@@ -283,15 +292,34 @@ def extract_entropy_with_eviction(
         else:
             cache_len = p["seq_len"]
 
+        # For evicted models, each layer's last-chunk attention may span a
+        # different number of cache positions.  Use the max cache length
+        # across layers and accumulate into that size (no padding to full
+        # seq_len, which would add fake near-zero entries via clamp).
+        layer_cache_lens = []
+        per_layer_totals = []
         for layer_idx, layer_attn in enumerate(outputs.attentions):
             attn = layer_attn[0].float()
-            attn_last = attn[:, -1, :]  # (n_heads, cache_len)
+            attn_last = attn[:, -1, :]  # (n_heads, layer_cache_len)
             attn_clamped = attn_last.clamp(min=1e-12)
             h = -(attn_clamped * attn_clamped.log()).sum(dim=-1)
             entropy_sum[layer_idx] += h.cpu()
-            union_dist = attn_last.mean(dim=0).clamp(min=1e-12)
-            h_union = -(union_dist * union_dist.log()).sum()
-            union_entropy_sum[layer_idx] += h_union.cpu()
+            per_layer_totals.append(attn_last.sum(dim=0).cpu())
+            layer_cache_lens.append(attn_last.shape[1])
+
+        max_cache = max(layer_cache_lens)
+        total_attn = torch.zeros(max_cache)
+        for lt in per_layer_totals:
+            total_attn[:lt.shape[0]] += lt
+
+        # Only compute entropy over positions with actual attention mass
+        total_attn = total_attn[total_attn > 0]
+        if total_attn.numel() > 0:
+            total_attn = total_attn / total_attn.sum()
+            h_total = -(total_attn * total_attn.log()).sum().item()
+        else:
+            h_total = 0.0
+        total_entropy_sum += h_total
 
         count += 1
         retention = cache_len / p["seq_len"]
@@ -308,7 +336,7 @@ def extract_entropy_with_eviction(
         torch.cuda.empty_cache()
 
     return ((entropy_sum / count).numpy(),
-            (union_entropy_sum / count).numpy(),
+            total_entropy_sum / count,
             sample_info)
 
 
@@ -347,7 +375,7 @@ def compute() -> None:
     load_lora_weights(memory_model, M1_LORA_CKPT, device)
 
     logger.info("=== M1: Extracting entropy (full context) ===")
-    m1_entropy, m1_union = extract_entropy_full_context(
+    m1_entropy, m1_total_entropy = extract_entropy_full_context(
         memory_model, prompts, device)
 
     # ── M3: with NAMM eviction ────────────────────────────────────────
@@ -355,7 +383,7 @@ def compute() -> None:
     load_lora_weights(memory_model, M3_MASKFIX_LORA_CKPT, device)
 
     logger.info("=== M3: Extracting entropy (with eviction) ===")
-    m3_entropy, m3_union, m3_sample_info = extract_entropy_with_eviction(
+    m3_entropy, m3_total_entropy, m3_sample_info = extract_entropy_with_eviction(
         memory_model, prompts, device)
 
     # ── M2: NAMM eviction, no LoRA ───────────────────────────────────
@@ -363,7 +391,7 @@ def compute() -> None:
     reset_lora_weights(memory_model)
 
     logger.info("=== M2: Extracting entropy (with eviction, no LoRA) ===")
-    m2_entropy, m2_union, m2_sample_info = extract_entropy_with_eviction(
+    m2_entropy, m2_total_entropy, m2_sample_info = extract_entropy_with_eviction(
         memory_model, prompts, device)
 
     # ── Save ──────────────────────────────────────────────────────────
@@ -380,9 +408,9 @@ def compute() -> None:
         m1_entropy=m1_entropy,
         m2_entropy=m2_entropy,
         m3_entropy=m3_entropy,
-        m1_union_entropy=m1_union,
-        m2_union_entropy=m2_union,
-        m3_union_entropy=m3_union,
+        m1_total_entropy=np.array([m1_total_entropy]),
+        m2_total_entropy=np.array([m2_total_entropy]),
+        m3_total_entropy=np.array([m3_total_entropy]),
         m2_cache_lens=m2_cache_lens,
         m2_retention=m2_retention,
         m3_cache_lens=m3_cache_lens,

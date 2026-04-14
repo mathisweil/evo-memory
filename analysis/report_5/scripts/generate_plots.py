@@ -195,41 +195,40 @@ def plot_entropy_diff(data: dict[str, np.ndarray]) -> None:
 
 
 # =============================================================================
-# PLOT 4: Union Entropy (head-averaged attention distribution)
+# PLOT 4: Total Attention Entropy (all layers and heads combined)
 # =============================================================================
 
-def plot_union_entropy(data: dict[str, np.ndarray]) -> None:
-    """Bar chart: per-layer entropy of head-averaged attention (M1 vs M2 vs M3)."""
-    has_union = all(f"{c}_union_entropy" in data for c in ["m1", "m2", "m3"])
-    if not has_union:
-        print("  Skipping union_entropy (no union data)")
+def plot_total_entropy(data: dict[str, np.ndarray]) -> None:
+    """Single bar chart: entropy of total attention per token position,
+    summed across all 16 layers × 32 heads and normalised."""
+    has_total = all(f"{c}_total_entropy" in data for c in ["m1", "m2", "m3"])
+    if not has_total:
+        print("  Skipping total_entropy (no total data)")
         return
 
-    m1_u = data["m1_union_entropy"]
-    m2_u = data["m2_union_entropy"]
-    m3_u = data["m3_union_entropy"]
+    m1_t = float(data["m1_total_entropy"][0])
+    m2_t = float(data["m2_total_entropy"][0])
+    m3_t = float(data["m3_total_entropy"][0])
 
-    layers = np.arange(NUM_LAYERS)
-    width = 0.8 / 3
+    fig, ax = plt.subplots(figsize=(7, 5))
+    bars = ax.bar(
+        ["M1\n(full context)", "M2\n(NAMM, no LoRA)", "M3\n(LoRA + NAMM)"],
+        [m1_t, m2_t, m3_t],
+        color=[M1_COLOR, M2_COLOR, M3_COLOR],
+        alpha=0.85, width=0.5,
+    )
+    for bar, val in zip(bars, [m1_t, m2_t, m3_t]):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.05,
+                f"{val:.2f}", ha="center", va="bottom", fontsize=11)
 
-    fig, ax = plt.subplots(figsize=(14, 6))
-    ax.bar(layers - width, m1_u, width,
-           label="M1 (full context)", color=M1_COLOR, alpha=0.85)
-    ax.bar(layers, m2_u, width,
-           label="M2 (NAMM only, no LoRA)", color=M2_COLOR, alpha=0.85)
-    ax.bar(layers + width, m3_u, width,
-           label="M3 (LoRA + NAMM)", color=M3_COLOR, alpha=0.85)
-
-    ax.set_xlabel("Layer")
-    ax.set_ylabel("Entropy of Head-Averaged Attention (nats)")
-    ax.set_title("Union Entropy: How Broadly Each Layer Covers the Context\n"
-                 "(attention averaged across 32 heads, then entropy computed)",
+    ax.set_ylabel("Entropy (nats)")
+    ax.set_title("Total Attention Entropy\n"
+                 "(attention summed across all layers and heads,\n"
+                 "normalised per token position)",
                  fontsize=12, fontweight="bold")
-    ax.set_xticks(layers)
-    ax.legend(fontsize=10)
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
-    out = PLOT_DIR / "union_entropy.png"
+    out = PLOT_DIR / "total_entropy.png"
     fig.savefig(out)
     plt.close(fig)
     print(f"  Saved {out}")
@@ -300,7 +299,7 @@ def main() -> None:
     plot_attention_entropy(data)
     plot_entropy_heatmap(data)
     plot_entropy_diff(data)
-    plot_union_entropy(data)
+    plot_total_entropy(data)
 
     print_summary(data)
     print("\nDone. All plots saved to:", PLOT_DIR)

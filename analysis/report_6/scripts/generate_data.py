@@ -53,6 +53,7 @@ FILTER_BY_TOKENS = 6500
 FILTER_ANSWERS_BY_TOKENS = 64
 MIN_CONDITIONING_LENGTH = 4096
 SAMPLES_PER_TASK = 73  # balanced across 5 tasks (min available)
+NUM_LAYERS = 16
 
 
 # ---------------------------------------------------------------------------
@@ -174,7 +175,41 @@ def compute_spearman(x: np.ndarray, y: np.ndarray) -> float:
 
 
 def extract_alignment_data(memory_model, memory_policy, prompts, device="cuda"):
+    """Extract NAMM scores and attention importance.
+
+    Uses forward hooks on self_attn modules to:
+    1. Capture per-token mean attention received (small summary vector)
+    2. Capture the raw attention tensor for NAMM scoring
+    3. Replace the attention output with None so the decoder layer
+       doesn't accumulate all 16 layers' full (32, seq, seq) matrices
+
+    This reduces peak GPU memory from O(16 * 32 * seq^2) to O(32 * seq^2)
+    — only one layer's attention exists at a time during the NAMM analyze.
+    """
     import torch
+
+    _attn_summaries: dict[int, np.ndarray] = {}
+    _attn_for_namm: list[torch.Tensor | None] = [None] * NUM_LAYERS
+
+    def _make_attn_hook(layer_idx: int):
+        def hook(module, args, output):
+            # output: (attn_output, attn_weights, past_kv) or + (queries,)
+            attn_weights = output[1]
+            if attn_weights is not None:
+                per_kv = attn_weights[0].float().mean(dim=0).mean(dim=0)
+                _attn_summaries[layer_idx] = per_kv.detach().cpu().numpy()
+                # Move to CPU for NAMM (frees GPU immediately)
+                _attn_for_namm[layer_idx] = attn_weights.cpu()
+                # Replace attention with None in output to prevent
+                # accumulation in the decoder layer's output tuple
+                return (output[0], None) + output[2:]
+        return hook
+
+    hooks = []
+    for layer_idx in range(NUM_LAYERS):
+        attn_module = memory_model.model.model.layers[layer_idx].self_attn
+        hooks.append(attn_module.register_forward_hook(
+            _make_attn_hook(layer_idx)))
 
     results = []
     for i, p in enumerate(prompts):
@@ -185,6 +220,10 @@ def extract_alignment_data(memory_model, memory_policy, prompts, device="cuda"):
         if hasattr(memory_policy, "record_eval_stats"):
             memory_policy.record_eval_stats = False
 
+        _attn_summaries.clear()
+        for l in range(NUM_LAYERS):
+            _attn_for_namm[l] = None
+
         with torch.no_grad():
             outputs = memory_model(
                 input_ids=input_ids, use_cache=True,
@@ -192,11 +231,8 @@ def extract_alignment_data(memory_model, memory_policy, prompts, device="cuda"):
                 apply_memory_policy=False,
             )
 
-        attention_per_kv = []
-        if outputs.attentions is not None:
-            for layer_attn in outputs.attentions:
-                per_kv = layer_attn[0].float().mean(dim=0).mean(dim=0)
-                attention_per_kv.append(per_kv.cpu().numpy())
+        attention_per_kv = [_attn_summaries.get(l, np.array([]))
+                            for l in range(NUM_LAYERS)]
 
         past_kv = outputs.past_key_values
         if hasattr(past_kv, "to_legacy_cache"):
@@ -206,21 +242,45 @@ def extract_alignment_data(memory_model, memory_policy, prompts, device="cuda"):
                 (past_kv.key_cache[j], past_kv.value_cache[j])
                 for j in range(len(past_kv.key_cache)))
 
+        del outputs
+
         attention_mask = torch.ones(1, seq_len, dtype=torch.long, device=device)
         position_ids = torch.arange(seq_len, device=device).unsqueeze(0)
+
+        # Lazy list: moves attention tensors to GPU one at a time as
+        # NAMM's update_cache loop accesses them, freeing GPU memory
+        # between layers.  Peak = 1 layer's attention, not 16.
+        class _LazyGPUList:
+            def __init__(self, cpu_tensors, device):
+                self._cpu = cpu_tensors
+                self._device = device
+                self._prev = None
+            def __getitem__(self, idx):
+                if self._prev is not None:
+                    del self._prev
+                    torch.cuda.empty_cache()
+                t = self._cpu[idx]
+                self._prev = t.to(self._device) if t is not None else None
+                return self._prev
+            def __len__(self):
+                return len(self._cpu)
+
+        attn_list_for_namm = _LazyGPUList(list(_attn_for_namm), device)
 
         reset_policy_state(memory_model)
         try:
             _, analysis_dicts = memory_policy.update_cache(
                 past_key_values=past_kv, num_new_tokens=seq_len,
-                attn_weights_list=(outputs.attentions
+                attn_weights_list=(attn_list_for_namm
                                    if memory_policy.requires_attn_scores else []),
                 attention_mask=attention_mask, position_ids=position_ids,
                 analyze=True,
             )
         except Exception as e:
             logger.warning("  Sample %d analyze failed: %s", i, e)
-            del outputs
+            del past_kv, attn_list_for_namm
+            for l in range(NUM_LAYERS):
+                _attn_for_namm[l] = None
             torch.cuda.empty_cache()
             continue
 
@@ -255,9 +315,16 @@ def extract_alignment_data(memory_model, memory_policy, prompts, device="cuda"):
             "task": p["task"], "idx": p["idx"],
             "seq_len": seq_len, "layers": sample_layers,
         })
-        logger.info("  Sample %d/%d (%s) done", i + 1, len(prompts), p["task"])
-        del outputs, past_kv
+        if (i + 1) % 10 == 0 or i == 0:
+            logger.info("  Sample %d/%d (%s, seq_len=%d) done",
+                         i + 1, len(prompts), p["task"], seq_len)
+        del past_kv, attn_list_for_namm
+        for l in range(NUM_LAYERS):
+            _attn_for_namm[l] = None
         torch.cuda.empty_cache()
+
+    for h in hooks:
+        h.remove()
 
     return results
 
