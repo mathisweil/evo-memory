@@ -249,7 +249,17 @@ def parse_args():
     parser.add_argument("--filter_answers_by_tokens", type=int, default=64)
 
     # Evaluation batch size
-    parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--batch_size", type=int, default=None,
+                        help="Global evaluator batch size (Hydra override). "
+                             "Used for NAMM Stage A fitness eval and, when "
+                             "--lora_eval_batch_size is unset, also for LoRA "
+                             "Stage B periodic eval.")
+    parser.add_argument("--lora_eval_batch_size", type=int, default=None,
+                        help="Per-LoRA-stage eval batch size. Applied by "
+                             "mutating memory_evaluator.batch_size around "
+                             "each _run_lora_stage call and restoring it "
+                             "after. When unset, LoRA stages inherit the "
+                             "global evaluator batch size.")
 
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
@@ -327,6 +337,8 @@ def main():
         print(f"  grad_accum_steps  : "
               f"{args.gradient_accumulation_steps}")
         print(f"  effective_batch   : {eff_batch}")
+        print(f"  lora_eval_bs      : "
+              f"{args.lora_eval_batch_size or '(inherit global)'}")
         print(f"  max_seq_len       : {args.max_seq_len}")
         print(f"  dtype             : {args.dtype}")
     print("  -- Data --")
@@ -530,6 +542,7 @@ def main():
             "lora_eval_interval": args.lora_eval_interval,
             "lora_log_interval": args.lora_log_interval,
             "lora_early_stopping_patience": args.lora_early_stopping_patience,
+            "lora_eval_batch_size": args.lora_eval_batch_size,
             "dtype": args.dtype,
         })
 
@@ -739,10 +752,32 @@ def _run_es_stage(args, memory_model, param_names,
 def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
                     memory_evaluator, task_sampler, memory_policy,
                     experiment_name, stage_dir, device):
-    """Run one LoRA adapter training stage."""
+    """Run one LoRA adapter training stage.
+
+    If ``args.lora_eval_batch_size`` is set, temporarily override the
+    shared evaluator's batch size for the duration of this stage's
+    LoRA training (including its periodic val-F1 evals). The original
+    value is restored before returning so the next NAMM stage's
+    fitness evaluator sees the global setting.
+    """
     # Unfreeze LoRA params for training
     n_unfrozen = unfreeze_lora_params(memory_model)
     print(f"  Unfroze {n_unfrozen} LoRA parameter tensors for Stage B")
+
+    # Per-stage eval batch size override (save → set → restore).
+    # `memory_evaluator` carries two co-dependent batch-size attrs
+    # (`batch_size` is the one read by `evaluate()`; `batch_size_per_gpu`
+    # is read by the longbench dispatcher). Both must be kept in sync.
+    saved_eval_bs = None
+    saved_eval_bs_per_gpu = None
+    if args.lora_eval_batch_size is not None:
+        saved_eval_bs = memory_evaluator.batch_size
+        saved_eval_bs_per_gpu = getattr(
+            memory_evaluator, 'batch_size_per_gpu', None)
+        memory_evaluator.batch_size = args.lora_eval_batch_size
+        memory_evaluator.batch_size_per_gpu = args.lora_eval_batch_size
+        print(f"  LoRA stage eval batch size: "
+              f"{args.lora_eval_batch_size} (was {saved_eval_bs})")
 
     task_names = list(cfg.task_sampler.tasks)
     lora_cfg = LoRATrainerConfig(
@@ -792,7 +827,15 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
         device=device,
     )
 
-    lora_trainer.train()
+    try:
+        lora_trainer.train()
+    finally:
+        # Restore the global evaluator batch size so the next NAMM
+        # Stage A's CMA-ES fitness evals use the original setting.
+        if saved_eval_bs is not None:
+            memory_evaluator.batch_size = saved_eval_bs
+            if saved_eval_bs_per_gpu is not None:
+                memory_evaluator.batch_size_per_gpu = saved_eval_bs_per_gpu
 
     # Re-freeze LoRA params for next NAMM stage
     n_frozen = freeze_lora_params(memory_model)
