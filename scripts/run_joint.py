@@ -873,6 +873,12 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
         trainer_config=lora_cfg,
         wandb_config=lora_wandb_config,
         device=device,
+        # Pass method/run_name so _write_artifact_contract disambiguates
+        # `results/{method}/{run_name}/{seed}/` per joint run -- otherwise
+        # parallel joint runs sharing a seed clobber each other's
+        # `best_ckpt.pt` (same failure mode as the LoRA rank sweep).
+        method=lora_cfg.method,
+        run_name=f"{args.run_name}_stage{stage_idx}",
     )
 
     try:
