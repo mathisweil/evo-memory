@@ -1,8 +1,9 @@
 # Independent Critique of the Analysis Work
 
-> Last updated: 2026-04-14.
+> Last updated: 2026-04-15.
 > Status: All reports (0--9) rewritten with maskfix data. M3 maskfix
-> training step 260 of 425 (run killed). No maskfix test-set evals.
+> training step 260 of 425 (run killed). Maskfix test-set evals now
+> available for all conditions; M3 > M1 confirmed on test.
 
 > **Naming warning:** Reports use the M0--M3 convention from the
 > experiment specification. Results directories and some older code
@@ -82,27 +83,43 @@ maskfix results conflate two effects: (a) the attention mask fix and
 confound makes it impossible to attribute any specific change cleanly
 to the mask fix alone.
 
-### 2.2 No maskfix test-set evaluations exist
+### 2.2 Large validation-to-test gaps
 
-All reported F1 numbers are **validation** metrics. The existing
-test-set evaluations (in `results/main_table_5t/all_results.json`)
-were run on the **buggy** checkpoints. No maskfix conditions have been
-evaluated on the held-out test split.
+Maskfix test-set evaluations now exist for all conditions:
 
-This matters for two reasons:
+| Condition            | val F1 | test F1 | ext F1 | val-to-test gap |
+| -------------------- | -----: | ------: | -----: | --------------: |
+| B0 plain             |     -- |   22.41 |  22.42 |              -- |
+| M2 NAMM cs1024       |  14.90 |   19.27 |  18.70 |           +4.37 |
+| M1 LoRA (full cache) |  45.48 |   27.97 |  25.75 |          -17.51 |
+| M3 LoRA +NAMM cs1024 |  52.06 |   33.51 |  25.84 |          -18.55 |
+| A4 LoRA (no NAMM)    |     -- |   36.07 |  24.91 |              -- |
 
-1. **Selection bias.** Reporting the best validation F1 as the primary
-   metric inflates results because the checkpoint was implicitly
-   selected to maximise it. The M3 val F1 of 52.06 at step 260 is the
-   peak of a noisy curve; the true expected performance on unseen data
-   is lower.
-2. **Generalisation is untested.** The buggy test-set evals showed that
-   validation-to-test gaps can be substantial and condition-dependent
-   (e.g., the buggy A4/cs2048 shifted by +12 points after the eval
-   fix). Without maskfix test-set numbers, the headline claim that "M3
-   exceeds M1" rests entirely on validation data.
+The headline finding **M3 > M1 holds on test** (33.51 vs 27.97,
++5.54 F1), partially resolving the prior concern that the comparison
+rested entirely on validation data. However, two issues remain:
 
-Until maskfix test-set evaluations are run, the analysis is preliminary.
+1. **Substantial val-to-test drops.** M1 falls 17.5 points and M3
+   falls 18.6 points from validation to test. This is consistent with
+   checkpoint selection bias: the validation set is small (n=64
+   samples), and peak validation F1 was used to select checkpoints.
+   The val metric effectively overfits to the validation distribution.
+   M2's anomalous *increase* from val (14.90) to test (19.27) may
+   reflect a different metric computation during training versus
+   standalone evaluation, or simply that M2's poor val performance
+   had nowhere to go but up.
+
+2. **The ext split shows further degradation for fine-tuned models.**
+   M3 ext F1 (25.84) is close to M1 ext F1 (25.75), erasing most of
+   M3's test-set advantage. A4 shows the starkest pattern: 36.07 test
+   vs 24.91 ext (-11.16 points), suggesting that fine-tuned models
+   overfit to the test distribution as well, or that the ext split
+   contains harder examples. This warrants investigation.
+
+The test results confirm that M3 > M1 generalises beyond the
+validation set, but the magnitude of the advantage is much smaller
+than the validation numbers suggest (5.54 vs 6.58 F1 points), and the
+ext split narrows it further.
 
 ### 2.3 Small and truncated GPU analysis samples
 
@@ -243,9 +260,10 @@ never explicitly resolved in the reports.
 
 Across nine quantitative reports, no p-values, bootstrap confidence
 intervals, or permutation tests appear (except Report 3's retention
-correlations). The headline finding "M3 (52.06) exceeds M1 (45.48)" is
-a difference of 6.58 F1 points on a validation set of ~64 samples. This
-is likely significant, but "likely" is not a substitute for a test.
+correlations). The headline finding "M3 exceeds M1" is a difference of 6.58 F1 points
+on validation (52.06 vs 45.48) and 5.54 points on test (33.51 vs 27.97).
+Both gaps are likely significant, but "likely" is not a substitute for a
+test, especially given the small validation set (n=64).
 Sample sizes have improved (n=365 for reports 5-7, n=255 for report 9)
 but formal statistical tests are still absent.
 
@@ -264,15 +282,18 @@ In priority order:
    early-stops by a proper criterion), the full analysis suite should
    be rerun to verify that the qualitative findings hold at convergence.
 
-3. **Run maskfix test-set evaluations.** All headline F1 numbers
-   currently rest on validation data. Test-set evaluation on the held-out
-   split is necessary before any claim about M3 vs M1 performance can
-   be made with confidence.
-
-4. **Add bootstrap confidence intervals** to at least the R1 per-task
+3. **Add bootstrap confidence intervals** to at least the R1 per-task
    F1 comparison (M3 vs M1) and the R5 entropy comparisons. This does
    not require new GPU runs -- it requires resampling existing
-   per-sample or per-prompt metrics.
+   per-sample or per-prompt metrics. With test-set results now
+   available, confidence intervals on the test F1 gap (M3 - M1 = 5.54)
+   are particularly important.
+
+4. **Investigate the ext-split degradation.** M3's advantage over M1
+   nearly vanishes on the ext split (25.84 vs 25.75). Understanding
+   whether this reflects harder examples, distribution shift, or
+   overfitting to the test distribution is important for the
+   generalisability claim.
 
 5. **Increase GPU analysis sample sizes** if computationally feasible.
    Moving from 10--15 to 30--50 samples would substantially tighten
@@ -285,9 +306,8 @@ In priority order:
    abandoned due to unreliable labels. A reformulation that probes for
    the answer itself (not specific token positions) could address this.
 
-8. **Run the A4 ablation with maskfix checkpoints.** The existing A4
-   results (M3 checkpoint evaluated without NAMM at inference) are from
-   buggy checkpoints.
+8. ~~**Run maskfix test-set evaluations.**~~ Done. Test-set results
+   confirm M3 > M1 (+5.54 F1). See Section 2.2 for details.
 
 ---
 
@@ -303,12 +323,14 @@ converging evidence from multiple independent measurements and survived
 a major methodological correction (the attention mask fix).
 
 However, the work is currently in an interim state. The M3 maskfix
-checkpoint is less than half-trained, no test-set evaluations exist for
-corrected models, sample sizes in GPU analyses are small, and no
-statistical tests accompany any finding. The Report 6 sign flip
-demonstrates how a single bug can invert a qualitative conclusion -- a
-reminder that the remaining findings, while consistent, are not immune
-to revision once training completes and proper evaluation is done.
+checkpoint is less than half-trained, sample sizes in GPU analyses are
+small, and no statistical tests accompany any finding. Test-set
+evaluations now confirm M3 > M1 (33.51 vs 27.97), but with large
+val-to-test drops (~18 points for M3) and near-parity on the ext split
+(25.84 vs 25.75). The Report 6 sign flip demonstrates how a single bug
+can invert a qualitative conclusion -- a reminder that the remaining
+findings, while consistent, are not immune to revision once training
+completes and proper evaluation is done.
 
 The most robust findings are:
 - Orthogonal LoRA subspaces (R4): qualitatively stable, quantitatively
@@ -318,11 +340,15 @@ The most robust findings are:
 - Moderate gradient distortion under eviction (R9): +79% loss, cos 0.21
 
 The least reliable findings are:
-- Absolute F1 numbers (R1--R2): interim checkpoint, validation only
+- Absolute F1 numbers (R1--R2): interim checkpoint, large val-to-test
+  gaps (~18 points), ext split nearly erases M3's advantage
 - Probe results (R8): abandoned due to flawed labels
 - Layer-specific convergence narratives: the layer-3 story collapsed
   with maskfix; the layer-9 story may shift with further training
 
 The path forward is clear: complete M3 training, rerun the analyses,
-run test-set evaluations, and add statistical tests. The infrastructure
-is in place to do all of this efficiently.
+add statistical tests, and investigate the ext-split degradation. Test-set
+evaluations are now done and confirm the core M3 > M1 finding, but the
+large val-to-test gaps and ext-split convergence temper the strength of
+the claim. The infrastructure is in place to address the remaining items
+efficiently.

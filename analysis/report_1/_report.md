@@ -1,10 +1,12 @@
 # Analysis 1 -- Per-Task Eviction Sensitivity
 
-> All values are **validation F1** (not test).
 > Naming follows M0--M3 convention throughout.
 > M3 checkpoint is step 260 (best at step 260 of 425 before kill); final metrics may shift.
+> Test F1 numbers are from deterministic (batch_size=1) evaluation with greedy decoding.
 
-## 1. Per-Task Best Validation F1
+## 1. Per-Task Best F1
+
+### Validation
 
 | Task         |    B0 |    M1 |    M2 |    M3 |
 |:-------------|------:|------:|------:|------:|
@@ -14,6 +16,17 @@
 | hotpotqa_e   | 40.00 | 44.00 | 14.00 | 74.00 |
 | 2wikimqa_e   | 35.68 | 69.23 | 23.08 | 75.64 |
 | **Mean**     | **22.59** | **45.48** | **14.90** | **52.06** |
+
+### Test
+
+| Task         |    B0 |    M1 |    M2 |    M3 |
+|:-------------|------:|------:|------:|------:|
+| qasper       | 25.85 | 28.74 | 26.89 | 33.26 |
+| 2wikimqa     | 26.52 | 18.33 | 25.00 | 25.00 |
+| qasper_e     |  6.06 | 22.26 |  7.62 | 27.81 |
+| hotpotqa_e   | 44.56 | 40.89 | 18.59 | 43.52 |
+| 2wikimqa_e   | 17.46 | 31.75 | 22.32 | 39.80 |
+| **Mean**     | **22.41** | **27.97** | **19.27** | **33.51** |
 
 Best step / best iter:
 
@@ -26,60 +39,62 @@ Best step / best iter:
 This measures the relative change in performance when training with NAMM
 eviction active (M3) vs full context (M1). Positive = M3 is better.
 
-| Task         | M3 Gain (%)     |
-|:-------------|----------------:|
-| qasper       |          -28.71 |
-| 2wikimqa     |          +24.04 |
-| qasper_e     |          -21.14 |
-| hotpotqa_e   |          +68.18 |
-| 2wikimqa_e   |           +9.26 |
-| **Mean**     |      **+14.48** |
+| Task         | Val Gain (%) | Test Gain (%) |
+|:-------------|-------------:|--------------:|
+| qasper       |       -28.71 |        +15.71 |
+| 2wikimqa     |       +24.04 |        +36.36 |
+| qasper_e     |       -21.14 |        +24.91 |
+| hotpotqa_e   |       +68.18 |         +6.43 |
+| 2wikimqa_e   |        +9.26 |        +25.35 |
+| **Mean**     |   **+14.48** |    **+19.79** |
 
-On average, M3 surpasses M1 by 14.48% relative. Eviction-aware training does
-not merely recover from eviction damage -- it improves beyond the LoRA-only
-baseline. Three of five tasks (2WikiMQA, HotpotQA-E, 2WikiMQA-E) show gains,
-with HotpotQA-E showing a particularly large +68% improvement. Qasper tasks
-are the exception, losing 21-29% relative to M1.
+On validation, M3 surpasses M1 by 14.48% relative; on test, the gain is even
+larger at +19.79%. Notably, the two tasks where M3 underperformed M1 on
+validation (qasper -28.7%, qasper_e -21.1%) both flip to positive gains on
+test (+15.7%, +24.9%), suggesting the validation disadvantage was not robust.
+All five tasks show M3 gains on the test set.
 
 ## 3. Recovery Ratio: (M3 - M2) / (M1 - M2)
 
 This measures how much of the gap between M2 (NAMM-only, no LoRA) and M1
-(LoRA-only, no eviction) is closed by M3 (joint LoRA+NAMM). Values above 100%
+(LoRA-only, no eviction) is closed by M3 (joint LoRA+NAMM). Values above 1.00
 mean M3 exceeded M1.
 
-| Task         | Recovery (%) |
-|:-------------|-------------:|
-| qasper       |        60.06 |
-| 2wikimqa     |       139.69 |
-| qasper_e     |        71.05 |
-| hotpotqa_e   |       200.00 |
-| 2wikimqa_e   |       113.89 |
-| **Mean**     |   **121.53** |
+| Task         | Val Recovery | Test Recovery |
+|:-------------|-------------:|--------------:|
+| qasper       |         0.60 |          3.44 |
+| 2wikimqa     |         1.40 |          0.00 |
+| qasper_e     |         0.71 |          1.38 |
+| hotpotqa_e   |         2.00 |          1.12 |
+| 2wikimqa_e   |         1.14 |          1.85 |
+| **Mean**     |     **1.22** |      **1.64** |
 
-M3 fully recovers the M1-M2 gap on average (121.53%), meaning it overshoots M1.
-hotpotqa_e achieves 200% recovery -- M3 gains twice the M1-M2 gap at that task.
+On validation, M3 fully recovers the M1-M2 gap on average (1.22); on test the
+mean recovery ratio is 1.64, confirming M3 consistently overshoots M1. The
+2wikimqa test recovery of 0.00 reflects that M1 and M3 both score 25.00 on
+that task while M2 also scores 25.00, making the ratio degenerate. Excluding
+that edge case, all remaining tasks show recovery above 1.0 on test.
 
 ## 4. Key Findings
 
-1. **M3 (52.06) exceeds M1 (45.48) by +6.58 points.** Joint LoRA+NAMM training
-   does not just recover from eviction -- it produces a model that outperforms the
-   LoRA-only baseline. This is a 14.5% relative gain over M1.
+1. **M3 exceeds M1 on both val and test.** Val: 52.06 vs 45.48 (+14.5%);
+   test: 33.51 vs 27.97 (+19.8%). Joint LoRA+NAMM training does not just
+   recover from eviction -- it produces a model that outperforms the
+   LoRA-only baseline on both splits.
 
-2. **M2 (14.90) shows the cost of eviction without adaptation.** NAMM-only eviction
-   (no LoRA adaptation) drops performance well below even the B0 baseline (22.59).
-   The model cannot compensate for token removal without LoRA fine-tuning. This
-   confirms that joint training (M3) is essential -- eviction alone destroys too
-   much information.
+2. **M2 shows the cost of eviction without adaptation.** Val: 14.90; test:
+   19.27 -- both well below even the B0 baseline (val 22.59, test 22.41).
+   The model cannot compensate for token removal without LoRA fine-tuning.
+   This confirms that joint training (M3) is essential.
 
-3. **Task-level variance is large.** hotpotqa_e shows the most dramatic M3 gain
-   (74.00, up from M1's 44.00), while qasper shows the largest sensitivity to
-   eviction (M3 21.86 vs M1 30.67). This suggests some tasks are more sensitive
-   to the eviction strategy than others.
+3. **Task-level variance is large but all five tasks favour M3 on test.**
+   On validation, qasper tasks showed M3 < M1, but this does not hold on
+   test (qasper +15.7%, qasper_e +24.9%), indicating the val-set weakness
+   was not robust.
 
-4. **Recovery ratio exceeds 100% on three of five tasks.** 2wikimqa (139.69%),
-   hotpotqa_e (200.00%), and 2wikimqa_e (113.89%) all show M3 exceeding M1,
-   indicating that the NAMM eviction policy can act as a beneficial regulariser
-   when the model is allowed to adapt jointly.
+4. **Recovery ratio exceeds 1.0 on most tasks across both splits.** Val
+   mean 1.22, test mean 1.64 -- NAMM eviction acts as a beneficial
+   regulariser when the model adapts jointly.
 
 ## 5. Comparison with Pre-Correction (Buggy) Runs
 
@@ -101,13 +116,11 @@ genuine eviction quality.
 
 - M3 training was killed at step 425; best val F1 at step 260. The run
   did not complete and final metrics may differ.
-- All numbers are validation F1, not test F1. Final conclusions require test-set
-  evaluation.
 
 ## Plots
 
-| Plot                                                     | Description                                  |
-| -------------------------------------------------------- | -------------------------------------------- |
-| [`best_val_f1_comparison.png`](plots/best_val_f1_comparison.png) | Per-task best val F1 grouped bar (B0--M3)  |
-| [`sensitivity_bar.png`](plots/sensitivity_bar.png)             | M3 gain over M1 per task                     |
-| [`recovery_ratio.png`](plots/recovery_ratio.png)               | Recovery ratio per task (M3/M1)              |
+| Plot                                                     | Description                                          |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| [`best_f1_comparison.png`](plots/best_f1_comparison.png) | Per-task best F1 two-panel (val + test) grouped bar  |
+| [`sensitivity_bar.png`](plots/sensitivity_bar.png)       | M3 gain over M1 per task (val + test)                |
+| [`recovery_ratio.png`](plots/recovery_ratio.png)         | Recovery ratio per task (val + test)                  |

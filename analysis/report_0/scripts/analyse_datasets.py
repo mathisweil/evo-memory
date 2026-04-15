@@ -2,6 +2,10 @@
 """
 Dataset characteristics analysis for LongBench 5-task QA subset.
 
+Uses the same task_sampler infrastructure as the experiment and other
+analysis reports, so sample counts, filtering, and splits are exact
+(not word-based approximations).
+
 Produces (in ../plots/):
   - dataset_characteristics.png: summary table-as-figure
   - prompt_templates.png: prompt templates for each task
@@ -9,17 +13,12 @@ Produces (in ../plots/):
   - answer_types.png: answer type distribution per task
   - eviction_analysis.png: eviction rates and retention at cs=1024
 
-Tasks analysed:
-  lb/qasper, lb/2wikimqa, lb/qasper_e, lb/hotpotqa_e, lb/2wikimqa_e
-
-Filtering applied (matching experiment configs):
-  - max_conditioning_length word filter: length < 6500/1.3 = 5000 words
-  - max_answer_tokens word filter: shortest answer <= 64/1.3 ~ 49 words
-  - min_conditioning_length: >= 4096 tokens (approximated as >= 3151 words)
-  - train_frac=0.7, val_frac=0.15, split_seed=42
+Run:
+    HF_HOME=.hf_cache PYTHONPATH=. .venv/bin/python analysis/report_0/scripts/analyse_datasets.py
 """
 
 import os
+import sys
 import json
 import textwrap
 import numpy as np
@@ -29,14 +28,21 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.patches import FancyBboxPatch
 from collections import Counter
-
-from datasets import load_dataset
-
+from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Config
+# Config — matches the experiment and other analysis reports exactly
 # ---------------------------------------------------------------------------
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPORT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+OUT_DIR = os.path.join(REPORT_DIR, "plots")
+REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
 TASKS = ["qasper", "2wikimqa", "qasper_e", "hotpotqa_e", "2wikimqa_e"]
+LB_TASKS = [f"lb/{t}" for t in TASKS]
 TASK_DISPLAY = {
     "qasper": "Qasper",
     "2wikimqa": "2WikiMQA",
@@ -44,66 +50,51 @@ TASK_DISPLAY = {
     "hotpotqa_e": "HotpotQA-E",
     "2wikimqa_e": "2WikiMQA-E",
 }
-MAX_COND_LENGTH = 6500
-MIN_COND_LENGTH = 4096
-MAX_ANSWER_TOKENS = 64
-TRAIN_FRAC = 0.7
-VAL_FRAC = 0.15
+
+MODEL_ID = "meta-llama/Llama-3.2-1B-Instruct"
+RUN_CONFIG = "namm_bam_i1_llama32_1b_5t"
+CACHE_SIZE = 1024
+TRAIN_SPLIT = 0.7
+VAL_SPLIT = 0.15
 SPLIT_SEED = 42
-
-# Approximate token/word ratios used in the codebase
-TOKEN_WORD_RATIO = 1.3
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-REPORT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
-OUT_DIR = os.path.join(REPORT_DIR, "plots")
+FILTER_BY_TOKENS = 6500
+FILTER_ANSWERS_BY_TOKENS = 64
+MIN_CONDITIONING_LENGTH = 4096
 
 # Prompt templates (from data/longbench/dataset2prompt.json)
-REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
 PROMPT_FILE = os.path.join(REPO_ROOT, "data", "longbench", "dataset2prompt.json")
-
 with open(PROMPT_FILE) as f:
     PROMPT_TEMPLATES = json.load(f)
 
 
 # ---------------------------------------------------------------------------
-# Load and filter datasets
+# Build task sampler (same as R5/6/7/9)
 # ---------------------------------------------------------------------------
-def load_and_filter(task_name):
-    """Load a LongBench task, apply word-based filters matching the codebase."""
-    ds = load_dataset("THUDM/LongBench", task_name, split="test",
-                      trust_remote_code=True)
-    all_examples = list(ds)
+def build_task_sampler():
+    """Build the task sampler with exact filtering and splits."""
+    from transformers import AutoTokenizer
+    from scripts.experiment_utils import load_hydra_config
+    from namm.run_utils import make_task_sampler
 
-    max_words = MAX_COND_LENGTH / TOKEN_WORD_RATIO
-    max_ans_words = MAX_ANSWER_TOKENS / TOKEN_WORD_RATIO
-    min_words = MIN_COND_LENGTH / TOKEN_WORD_RATIO
-
-    # Step 1: filter by context length (upper bound)
-    filtered = [ex for ex in all_examples if ex["length"] < max_words]
-
-    # Step 2: filter by answer length
-    filtered2 = []
-    for ex in filtered:
-        answers = ex["answers"]
-        if isinstance(answers, str):
-            answers = [answers]
-        shortest_ans_words = min(len(a.split()) for a in answers)
-        if shortest_ans_words <= max_ans_words:
-            filtered2.append(ex)
-
-    # Step 3: filter by min context length
-    eligible = [ex for ex in filtered2 if ex["length"] >= min_words]
-
-    return all_examples, filtered2, eligible
-
-
-def compute_splits(n_eligible):
-    """Compute train/val/test sizes matching the codebase logic."""
-    n_train = int(n_eligible * TRAIN_FRAC)
-    n_val = int(n_eligible * VAL_FRAC)
-    n_test = n_eligible - n_train - n_val
-    return n_train, n_val, n_test
+    cfg = load_hydra_config(
+        RUN_CONFIG,
+        extra_overrides=[
+            f"cache_size={CACHE_SIZE}",
+            f"max_memory_length={CACHE_SIZE}",
+        ],
+    )
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+    task_sampler = make_task_sampler(
+        cfg=cfg, train_split=TRAIN_SPLIT, split_seed=SPLIT_SEED)
+    task_sampler.filter_by_token_count(tokenizer, FILTER_BY_TOKENS)
+    task_sampler.filter_answers_by_token_count(tokenizer, FILTER_ANSWERS_BY_TOKENS)
+    task_sampler.apply_train_val_test_split(
+        train_frac=TRAIN_SPLIT, val_frac=VAL_SPLIT,
+        max_conditioning_length=FILTER_BY_TOKENS,
+        min_conditioning_length=MIN_CONDITIONING_LENGTH,
+        tokenizer=tokenizer,
+    )
+    return task_sampler, tokenizer
 
 
 def classify_answer(answer_text):
@@ -126,24 +117,49 @@ def classify_answer(answer_text):
 # Main analysis
 # ---------------------------------------------------------------------------
 def analyse():
+    """Analyse dataset using the exact same task_sampler as the experiment."""
+    task_sampler, tokenizer = build_task_sampler()
     stats = {}
 
     for task in TASKS:
+        lb_task = f"lb/{task}"
         print(f"\n{'='*60}")
         print(f"  Task: {task}")
         print(f"{'='*60}")
 
-        all_ex, filtered, eligible = load_and_filter(task)
+        jsons = task_sampler.lb_jsons_per_task[lb_task]
+        n_total = len(jsons)
 
-        # Context lengths (word-count field) for eligible samples
-        ctx_lengths = np.array([ex["length"] for ex in eligible])
-        # Context lengths in characters
-        ctx_chars = np.array([len(ex["context"]) for ex in eligible])
+        # Get exact split sizes from task_sampler
+        train_idxs = task_sampler._train_idxs_per_task.get(lb_task, [])
+        val_idxs = task_sampler._val_idxs_per_task.get(lb_task, [])
+        test_idxs = task_sampler._test_idxs_per_task.get(lb_task, [])
+        n_train = len(train_idxs)
+        n_val = len(val_idxs)
+        n_test = len(test_idxs)
+        # "Eligible" = samples that survived the 4096-6500 token filter
+        # (i.e. actually used in train/val/test)
+        n_eligible = n_train + n_val + n_test
 
-        # Answer analysis
+        # Only analyse the eligible samples (those in the splits)
+        eligible_idxs = sorted(
+            list(train_idxs) + list(val_idxs) + list(test_idxs))
+
+        # Context lengths in tokens (exact, using the tokenizer)
+        prompts = task_sampler.lb_prompts_per_task[lb_task]
+        ctx_token_lengths = np.array([
+            len(tokenizer.encode(prompts[i], add_special_tokens=False))
+            for i in eligible_idxs
+        ])
+
+        # Context lengths in words (from the dataset 'length' field)
+        ctx_word_lengths = np.array([jsons[i]["length"] for i in eligible_idxs])
+
+        # Answer analysis (eligible samples only)
         ans_word_counts = []
         ans_types = []
-        for ex in eligible:
+        for i in eligible_idxs:
+            ex = jsons[i]
             answers = ex["answers"]
             if isinstance(answers, str):
                 answers = [answers]
@@ -154,37 +170,39 @@ def analyse():
         ans_word_counts = np.array(ans_word_counts)
         type_counter = Counter(ans_types)
 
-        # Splits
-        n_train, n_val, n_test = compute_splits(len(eligible))
-
         stats[task] = {
-            "total_raw": len(all_ex),
-            "after_filter": len(filtered),
-            "eligible": len(eligible),
+            "total_after_filter": n_total,
+            "eligible": n_eligible,
             "n_train": n_train,
             "n_val": n_val,
             "n_test": n_test,
-            "ctx_length_mean": float(np.mean(ctx_lengths)) if len(ctx_lengths) > 0 else 0,
-            "ctx_length_median": float(np.median(ctx_lengths)) if len(ctx_lengths) > 0 else 0,
-            "ctx_length_min": float(np.min(ctx_lengths)) if len(ctx_lengths) > 0 else 0,
-            "ctx_length_max": float(np.max(ctx_lengths)) if len(ctx_lengths) > 0 else 0,
-            "ctx_length_std": float(np.std(ctx_lengths)) if len(ctx_lengths) > 0 else 0,
-            "ctx_chars_mean": float(np.mean(ctx_chars)) if len(ctx_chars) > 0 else 0,
-            "ans_words_mean": float(np.mean(ans_word_counts)) if len(ans_word_counts) > 0 else 0,
-            "ans_words_median": float(np.median(ans_word_counts)) if len(ans_word_counts) > 0 else 0,
-            "ans_words_max": float(np.max(ans_word_counts)) if len(ans_word_counts) > 0 else 0,
+            "ctx_length_mean": float(np.mean(ctx_word_lengths)),
+            "ctx_length_median": float(np.median(ctx_word_lengths)),
+            "ctx_length_min": float(np.min(ctx_word_lengths)),
+            "ctx_length_max": float(np.max(ctx_word_lengths)),
+            "ctx_length_std": float(np.std(ctx_word_lengths)),
+            "ctx_token_mean": float(np.mean(ctx_token_lengths)),
+            "ctx_token_median": float(np.median(ctx_token_lengths)),
+            "ctx_token_min": float(np.min(ctx_token_lengths)),
+            "ctx_token_max": float(np.max(ctx_token_lengths)),
+            "ans_words_mean": float(np.mean(ans_word_counts)),
+            "ans_words_median": float(np.median(ans_word_counts)),
+            "ans_words_max": float(np.max(ans_word_counts)),
             "ans_type_counts": dict(type_counter),
-            "ctx_lengths": ctx_lengths,
+            "ctx_lengths": ctx_word_lengths,
+            "ctx_token_lengths": ctx_token_lengths,
             "ans_word_counts": ans_word_counts,
         }
 
-        print(f"  Raw samples:     {len(all_ex)}")
-        print(f"  After filtering: {len(filtered)}")
-        print(f"  Eligible:        {len(eligible)}")
+        print(f"  After word+answer filter: {n_total}")
+        print(f"  Eligible (4096-6500 tok): {n_eligible}")
         print(f"  Split: {n_train} train / {n_val} val / {n_test} test")
-        print(f"  Context length (words): mean={np.mean(ctx_lengths):.0f}, "
-              f"median={np.median(ctx_lengths):.0f}, "
-              f"range=[{np.min(ctx_lengths)}, {np.max(ctx_lengths)}]")
+        print(f"  Context length (tokens): mean={np.mean(ctx_token_lengths):.0f}, "
+              f"median={np.median(ctx_token_lengths):.0f}, "
+              f"range=[{np.min(ctx_token_lengths)}, {np.max(ctx_token_lengths)}]")
+        print(f"  Context length (words): mean={np.mean(ctx_word_lengths):.0f}, "
+              f"median={np.median(ctx_word_lengths):.0f}, "
+              f"range=[{np.min(ctx_word_lengths)}, {np.max(ctx_word_lengths)}]")
         print(f"  Answer length (words):  mean={np.mean(ans_word_counts):.1f}, "
               f"median={np.median(ans_word_counts):.0f}, "
               f"max={np.max(ans_word_counts)}")
@@ -200,9 +218,6 @@ def analyse():
     print(f"{'='*60}")
     print(f"  Total eligible: {total_eligible}")
     print(f"  Total split: {total_train} train / {total_val} val / {total_test} test")
-    print(f"  (Expected: 306 train / 64 val / 69 test = 439)")
-    print(f"  Note: Exact counts depend on tokenizer-based filtering;")
-    print(f"        word-based approximation gives slightly different numbers.")
 
     return stats
 
@@ -269,7 +284,7 @@ def plot_characteristics_table(stats):
     columns = [
         "Task", "Source", "Domain", "Question\nType", "Answer\nType",
         "Eligible\nSamples", "Train/Val/\nTest",
-        "Ctx Length\n(words, mean)",
+        "Ctx Length\n(tokens, mean)",
         "Ans Length\n(words, mean)",
         "Information\nLocality",
         "Eviction\nSensitivity",
@@ -319,7 +334,7 @@ def plot_characteristics_table(stats):
             m["answer_type"],
             str(s["eligible"]),
             f"{s['n_train']}/{s['n_val']}/{s['n_test']}",
-            f"{s['ctx_length_mean']:.0f}",
+            f"{s['ctx_token_mean']:.0f}",
             f"{s['ans_words_mean']:.1f}",
             m["info_locality"],
             m["eviction_sensitivity"],
@@ -423,21 +438,20 @@ def plot_length_distributions(stats):
 
     colors = ["#3498db", "#e74c3c", "#2ecc71", "#f39c12", "#9b59b6"]
 
-    # Context length distributions
+    # Context length distributions (in tokens)
     ax = axes[0]
     for i, task in enumerate(TASKS):
-        ctx = stats[task]["ctx_lengths"]
+        ctx = stats[task]["ctx_token_lengths"]
         ax.hist(ctx, bins=30, alpha=0.5, label=TASK_DISPLAY[task],
                 color=colors[i], edgecolor="white", linewidth=0.5)
-    ax.set_xlabel("Context Length (words)", fontsize=11)
+    ax.set_xlabel("Context Length (tokens)", fontsize=11)
     ax.set_ylabel("Count", fontsize=11)
     ax.set_title("Context Length Distribution (Eligible Samples)", fontsize=13,
                  fontweight="bold")
-    ax.legend(fontsize=9)
-    ax.axvline(x=MIN_COND_LENGTH / TOKEN_WORD_RATIO, color="gray",
-               linestyle="--", alpha=0.7, label=f"Min filter (~{MIN_COND_LENGTH/TOKEN_WORD_RATIO:.0f} words)")
-    ax.axvline(x=MAX_COND_LENGTH / TOKEN_WORD_RATIO, color="gray",
-               linestyle=":", alpha=0.7, label=f"Max filter (~{MAX_COND_LENGTH/TOKEN_WORD_RATIO:.0f} words)")
+    ax.axvline(x=MIN_CONDITIONING_LENGTH, color="gray",
+               linestyle="--", alpha=0.7, label=f"Min filter ({MIN_CONDITIONING_LENGTH} tokens)")
+    ax.axvline(x=FILTER_BY_TOKENS, color="gray",
+               linestyle=":", alpha=0.7, label=f"Max filter ({FILTER_BY_TOKENS} tokens)")
     ax.legend(fontsize=9)
 
     # Answer length distributions
@@ -525,65 +539,51 @@ def plot_answer_types(stats):
 # Plot 5: Eviction impact analysis
 # ---------------------------------------------------------------------------
 def plot_eviction_analysis(stats):
-    """Visualise how much context is evicted at different cache sizes."""
+    """Visualise how much context is evicted at cache_size=1024."""
     fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 
-    cache_sizes = [1024]
     colors = ["#3498db", "#e74c3c", "#2ecc71", "#f39c12", "#9b59b6"]
 
-    # Panel 1: % of tokens evicted per task at each cache size
+    # Panel 1: % of tokens evicted per task (using exact token counts)
     ax = axes[0]
-    x = np.arange(len(cache_sizes))
-    width = 0.15
-    offsets = np.linspace(-width * 2, width * 2, len(TASKS))
+    x = np.arange(len(TASKS))
+    width = 0.5
 
-    for i, task in enumerate(TASKS):
-        # Mean context in tokens (approx)
-        mean_ctx_tokens = stats[task]["ctx_length_mean"] * TOKEN_WORD_RATIO
-        eviction_pcts = []
-        for cs in cache_sizes:
-            pct_evicted = max(0, (mean_ctx_tokens - cs) / mean_ctx_tokens * 100)
-            eviction_pcts.append(pct_evicted)
-        ax.bar(x + offsets[i], eviction_pcts, width, label=TASK_DISPLAY[task],
-               color=colors[i], edgecolor="white", linewidth=0.5)
+    eviction_pcts = []
+    for task in TASKS:
+        mean_tokens = stats[task]["ctx_token_mean"]
+        pct = max(0, (mean_tokens - CACHE_SIZE) / mean_tokens * 100)
+        eviction_pcts.append(pct)
+
+    bars = ax.bar(x, eviction_pcts, width,
+                  color=[colors[i] for i in range(len(TASKS))],
+                  edgecolor="white", linewidth=0.5)
+    for bar, pct in zip(bars, eviction_pcts):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
+                f"{pct:.1f}%", ha="center", va="bottom", fontsize=9)
 
     ax.set_xticks(x)
-    ax.set_xticklabels([f"cs={cs}" for cs in cache_sizes], fontsize=10)
+    ax.set_xticklabels([TASK_DISPLAY[t] for t in TASKS], fontsize=10)
     ax.set_ylabel("Tokens Evicted (%)", fontsize=11)
-    ax.set_title("Mean % Tokens Evicted by Cache Size", fontsize=13,
+    ax.set_title(f"Mean % Tokens Evicted (cache_size={CACHE_SIZE})", fontsize=13,
                  fontweight="bold")
-    ax.legend(fontsize=8)
     ax.set_ylim(0, 100)
+    ax.grid(axis="y", alpha=0.3)
 
-    # Panel 2: tokens retained vs total context
+    # Panel 2: distribution of retention % at cs=1024 (exact token counts)
     ax = axes[1]
     for i, task in enumerate(TASKS):
-        ctx_tokens = stats[task]["ctx_lengths"] * TOKEN_WORD_RATIO
-        sorted_ctx = np.sort(ctx_tokens)
-
-        for cs_idx, cs in enumerate(cache_sizes):
-            retained_pct = np.minimum(cs / sorted_ctx * 100, 100)
-            if cs_idx == 0:  # only label once
-                label = TASK_DISPLAY[task]
-            else:
-                label = None
-            linestyle = ["-", "--", ":"][cs_idx]
-            if i == 0:  # Only show cache-size labels for first task
-                ax.plot([], [], linestyle=linestyle, color="gray",
-                        label=f"cs={cs}")
-
-    # Simplified: show distribution of eviction rates at cs=1024
-    for i, task in enumerate(TASKS):
-        ctx_tokens = stats[task]["ctx_lengths"] * TOKEN_WORD_RATIO
-        retained_pct = np.minimum(1024 / ctx_tokens * 100, 100)
+        ctx_tokens = stats[task]["ctx_token_lengths"]
+        retained_pct = np.minimum(CACHE_SIZE / ctx_tokens * 100, 100)
         ax.hist(retained_pct, bins=20, alpha=0.5, label=TASK_DISPLAY[task],
                 color=colors[i], edgecolor="white", linewidth=0.5)
 
-    ax.set_xlabel("% of Context Retained (cache_size=1024)", fontsize=11)
+    ax.set_xlabel(f"% of Context Retained (cache_size={CACHE_SIZE})", fontsize=11)
     ax.set_ylabel("Count", fontsize=11)
-    ax.set_title("Distribution of Context Retention at cs=1024",
+    ax.set_title(f"Distribution of Context Retention at cs={CACHE_SIZE}",
                  fontsize=13, fontweight="bold")
     ax.legend(fontsize=8)
+    ax.grid(axis="y", alpha=0.3)
 
     plt.tight_layout()
     out_path = os.path.join(OUT_DIR, "eviction_analysis.png")

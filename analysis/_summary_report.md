@@ -8,17 +8,18 @@ tasks. This report synthesises findings from 10 analysis reports (0-9) that
 were **rerun with corrected ("maskfix") NAMM checkpoints** after discovering
 and fixing an attention mask bug in the NAMM split-processing pipeline.
 
-The maskfix data is the primary data throughout this report. All validation-set
-numbers come from maskfix checkpoints. Test-set numbers are from the buggy
-NAMM evaluation pipeline and are pending re-evaluation with maskfix -- they
-are included for completeness but should be interpreted with caution.
+The maskfix data is the primary data throughout this report. Both validation
+and test-set results are now available from maskfix checkpoints (deterministic,
+batch_size=1, greedy decoding). The M3 > M1 finding holds on held-out test
+data: M3 test F1 33.51 vs M1 test F1 27.97 (+19.8%).
 
 ### Key findings (maskfix validation data)
 
-**1. M3 exceeds M1 on validation by 14.5%.** M3 maskfix best val F1 is 52.06
-(step 260) vs M1 best val F1 of 45.48 (step 336). The recovery ratio is
-121.5% -- M3 under eviction does not merely match full-context M1 but
-substantially surpasses it. Multi-hop tasks see the largest gains.
+**1. M3 exceeds M1 on both validation (+14.5%) and test (+19.8%).** M3 maskfix
+best val F1 is 52.06 (step 260) vs M1 best val F1 of 45.48 (step 336). On
+held-out test data, M3 achieves 33.51 vs M1's 27.97. The M3 > M1 finding
+holds on unseen data, though both conditions show a substantial val-to-test
+gap (see Section 1). Multi-hop tasks see the largest gains.
 
 **2. M3 converges faster than M1.** M3 reaches its peak at step 260
 (run killed at step 425) vs M1's peak at step 336. M3 also starts from a higher
@@ -101,43 +102,39 @@ We fine-tune Llama 3.2-1B-Instruct on 5 LongBench QA tasks (Qasper,
 2WikiMQA, Qasper-E, HotpotQA-E, 2WikiMQA-E) under 17 conditions spanning
 baselines, truncation controls, ablations, and experimental treatments.
 
-Analysis reports 1-9 use **maskfix validation data**. The test-set numbers
-below are from the **buggy NAMM evaluation pipeline** -- maskfix test-set
-evals have not yet been run.
+Analysis reports 1-9 use **maskfix validation data**. Maskfix test-set
+results are now available (deterministic, batch_size=1, greedy decoding).
 
-### Buggy-era test-set results (for reference)
+### Maskfix test-set results
 
-| Label                    | LoRA         | Eviction  | KV Cache | Test F1 |
-| ------------------------ | ------------ | --------- | -------- | ------: |
-| **B0** (plain Llama)     | No           | None      | Full     |   22.41 |
-| **B1/cs1024**            | No           | Recency   | 1024     |   11.33 |
-| **B1/cs2048**            | No           | Recency   | 2048     |   11.10 |
-| **M1** (LoRA only)       | Yes (rank 8) | None      | Full     |   31.14 |
-| **M2/cs1024** (NAMM)     | No           | NAMM      | 1024     |   10.83 |
-| **M2/cs2048** (NAMM)     | No           | NAMM      | 2048     |   15.27 |
-| **M3/cs1024** (LoRA+NAMM)| Yes (rank 8) | NAMM (frz)| 1024     |   23.52 |
-| **M3/cs2048** (LoRA+NAMM)| Yes (rank 8) | NAMM (frz)| 2048     |   31.41 |
-| **Trunc/plain_1024**     | No           | Truncation| 1024     |   18.21 |
-| **Trunc/plain_2048**     | No           | Truncation| 2048     |   18.26 |
-| **Trunc/lora_m1_1024**   | Yes (M1's)   | Truncation| 1024     |   26.90 |
-| **Trunc/lora_m1_2048**   | Yes (M1's)   | Truncation| 2048     |   28.87 |
-| **M1_recency/cs1024**    | Yes (M1's)   | Recency   | 1024     |    0.00 |
-| **M1_under_NAMM/cs1024** | Yes (M1's)   | NAMM      | 1024     |   26.97 |
-| **M1_under_NAMM/cs2048** | Yes (M1's)   | NAMM      | 2048     |   31.71 |
-| **A4/cs1024**            | Yes (M3's)   | None      | Full     |   28.82 |
-| **A4/cs2048**            | Yes (M3's)   | None      | Full     |   38.98 |
+| Label                      | LoRA         | Eviction   | KV Cache | Test F1 | Ext. Test F1 |
+| -------------------------- | ------------ | ---------- | -------- | ------: | -----------: |
+| **B0** (plain Llama)       | No           | None       | Full     |   22.41 |        22.42 |
+| **Trunc/plain_1024**       | No           | Truncation | 1024     |   17.89 |        17.88 |
+| **M2/cs1024** (NAMM)       | No           | NAMM       | 1024     |   19.27 |        18.70 |
+| **M1** (LoRA, full cache)  | Yes (rank 8) | None       | Full     |   27.97 |        25.75 |
+| **Trunc/lora_m1_1024**     | Yes (M1's)   | Truncation | 1024     |   25.08 |        23.71 |
+| **M1_under_NAMM/cs1024**   | Yes (M1's)   | NAMM       | 1024     |   27.29 |        21.76 |
+| **M3/cs1024** (LoRA+NAMM)  | Yes (rank 8) | NAMM (frz) | 1024     |   33.51 |        25.84 |
+| **A4** (M3 LoRA, no NAMM)  | Yes (M3's)   | None       | Full     |   36.07 |        24.91 |
 
-These test-set numbers were computed with the buggy attention mask in NAMM.
-All NAMM-dependent conditions (M2, M3, M1_under_NAMM) are affected. B0, M1,
-Trunc, and A4 conditions do not use NAMM at inference and are unaffected.
+M3 (33.51) exceeds M1 (27.97) on test by +19.8%, confirming the validation
+finding on held-out data. A4 (M3's LoRA without NAMM eviction at inference)
+achieves the highest test F1 (36.07), suggesting that M3's LoRA has learned
+general improvements beyond eviction compensation.
 
-### Maskfix validation benchmarks
+**Val-to-test gap:** Both M3 and M1 show substantial drops from val to test
+(M3: 52.06 -> 33.51; M1: 45.48 -> 27.97). This gap likely reflects
+overfitting to the small val set (n=64) used for checkpoint selection. Despite
+the gap, the M3 > M1 ordering is preserved on test.
 
-| Condition | Best Val F1 | At Step |
-| --------- | ----------: | ------: |
-| M1        |       45.48 |     336 |
-| M3        |       52.06 |     260 |
-| M2        |       14.90 |      -- |
+### Maskfix validation and test benchmarks
+
+| Condition | Best Val F1 | At Step | Test F1 | Ext. Test F1 |
+| --------- | ----------: | ------: | ------: | -----------: |
+| M1        |       45.48 |     336 |   27.97 |        25.75 |
+| M3        |       52.06 |     260 |   33.51 |        25.84 |
+| M2        |       14.90 |      -- |   19.27 |        18.70 |
 
 The dataset comprises 306 train / 64 val / 70 test samples (4096-6500 tokens
 each) plus 224 extended_test samples (6500-8192 tokens), with a divide between
@@ -171,38 +168,47 @@ suffer most because they require retaining multiple scattered passages. Report
 1's maskfix validation data shows the opposite -- multi-hop tasks see the
 largest M3 gains over M1.
 
-### Report 1 -- Performance Across Conditions (Maskfix Validation)
+### Report 1 -- Performance Across Conditions (Maskfix Validation and Test)
 
-This is the central results report, now using maskfix validation data. The
-headline finding is that M3 substantially exceeds M1.
+This is the central results report, now using maskfix validation and test
+data. The headline finding is that M3 substantially exceeds M1 on both splits.
 
-**Maskfix validation results:**
+**Maskfix results:**
 
-- M3 best val F1: **52.06** (step 260)
-- M1 best val F1: **45.48** (step 336)
-- Recovery ratio: **121.5%** (M3 exceeds M1, not merely recovers)
+- M3 best val F1: **52.06** (step 260) | test F1: **33.51**
+- M1 best val F1: **45.48** (step 336) | test F1: **27.97**
+- Val recovery ratio: **121.5%** (M3 exceeds M1, not merely recovers)
+- Test gain: **+19.8%** (M3 over M1)
 - Multi-hop tasks see the largest gains from eviction-aware training
 
 **Key findings:**
 
-1. **M3 exceeds M1 by 14.5% on validation.** This is a substantial margin
-   that holds across multiple evaluation checkpoints, not a single-step
-   artefact.
+1. **M3 exceeds M1 on both val (+14.5%) and test (+19.8%).** The M3 > M1
+   finding holds on held-out test data, not just the val set used for
+   checkpoint selection. This is a substantial margin on both splits.
 
 2. **Multi-hop tasks benefit most.** Contrary to the Report 0 prediction
    that multi-hop tasks would suffer most from eviction, M3 shows its
    largest gains over M1 on distributed-answer tasks.
 
 3. **M2 (NAMM only) degrades under maskfix.** M2 best val F1 drops to 14.90
-   (from 27.90 under the buggy mask). Without LoRA adaptation, the more
-   aggressive corrected eviction substantially hurts performance. This makes
-   the M3 result even more striking -- LoRA adaptation not only compensates
-   for the harsher eviction but turns it into an advantage.
+   (from 27.90 under the buggy mask); test F1 is 19.27. Without LoRA
+   adaptation, the more aggressive corrected eviction substantially hurts
+   performance. This makes the M3 result even more striking -- LoRA
+   adaptation not only compensates for the harsher eviction but turns it
+   into an advantage.
 
-**Note on test-set numbers:** The buggy-era test-set results (Section 1
-table) show M3/cs2048 (31.41) matching M1 (31.14) and A4/cs2048 (38.98)
-substantially exceeding M1. However, all NAMM-dependent test numbers reflect
-the buggy attention mask. Maskfix test-set evaluation is pending.
+4. **Substantial val-to-test gap.** M3 drops from val 52.06 to test 33.51;
+   M1 drops from val 45.48 to test 27.97. Both conditions lose roughly
+   36-38% of their val F1 on test. This likely reflects overfitting to the
+   small val set (n=64) used for checkpoint selection. Critically, M3 still
+   exceeds M1 on test despite both dropping.
+
+5. **A4 achieves the highest test F1 (36.07).** M3's LoRA evaluated without
+   NAMM eviction at inference outperforms all other conditions on test,
+   suggesting that M3's LoRA has learned general improvements not confined
+   to the eviction regime. On extended_test (longer contexts), A4 drops to
+   24.91 while M3 holds at 25.84.
 
 ### Report 2 -- Adaptation Rate (Maskfix Validation)
 
@@ -369,9 +375,9 @@ M3 norms 1.42x (efficient) ->   M3 improves via values, not attention
 
 Gradient signal (Report 9)       Task space (Report 1)
 --------------------------       ----------------------
-4.1% retention, +79% loss   ->   M3 val F1: 52.06
-Weakly aligned grads (0.21) ->   M1 val F1: 45.48
-                             ->   Recovery ratio: 121.5%
+4.1% retention, +79% loss   ->   M3 val 52.06 / test 33.51
+Weakly aligned grads (0.21) ->   M1 val 45.48 / test 27.97
+                             ->   Val recovery: 121.5%; test gain: +19.8%
 ```
 
 M3 learns in near-orthogonal weight subspaces with more efficient
@@ -379,8 +385,8 @@ perturbations (smaller norms). Its attention entropy is identical to
 M2's (no LoRA), meaning the improvement comes from value-space
 extraction, not attention routing. M3's LoRA targets deeper layers
 (L9) than M1's (L2), near the eviction hotspot. Despite operating
-under extreme eviction (~4% retention), M3 exceeds M1's validation
-performance by 14.5%.
+under extreme eviction (~4% retention), M3 exceeds M1 on both
+validation (+14.5%) and test (+19.8%).
 
 ### 3.2 M3's Advantage is Not in Attention Patterns
 
@@ -464,49 +470,60 @@ should be treated as suggestive rather than definitive.
 
 ## 4. Summary Table
 
-| Report | Question                     | Maskfix Answer                          |
-| ------ | ---------------------------- | --------------------------------------- |
-| 0      | What are the tasks?          | Localised Qasper, distributed multi-hop |
-| 1      | Does M3 match M1?           | Exceeds: val 52.06 vs 45.48 (+14.5%)   |
-| 2      | How fast does M3 learn?      | Faster: peak at step 260 vs 336         |
-| 3      | Is eviction uniform?         | Nearly: CV 0.115, L8-9 most aggressive  |
-| 4      | Are LoRA weights similar?    | No: orthogonal, norms 1.42x (efficient) |
-| 5      | Are attention patterns same? | M2 ≈ M3: LoRA doesn't change entropy     |
-| 6      | Does M3 align with NAMM?    | No: all three ≈ -0.15 rho (anti-corr)    |
-| 7      | Are representations similar? | Yes (>0.995); M1 adapts L2, M3 adapts L9 |
-| 8      | Is evicted info retained?    | Abandoned (flawed probe labels)           |
-| 9      | Does eviction change grads?  | Moderately: +79% loss, cos 0.21           |
+| Report | Question                     | Maskfix Answer                                        |
+| ------ | ---------------------------- | ----------------------------------------------------- |
+| 0      | What are the tasks?          | Localised Qasper, distributed multi-hop               |
+| 1      | Does M3 match M1?           | Exceeds: val 52.06 vs 45.48 (+14.5%); test 33.51 vs 27.97 (+19.8%) |
+| 2      | How fast does M3 learn?      | Faster: peak at step 260 vs 336                       |
+| 3      | Is eviction uniform?         | Nearly: CV 0.115, L8-9 most aggressive                |
+| 4      | Are LoRA weights similar?    | No: orthogonal, norms 1.42x (efficient)               |
+| 5      | Are attention patterns same? | M2 ≈ M3: LoRA doesn't change entropy                  |
+| 6      | Does M3 align with NAMM?    | No: all three ≈ -0.15 rho (anti-corr)                 |
+| 7      | Are representations similar? | Yes (>0.995); M1 adapts L2, M3 adapts L9              |
+| 8      | Is evicted info retained?    | Abandoned (flawed probe labels)                        |
+| 9      | Does eviction change grads?  | Moderately: +79% loss, cos 0.21                        |
 
 ---
 
 ## 5. Buggy vs Maskfix: What Changed and What Held
 
-| Finding                   | Buggy           | Maskfix         | Changed? |
-| ------------------------- | --------------- | --------------- | -------- |
-| M3 > M1 on val           | Yes             | Yes (stronger)  | Stronger |
-| Attention entropy shift   | +5.2% (flawed)  | M2 ≈ M3 (-12%)  | Revised  |
-| Orthogonal subspaces      | ~0.18 overlap   | ~0.21 overlap   | Robust   |
-| NAMM-attn correlation     | rho = -0.137    | rho ≈ -0.15     | Similar  |
-| CKA min layer (M1vsM3)    | Layer 3         | Layer 11        | Shifted  |
-| LoRA norm ratio (q_proj)  | 1.93x           | 1.42x           | Smaller  |
-| Retention ratio           | 20%             | 3.8%            | 5x lower |
-| Probe informativeness     | M3 drops to .375| Abandoned       | Dropped  |
-| Gradient alignment        | cos ~0.015      | cos 0.21        | Changed  |
+| Finding                   | Buggy           | Maskfix Val     | Maskfix Test    | Changed? |
+| ------------------------- | --------------- | --------------- | --------------- | -------- |
+| M3 > M1                  | Yes             | Yes (stronger)  | Yes (33.51 vs 27.97) | Stronger |
+| M3 test F1               | 23.52 (buggy)   | --              | 33.51           | Higher   |
+| M1 test F1               | 31.14 (buggy)   | --              | 27.97           | Lower    |
+| Attention entropy shift   | +5.2% (flawed)  | M2 ≈ M3 (-12%)  | --              | Revised  |
+| Orthogonal subspaces      | ~0.18 overlap   | ~0.21 overlap   | --              | Robust   |
+| NAMM-attn correlation     | rho = -0.137    | rho ≈ -0.15     | --              | Similar  |
+| CKA min layer (M1vsM3)    | Layer 3         | Layer 11        | --              | Shifted  |
+| LoRA norm ratio (q_proj)  | 1.93x           | 1.42x           | --              | Smaller  |
+| Retention ratio           | 20%             | 3.8%            | --              | 5x lower |
+| Probe informativeness     | M3 drops to .375| Abandoned       | --              | Dropped  |
+| Gradient alignment        | cos ~0.015      | cos 0.21        | --              | Changed  |
 
 Five findings reversed or substantially changed (NAMM-attention
 correlation, CKA layer, probing, attention entropy, gradient alignment).
 Orthogonal LoRA subspaces is the most robust finding, holding
 qualitatively across both versions.
 
+Notably, the buggy-era test had M1 (31.14) > M3/cs1024 (23.52), opposite
+to the maskfix result where M3 (33.51) > M1 (27.97). The buggy attention
+mask disproportionately penalised NAMM-dependent conditions on test. With
+the fix, M3's test advantage aligns with its validation advantage.
+
 ---
 
 ## 6. Open Questions
 
-1. **Maskfix test-set evaluation is the most urgent next step.** All
-   test-set numbers in this report are from the buggy NAMM pipeline. Until
-   maskfix test evals are run, the M3 > M1 finding rests on validation data
-   alone (n=64). The buggy test numbers show M3/cs2048 (31.41) matching M1
-   (31.14), but these cannot be compared to maskfix validation results.
+1. **The val-to-test gap is substantial and needs investigation.** M3 drops
+   from val 52.06 to test 33.51 (-36%); M1 drops from val 45.48 to test
+   27.97 (-38%). Both conditions lose roughly a third of their val F1 on
+   test. The most likely explanation is overfitting to the small val set
+   (n=64) used for checkpoint selection. The M3 > M1 ordering is preserved
+   on test (+19.8%), confirming the central finding, but the magnitude of
+   the gap suggests caution in reporting absolute performance numbers.
+   Extended_test (6500-8192 tokens) shows further degradation: M3 25.84,
+   M1 25.75 -- the gap nearly vanishes at longer contexts.
 
 2. **Why does more aggressive eviction help M3 but hurt M2?** The
    maskfix NAMM retains 3.8% of tokens (vs 20% buggy), and M3 val F1
@@ -531,11 +548,12 @@ qualitatively across both versions.
    itself rather than for specific token positions — could address this.
 
 6. **Does the M3 > M1 advantage hold at scale?** All experiments use Llama
-   3.2-1B and 4096-6500 token contexts. The buggy-era extended_test
-   results (M1: 31.84 vs M3/cs1024: 25.40 at 6500-8192 tokens) suggest
-   the advantage may not persist with longer contexts, though these
-   numbers are also buggy-era. Testing at longer contexts and with larger
-   models is needed.
+   3.2-1B and 4096-6500 token contexts. The maskfix extended_test results
+   (M3: 25.84 vs M1: 25.75 at 6500-8192 tokens) show that M3's advantage
+   nearly vanishes at longer contexts. This may reflect the cache_size=1024
+   budget becoming proportionally tighter as context grows. Testing at
+   longer contexts, with larger cache sizes, and with larger models is
+   needed.
 
 7. **What caused the M1_recency/cs1024 failure?** The all-zero outputs
    (buggy test: 0.00 F1) need diagnosis. If recency eviction is

@@ -31,13 +31,13 @@ All tasks are evaluated using **token-level F1 score** (qa_f1_score).
 The context is a full scientific paper (abstract, introduction, methods, results, etc.). Questions are written by NLP researchers who read only the paper's title and abstract. This means questions target specific sections of the paper but the questioner does not know exactly where the answer lies.
 
 **Answer types are diverse:**
-- Short factoid answers (18%)
-- Phrase-length answers (33%)
-- Sentence-length answers (31%)
+- Short factoid answers (20%)
+- Phrase-length answers (32%)
+- Sentence-length answers (26%)
 - Yes/no answers (11%)
-- "Unanswerable" (8%)
+- "Unanswerable" (10%)
 
-The mean answer length is **9.5 words**, the longest among all five tasks. This diversity makes Qasper intrinsically harder for F1 scoring: the model must produce the right format (yes/no, unanswerable, or a precise extractive/abstractive answer).
+The mean answer length is **8.1 words**, the longest among all five tasks. This diversity makes Qasper intrinsically harder for F1 scoring: the model must produce the right format (yes/no, unanswerable, or a precise extractive/abstractive answer).
 
 **Information locality:** Generally **localised** — the answer typically comes from a specific section or paragraph of the paper. However, some questions require synthesising information from multiple sections.
 
@@ -48,11 +48,11 @@ The mean answer length is **9.5 words**, the longest among all five tasks. This 
 The context consists of multiple Wikipedia passages concatenated together. Questions require multi-hop reasoning: the model must find information in one passage, use it to identify a relevant entity, then find the answer in a different passage.
 
 **Answer types are concentrated:**
-- Short factoid (1-3 words): 82%
+- Short factoid (1-3 words): 80%
 - Phrase: 14%
-- Yes/no: 4%
+- Yes/no: 5%
 
-Mean answer length is **2.2 words** — the shortest among all tasks. Questions typically ask about relationships between entities (e.g., "Where was the wife of Francis I Rakoczi born?").
+Mean answer length is **2.4 words** — the shortest among all tasks. Questions typically ask about relationships between entities (e.g., "Where was the wife of Francis I Rakoczi born?").
 
 **Information locality:** **Distributed** — answering requires combining facts from at least two different passages. The model must perform entity linking across passages.
 
@@ -61,8 +61,8 @@ Mean answer length is **2.2 words** — the shortest among all tasks. Questions 
 **Source:** Qasper dataset via LongBench-E (extended version with different length distributions).
 
 Same task type as Qasper but drawn from a different sample of the Qasper dataset, with a broader length distribution. The prompt template is identical. After filtering to the 4096-6500 token range, the characteristics are very similar to base Qasper:
-- Answer type distribution: 26% short factoid, 29% phrase, 28% sentence+, 11% yes/no, 6% unanswerable
-- Mean answer length: **8.7 words**
+- Answer type distribution: 26% short factoid, 27% phrase, 28% sentence+, 13% yes/no, 6% unanswerable
+- Mean answer length: **8.2 words**
 
 **Information locality:** **Localised** — same as base Qasper.
 
@@ -73,11 +73,11 @@ Same task type as Qasper but drawn from a different sample of the Qasper dataset
 HotpotQA contains multi-hop questions requiring reasoning over two Wikipedia passages. The original dataset includes "bridge" questions (finding a bridge entity connecting two passages) and "comparison" questions (comparing attributes of two entities).
 
 **Answer types:**
-- Short factoid: 69%
+- Short factoid: 71%
 - Phrase: 16%
-- Yes/no: 13%
+- Yes/no: 11%
 
-Mean answer length: **2.5 words**. The yes/no proportion (13%) is notably higher than 2WikiMQA (4%), reflecting HotpotQA's comparison questions.
+Mean answer length: **2.5 words**. The yes/no proportion (11%) is notably higher than 2WikiMQA (5%), reflecting HotpotQA's comparison questions.
 
 **Information locality:** **Distributed** — specifically requires exactly 2 supporting passages. The context contains many distractor passages alongside the 2 gold passages.
 
@@ -86,9 +86,9 @@ Mean answer length: **2.5 words**. The yes/no proportion (13%) is notably higher
 **Source:** 2WikiMultihopQA via LongBench-E.
 
 Same task type as base 2WikiMQA but from the extended LongBench-E collection. After filtering:
-- Short factoid: 74%
+- Short factoid: 71%
 - Phrase: 18%
-- Yes/no: 8%
+- Yes/no: 11%
 
 Mean answer length: **2.4 words**. Very similar profile to base 2WikiMQA.
 
@@ -144,27 +144,26 @@ See `plots/prompt_templates.png` for the full templates.
 
 ## 4. Sample Counts and Data Splits
 
-Filtering applied (matching experiment configuration):
-- `min_conditioning_length`: 4096 tokens
+Filtering applied (matching experiment configuration exactly — uses the same
+`task_sampler` infrastructure as the experiment and all analysis reports):
 - `max_conditioning_length`: 6500 tokens
+- `min_conditioning_length`: 4096 tokens
 - `max_answer_tokens`: 64
 - Splits: `train_frac=0.7`, `val_frac=0.15`, `split_seed=42`
 
-**Note:** The exact counts below use word-based approximation (1.3 tokens/word) matching the `init_tasks()` code. Tokenizer-based filtering in `apply_train_val_test_split()` gives slightly different numbers. The reported total from experiments is 306/64/69 = 439; our word-based approximation yields 320/67/74 = 461.
-
-| Task       | Raw      | After Length Filter | Eligible (min 4096 tok) | Train   | Val    | Test   |
-| ---------- | -------- | ------------------- | ----------------------- | ------- | ------ | ------ |
-| Qasper     | 200      | 180                 | 95                      | 66      | 14     | 15     |
-| 2WikiMQA   | 200      | 138                 | 96                      | 67      | 14     | 15     |
-| Qasper-E   | 224      | 178                 | 124                     | 86      | 18     | 20     |
-| HotpotQA-E | 300      | 111                 | 62                      | 43      | 9      | 10     |
-| 2WikiMQA-E | 300      | 142                 | 84                      | 58      | 12     | 14     |
-| **Total**  | **1224** | **749**             | **461**                 | **320** | **67** | **74** |
+| Task       | After Word+Answer Filter | Eligible (4096-6500 tok) | Train  | Val    | Test   |
+| ---------- | -----------------------: | -----------------------: | -----: | -----: | -----: |
+| Qasper     |                      163 |                       87 |     60 |     13 |     14 |
+| 2WikiMQA   |                      106 |                       80 |     56 |     12 |     12 |
+| Qasper-E   |                      157 |                      111 |     77 |     16 |     18 |
+| HotpotQA-E |                      105 |                       73 |     51 |     10 |     12 |
+| 2WikiMQA-E |                      118 |                       89 |     62 |     13 |     14 |
+| **Total**  |                  **649** |                  **440** | **306** | **64** | **70** |
 
 **Key observations:**
-- HotpotQA-E has the fewest eligible samples (62) because its raw contexts tend to be longer (mean 6658 words), and most are filtered out by the 6500-token upper bound.
-- Qasper-E contributes the most samples (124), providing good coverage of scientific paper QA.
-- The filtering is aggressive: only 37% of raw samples survive all filters.
+- HotpotQA-E has the fewest eligible samples (73) after tokenizer-based filtering.
+- Qasper-E contributes the most samples (111), providing good coverage of scientific paper QA.
+- The 4096-6500 token filter removes 32% of word+answer-filtered samples (649 → 440).
 
 ---
 
@@ -172,27 +171,28 @@ Filtering applied (matching experiment configuration):
 
 ### 5.1 Context Lengths (Eligible Samples)
 
-| Task       | Mean (words) | Median | Min  | Max  | Std |
-| ---------- | ------------ | ------ | ---- | ---- | --- |
-| Qasper     | 3987         | 3862   | 3164 | 4958 | 508 |
-| 2WikiMQA   | 4037         | 3984   | 3155 | 4966 | 534 |
-| Qasper-E   | 4118         | 4171   | 3158 | 4964 | 484 |
-| HotpotQA-E | 3737         | 3710   | 3177 | 4751 | 413 |
-| 2WikiMQA-E | 3989         | 3998   | 3155 | 4993 | 554 |
+| Task       | Mean (tokens) | Median | Min  | Max  |
+| ---------- | ------------: | -----: | ---: | ---: |
+| Qasper     |          5237 |   5267 | 4099 | 6463 |
+| 2WikiMQA   |          5352 |   5411 | 4085 | 6414 |
+| Qasper-E   |          5395 |   5577 | 4105 | 6463 |
+| HotpotQA-E |          5244 |   5272 | 4091 | 6393 |
+| 2WikiMQA-E |          5155 |   5104 | 4079 | 6456 |
 
-After filtering, all tasks have similar context length distributions (mean ~3800-4100 words, ~4900-5350 tokens). HotpotQA-E is slightly shorter on average. See `plots/length_distributions.png`.
+After filtering, all tasks have similar context length distributions (mean
+~5150-5400 tokens). See `plots/length_distributions.png`.
 
 ### 5.2 Answer Lengths
 
 | Task       | Mean (words) | Median | Max |
-| ---------- | ------------ | ------ | --- |
-| Qasper     | 9.5          | 6      | 43  |
-| 2WikiMQA   | 2.2          | 2      | 7   |
-| Qasper-E   | 8.7          | 5      | 46  |
-| HotpotQA-E | 2.5          | 2      | 11  |
-| 2WikiMQA-E | 2.4          | 2      | 9   |
+| ---------- | -----------: | -----: | --: |
+| Qasper     |          8.1 |      5 |  32 |
+| 2WikiMQA   |          2.4 |      2 |  14 |
+| Qasper-E   |          8.2 |      5 |  50 |
+| HotpotQA-E |          2.5 |      2 |  11 |
+| 2WikiMQA-E |          2.4 |      2 |   8 |
 
-There is a stark divide: **Qasper tasks have much longer, more variable answers** (mean ~9 words, range 1-46) while **multi-hop tasks have very short answers** (mean ~2.3 words, mostly 1-3 words). See `plots/answer_types.png`.
+There is a stark divide: **Qasper tasks have much longer, more variable answers** (mean ~8 words, range 1-50) while **multi-hop tasks have very short answers** (mean ~2.4 words, mostly 1-3 words). See `plots/answer_types.png`.
 
 ---
 
@@ -202,11 +202,16 @@ This section analyses where answer-relevant information is located within the co
 
 ### 6.1 Token Eviction Rates
 
-At cache_size=1024 with contexts of 4096-6500 tokens, approximately **75-80% of tokens are evicted**. Only ~20-25% of the original context is retained. See `plots/eviction_analysis.png`.
+At cache_size=1024 with contexts of 4096-6500 tokens (mean ~5300),
+approximately **80% of tokens are evicted**. See `plots/eviction_analysis.png`.
 
-| Cache Size | Approx. Tokens Retained | Approx. % Evicted |
-| ---------- | ----------------------- | ----------------- |
-| 1024       | 1024 of ~5000           | ~80%              |
+| Task       | Mean context (tokens) | % Evicted at cs=1024 |
+| ---------- | --------------------: | -------------------: |
+| Qasper     |                  5237 |                80.4% |
+| 2WikiMQA   |                  5352 |                80.9% |
+| Qasper-E   |                  5395 |                81.0% |
+| HotpotQA-E |                  5244 |                80.5% |
+| 2WikiMQA-E |                  5155 |                80.1% |
 
 ### 6.2 Per-Task Information Locality
 

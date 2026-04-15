@@ -40,9 +40,9 @@ The following conditions have been evaluated but were not covered in the origina
 A critical attention mask bug was discovered in the NAMM split-processing loop (see `scripts/diagnose_attention_mask.py`). The attention mask grows with cumulative input length rather than tracking the actual post-eviction KV cache size. From chunk 9 onward (~2300 tokens), attention collapses to uniform 1/N. This bug exists in the original Sakana AI NAMM codebase and affects all published results.
 
 Maskfix reruns retrain M2 and M3 with the corrected attention mask:
-- **M2 maskfix cs1024** (`z5bo4n8k`): finished, val F1 14.90 (worse than buggy 27.90)
-- **M2 maskfix cs2048** (`jip3a3dm`): running
-- **M3 maskfix cs1024** (`h0bzg6on`): killed at step 425, best val F1 52.06 at step 260 (exceeds buggy 45.59 and M1 45.48)
+- **M2 maskfix cs1024** (`z5bo4n8k`): finished, val F1 14.90 (worse than buggy 27.90), test F1 19.27
+- **M2 maskfix cs2048** (`jip3a3dm`): status unknown (still marked running in experiment spec; not used in analyses)
+- **M3 maskfix cs1024** (`h0bzg6on`): killed at step 425, best val F1 52.06 at step 260 (exceeds buggy 45.59 and M1 45.48), test F1 33.51
 
 Checkpoints available locally (`experiment_artifacts/gcs/M2_cs1024_maskfix/`, `M3_cs1024_maskfix/`) and backed up to GCS (`gs://statistical-nlp/evo-memory/checkpoints_backup_20260414/`).
 
@@ -70,9 +70,9 @@ Form predictions for the relative task ranking under each condition (B0, M1, M2,
 
 **Hypothesis:** Tasks with localised information (Qasper — answer in a specific paper section) should be less sensitive to eviction than multi-hop tasks (2WikiMQA, HotpotQA — require combining facts from multiple passages). Under M3 fine-tuning, recovery should be easier for localised tasks since the model can learn to attend to the retained passage.
 
-**Data needed:** Dataset metadata, prompt templates, sample counts per split.
+**Data needed:** Dataset metadata, prompt templates, sample counts per split. Now uses the same `task_sampler` infrastructure as the experiment pipeline for exact tokenizer-based filtering (not word-based approximation).
 
-**Effort:** Low — dataset inspection only.
+**Effort:** Low — dataset inspection using existing `task_sampler` code.
 
 **References:**
 - Bai et al. (2023). "LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding." *ACL 2024*.
@@ -96,9 +96,9 @@ A high sensitivity score means the task relies on information that NAMM tends to
 
 **Hypothesis:** Tasks requiring precise detail retrieval from specific locations (Qasper) will show higher eviction sensitivity than tasks solvable from distributed contextual cues (2WikiMQA, HotpotQA). M3 fine-tuning should partially close the gap, but more so for the distributed-cue tasks.
 
-**Data needed:** Per-task best val F1 for M1 and M3 at each cache size (already in wandb).
+**Data needed:** Per-task best val F1 for M1 and M3 at each cache size (already in wandb). Per-task test F1 from `results/maskfix_results/`.
 
-> **Update:** The report now uses maskfix validation data. Key finding: M3 maskfix (val F1 52.06) substantially exceeds M1 (val F1 45.48), counter to the hypothesis that eviction would uniformly hurt performance. Buggy test-set results (M3: 23.52, M1: 31.14) showed M3 underperforming, but this was confounded by the attention mask bug.
+> **Update:** The report now uses maskfix validation data. Key finding: M3 maskfix (val F1 52.06) substantially exceeds M1 (val F1 45.48), counter to the hypothesis that eviction would uniformly hurt performance. Maskfix test-set results confirm this: M3 test F1 33.51, M1 test F1 27.97, M2 test F1 19.27 (from `results/maskfix_results/`).
 
 **Effort:** Low — analysis of existing metrics only.
 
@@ -224,15 +224,15 @@ Note: M1 normally operates without NAMM; running it through the NAMM pipeline is
 
 **Question:** How different are the internal representations of M1 vs M3? Does eviction push the model into a fundamentally different representation space, or does LoRA find a way to preserve similar representations despite missing tokens?
 
-**Method:** Apply Centered Kernel Alignment (CKA) to compare hidden state representations between M1 and M3 at each layer:
+**Method:** Apply Centered Kernel Alignment (CKA) to compare hidden state representations across all three conditions (M1, M2, M3) at each layer, using 365 balanced samples (73 per task):
 
-1. **Layer-wise CKA:** For the same set of test inputs, extract hidden states at each layer from both M1 (full context) and M3 (evicted context). Compute linear CKA between the two representation matrices at each layer. CKA = 1 means identical representations (up to linear transform); CKA = 0 means completely unrelated.
+1. **Three-way layer-wise CKA:** For the same set of inputs, extract hidden states at each layer from M1 (full context), M2 (NAMM only), and M3 (LoRA + NAMM). Compute linear CKA for all three pairs (M1 vs M2, M2 vs M3, M1 vs M3) at each layer. CKA = 1 means identical representations (up to linear transform); CKA = 0 means completely unrelated.
 2. **CKA vs eviction intensity:** Plot CKA per layer against the average retention ratio at that layer. Layers with more aggressive eviction should show lower CKA (more divergent representations).
 3. **CKA heatmap (cross-layer):** Compute CKA between every pair of (M1 layer i, M3 layer j). Off-diagonal peaks would suggest that M3 has learned to shift certain computations to different layers to compensate for eviction.
 
 **Hypothesis:** Early layers (before eviction has cumulative effects) will show high CKA. Later layers will show lower CKA, indicating that the model's high-level representations diverge when context is partially evicted. The degree of CKA drop should correlate inversely with M3's ability to recover M1-level F1.
 
-**Data needed:** Inference pass on test set with hidden state extraction at all 16 layers for both M1 and M3 checkpoints.
+**Data needed:** Inference pass on 365 balanced samples with hidden state extraction at all 16 layers for M1, M2, and M3 checkpoints.
 
 **Effort:** Medium — requires inference and CKA computation, but established libraries exist.
 
