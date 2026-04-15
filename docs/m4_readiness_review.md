@@ -114,7 +114,7 @@ Command:
 
 ```bash
 venv/bin/python scripts/run_joint.py \
-    --config scripts/configs/m4_joint_lora_5t.yaml \
+    --config scripts/configs/joint_lora_m4_5t.yaml \
     --run_name m4_joint_lora_matched
 ```
 

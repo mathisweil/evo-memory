@@ -7,7 +7,7 @@ We compare three conditions:
 - **M2** — NAMM eviction policy trained alone (no LoRA, frozen LLM)
 - **M3** — LoRA fine-tuned with frozen NAMM active during training
 
-> **Naming note:** Source-side configs and methods now match the M-numbering (M3 = `m3_lora_frozen_namm_5t`). The on-disk `results/main_table_5t/M4/` directory still holds M3 eval results — the directory name predates the source rename. See `docs/naming_mapping.md`.
+> **Naming note:** What is called M3 in this specification is labelled "M4" in `results/main_table_5t/`. See `experiment_specification.md` for the full naming warning.
 
 ---
 

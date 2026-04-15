@@ -1,0 +1,73 @@
+# DEPRECATED: This config uses a 3-task subset and the non-5t run_config.
+# For FAIR-01 compliant M3 runs, use ../m3_lora_frozen_namm_5t.yaml instead.
+# Kept for reproducibility of prior runs (WandB: rh_m4_5t_cs1024, ovosogkj etc).
+#
+# Usage:
+#   python scripts/run_lora.py --config scripts/configs/deprecated/m3_lora_frozen_namm.yaml \
+#       --run_name rh_m4_test --namm_checkpoint path/to/namm_ckpt.pt
+
+# ── Experiment ──────────────────────────────────────────────────────────
+run_name: null
+experiment: null
+method: rh_m4_frozen
+
+# ── LoRA hyperparameters (rhautier's m4 — lower lr for NAMM stability) ─
+lora_rank: 8
+lora_target_modules: [q_proj, v_proj]
+lora_alpha: 16
+lora_dropout: 0.05
+learning_rate: 1e-4
+weight_decay: 0.01
+max_grad_norm: 1.0
+warmup_ratio: 0.03
+num_epochs: 150
+batch_size: 1
+gradient_accumulation_steps: 16
+max_seq_len: 7000
+sft_mode: true
+
+# ── NAMM ────────────────────────────────────────────────────────────────
+namm_active: true
+namm_checkpoint: null      # REQUIRED: set via CLI --namm_checkpoint
+run_config: namm_bam_i1_llama32_1b
+cache_size: 1024
+
+# ── Data ────────────────────────────────────────────────────────────────
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+train_split: 0.7
+val_split: 0.15
+split_seed: 42
+
+# ── Evaluation ──────────────────────────────────────────────────────────
+eval_interval: 25
+log_interval: 5
+batch_size_eval: 4
+early_stopping_patience: 5  # stop after 5 evals (~125 steps) with no val F1 improvement
+
+# ── Wandb ─────────────────────────────────────────────────────────────
+wandb_entity: SNLP_NAMM
+wandb_project: Experiments
+
+# ── Checkpointing & GCS ────────────────────────────────────────────────
+gcs: true
+checkpoint_every: 0
+resume_checkpoint: null
+
+# ── Advanced ────────────────────────────────────────────────────────────
+# NAMM architecture overrides must match the checkpoint's config exactly.
+# Task list matches rhautier's multi-task setup.
+override:
+  - "task_sampler.tasks=[lb/qasper,lb/multifieldqa_en,lb/2wikimqa]"
+  - "max_position_id=8192"
+  - "max_conditioning_length=6500"
+  - "max_new_tokens=64"
+  - "max_gen_tokens=64"
+  - "batch_size=1"
+  - "pop_size=1"
+  - "per_layer=false"
+  - "memory_policy_fixed_delay=256"
+  - "scoring_attn_num_heads=1"
+  - "scoring_attn_bias=true"
+  - "scoring_attn_masking_strategy=backward"
+  - "scoring_reduction_mode=null"

@@ -2,18 +2,18 @@
 
 Ablation: take the M4 cs=1024 LoRA but evaluate it WITHOUT its NAMM, with full cache (cs=8192). Measures how much the LoRA alone contributes vs. LoRA+NAMM together.
 
-**Source run:** `eval_results/lora_m4_cs1024_5t_ablation/ext_no_namm_20260412_141756/`
+**Source run:** `eval_results/lora_m4_cs1024_5t_ablation/ext_no_namm_20260413_135802/`
 
 ## Results
 
 | Task | test | extended_test |
 |---|---|---|
-| lb/qasper | 46.19 | 30.41 |
-| lb/2wikimqa | 25.00 | 23.55 |
-| lb/qasper_e | 28.12 | 21.41 |
-| lb/hotpotqa_e | 26.67 | 31.57 |
-| lb/2wikimqa_e | 17.46 | 25.07 |
-| **mean F1** | **28.69** | **26.40** |
+| lb/qasper | 27.37 | 25.96 |
+| lb/2wikimqa | 19.05 | 22.23 |
+| lb/qasper_e | 21.44 | 20.26 |
+| lb/hotpotqa_e | 25.62 | 31.57 |
+| lb/2wikimqa_e | 17.46 | 25.68 |
+| **mean F1** | **22.19** | **25.14** |
 
 ## Command
 

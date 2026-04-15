@@ -17,7 +17,7 @@ Based on the critical review (Steps 1-4), here are prioritised action items.
 **Fix:** Resume from GCS checkpoint:
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/m1_lora_5t.yaml \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
     --run_name m1_r8_resume \
     --resume_checkpoint gs://statistical-nlp/NAMM_checkpoints/pretrained/lora-m1-5t-llama32-1b/best_ckpt.pt
 ```
@@ -36,7 +36,7 @@ Note: The `--resume_checkpoint` path may need to be a local path after downloadi
 **Fix:** Resume from GCS checkpoint:
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
+    --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
     --run_name m3_lora_frozen_namm_resume \
     --namm_checkpoint <path-to-m2-cs1024-checkpoint> \
     --resume_checkpoint gs://statistical-nlp/NAMM_checkpoints/pretrained/lora-m4-frozen-5t-cs1024-llama32-1b/best_ckpt.pt
@@ -61,13 +61,13 @@ python scripts/eval_namm_splits.py \
 
 **Estimated compute:** ~30 minutes (eval only, no training).
 
-### 4. Fix `m4_joint_lora_5t.yaml: max_seq_len` before running M4
+### 4. Fix `joint_lora_m4_5t.yaml: max_seq_len` before running M4
 
 **Problem:** `max_seq_len=3500` in the M4 config will cause ALL LoRA training to produce zero loss, because `min_conditioning_length=4096` means every prompt is longer than 3500 tokens. The SFTDataset truncates to 3500 but label_start remains at 4096+, so no answer tokens survive truncation. The LoRA learns nothing.
 
 **Severity:** Paper-blocking. Running M4 with this config wastes all compute.
 
-**Fix:** Change `max_seq_len: 3500` to `max_seq_len: 7000` in `scripts/configs/m4_joint_lora_5t.yaml`. Also change `lora_dropout: 0.0` to `lora_dropout: 0.1` to match M1.
+**Fix:** Change `max_seq_len: 3500` to `max_seq_len: 7000` in `scripts/configs/joint_lora_m4_5t.yaml`. Also change `lora_dropout: 0.0` to `lora_dropout: 0.1` to match M1.
 
 ---
 
@@ -77,12 +77,12 @@ python scripts/eval_namm_splits.py \
 
 **What:** The core novel experiment — co-training NAMM and LoRA.
 
-**Dependencies:** Fix `m4_joint_lora_5t.yaml` first (max_seq_len, lora_dropout).
+**Dependencies:** Fix `joint_lora_m4_5t.yaml` first (max_seq_len, lora_dropout).
 
 **Command:**
 ```bash
 python scripts/run_joint.py \
-    --config scripts/configs/m4_joint_lora_5t.yaml \
+    --config scripts/configs/joint_lora_m4_5t.yaml \
     --run_name m4_joint_lora \
     --adapter_type lora
 ```
@@ -100,7 +100,7 @@ python scripts/run_joint.py \
 **Command:**
 ```bash
 python scripts/run_lora.py \
-    --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
+    --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
     --run_name m3_lr_ablation \
     --namm_checkpoint <path-to-m2-cs1024-checkpoint> \
     --learning_rate 5e-5 \
@@ -121,12 +121,12 @@ python scripts/run_lora.py \
 ```bash
 # M1-r4
 python scripts/run_lora.py \
-    --config scripts/configs/m1_lora_5t.yaml \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
     --run_name m1_r4 --lora_rank 4 --lora_alpha 8
 
 # M1-r16
 python scripts/run_lora.py \
-    --config scripts/configs/m1_lora_5t.yaml \
+    --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
     --run_name m1_r16 --lora_rank 16 --lora_alpha 32
 ```
 
@@ -160,9 +160,9 @@ python scripts/eval_namm_splits.py \
 
 ## 5c. Config Fixes
 
-### Fix 1: `m4_joint_lora_5t.yaml` (CRITICAL)
+### Fix 1: `joint_lora_m4_5t.yaml` (CRITICAL)
 
-**File:** `scripts/configs/m4_joint_lora_5t.yaml`
+**File:** `scripts/configs/joint_lora_m4_5t.yaml`
 
 | Key | Old | New | Reason |
 |-----|-----|-----|--------|

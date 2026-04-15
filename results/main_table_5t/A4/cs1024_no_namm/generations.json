@@ -3,7 +3,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": "3",
+        "pred": "3-4 lines of code. The number of parameters of the UTC time it will be used.",
         "answers": [
           "eight layers"
         ],
@@ -22,7 +22,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": "NUbes-PHI and MEDDOCAN 2019 shared task dataset",
+        "pred": "NUbes-PHI, MEDDOCAN, and NUBes-PHI",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -32,7 +32,7 @@
       },
       {
         "prompt_idx": 161,
-        "pred": "Unanswerable",
+        "pred": "Unsolicited and labeled and implicit assumption that the presence of certain words in the text the NLP techniques used in the text the result of the presence of a label. The text is not a list.",
         "answers": [
           "Unanswerable"
         ],
@@ -60,7 +60,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "Facebook, Twitter",
+        "pred": "Facebook Facebook for Causal Explanation Explanation Explanation (CEI) and Causal Explanation. The text is not a list.",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -70,7 +70,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "text classification, sentiment analysis, web-page classification, medical and healthcare classification",
+        "pred": "text = \"GE-FL, BIBREF, Labeled, Labeled, Sentiment/NLP, N/A, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, Labeled, L",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -89,7 +89,7 @@
       },
       {
         "prompt_idx": 176,
-        "pred": "Unanswerable",
+        "pred": "Unlabeled, the dataset used in a sentence2. The dataset can be used in the mean-similarity the words \\(\\left{2c1, 100000, 100000, 10000, 1, 2) \\(\\left \\left\\{s, 2\\ \\h t, 2\\,x, 2\\,x, 2, 1, 1}  \\leq 1000, 500000, 1.0, 1.0, 1.0, 1.0, 1} + ",
         "answers": [
           "3606",
           "6946"
@@ -99,7 +99,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "MLP",
+        "pred": "ML (Trichot_2010,ref. (1,5, 3j6, 2\\subset:psls, k\\in\\ \ufffdiv0\\) as a (1,2b, 2j1, 2i ^{i4-7 D_{i-inl, allasen, \\(\\hat{1 \\NSA}_{i \\in 5-1,5-1, 2j jk16, \\mathcal{ X}_{k\\left, \\sum1\\subsubsubsubsubsubsubsubsub-subsubset \\(\\left \\over ",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -150,7 +150,7 @@
       },
       {
         "prompt_idx": 139,
-        "pred": "Ottensen",
+        "pred": "Ostergkeweldon, Germany",
         "answers": [
           "Prenzlau"
         ],
@@ -177,7 +177,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": "The Third Kiss",
+        "pred": "The Third Bass, The Third is the correct answer is The Third.",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -195,7 +195,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From Corleone To Brooklyn",
+        "pred": "From the 1930 1950",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -270,7 +270,7 @@
       },
       {
         "prompt_idx": 165,
-        "pred": "The Europarl dataset",
+        "pred": "The best answer to the question \"Can the quality of the pseudo-source data used in the study.",
         "answers": [
           "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
           "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
@@ -348,7 +348,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "Yes",
+        "pred": "Yes, they do.",
         "answers": [
           "Yes",
           "Yes"
@@ -387,7 +387,7 @@
       },
       {
         "prompt_idx": 180,
-        "pred": "Yes",
+        "pred": "Yes, the results of the Bookshelf for the problem statement is not the answer is the statement of the problem. The best possible results were not the case, but the result of the best possible result.",
         "answers": [
           " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
           "majority of questions that our system could not answer so far are in fact answerable"
@@ -415,7 +415,7 @@
       },
       {
         "prompt_idx": 183,
-        "pred": "No",
+        "pred": "No, the best answer is \"No\"",
         "answers": [
           "No",
           "No"
@@ -436,7 +436,7 @@
       },
       {
         "prompt_idx": 89,
-        "pred": "Dublin",
+        "pred": "Dublin, New Hampshire; the town of Dublin, New Hampshire; and the town of Dublin, New Hampshire",
         "answers": [
           "Marlborough"
         ],
@@ -463,7 +463,7 @@
       },
       {
         "prompt_idx": 96,
-        "pred": "Aichryson",
+        "pred": "Aichryse (A) + +1.5 to 2.5 to 2.5 to 2.5 to 2.5",
         "answers": [
           "Polypodium"
         ],
@@ -472,7 +472,7 @@
       },
       {
         "prompt_idx": 97,
-        "pred": "Noel",
+        "pred": "No, the number of times that That's not a sum is the year 1988))) this year a man named Bob and the city of the",
         "answers": [
           "Albert"
         ],
@@ -481,7 +481,7 @@
       },
       {
         "prompt_idx": 99,
-        "pred": "Universal Music Group",
+        "pred": "Universal.",
         "answers": [
           "A1 Recordings"
         ],
@@ -508,7 +508,7 @@
       },
       {
         "prompt_idx": 117,
-        "pred": "George Abbott was a playwright and director who wrote and directed the 1926 play Broadway, which was adapted into a 1927 film starring Claudette Colbert and",
+        "pred": "George Abbott wrote the screenplay for the 1931 film \"My Sin, My Sin\" and \"Secrets of a Secretary\" and directed by George Abbott,",
         "answers": [
           "American theater producer and director, playwright, screenwriter"
         ],
@@ -526,7 +526,7 @@
       },
       {
         "prompt_idx": 124,
-        "pred": "12 times",
+        "pred": "12",
         "answers": [
           "13"
         ],
@@ -573,7 +573,7 @@
       },
       {
         "prompt_idx": 132,
-        "pred": "No",
+        "pred": "No, they do not have any of the above. The correct answer is:",
         "answers": [
           "yes"
         ],
@@ -600,7 +600,7 @@
       },
       {
         "prompt_idx": 142,
-        "pred": "Jaffa",
+        "pred": "Jaffa, Israel",
         "answers": [
           "Israeli"
         ],
@@ -654,7 +654,7 @@
       },
       {
         "prompt_idx": 172,
-        "pred": "Carnegie Mellon University",
+        "pred": "Columbia University",
         "answers": [
           "Warsaw School of Economics"
         ],
@@ -667,7 +667,7 @@
     "lb/qasper": [
       {
         "prompt_idx": 158,
-        "pred": "3",
+        "pred": "3-4 lines of code. The number of parameters of the UTC time it will be used.",
         "answers": [
           "eight layers"
         ],
@@ -686,7 +686,7 @@
       },
       {
         "prompt_idx": 160,
-        "pred": "NUbes-PHI and MEDDOCAN 2019 shared task dataset",
+        "pred": "NUbes-PHI, MEDDOCAN, and NUBes-PHI",
         "answers": [
           "MEDDOCAN, NUBes-PHI",
           "MEDDOCAN, NUBes "
@@ -724,7 +724,7 @@
       },
       {
         "prompt_idx": 167,
-        "pred": "Facebook, Twitter",
+        "pred": "Facebook Facebook for Causal Explanation Explanation Explanation (CEI) and Causal Explanation. The text is not a list.",
         "answers": [
           "Facebook status update messages",
           "Facebook status update messages"
@@ -734,7 +734,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "sentiment classification, web-page classification, medical and healthcare classification",
+        "pred": "sentiment sentiment Sentiment polarity polarity 1: baseball, baseball, and sentiment of the movie \"The movie is a sports team\"",
         "answers": [
           "text classification for themes including sentiment, web-page, science, medical and healthcare"
         ],
@@ -743,7 +743,7 @@
       },
       {
         "prompt_idx": 175,
-        "pred": "No",
+        "pred": "No, the training set for the Latvian, Estonian, and the text the f1-score, the larger the size of the training set used in the English version of the question, the larger the better the text the bests the bests the best.",
         "answers": [
           "By 14 times.",
           "up to 1.95 times larger"
@@ -763,7 +763,7 @@
       },
       {
         "prompt_idx": 177,
-        "pred": "MLP",
+        "pred": "ML: The proposed: Proposed: A framework for the use of the 5 WNTS (S1) to A, B. The best suited for this problem is the \"DeepL Lectures lectures.",
         "answers": [
           "MLP",
           "Eusboost, MWMOTE"
@@ -1018,7 +1018,7 @@
       },
       {
         "prompt_idx": 143,
-        "pred": "The Third Kiss",
+        "pred": "The Third Bass, The Third is the correct answer is The Third.",
         "answers": [
           "Forbidden Daughters"
         ],
@@ -1036,7 +1036,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "From Corleone To Brooklyn",
+        "pred": "From the 1930 1950",
         "answers": [
           "From Corleone To Brooklyn"
         ],
@@ -1567,7 +1567,7 @@
       },
       {
         "prompt_idx": 173,
-        "pred": "Yes",
+        "pred": "Yes, they do.",
         "answers": [
           "Yes",
           "Yes"
@@ -1682,7 +1682,7 @@
       },
       {
         "prompt_idx": 108,
-        "pred": "Future improvements include using a more hierarchical model, incorporating modules for entity extraction, and using a more efficient data structure encoding mechanism.",
+        "pred": "Future improvements include using a more hierarchical model, incorporating modules for entity extraction, and using a more efficient data structure.",
         "answers": [
           "rther constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions",
           "to further constrain the model on the data structure in order to prevent inaccurate of even contradictory descriptions"
@@ -1761,7 +1761,7 @@
       },
       {
         "prompt_idx": 123,
-        "pred": "Learning Data Manipulation ::: Instantiations: Augmentation & Weighting ::: Learning Data Weights",
+        "pred": "Learning Data Manipulation ::: Instantations: Augmentation & Weighting ::: Learning Data Weights",
         "answers": [
           "BIBREF7",
           " reward learning algorithm BIBREF7"
@@ -1790,7 +1790,7 @@
       },
       {
         "prompt_idx": 136,
-        "pred": "Text classification experiment\nIn this experiment, we performed text classification among the classes in the Reuters-8 database. We compared the classification using the word subspace, and its weighted extension, based on MSM (to which we will refer as MSM and TF-MSM, respectively) with the baselines presented in Section \"Related Work\" : MVB, MNB, LSA, and SVM. Since none of the baseline methods work with vector set classification, we also compared to a simple baseline for comparing sets of vectors, defined as the average of similarities between all vector pair combinations of two given sets. For two matrices ${A}$ and",
+        "pred": "Text classification experiment",
         "answers": [
           "Reuters-8 dataset without stop words",
           "The Reuters-8 dataset (with stop words removed)"
@@ -1983,7 +1983,7 @@
       },
       {
         "prompt_idx": 107,
-        "pred": "16,251",
+        "pred": "16,000\n1,0000\n\n## Step 1:  1,0000\n\n## Step 1:  The population of Munson",
         "answers": [
           "729 at the 2010 census"
         ],
@@ -1992,7 +1992,7 @@
       },
       {
         "prompt_idx": 113,
-        "pred": "Vodka",
+        "pred": "Vodka. (2009, not on a plane. The \"Cuba of the title would be the drink; the United States. Cuba in: )",
         "answers": [
           "lime"
         ],
@@ -2228,7 +2228,7 @@
       },
       {
         "prompt_idx": 129,
-        "pred": "3 May 1270",
+        "pred": "3 May 1272",
         "answers": [
           "6 August 1272"
         ],
@@ -2282,7 +2282,7 @@
       },
       {
         "prompt_idx": 147,
-        "pred": "Hulail ibn Hubshiyyah ibn Salul ibn Ka'b ibn Amr al-Khuza'i",
+        "pred": "Hulail ibn Hubshiyyah ibn Ka'ab ibn Amr ibn Qasim",
         "answers": [
           "Princess Maria Immaculata of Bourbon-Two Sicilies"
         ],
@@ -2345,7 +2345,7 @@
       },
       {
         "prompt_idx": 104,
-        "pred": "Werner Mensching lived longer, Werner Mensching died in 1997, Karel Zich died in 1914",
+        "pred": "Werner Mensching lived longer, from 21 June 1933 to 21 June 1997.",
         "answers": [
           "Werner Mensching"
         ],

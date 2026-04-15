@@ -54,7 +54,7 @@ NAMM total: 2 * 100 = 200 generations (matches M2).
 LoRA total: 2 * 75 = 150 epochs (matches M1 epoch count).
 
 M4 LoRA per-stage steps:
-- `m4_joint_lora_5t.yaml`: `batch_size` not set (uses eval batch), but the LoRA stage
+- `joint_lora_m4_5t.yaml`: `batch_size` not set (uses eval batch), but the LoRA stage
   inherits from `LoRATrainerConfig` which gets `batch_size` from the joint config or
   falls back to 1. With `gradient_accumulation_steps=16`:
   - `len(dataloader) = ceil(306/1) = 306`

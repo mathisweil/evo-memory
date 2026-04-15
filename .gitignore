@@ -59,3 +59,4 @@ namm_efficiency_benchmark_report.md
 # Run script artifacts
 scripts/run_all_experiments.log
 scripts/experiment_summary.txt
+checkpoints_backup/*.pt

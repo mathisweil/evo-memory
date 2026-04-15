@@ -8,7 +8,7 @@ This document verifies that every config key is read by its target script, check
 
 ## Active Configs (FAIR-01 compliant)
 
-### `m1_lora_5t.yaml` (M1)
+### `lora_rh_m1_instruct_5t.yaml` (M1)
 
 Target script: `scripts/run_lora.py`
 
@@ -64,7 +64,7 @@ Target script: `scripts/run_lora.py`
 
 ---
 
-### `m3_lora_frozen_namm_5t.yaml` (M3)
+### `lora_rh_m4_instruct_5t.yaml` (M3)
 
 Target script: `scripts/run_lora.py`
 
@@ -86,7 +86,7 @@ Same key mapping as M1 (same script). All keys are read. Types are correct.
 
 ---
 
-### `m4_joint_lora_5t.yaml` (M4)
+### `joint_lora_m4_5t.yaml` (M4)
 
 Target script: `scripts/run_joint.py`
 
@@ -170,11 +170,11 @@ All keys are read. Types are correct. FAIR-01 fields are properly set in `eval_m
 | Config | Status | Safe to Use? |
 |--------|--------|-------------|
 | `lora_default.yaml` | DEPRECATED header | NO — uses `train_split=0.8`, `sft_mode=false`, non-5t `run_config` |
-| `deprecated/lora_m1_only.yaml` | DEPRECATED header | NO — uses non-5t `run_config` |
+| `lora_m1_only.yaml` | DEPRECATED header | NO — uses non-5t `run_config` |
 | `es_m1_only.yaml` | DEPRECATED header | NO — ES path, not LoRA |
 | `es_default.yaml` | DEPRECATED header | NO — ES path |
-| `deprecated/m1_lora.yaml` | DEPRECATED header | NO — 6-task subset, non-5t `run_config` |
-| `deprecated/m3_lora_frozen_namm.yaml` | DEPRECATED header | NO — 3-task subset, non-5t `run_config` |
+| `lora_rh_m1_instruct.yaml` | DEPRECATED header | NO — 6-task subset, non-5t `run_config` |
+| `lora_rh_m4_instruct.yaml` | DEPRECATED header | NO — 3-task subset, non-5t `run_config` |
 
 These are kept for reproducibility of historical runs and should NOT be used for new FAIR-01 experiments.
 
@@ -184,18 +184,18 @@ These are kept for reproducibility of historical runs and should NOT be used for
 
 | Config | Key | Status |
 |--------|-----|--------|
-| `deprecated/m1_lora.yaml` | `checkpoint_every: 0` | DEAD — no argparse param `checkpoint_every` in `run_lora.py`. Ignored by `set_defaults`. |
-| `deprecated/m3_lora_frozen_namm.yaml` | `checkpoint_every: 0` | DEAD — same as above. |
+| `lora_rh_m1_instruct.yaml` | `checkpoint_every: 0` | DEAD — no argparse param `checkpoint_every` in `run_lora.py`. Ignored by `set_defaults`. |
+| `lora_rh_m4_instruct.yaml` | `checkpoint_every: 0` | DEAD — same as above. |
 | `lora_default.yaml` | `checkpoint_every: 0` | DEAD — same as above. |
 
 ---
 
 ## Critical Findings Summary
 
-1. **`m4_joint_lora_5t.yaml: max_seq_len=3500` is CRITICALLY BROKEN** for the FAIR-01 dataset (prompts > 4096 tokens). Must be 7000. All LoRA training in joint stages would produce zero loss for the majority of samples.
+1. **`joint_lora_m4_5t.yaml: max_seq_len=3500` is CRITICALLY BROKEN** for the FAIR-01 dataset (prompts > 4096 tokens). Must be 7000. All LoRA training in joint stages would produce zero loss for the majority of samples.
 
-2. **`m4_joint_lora_5t.yaml: lora_dropout=0.0`** does not match M1 (`0.1`). Should be `0.1` if the intent is to match M1.
+2. **`joint_lora_m4_5t.yaml: lora_dropout=0.0`** does not match M1 (`0.1`). Should be `0.1` if the intent is to match M1.
 
-3. **`joint_default.yaml: learning_rate=2e-4`** does not match M1 (`5e-5`). The corrected `m4_joint_lora_5t.yaml` uses `5e-5`. Always use `m4_joint_lora_5t.yaml` for M4.
+3. **`joint_default.yaml: learning_rate=2e-4`** does not match M1 (`5e-5`). The corrected `joint_lora_m4_5t.yaml` uses `5e-5`. Always use `joint_lora_m4_5t.yaml` for M4.
 
 4. **M1_recency eval used wrong eviction mode** — ran without `--use_classic_recency`, falling back to random NAMM init params instead of recency.
