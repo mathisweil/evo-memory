@@ -15,7 +15,7 @@ evo-memory/
 ├── config/                       # Hydra configuration (used by run_namm.py)
 │   ├── config.yaml               #   main config with composable defaults
 │   ├── model/                    #   LLM / evaluator configs
-│   ├── policy/                   #   memory eviction policies (BAM, MLP, attention)
+│   ├── policy/                   #   memory eviction policies (BAM, MLP, attention, h2o, scissorhands)
 │   ├── evolution/                #   CMA-ES and dummy evolution configs
 │   ├── task/                     #   dataset / sampler configs
 │   ├── run/                      #   experiment-specific run presets
@@ -64,7 +64,7 @@ evo-memory/
 │   ├── evolution/                #   CMA-ES implementation
 │   ├── llms/                     #   LLM wrappers (base + LLaMA)
 │   ├── modules/                  #   neural network components for policies
-│   └── policy/                   #   eviction policies (recency, deep scoring)
+│   └── policy/                   #   eviction policies (recency, deep scoring, H2O, ScissorHands)
 │
 ├── utils/                        # shared utilities
 │   ├── helpers.py                #   model loading, tokenization, data processing
@@ -151,6 +151,9 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 | **LoRA only** (M1) | `scripts/run_lora.py` | `scripts/configs/m1_lora_5t.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
 | **LoRA + frozen NAMM** (M3) | `scripts/run_lora.py` | `scripts/configs/m3_lora_frozen_namm_5t.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
 | **Joint NAMM + LoRA** (M4) | `scripts/run_joint.py` | `scripts/configs/m4_joint_lora_5t.yaml` | `--run_name` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
+| **H2O baseline** | `scripts/run_eval.py` | — | `--run_config h2o_baseline_llama32_1b` | `--cache_size`, `--num_samples` |
+| **ScissorHands baseline** | `scripts/run_eval.py` | — | `--run_config scissorhands_baseline_llama32_1b` | `--cache_size`, `--num_samples` |
+| **LoRA + H2O / ScissorHands** | `scripts/run_lora.py` | `scripts/configs/m1_lora_5t.yaml` | `--run_name`, `--eviction_policy {h2o,scissorhands}` | `--cache_size`, `--lora_rank` |
 | **Evaluate** | `scripts/run_eval.py` | `scripts/configs/eval_default.yaml` | — | `--es_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--num_samples` |
 | **Evaluate splits** | `scripts/eval_namm_splits.py` | — | `--run_config` | `--lora_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--splits` |
 
@@ -249,6 +252,17 @@ python scripts/run_namm.py \
 
 `scratch=true` (default) starts fresh. To resume from `latest.pt` in the run's output directory, append `scratch=false` to any of the commands above. The best checkpoint (`ckpt.pt`) is only overwritten when `val_tasks_aggregate` improves.
 
+### Training-free eviction baselines
+
+Two heuristic policies are implemented as drop-in alternatives to NAMM. Both have no learnable parameters and are applied at inference time on top of any pretrained or LoRA-adapted model.
+
+| Policy | Source | Mechanism | Hyperparameters |
+|---|---|---|---|
+| `h2o` | Zhang et al., NeurIPS 2023 | Per-(layer, KV-head) accumulator of post-softmax attention; keeps top-`k_hh` heavy hitters and the most recent `k_recent = B - k_hh` tokens | `heavy_hitter_ratio` (default 0.5) |
+| `scissorhands` | Liu et al., NeurIPS 2023 | Persistence-of-importance count over a sliding history window; protects a recent window; drops tokens with the highest unimportance count when over budget | `history_window_ratio` (0.5), `recent_window_ratio` (0.25), `drop_ratio` (0.5) |
+
+Both honor FAIR-01: total budget is `cache_size=1024`, no LLM weight changes are required, and the same 5-task QA splits and greedy decoding apply. Pass `--eviction_policy h2o` or `--eviction_policy scissorhands` to `scripts/run_lora.py` to enable eviction during LoRA training and evaluation.
+
 ### Example commands
 
 ```bash
@@ -274,6 +288,23 @@ python scripts/eval_namm_splits.py \
 
 # Evaluate baseline (no fine-tuning, no NAMM)
 python scripts/run_eval.py --run_config full_cache_baseline_llama32_1b
+
+# H2O eviction baseline (Zhang et al., NeurIPS 2023) at FAIR-01 cache_size=1024
+python scripts/run_eval.py \
+    --run_config h2o_baseline_llama32_1b \
+    --cache_size 1024 \
+    --override "task@_global_=rh_multi_qa_5t"
+
+# ScissorHands eviction baseline (Liu et al., NeurIPS 2023) at FAIR-01 cache_size=1024
+python scripts/run_eval.py \
+    --run_config scissorhands_baseline_llama32_1b \
+    --cache_size 1024 \
+    --override "task@_global_=rh_multi_qa_5t"
+
+# LoRA fine-tuning under H2O eviction at train and eval time
+python scripts/run_lora.py \
+    --config scripts/configs/m1_lora_5t.yaml --run_name m1_h2o \
+    --eviction_policy h2o --cache_size 1024
 
 # Run all remaining experiments in dependency order
 bash scripts/run_all_experiments.sh
