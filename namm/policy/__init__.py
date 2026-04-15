@@ -27,3 +27,6 @@ from .shared import SynchronizableBufferStorage, RegistrationCompatible
 
 from .deep_embedding_shared import PositionalEmbedding, Embedding
 from .deep_embedding_wrappers import RecencyEmbeddingWrapper
+
+from .h2o import H2O
+from .scissorhands import ScissorHands
