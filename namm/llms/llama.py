@@ -561,25 +561,38 @@ class WrappedLlamaForCausalLM(LlamaForCausalLM, MemoryModelWrapper):
                     update_iter = False
                 
             
-            # cache is automatically converted to 'legacy_cache' 
-            # tuple of tuples (num_layers x 2) after model inference
+            # cache is automatically converted to 'legacy_cache'
+            # tuple of tuples (num_layers x 2) after model inference.
+            #
+            # The scoring + eviction step is wrapped in `torch.no_grad()` so
+            # PyTorch does not retain the BAM scoring-network activation tape
+            # for a backward pass that never flows through it. Scores feed
+            # only `torch.topk` (non-differentiable by design, see
+            # `.claude/rules/namm.md`), and the post-eviction `past_key_values`
+            # is only consumed cross-step or by retention logging -- never by
+            # the current step's loss, which has already been established by
+            # `self.model(...)` above. Safe for every training path in this
+            # codebase: NAMM is always either frozen (M3) or trained via
+            # CMA-ES (M2, M4 NAMM stages), never by autograd.
             if update_iter and (not always_buffer_cache):
-                outputs.past_key_values = self.memory_policy.update_cache(
-                    past_key_values=outputs.past_key_values, 
-                    num_new_tokens=num_new_tokens,
-                    attn_weights_list=outputs.attentions,
-                    attention_mask=attention_mask,
-                    position_ids=position_ids,
-                    **memory_policy_kwargs,
-                    )
+                with torch.no_grad():
+                    outputs.past_key_values = self.memory_policy.update_cache(
+                        past_key_values=outputs.past_key_values,
+                        num_new_tokens=num_new_tokens,
+                        attn_weights_list=outputs.attentions,
+                        attention_mask=attention_mask,
+                        position_ids=position_ids,
+                        **memory_policy_kwargs,
+                        )
             elif not update_iter:
-                self.memory_policy.buffer_cache(
-                    past_key_values=outputs.past_key_values, 
-                    num_new_tokens=num_new_tokens,
-                    attn_weights_list=outputs.attentions,
-                    attention_mask=attention_mask,
-                    position_ids=position_ids,
-                    )
+                with torch.no_grad():
+                    self.memory_policy.buffer_cache(
+                        past_key_values=outputs.past_key_values,
+                        num_new_tokens=num_new_tokens,
+                        attn_weights_list=outputs.attentions,
+                        attention_mask=attention_mask,
+                        position_ids=position_ids,
+                        )
 
         else:
             if outputs.past_key_values is not None:

@@ -6,21 +6,23 @@ around the training loop so autograd flows through LoRA A/B matrices.
 
 Usage:
     # M1 LoRA-only (FAIR-01):
-    python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml --run_name m1_r8
+    python scripts/run_lora.py --config scripts/configs/m1_lora_5t.yaml --run_name m1_r8
 
     # M3 LoRA + frozen NAMM (FAIR-01):
-    python scripts/run_lora.py --config scripts/configs/lora_rh_m4_instruct_5t.yaml \
+    python scripts/run_lora.py --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
         --run_name m3_lora_frozen_namm --namm_checkpoint path/to/namm.pt
 
     # Quick smoke test:
-    python scripts/run_lora.py --config scripts/configs/lora_rh_m1_instruct_5t.yaml \
-        --run_name smoke --num_epochs 1 --eval_interval 999 --no-gcs --wandb_log false
+    python scripts/run_lora.py --config scripts/configs/m1_lora_5t.yaml \
+        --run_name smoke --num_epochs 1 --eval_interval 999 --no-gcs --no-wandb_log
 """
 
 import argparse
 import logging
 import os
 import sys
+
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import numpy as np
 import torch
@@ -52,7 +54,7 @@ def parse_args():
         description="LoRA gradient fine-tuning of base LLM weights with optional NAMM")
 
     parser.add_argument("--config", type=str, default=None,
-                        help="YAML config file (see scripts/configs/lora_rh_m1_instruct_5t.yaml)")
+                        help="YAML config file (see scripts/configs/m1_lora_5t.yaml)")
 
     # Experiment hierarchy
     parser.add_argument("--run_name", type=str, default=None,
@@ -108,7 +110,7 @@ def parse_args():
     parser.add_argument("--resume_checkpoint", type=str, default=None)
 
     # Wandb
-    parser.add_argument("--wandb_log", type=bool, default=True)
+    parser.add_argument("--wandb_log", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--wandb_entity", type=str, default="SNLP_NAMM")
     parser.add_argument("--wandb_project", type=str, default="Experiments")
     parser.add_argument("--wandb_run_name", type=str, default=None)

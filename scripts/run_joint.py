@@ -41,8 +41,16 @@ import sys
 import time
 from datetime import datetime
 
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
 import numpy as np
 import torch
+
+try:
+    import wandb
+    _HAS_WANDB = True
+except ImportError:
+    _HAS_WANDB = False
 
 logging.getLogger("transformers.generation.stopping_criteria").setLevel(logging.ERROR)
 
@@ -226,6 +234,10 @@ def parse_args():
                              "(999999 = skip periodic eval)")
     parser.add_argument("--lora_log_interval", type=int, default=10,
                         help="Logging interval within LoRA stages")
+    parser.add_argument("--lora_early_stopping_patience", type=int, default=0,
+                        help="Stop a LoRA stage after N evals with no val F1 "
+                             "improvement (0 = disabled). Applies per-stage; "
+                             "the outer loop continues regardless.")
     parser.add_argument("--dtype", type=str, default="bfloat16",
                         choices=["bfloat16", "float16", "float32"],
                         help="Training dtype for LoRA stages")
@@ -245,7 +257,26 @@ def parse_args():
     parser.add_argument("--filter_answers_by_tokens", type=int, default=64)
 
     # Evaluation batch size
-    parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--batch_size", type=int, default=None,
+                        help="Global evaluator batch size (Hydra override). "
+                             "Used for NAMM Stage A fitness eval and, when "
+                             "--lora_eval_batch_size is unset, also for LoRA "
+                             "Stage B periodic eval.")
+    parser.add_argument("--lora_eval_batch_size", type=int, default=None,
+                        help="Per-LoRA-stage eval batch size. Applied by "
+                             "mutating memory_evaluator.batch_size around "
+                             "each _run_lora_stage call and restoring it "
+                             "after. When unset, LoRA stages inherit the "
+                             "global evaluator batch size.")
+
+    # Wandb (single top-level run spans the whole joint training;
+    # NAMM per-iter stats and tracker stage/loop metrics log into it).
+    parser.add_argument("--wandb_log",
+                        action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--wandb_entity", type=str, default="SNLP_NAMM")
+    parser.add_argument("--wandb_project", type=str, default="Experiments")
+    parser.add_argument("--wandb_run_name", type=str, default=None)
+    parser.add_argument("--wandb_group_name", type=str, default=None)
 
     # Extra Hydra overrides
     parser.add_argument("--override", action="append", default=[])
@@ -323,6 +354,8 @@ def main():
         print(f"  grad_accum_steps  : "
               f"{args.gradient_accumulation_steps}")
         print(f"  effective_batch   : {eff_batch}")
+        print(f"  lora_eval_bs      : "
+              f"{args.lora_eval_batch_size or '(inherit global)'}")
         print(f"  max_seq_len       : {args.max_seq_len}")
         print(f"  dtype             : {args.dtype}")
     print("  -- Data --")
@@ -417,12 +450,17 @@ def main():
     namm_trainer_config.eval_only = False
     namm_trainer_config.init_from = None
 
+    # Sub-trainer wandb config. NAMM (MemoryTrainer) logs step-less, so its
+    # per-iter CMA-ES stats attach cleanly to the shared top-level run we
+    # open below. We still point project/entity/group at the canonical
+    # values for config-capture purposes.
+    wandb_enabled = bool(args.wandb_log and _HAS_WANDB)
     namm_wandb_config = WandbConfig(
-        wandb_log=False,
-        wandb_project="Experiments",
-        wandb_entity="SNLP_NAMM",
-        wandb_run_name=args.run_name,
-        wandb_group_name=experiment_name,
+        wandb_log=wandb_enabled,
+        wandb_project=args.wandb_project,
+        wandb_entity=args.wandb_entity,
+        wandb_run_name=(args.wandb_run_name or args.run_name),
+        wandb_group_name=(args.wandb_group_name or experiment_name),
     )
 
     namm_trainer = MemoryTrainer(
@@ -525,6 +563,8 @@ def main():
             "sft_mode": args.sft_mode,
             "lora_eval_interval": args.lora_eval_interval,
             "lora_log_interval": args.lora_log_interval,
+            "lora_early_stopping_patience": args.lora_early_stopping_patience,
+            "lora_eval_batch_size": args.lora_eval_batch_size,
             "dtype": args.dtype,
         })
 
@@ -533,7 +573,26 @@ def main():
         json.dump(config_dict, f, indent=2)
     print(f"Config saved: {config_path}")
 
-    # ── 10. Alternating training loop ────────────────────────────────────
+    # ── 10. Open the top-level wandb run ─────────────────────────────────
+    # A single wandb run spans the whole joint training. NAMM Stage A
+    # emits step-less `wandb.log` calls that auto-advance within this run,
+    # and `JointMetricsTracker` logs stage/loop metrics here too. LoRA
+    # Stage B keeps wandb_log=False at the sub-trainer level because its
+    # explicit `step=global_step` would collide across the N stages on a
+    # shared run; stage-end LoRA metrics still reach wandb via the tracker.
+
+    wandb_run = None
+    if wandb_enabled:
+        wandb_run = wandb.init(
+            project=args.wandb_project,
+            entity=args.wandb_entity,
+            name=(args.wandb_run_name or args.run_name)[:127],
+            group=(args.wandb_group_name or experiment_name)[:127],
+            config={"method": method, **config_dict},
+        )
+        print(f"Wandb run: {wandb_run.url if wandb_run is not None else '(n/a)'}")
+
+    # ── 11. Alternating training loop ────────────────────────────────────
 
     history = {
         "outer_loop": [],
@@ -544,7 +603,7 @@ def main():
     }
     tracker = JointMetricsTracker(
         output_dir=run_dir,
-        wandb_run=None,
+        wandb_run=wandb_run,
         detailed_diagnostics=args.detailed_diagnostics,
     )
     total_start = time.time()
@@ -702,6 +761,9 @@ def main():
     print(f"Figures: {tracker.figures_dir}")
     print(f"{'='*60}")
 
+    if wandb_run is not None:
+        wandb.finish()
+
 
 # ── Stage B runners ──────────────────────────────────────────────────────
 
@@ -734,10 +796,32 @@ def _run_es_stage(args, memory_model, param_names,
 def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
                     memory_evaluator, task_sampler, memory_policy,
                     experiment_name, stage_dir, device):
-    """Run one LoRA adapter training stage."""
+    """Run one LoRA adapter training stage.
+
+    If ``args.lora_eval_batch_size`` is set, temporarily override the
+    shared evaluator's batch size for the duration of this stage's
+    LoRA training (including its periodic val-F1 evals). The original
+    value is restored before returning so the next NAMM stage's
+    fitness evaluator sees the global setting.
+    """
     # Unfreeze LoRA params for training
     n_unfrozen = unfreeze_lora_params(memory_model)
     print(f"  Unfroze {n_unfrozen} LoRA parameter tensors for Stage B")
+
+    # Per-stage eval batch size override (save → set → restore).
+    # `memory_evaluator` carries two co-dependent batch-size attrs
+    # (`batch_size` is the one read by `evaluate()`; `batch_size_per_gpu`
+    # is read by the longbench dispatcher). Both must be kept in sync.
+    saved_eval_bs = None
+    saved_eval_bs_per_gpu = None
+    if args.lora_eval_batch_size is not None:
+        saved_eval_bs = memory_evaluator.batch_size
+        saved_eval_bs_per_gpu = getattr(
+            memory_evaluator, 'batch_size_per_gpu', None)
+        memory_evaluator.batch_size = args.lora_eval_batch_size
+        memory_evaluator.batch_size_per_gpu = args.lora_eval_batch_size
+        print(f"  LoRA stage eval batch size: "
+              f"{args.lora_eval_batch_size} (was {saved_eval_bs})")
 
     task_names = list(cfg.task_sampler.tasks)
     lora_cfg = LoRATrainerConfig(
@@ -765,12 +849,17 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
         max_conditioning_length=args.max_conditioning_length,
         min_conditioning_length=args.min_conditioning_length,
         max_answer_tokens=args.max_answer_tokens,
+        early_stopping_patience=args.lora_early_stopping_patience,
     )
 
+    # LoRA sub-trainer wandb stays off: its explicit `step=global_step`
+    # would collide across multiple Stage B invocations on the shared
+    # top-level run. Per-stage LoRA metrics (final_loss, val_f1, weight
+    # norms) reach wandb via `JointMetricsTracker.log_adapter_stage_end`.
     lora_wandb_config = WandbConfig(
         wandb_log=False,
-        wandb_project="Experiments",
-        wandb_entity="SNLP_NAMM",
+        wandb_project=args.wandb_project,
+        wandb_entity=args.wandb_entity,
         wandb_run_name=f"{args.run_name}_lora_stage{stage_idx}",
         wandb_group_name=experiment_name,
     )
@@ -786,7 +875,15 @@ def _run_lora_stage(args, stage_idx, cfg, memory_model, tokenizer,
         device=device,
     )
 
-    lora_trainer.train()
+    try:
+        lora_trainer.train()
+    finally:
+        # Restore the global evaluator batch size so the next NAMM
+        # Stage A's CMA-ES fitness evals use the original setting.
+        if saved_eval_bs is not None:
+            memory_evaluator.batch_size = saved_eval_bs
+            if saved_eval_bs_per_gpu is not None:
+                memory_evaluator.batch_size_per_gpu = saved_eval_bs_per_gpu
 
     # Re-freeze LoRA params for next NAMM stage
     n_frozen = freeze_lora_params(memory_model)

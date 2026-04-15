@@ -72,11 +72,11 @@ class LoRATrainerConfig:
     """All hyperparameters for LoRAGradTrainer.
 
     All values are set via YAML configs in scripts/configs/ and CLI args.
-    See lora_rh_m1_instruct_5t.yaml (M1) and joint_lora_m4_5t.yaml (M4)
+    See m1_lora_5t.yaml (M1) and m4_joint_lora_5t.yaml (M4)
     for FAIR-01 compliant defaults.
     """
     out_dir: str
-    method: str                     # e.g. 'rh_m1_lora_instruct_5t'
+    method: str                     # e.g. 'm1_lora_5t'
     seed: int                       # split seed (FAIR-01: 42)
 
     max_seq_len: int                # max sequence length for SFT truncation
@@ -351,119 +351,54 @@ class LoRAGradTrainer:
 
         Returns:
             (unscaled_loss_float, past_key_values_out)
+
+        NAMM-active bs>1 note. The two-phase forward derives a single
+        ``context_end`` from ``labels[i].nonzero()[0]`` — the earliest
+        answer start among the batch samples — and runs phase 2 (with
+        gradients) over ``[context_end:seq_len]``. When different samples
+        in a DataLoader batch have heterogeneous answer positions, that
+        span grows to ~thousands of tokens and the phase-2 activation
+        tape (``output_attentions=True`` forces eager attention, and
+        gradient checkpointing is incompatible with ``use_cache=True``)
+        explodes O(bs × phase2_len). To keep the memory profile identical
+        to bs=1 while still supporting bs>1 for throughput, the NAMM path
+        below iterates samples one at a time, does a per-sample phase
+        split, and backward-accumulates gradients. Loss is normalised by
+        the batch-wide token count so gradients are identical up to
+        summation order to the old bs>1 code path.
         """
         cfg = self.trainer_config
-        input_ids = batch['input_ids'].to(self.device, non_blocking=True)
-        labels = batch['labels'].to(self.device, non_blocking=True)
-
-        # NAMM-active: reset KV cache and memory policy buffers before each doc
-        if cfg.namm_active:
-            if hasattr(self.model, 'memory_policy'):
-                if hasattr(self.model.memory_policy, 'initialize_buffers'):
-                    self.model.memory_policy.initialize_buffers()
-                elif hasattr(self.model.memory_policy, 'reset_kv_cache'):
-                    self.model.memory_policy.reset_kv_cache()
-                elif hasattr(self.model.memory_policy, 'reset'):
-                    self.model.memory_policy.reset()
-                else:
-                    print(
-                        "WARNING: memory_policy has no known reset method "
-                        "(initialize_buffers / reset_kv_cache / reset). "
-                        "Proceeding without KV-cache reset."
-                    )
-            # The preceding baseline eval (via evaluate_lb) sets
-            # _flat_param_idxs per-chunk to a length equal to the last chunk
-            # size. Training uses batch_size=1, but the stale batch_idxs
-            # would make get_additional_shared_params return a tensor sized
-            # for the eval chunk, not this step's batch. Reset to match the
-            # actual per-step batch.
-            self.memory_policy.set_params_batch_idxs(
-                np.zeros([input_ids.shape[0]], dtype=np.int64))
-            past_key_values = None
+        input_ids_full = batch['input_ids'].to(self.device, non_blocking=True)
+        labels_full = batch['labels'].to(self.device, non_blocking=True)
 
         if cfg.namm_active:
-            # --- Two-phase forward for memory-efficient NAMM training ---
-            answer_mask = (labels[0] != -100)
-            if answer_mask.any():
-                answer_start = answer_mask.nonzero(as_tuple=True)[0][0].item()
-            else:
-                answer_start = labels.shape[1]
+            return self._train_step_namm(input_ids_full, labels_full)
 
-            chunk_align = self.model.max_new_tokens  # 64
-            context_end = (answer_start // chunk_align) * chunk_align
-            context_end = max(context_end, 0)
-
-            seq_len = input_ids.shape[1]
-
-            # Phase 1: context tokens under no_grad
-            if context_end > 0:
-                with torch.no_grad():
-                    ctx_outputs = self.model(
-                        input_ids=input_ids[:, :context_end],
-                        use_cache=True,
-                        apply_memory_policy=True,
-                        limit_new_tokens=None,
-                        output_hidden_states=False,
-                        skip_lm_head=True,
-                    )
-                past_key_values = ctx_outputs.past_key_values
-                del ctx_outputs
-                torch.cuda.empty_cache()
-
-            # Phase 2: answer tokens with gradients
-            phase2_input = input_ids[:, context_end:]
-            phase2_pos = torch.arange(
-                context_end, seq_len, device=self.device
-            ).unsqueeze(0).expand(input_ids.shape[0], -1)
-
+        # --- Non-NAMM path (single forward over the full batch) ------------
+        # Temporarily disable memory_policy_fixed_delay to prevent the model
+        # from splitting the input into chunks (not needed without NAMM
+        # eviction, and split processing requires use_cache=True which
+        # conflicts with gradient checkpointing).
+        saved_delay = getattr(self.model, 'memory_policy_fixed_delay', None)
+        self.model.memory_policy_fixed_delay = None
+        try:
             outputs = self.model(
-                input_ids=phase2_input,
-                position_ids=phase2_pos,
-                past_key_values=past_key_values,
+                input_ids=input_ids_full,
                 use_cache=True,
-                apply_memory_policy=True,
+                apply_memory_policy=False,
                 limit_new_tokens=None,
                 output_hidden_states=True,
                 skip_lm_head=True,
             )
-
-            hidden_states = outputs.hidden_states[-1]
-            phase2_labels = labels[:, context_end:]
-            shift_hidden = hidden_states[:, :-1, :].contiguous()
-            shift_labels = phase2_labels[:, 1:].contiguous()
-        else:
-            # Single forward pass for non-NAMM mode.
-            # Temporarily disable memory_policy_fixed_delay to prevent the
-            # model from splitting the input into chunks (not needed without
-            # NAMM eviction, and split processing requires use_cache=True
-            # which conflicts with gradient checkpointing).
-            saved_delay = getattr(self.model, 'memory_policy_fixed_delay', None)
-            self.model.memory_policy_fixed_delay = None
-            try:
-                outputs = self.model(
-                    input_ids=input_ids,
-                    use_cache=True,
-                    apply_memory_policy=False,
-                    limit_new_tokens=None,
-                    output_hidden_states=True,
-                    skip_lm_head=True,
-                )
-            finally:
-                self.model.memory_policy_fixed_delay = saved_delay
-            hidden_states = outputs.hidden_states[-1]
-            shift_hidden = hidden_states[:, :-1, :].contiguous()
-            shift_labels = labels[:, 1:].contiguous()
-
-        # Free outputs early -- only shift_hidden/shift_labels and _past_kv
-        # are needed beyond this point.  Releasing attentions, query_states,
-        # and (via O1) intermediate hidden states reclaims VRAM before the
-        # chunked CE and backward pass.
+        finally:
+            self.model.memory_policy_fixed_delay = saved_delay
+        hidden_states = outputs.hidden_states[-1]
+        shift_hidden = hidden_states[:, :-1, :].contiguous()
+        shift_labels = labels_full[:, 1:].contiguous()
         _past_kv = getattr(outputs, 'past_key_values', None)
         del outputs, hidden_states
 
-        # Chunked cross-entropy
         lm_head = self.model.lm_head
-
         chunk_size = 512
         seq_len = shift_hidden.shape[1]
         total_loss = torch.tensor(0.0, device=self.device)
@@ -487,12 +422,134 @@ class LoRAGradTrainer:
         loss = loss / cfg.gradient_accumulation_steps
         loss.backward()
 
-        # ANLYS-01: per-layer token retention logging
         self._last_retention_dict = {}
-        if cfg.namm_active and _past_kv is not None:
-            n_input = input_ids.shape[1]
+        return loss.item() * cfg.gradient_accumulation_steps, _past_kv
+
+    def _train_step_namm(self, input_ids_full, labels_full):
+        """Per-sample two-phase forward + backward for the NAMM path.
+
+        See ``_train_step`` docstring for why this iterates samples.
+        Gradients accumulate into ``p.grad`` across the per-sample
+        backward calls; the caller still runs ``_optimizer_step`` once
+        per ``gradient_accumulation_steps`` full batches.
+        """
+        cfg = self.trainer_config
+        bs = input_ids_full.shape[0]
+        # Normalise by total valid label tokens across the whole batch so
+        # the summed per-sample gradients match the old single-forward
+        # code's `total_loss / n_tokens.clamp(min=1)` scaling.
+        n_tokens_total = (labels_full != -100).sum().clamp(min=1)
+        step_total_loss_value = 0.0
+        last_past_kv = None
+
+        for i in range(bs):
+            input_ids = input_ids_full[i:i+1]
+            labels = labels_full[i:i+1]
+
+            # Reset NAMM state before each sample. initialize_buffers clears
+            # buffered attn / pos / queries; set_params_batch_idxs matches
+            # the policy's per-batch param fan-out to this sample's bs=1.
+            if hasattr(self.model, 'memory_policy'):
+                if hasattr(self.model.memory_policy, 'initialize_buffers'):
+                    self.model.memory_policy.initialize_buffers()
+                elif hasattr(self.model.memory_policy, 'reset_kv_cache'):
+                    self.model.memory_policy.reset_kv_cache()
+                elif hasattr(self.model.memory_policy, 'reset'):
+                    self.model.memory_policy.reset()
+                else:
+                    print(
+                        "WARNING: memory_policy has no known reset method "
+                        "(initialize_buffers / reset_kv_cache / reset). "
+                        "Proceeding without KV-cache reset."
+                    )
+            self.memory_policy.set_params_batch_idxs(
+                np.zeros([1], dtype=np.int64))
+            past_key_values = None
+
+            # Per-sample phase split
+            answer_mask = (labels[0] != -100)
+            if answer_mask.any():
+                answer_start = answer_mask.nonzero(as_tuple=True)[0][0].item()
+            else:
+                answer_start = labels.shape[1]
+
+            chunk_align = self.model.max_new_tokens  # 64
+            context_end = (answer_start // chunk_align) * chunk_align
+            context_end = max(context_end, 0)
+
+            seq_len = input_ids.shape[1]
+
+            if context_end > 0:
+                with torch.no_grad():
+                    ctx_outputs = self.model(
+                        input_ids=input_ids[:, :context_end],
+                        use_cache=True,
+                        apply_memory_policy=True,
+                        limit_new_tokens=None,
+                        output_hidden_states=False,
+                        skip_lm_head=True,
+                    )
+                past_key_values = ctx_outputs.past_key_values
+                del ctx_outputs
+                torch.cuda.empty_cache()
+
+            phase2_input = input_ids[:, context_end:]
+            phase2_pos = torch.arange(
+                context_end, seq_len, device=self.device
+            ).unsqueeze(0).expand(input_ids.shape[0], -1)
+
+            outputs = self.model(
+                input_ids=phase2_input,
+                position_ids=phase2_pos,
+                past_key_values=past_key_values,
+                use_cache=True,
+                apply_memory_policy=True,
+                limit_new_tokens=None,
+                output_hidden_states=True,
+                skip_lm_head=True,
+            )
+            hidden_states = outputs.hidden_states[-1]
+            phase2_labels = labels[:, context_end:]
+            shift_hidden = hidden_states[:, :-1, :].contiguous()
+            shift_labels = phase2_labels[:, 1:].contiguous()
+            _past_kv = getattr(outputs, 'past_key_values', None)
+            del outputs, hidden_states
+
+            # Chunked CE over this sample
+            lm_head = self.model.lm_head
+            chunk_size = 512
+            sample_seq_len = shift_hidden.shape[1]
+            sample_total_loss = torch.tensor(0.0, device=self.device)
+            for ci in range(0, sample_seq_len, chunk_size):
+                chunk_h = shift_hidden[:, ci:ci+chunk_size, :]
+                chunk_logits = lm_head(chunk_h).float()
+                chunk_labels = (
+                    shift_labels[:, ci:ci+chunk_size].contiguous().view(-1))
+                sample_total_loss = sample_total_loss + F.cross_entropy(
+                    chunk_logits.view(-1, chunk_logits.size(-1)),
+                    chunk_labels,
+                    ignore_index=-100,
+                    reduction='sum',
+                )
+                del chunk_logits
+            del shift_hidden, shift_labels
+
+            # sample_loss is this sample's contribution to the batch-wide
+            # per-token CE; dividing by grad_accum matches the original
+            # single-forward scaling. Backward immediately so this sample's
+            # phase-2 autograd graph is freed before sample i+1 starts.
+            sample_loss = sample_total_loss / n_tokens_total
+            (sample_loss / cfg.gradient_accumulation_steps).backward()
+            step_total_loss_value += sample_loss.item()
+
+            last_past_kv = _past_kv
+
+        # ANLYS-01: per-layer token retention logging (last sample's cache)
+        self._last_retention_dict = {}
+        if last_past_kv is not None:
+            n_input = input_ids_full.shape[1]
             if n_input > 0:
-                for layer_i, layer_kv in enumerate(_past_kv):
+                for layer_i, layer_kv in enumerate(last_past_kv):
                     if layer_kv is not None and layer_kv[0] is not None:
                         n_retained = layer_kv[0].shape[-2]
                         self._last_retention_dict[f'retention/layer_{layer_i}'] = (
@@ -506,7 +563,7 @@ class LoRAGradTrainer:
                         stacklevel=2,
                     )
 
-        return loss.item() * cfg.gradient_accumulation_steps, _past_kv
+        return step_total_loss_value, last_past_kv
 
     def _optimizer_step(self):
         """Clip gradients, step optimizer + scheduler, zero grads."""

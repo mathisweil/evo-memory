@@ -5,6 +5,8 @@ eval_results/
 exp_local/
 exp/
 outputs/
+checkpoints/
+artifacts/
 
 # Weights & Biases
 wandb/
@@ -56,4 +58,5 @@ namm_efficiency_benchmark_report.md
 
 # Run script artifacts
 scripts/run_all_experiments.log
-scripts/experiment_summary.txtcheckpoints_backup/*.pt
+scripts/experiment_summary.txt
+checkpoints_backup/*.pt

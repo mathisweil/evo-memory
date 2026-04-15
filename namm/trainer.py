@@ -85,7 +85,15 @@ class Snapshot:
 
 class MemoryTrainer():
 
-    @torch.inference_mode()
+    # NOTE: uses @torch.no_grad() rather than @torch.inference_mode() because
+    # this __init__ calls `.to(device=device)` on the model, which moves NAMM
+    # buffers (e.g. `memory_policy.rotary_offset`) to GPU. A tensor *created*
+    # inside `inference_mode` is permanently flagged as an inference tensor
+    # and cannot be mutated from a plain `torch.no_grad()` context later —
+    # which is exactly what the M3/M4 LoRA stage does when it calls
+    # `update_rotary_offset` (see grad_lora_finetuning/trainer.py phase 1).
+    # `no_grad` disables autograd tracking without the inference-tensor tag.
+    @torch.no_grad()
     def __init__(self,
                  device,
                  evaluation_model: MemoryHFEvaluator,

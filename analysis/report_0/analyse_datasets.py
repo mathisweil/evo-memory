@@ -198,7 +198,7 @@ def analyse():
     print(f"{'='*60}")
     print(f"  Total eligible: {total_eligible}")
     print(f"  Total split: {total_train} train / {total_val} val / {total_test} test")
-    print(f"  (Expected: 306 train / 64 val / 69 test = 439)")
+    print(f"  (Expected: 306 train / 64 val / 70 test = 440)")
     print(f"  Note: Exact counts depend on tokenizer-based filtering;")
     print(f"        word-based approximation gives slightly different numbers.")
 

@@ -1,0 +1,68 @@
+# M3 LoRA + frozen NAMM — SFT fine-tuning on 5-task QA subset with NAMM active
+# FAIR-01 compliant. See experiment_specification.md §3 M3.
+#
+# Historical naming: WandB runs and GCS paths use `rh_m4_frozen` / `rh_m4_5t_cs*`.
+# This predates the current M-numbering — those external strings stay as-is.
+#
+# Hyperparameters MUST match M1 exactly except `namm_active: true` and
+# `cache_size: 1024`. Any other deviation confounds the M1-vs-M3 comparison.
+# Length filtering (min/max_conditioning_length=4096/6500) comes from the
+# Hydra preset `run_config: namm_bam_i1_llama32_1b_5t`, NOT from this YAML.
+#
+# Usage:
+#   python scripts/run_lora.py \
+#       --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
+#       --run_name m3_lora_frozen_namm \
+#       --namm_checkpoint <path-to-m2-checkpoint>
+
+# -- Experiment ---------------------------------------------------------------
+run_name: null
+experiment: null
+method: m3_lora_frozen_namm_5t  # Historical WandB runs used method: rh_m4_frozen_5t (pre-rename)
+
+# -- LoRA hyperparameters (MUST match M1 exactly) -----------------------------
+lora_rank: 8
+lora_target_modules: [q_proj, v_proj]
+lora_alpha: 16
+lora_dropout: 0.1         # matches M1 — do not tune separately for M3
+learning_rate: 5e-5       # matches M1 — do not tune separately for M3
+weight_decay: 0.01
+max_grad_norm: 1.0
+warmup_ratio: 0.03
+num_epochs: 100
+batch_size: 4             # effective batch = 16 with grad_accum=8; NAMM path loops per-sample in trainer.py (see docs/namm_memory_investigation.md Fix C)
+gradient_accumulation_steps: 4
+max_seq_len: 7000
+sft_mode: true
+dtype: bfloat16
+always_save_checkpoint: true
+
+# -- NAMM (active — requires --namm_checkpoint at runtime) --------------------
+namm_active: true
+namm_checkpoint: null
+run_config: namm_bam_i1_llama32_1b_5t
+cache_size: 1024
+
+# -- Data (FAIR-01) -----------------------------------------------------------
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+train_split: 0.7
+val_split: 0.15
+split_seed: 42
+
+# -- Evaluation ---------------------------------------------------------------
+eval_interval: 14
+log_interval: 2
+batch_size_eval: 8
+early_stopping_patience: 20   # raised from 5 (too aggressive for 150-epoch schedule)
+
+# -- Wandb --------------------------------------------------------------------
+wandb_entity: SNLP_NAMM
+wandb_project: Experiments
+
+# -- Checkpointing & GCS -----------------------------------------------------
+gcs: true
+resume_checkpoint: null
+
+# -- Advanced -----------------------------------------------------------------
+override: []
