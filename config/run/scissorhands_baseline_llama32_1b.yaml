@@ -1,0 +1,34 @@
+# @package _global_
+# ScissorHands (Liu et al. NeurIPS 2023) baseline for LLaMA 3.2-1B.
+# Persistence-of-importance heuristic: counts under-threshold attention over
+# a history window and drops the most-often-unimportant tokens. Inference
+# time only, no learnable parameters.
+#
+# FAIR-01 default cache budget = 1024. Override from the CLI for sweeps:
+#   python scripts/run_eval.py --run_config scissorhands_baseline_llama32_1b \
+#     --cache_size 512
+defaults:
+  - override /model/wrapped_llm@_global_: llama32-1b
+  - override /task@_global_: rh_multi_qa_5t
+  - override /evolution@_global_: dummy
+  - override /policy@_global_: scissorhands
+  - override /typing@_global_: half_attn
+  - override /auxiliary_loss@_global_: none
+  - _self_
+
+cache_size: 1024
+max_new_tokens: 128
+
+batch_size: 4
+
+eval_only: true
+pop_size: 1
+
+add_bos_token: true
+score_normalization_reference:
+ddp_timeout_limit: '0:3:0'
+
+wandb_log: true
+wandb_project: Experiments
+wandb_group_name: Llama-3.2-1B/eval-comparison
+wandb_run_name: scissorhands-cs${cache_size}-llama32-1b

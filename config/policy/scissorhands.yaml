@@ -1,0 +1,11 @@
+memory_policy:
+  _target_: namm.policy.ScissorHands
+  cache_size: ${cache_size}
+  history_window_ratio: 0.5
+  recent_window_ratio: 0.25
+  drop_ratio: 0.5
+
+cache_size: 1024
+
+
+mp_log_name: scissorhands
