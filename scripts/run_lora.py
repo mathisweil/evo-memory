@@ -113,6 +113,13 @@ def parse_args():
                         help="Stop after N evals with no val F1 improvement (0 = disabled)")
     parser.add_argument("--skip_baseline_eval", action="store_true", default=False,
                         help="Skip pre-training F1 eval to reduce peak VRAM")
+    parser.add_argument("--warm_buffers", action=argparse.BooleanOptionalAction,
+                        default=False,
+                        help="Skip per-component NAMM buffer reset between "
+                             "training samples (ema_output_buffer / past_scores "
+                             "/ prev_attn_buffer persist across documents). "
+                             "Reproduces pre-fix M3 behaviour; intended for "
+                             "ablation only.")
 
     # Checkpointing & GCS
     parser.add_argument("--gcs", action=argparse.BooleanOptionalAction, default=True)
@@ -352,6 +359,7 @@ def main():
         max_answer_tokens=args.filter_answers_by_tokens,
         early_stopping_patience=args.early_stopping_patience,
         skip_baseline_eval=args.skip_baseline_eval,
+        warm_buffers=args.warm_buffers,
     )
 
     wandb_cfg = WandbConfig(
