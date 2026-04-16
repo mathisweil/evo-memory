@@ -55,7 +55,8 @@ split_seed: 42
 # -- Evaluation ---------------------------------------------------------------
 eval_interval: 14
 log_interval: 2
-batch_size_eval: 8
+batch_size_eval: 4        # matches green; note: flows into Hydra `batch_size`
+                          # for the NAMM eval forward pass (run_lora.py:201-202).
 early_stopping_patience: 20
 
 # -- Wandb --------------------------------------------------------------------

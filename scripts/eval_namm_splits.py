@@ -320,15 +320,24 @@ def main():
             eval_mode = "namm"
         else:
             init_param = memory_policy.get_init_param_values()
-            params = init_param.unsqueeze(0).to(device)
-            memory_model.set_memory_params(params)
-            print("  No checkpoint — using init params "
-                  "(recency eviction baseline)")
-            eval_mode = "recency_baseline"
+            if init_param is None:
+                # Stateless heuristic policy (e.g. Recency, H2O,
+                # ScissorHands): no learnable parameters to set.
+                print("  No checkpoint — stateless heuristic policy "
+                      f"({type(memory_policy).__name__})")
+                eval_mode = type(memory_policy).__name__.lower()
+            else:
+                params = init_param.unsqueeze(0).to(device)
+                memory_model.set_memory_params(params)
+                print("  No checkpoint — using init params "
+                      "(recency eviction baseline)")
+                eval_mode = "recency_baseline"
 
         # Policy bookkeeping (DynamicMemoryPolicy only — classic Recency
         # and plain LLaMA have no learnable params/stat buffers).
-        if not args.use_classic_recency and args.truncate_input_to is None:
+        if (not args.use_classic_recency
+                and args.truncate_input_to is None
+                and memory_policy.get_init_param_values() is not None):
             batch_idxs = np.zeros([1])
             memory_policy.set_params_batch_idxs(batch_idxs)
             memory_policy.record_eval_stats = True
