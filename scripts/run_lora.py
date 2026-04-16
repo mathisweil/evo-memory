@@ -88,6 +88,15 @@ def parse_args():
     parser.add_argument("--namm_checkpoint", type=str, default=None)
     parser.add_argument("--run_config", type=str, default="namm_bam_i1_llama32_1b")
     parser.add_argument("--cache_size", type=int, default=None)
+    parser.add_argument(
+        "--eviction_policy", type=str, default="namm",
+        choices=["namm", "h2o", "scissorhands", "recency"],
+        help="Which eviction policy to use during training. 'namm' is the "
+             "default (M1/M3/M4 path); 'h2o' / 'scissorhands' / 'recency' "
+             "swap in the parameter-less heuristic via a Hydra "
+             "policy@_global_ override and force namm_active=True so the "
+             "eviction path is exercised. Has no effect when the chosen "
+             "run config already pins a different policy.")
 
     # Data filtering
     parser.add_argument("--filter_by_tokens", type=int, default=None)
@@ -194,6 +203,25 @@ def main():
     if args.cache_size is not None:
         hydra_overrides.append(f"cache_size={args.cache_size}")
         hydra_overrides.append(f"max_memory_length={args.cache_size}")
+    if args.eviction_policy != "namm":
+        # Swap the Hydra policy group and ensure the eviction path is hit.
+        # Heuristic policies have no learnable parameters so any
+        # --namm_checkpoint passed alongside is a user error -- warn loudly.
+        policy_alias = {
+            "h2o": "h2o",
+            "scissorhands": "scissorhands",
+            "recency": "none",
+        }[args.eviction_policy]
+        hydra_overrides.append(f"policy@_global_={policy_alias}")
+        if not args.namm_active:
+            print(f"--eviction_policy={args.eviction_policy}: forcing "
+                  f"namm_active=True so the eviction path runs.")
+            args.namm_active = True
+        if args.namm_checkpoint:
+            print(f"WARNING: --namm_checkpoint is ignored when "
+                  f"--eviction_policy={args.eviction_policy} (policy has "
+                  f"no learnable parameters).")
+            args.namm_checkpoint = None
     hydra_overrides.extend(args.override)
     cfg = load_hydra_config(args.run_config, extra_overrides=hydra_overrides)
 
