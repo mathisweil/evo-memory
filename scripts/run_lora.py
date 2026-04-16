@@ -211,15 +211,25 @@ def main():
         hydra_overrides.append(f"cache_size={args.cache_size}")
         hydra_overrides.append(f"max_memory_length={args.cache_size}")
     if args.eviction_policy != "namm":
-        # Swap the Hydra policy group and ensure the eviction path is hit.
+        # Swap run_config to a matching heuristic-policy preset. Overriding
+        # policy@_global_ on top of the NAMM preset fails because base_bam
+        # carries nested overrides (policy/deep_embedding@_global_ etc.)
+        # that disappear once the outer policy is replaced. Re-inject the
+        # FAIR-01 5-task filters that the NAMM preset supplied.
         # Heuristic policies have no learnable parameters so any
         # --namm_checkpoint passed alongside is a user error -- warn loudly.
-        policy_alias = {
-            "h2o": "h2o",
-            "scissorhands": "scissorhands",
-            "recency": "none",
+        run_config_alias = {
+            "h2o": "h2o_baseline_llama32_1b",
+            "scissorhands": "scissorhands_baseline_llama32_1b",
+            "recency": "recency_baseline_llama32_1b",
         }[args.eviction_policy]
-        hydra_overrides.append(f"policy@_global_={policy_alias}")
+        if args.run_config != run_config_alias:
+            print(f"--eviction_policy={args.eviction_policy}: switching "
+                  f"run_config {args.run_config!r} -> {run_config_alias!r}.")
+            args.run_config = run_config_alias
+        hydra_overrides.append("++min_conditioning_length=4096")
+        hydra_overrides.append("++max_conditioning_length=6500")
+        hydra_overrides.append("++max_answer_tokens=64")
         if not args.namm_active:
             print(f"--eviction_policy={args.eviction_policy}: forcing "
                   f"namm_active=True so the eviction path runs.")
