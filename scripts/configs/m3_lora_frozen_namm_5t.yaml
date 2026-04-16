@@ -53,7 +53,7 @@ split_seed: 42
 # -- Evaluation ---------------------------------------------------------------
 eval_interval: 14
 log_interval: 2
-batch_size_eval: 8
+batch_size_eval: 2
 early_stopping_patience: 20   # raised from 5 (too aggressive for 150-epoch schedule)
 
 # -- Wandb --------------------------------------------------------------------
