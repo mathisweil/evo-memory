@@ -104,6 +104,9 @@ class LoRATrainerConfig:
     min_conditioning_length: int = None  # min prompt tokens (skip shorter prompts)
     max_answer_tokens: int = None        # max answer tokens (skip samples with longer answers)
     skip_baseline_eval: bool = False     # skip pre-training eval to save VRAM on small GPUs
+    warm_buffers: bool = False           # skip per-component NAMM buffer reset between samples
+                                         # (ema_output_buffer / past_scores / prev_attn_buffer
+                                         # persist across documents — reproduces pre-fix M3 behaviour)
 
 
 # ---------------------------------------------------------------------------
@@ -470,10 +473,11 @@ class LoRAGradTrainer:
                         "(initialize_buffers / reset_kv_cache / reset). "
                         "Proceeding without KV-cache reset."
                     )
-                for comp_name in getattr(mp, 'component_names', []) or []:
-                    comp = getattr(mp, comp_name, None)
-                    if comp is not None and hasattr(comp, 'initialize_buffers'):
-                        comp.initialize_buffers()
+                if not cfg.warm_buffers:
+                    for comp_name in getattr(mp, 'component_names', []) or []:
+                        comp = getattr(mp, comp_name, None)
+                        if comp is not None and hasattr(comp, 'initialize_buffers'):
+                            comp.initialize_buffers()
             self.memory_policy.set_params_batch_idxs(
                 np.zeros([1], dtype=np.int64))
             past_key_values = None
@@ -1028,6 +1032,7 @@ class LoRAGradTrainer:
         print(f"  val_frac          : {cfg.val_frac}")
         print("  -- Model --")
         print(f"  namm_active       : {cfg.namm_active}")
+        print(f"  warm_buffers      : {cfg.warm_buffers}")
         print(f"  eval_interval     : {cfg.eval_interval}")
         print(f"  log_interval      : {cfg.log_interval}")
         print("=" * 60)
