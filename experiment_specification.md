@@ -26,12 +26,14 @@ All conditions in the main results table must satisfy every constraint below. An
 | ---- | --------------------------------------------- | -------------------- |
 | 1    | B0 — baseline eval                            | none                 |
 | 2    | B1 — recency eviction eval                    | none                 |
-| 3    | M1-LoRA — rank sweep (r=4, 8, 16)             | none                 |
-| 4    | M2 — standalone NAMM training                 | none                 |
-| 5    | M3-LoRA — LoRA with frozen NAMM at train-time | M2 checkpoint        |
-| 6    | M4-LoRA — joint LoRA + NAMM                   | none                 |
-| 7    | A1 — LoRA rank sweep analysis                 | M1-r4, M1-r8, M1-r16 |
-| 8    | A4 — NAMM disabled at eval                    | M4-LoRA checkpoint   |
+| 3    | B2 — H2O eviction eval                        | none                 |
+| 4    | B3 — ScissorHands eviction eval               | none                 |
+| 5    | M1-LoRA — rank sweep (r=4, 8, 16)             | none                 |
+| 6    | M2 — standalone NAMM training                 | none                 |
+| 7    | M3-LoRA — LoRA with frozen NAMM at train-time | M2 checkpoint        |
+| 8    | M4-LoRA — joint LoRA + NAMM                   | none                 |
+| 9    | A1 — LoRA rank sweep analysis                 | M1-r4, M1-r8, M1-r16 |
+| 10   | A4 — NAMM disabled at eval                    | M4-LoRA checkpoint   |
 
 ---
 
@@ -82,6 +84,56 @@ python scripts/run_eval.py \
 | Tasks        | 5-task QA subset (override task config to `rh_multi_qa_5t`)                           |
 | Splits       | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42`                                    |
 | Output       | `experiments/experiment_N/es_recency/b1_recency/results.json`                         |
+
+---
+
+### B2 · Base model, H2O eviction (Zhang et al., NeurIPS 2023)
+
+Evaluates the base model with the H2O Heavy-Hitter Oracle policy: per-(layer, KV-head) accumulator of post-softmax attention; keeps the top `k_hh = round(B · heavy_hitter_ratio)` heavy hitters and the most recent `k_recent = B − k_hh` tokens. No learned policy, no training. Uses the same FAIR-01 budget `cache_size=1024` as B1, M2, M3, M4.
+
+```bash
+python scripts/run_eval.py \
+    --run_config h2o_baseline_llama32_1b \
+    --cache_size 1024 \
+    --output_dir experiments/experiment_N/baselines/b2_h2o \
+    --override "task@_global_=rh_multi_qa_5t"
+```
+
+| Parameter             | Value                                                                |
+| --------------------- | -------------------------------------------------------------------- |
+| `run_config`          | `h2o_baseline_llama32_1b` — `config/run/h2o_baseline_llama32_1b.yaml` |
+| Policy target         | `namm.policy.H2O`                                                    |
+| `heavy_hitter_ratio`  | 0.5 (k_hh = 512, k_recent = 512 at cache_size=1024)                  |
+| `cache_size`          | 1024                                                                 |
+| Tasks                 | 5-task QA subset (override task config to `rh_multi_qa_5t`)          |
+| Splits                | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42`                   |
+| Output                | `experiments/experiment_N/baselines/b2_h2o/results.json`             |
+
+---
+
+### B3 · Base model, ScissorHands eviction (Liu et al., NeurIPS 2023)
+
+Evaluates the base model with the ScissorHands persistence-of-importance policy: counts how often each token's mean-pooled post-softmax attention falls below `1/t` over a sliding history window; protects the most recent `recent_window` tokens; drops the `drop_count` tokens with the highest unimportance count when `kv_len > cache_size`. No learned policy, no training.
+
+```bash
+python scripts/run_eval.py \
+    --run_config scissorhands_baseline_llama32_1b \
+    --cache_size 1024 \
+    --output_dir experiments/experiment_N/baselines/b3_scissorhands \
+    --override "task@_global_=rh_multi_qa_5t"
+```
+
+| Parameter               | Value                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| `run_config`            | `scissorhands_baseline_llama32_1b` — `config/run/scissorhands_baseline_llama32_1b.yaml`     |
+| Policy target           | `namm.policy.ScissorHands`                                                                  |
+| `history_window_ratio`  | 0.5 (history window = 512 at cache_size=1024)                                               |
+| `recent_window_ratio`   | 0.25 (recent window = 256 at cache_size=1024, protected from eviction)                      |
+| `drop_ratio`            | 0.5 (drop 512 tokens per compression event)                                                 |
+| `cache_size`            | 1024                                                                                        |
+| Tasks                   | 5-task QA subset (override task config to `rh_multi_qa_5t`)                                 |
+| Splits                  | `train_frac=0.7`, `val_frac=0.15`, `split_seed=42`                                          |
+| Output                  | `experiments/experiment_N/baselines/b3_scissorhands/results.json`                           |
 
 ---
 
@@ -362,6 +414,8 @@ All F1 values are test-split micro averages over 70 samples. See `results/main_t
 | B0  Base model, full cache               | `baseline_eval`       | 22.41           | full               |
 | B1  Base model + recency                 | `b1_recency`          | 12.45           | 1024               |
 | B1  Base model + recency                 | `b1_recency`          | 13.78           | 2048               |
+| B2  Base model + H2O                     | `b2_h2o`              | —               | 1024               |
+| B3  Base model + ScissorHands            | `b3_scissorhands`     | —               | 1024               |
 | M1-LoRA  LoRA only (r=8)                 | `m1_r8`               | 31.14           | full               |
 | M2  Standalone NAMM                      | `m2_namm_standalone`  | 20.30           | 1024               |
 | M2  Standalone NAMM                      | `m2_namm_standalone`  | 17.40           | 2048               |
@@ -451,6 +505,10 @@ The cs1024 and cs2048 runs crashed before completing all 150 epochs but best che
 
 **Done.** Dedicated eval runs completed for B0 (full cache) and B1 (recency eviction at cs1024 and cs2048). Results in `results/main_table_5t/B0/` and `results/main_table_5t/B1/`. Test micro F1: B0 = 22.41, B1/cs1024 = 12.45, B1/cs2048 = 13.78.
 
+### B2, B3 — Training-free heuristic baselines
+
+**Not yet run.** H2O and ScissorHands policies and Hydra configs are implemented (`namm/policy/{h2o,scissorhands}.py`, `config/run/{h2o,scissorhands}_baseline_llama32_1b.yaml`); both pass their unit tests in `tests/test_h2o.py` and `tests/test_scissorhands.py`. Eval runs at `cache_size=1024` are pending.
+
 ### A1 — LoRA rank sweep
 
 **Not yet run.** Only r=8 has been trained (M1). r=4 and r=16 still needed.
@@ -465,12 +523,14 @@ The cs1024 and cs2048 runs crashed before completing all 150 epochs but best che
 | ---- | ----------------------------- | ----------------------------------------------------------------------------------------- |
 | 1    | B0 — baseline eval            | **done** (test micro 22.41)                                                               |
 | 2    | B1 — recency eviction eval    | **done** (cs1024: 12.45, cs2048: 13.78)                                                   |
-| 3    | M1-LoRA — rank sweep          | **partial** (r=8 done, test micro 31.14; r=4, r=16 not started)                           |
-| 4    | M2 — standalone NAMM          | **done** (cs1024: 20.30, cs2048: 17.40; cs3072 finished but GCS upload pending)           |
-| 5    | M3-LoRA — LoRA + frozen NAMM  | **rerun needed**: tuned runs done (cs1024: 32.28, cs2048: 31.06) with lr/dropout mismatch; matched runs not yet started |
-| 6    | M4-LoRA — joint LoRA + NAMM   | **not started**                                                                           |
-| 7    | A1 — LoRA rank sweep analysis | **not started** (r=4, r=16 not trained)                                                   |
-| 8    | A4 — NAMM disabled at eval    | **done** (run on M3 ckpts, not M4; cs1024_no_namm: 28.82, cs2048_no_namm: 33.91)          |
+| 3    | B2 — H2O eviction eval        | **not started** (policy + config implemented, tests pass)                                 |
+| 4    | B3 — ScissorHands eval        | **not started** (policy + config implemented, tests pass)                                 |
+| 5    | M1-LoRA — rank sweep          | **partial** (r=8 done, test micro 31.14; r=4, r=16 not started)                           |
+| 6    | M2 — standalone NAMM          | **done** (cs1024: 20.30, cs2048: 17.40; cs3072 finished but GCS upload pending)           |
+| 7    | M3-LoRA — LoRA + frozen NAMM  | **rerun needed**: tuned runs done (cs1024: 32.28, cs2048: 31.06) with lr/dropout mismatch; matched runs not yet started |
+| 8    | M4-LoRA — joint LoRA + NAMM   | **not started**                                                                           |
+| 9    | A1 — LoRA rank sweep analysis | **not started** (r=4, r=16 not trained)                                                   |
+| 10   | A4 — NAMM disabled at eval    | **done** (run on M3 ckpts, not M4; cs1024_no_namm: 28.82, cs2048_no_namm: 33.91)          |
 | —    | Trunc baselines               | **done** (plain_1024: 18.21, plain_2048: 18.26, lora_m1_1024: 26.90, lora_m1_2048: 28.87) |
 | —    | M1_recency/cs1024             | **BROKEN** (all zeros — likely LoRA+recency incompatibility, needs investigation)         |
 
