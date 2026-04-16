@@ -329,29 +329,49 @@ def main():
             else:
                 # Learnable NAMM with no checkpoint → init params at
                 # scoring_initializer=0 is NOT a recency baseline; it is
-                # NAMM with random/zero scoring. With a LoRA adapter at a
-                # small cache_size this collapses to F1=0 on every prompt
-                # (see docs/m1_recency_investigation.md).
-                if args.lora_checkpoint:
+                # NAMM with random/zero scoring. With a LoRA adapter at
+                # a cache_size smaller than the prompt length this
+                # collapses to F1=0 on every prompt (see
+                # docs/m1_recency_investigation.md). If cache_size is
+                # large enough that no eviction happens (cs=None or
+                # cs >= filter_by_length), the scoring is irrelevant and
+                # the run is effectively "LoRA at full cache" — the
+                # canonical M1 full-cache path uses cs=8192 with
+                # filter_by_length=8192 and succeeds.
+                cs = cfg.get('cache_size', None)
+                max_ctx = cfg.get('filter_by_length', None)
+                eviction_possible = (
+                    cs is not None
+                    and (max_ctx is None or cs < max_ctx)
+                )
+                if args.lora_checkpoint and eviction_possible:
                     raise ValueError(
                         "Refusing to run a learnable NAMM policy "
                         f"({type(memory_policy).__name__}) at its init "
-                        "params alongside --lora_checkpoint. This is the "
-                        "landmine documented in "
-                        "docs/m1_recency_investigation.md — it produces "
-                        "F1=0.00 on every prompt because the untrained "
-                        "NAMM scores evict tokens arbitrarily. Pick one: "
-                        "(a) pass --namm_checkpoint to load a trained "
-                        "NAMM, (b) pass --use_classic_recency for a true "
-                        "last-N recency baseline, or (c) switch "
-                        "--run_config to a stateless-policy preset such "
-                        "as full_cache_baseline_llama32_1b or "
-                        "recency_baseline_llama32_1b.")
+                        "params alongside --lora_checkpoint with "
+                        f"cache_size={cs} < filter_by_length={max_ctx}. "
+                        "This is the landmine documented in "
+                        "docs/m1_recency_investigation.md — untrained "
+                        "NAMM scores evict tokens arbitrarily and F1 "
+                        "collapses to 0.00. Pick one: (a) pass "
+                        "--namm_checkpoint to load a trained NAMM, "
+                        "(b) pass --use_classic_recency for a true "
+                        "last-N recency baseline, (c) raise --cache_size "
+                        "to >= filter_by_length to disable eviction, or "
+                        "(d) switch --run_config to a stateless-policy "
+                        "preset such as full_cache_baseline_llama32_1b "
+                        "or recency_baseline_llama32_1b.")
                 params = init_param.unsqueeze(0).to(device)
                 memory_model.set_memory_params(params)
-                print("  No checkpoint — using learnable NAMM at init "
-                      "params (NOT a true recency baseline).")
-                eval_mode = "namm_init_baseline"
+                if eviction_possible:
+                    print("  No checkpoint — using learnable NAMM at "
+                          "init params (NOT a true recency baseline).")
+                    eval_mode = "namm_init_baseline"
+                else:
+                    print(f"  No checkpoint — cache_size={cs} >= "
+                          f"filter_by_length={max_ctx}, no eviction "
+                          "will occur (effective full-cache run).")
+                    eval_mode = "full_cache"
 
         # Policy bookkeeping (DynamicMemoryPolicy only — classic Recency
         # and plain LLaMA have no learnable params/stat buffers).
