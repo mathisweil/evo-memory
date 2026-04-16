@@ -1,0 +1,134 @@
+{
+  "type": "eval_namm_splits",
+  "timestamp": "20260416_193622",
+  "config": {
+    "namm_checkpoint": "/home/jovyan/evo-memory/artifacts/NAMM_best_1024/ckpt.pt",
+    "lora_checkpoint": null,
+    "eval_mode": "namm",
+    "run_config": "namm_bam_i1_llama32_1b_5t",
+    "cache_size": 1024,
+    "filter_by_length": null,
+    "batch_size": 1,
+    "splits_evaluated": [
+      "test"
+    ],
+    "train_frac": 0.7,
+    "val_frac": 0.15,
+    "max_conditioning_length": 6500,
+    "min_conditioning_length": 4096,
+    "max_answer_tokens": 64,
+    "extended_max_conditioning_length": null,
+    "truncate_input_to": null,
+    "use_classic_recency": false
+  },
+  "scores_per_split": {
+    "test": {
+      "lb/qasper": 26.926406926406923,
+      "lb/2wikimqa": 25.0,
+      "lb/qasper_e": 7.617223134464514,
+      "lb/hotpotqa_e": 18.452380952380953,
+      "lb/2wikimqa_e": 22.38095238095238,
+      "tasks_aggregate": 0.002007539267884095,
+      "mean_f1": 20.075392678840956,
+      "micro_mean_f1": 19.26916597359947,
+      "n_prompts_total": 70,
+      "n_prompts_per_task": {
+        "lb/qasper": 14,
+        "lb/2wikimqa": 12,
+        "lb/qasper_e": 18,
+        "lb/hotpotqa_e": 12,
+        "lb/2wikimqa_e": 14
+      },
+      "per_prompt_f1": {
+        "lb/qasper": {
+          "153": 0.0,
+          "154": 0.0,
+          "155": 0.2666666666666667,
+          "156": 0.0,
+          "159": 0.0,
+          "160": 0.2077922077922078,
+          "161": 0.2,
+          "167": 0.09523809523809525,
+          "168": 0.0,
+          "169": 0.0,
+          "170": 0.0,
+          "171": 1.0,
+          "172": 1.0,
+          "173": 1.0
+        },
+        "lb/2wikimqa": {
+          "120": 0.0,
+          "121": 0.0,
+          "122": 0.0,
+          "124": 0.0,
+          "125": 1.0,
+          "127": 1.0,
+          "129": 1.0,
+          "132": 0.0,
+          "133": 0.0,
+          "135": 0.0,
+          "136": 0.0,
+          "137": 0.0
+        },
+        "lb/qasper_e": {
+          "156": 0.0,
+          "158": 0.0,
+          "159": 0.0,
+          "160": 0.0,
+          "161": 0.0,
+          "162": 0.0,
+          "163": 1.0,
+          "164": 0.09523809523809525,
+          "165": 0.0,
+          "166": 0.0,
+          "167": 0.0,
+          "168": 0.27586206896551724,
+          "169": 0.0,
+          "170": 0.0,
+          "172": 0.0,
+          "173": 0.0,
+          "174": 0.0,
+          "175": 0.0
+        },
+        "lb/hotpotqa_e": {
+          "88": 0.0,
+          "89": 0.0,
+          "93": 0.0,
+          "94": 1.0,
+          "96": 0.0,
+          "97": 0.0,
+          "99": 0.0,
+          "103": 0.0,
+          "105": 0.0,
+          "106": 0.21428571428571427,
+          "108": 1.0,
+          "109": 0.0
+        },
+        "lb/2wikimqa_e": {
+          "106": 1.0,
+          "107": 1.0,
+          "111": 0.0,
+          "116": 0.0,
+          "118": 0.0,
+          "119": 0.0,
+          "123": 0.0,
+          "124": 0.0,
+          "125": 1.0,
+          "127": 0.0,
+          "128": 0.0,
+          "130": 0.0,
+          "137": 0.13333333333333333,
+          "138": 0.0
+        }
+      },
+      "eviction_stats": {
+        "avg_dynamic_cache_size": 873.7529576587796,
+        "avg_final_cache_size": 970.8285714285714,
+        "avg_unmasked_tokens": 873.7529576587796,
+        "avg_final_unmasked_tokens": 950.9375,
+        "cache_budget": 1024,
+        "budget_utilization_pct": 85.3274372713652
+      }
+    }
+  }
+}

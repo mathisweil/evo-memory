@@ -1,0 +1,134 @@
+{
+  "type": "eval_namm_splits",
+  "timestamp": "20260416_192559",
+  "config": {
+    "namm_checkpoint": "/home/jovyan/evo-memory/artifacts/NAMM_best_1024/ckpt.pt",
+    "lora_checkpoint": "/home/jovyan/evo-memory/artifacts/m1_r8/best_ckpt.pt",
+    "eval_mode": "namm+lora",
+    "run_config": "namm_bam_i1_llama32_1b_5t",
+    "cache_size": 1024,
+    "filter_by_length": null,
+    "batch_size": 1,
+    "splits_evaluated": [
+      "test"
+    ],
+    "train_frac": 0.7,
+    "val_frac": 0.15,
+    "max_conditioning_length": 6500,
+    "min_conditioning_length": 4096,
+    "max_answer_tokens": 64,
+    "extended_max_conditioning_length": null,
+    "truncate_input_to": null,
+    "use_classic_recency": false
+  },
+  "scores_per_split": {
+    "test": {
+      "lb/qasper": 24.28573056016665,
+      "lb/2wikimqa": 21.794871794871796,
+      "lb/qasper_e": 24.69050108993527,
+      "lb/hotpotqa_e": 41.666666666666664,
+      "lb/2wikimqa_e": 40.30969030969031,
+      "tasks_aggregate": 0.003054949208426614,
+      "mean_f1": 30.549492084266138,
+      "micro_mean_f1": 30.14719104764706,
+      "n_prompts_total": 70,
+      "n_prompts_per_task": {
+        "lb/qasper": 14,
+        "lb/2wikimqa": 12,
+        "lb/qasper_e": 18,
+        "lb/hotpotqa_e": 12,
+        "lb/2wikimqa_e": 14
+      },
+      "per_prompt_f1": {
+        "lb/qasper": {
+          "153": 0.14285714285714285,
+          "154": 0.0,
+          "155": 0.0,
+          "156": 0.0,
+          "159": 0.5833333333333334,
+          "160": 0.24,
+          "161": 0.0,
+          "167": 0.07017543859649122,
+          "168": 0.3636363636363636,
+          "169": 0.0,
+          "170": 0.0,
+          "171": 1.0,
+          "172": 1.0,
+          "173": 0.0
+        },
+        "lb/2wikimqa": {
+          "120": 0.0,
+          "121": 0.0,
+          "122": 0.0,
+          "124": 0.0,
+          "125": 1.0,
+          "127": 0.0,
+          "129": 1.0,
+          "132": 0.0,
+          "133": 0.6153846153846153,
+          "135": 0.0,
+          "136": 0.0,
+          "137": 0.0
+        },
+        "lb/qasper_e": {
+          "156": 0.1568627450980392,
+          "158": 0.0,
+          "159": 0.16,
+          "160": 0.0,
+          "161": 0.15789473684210525,
+          "162": 0.75,
+          "163": 1.0,
+          "164": 0.06896551724137931,
+          "165": 0.0,
+          "166": 1.0,
+          "167": 0.0,
+          "168": 0.10526315789473684,
+          "169": 0.10526315789473684,
+          "170": 0.0,
+          "172": 0.10810810810810811,
+          "173": 0.11764705882352941,
+          "174": 0.7142857142857143,
+          "175": 0.0
+        },
+        "lb/hotpotqa_e": {
+          "88": 1.0,
+          "89": 0.0,
+          "93": 1.0,
+          "94": 1.0,
+          "96": 1.0,
+          "97": 0.0,
+          "99": 0.0,
+          "103": 0.0,
+          "105": 0.0,
+          "106": 0.0,
+          "108": 1.0,
+          "109": 0.0
+        },
+        "lb/2wikimqa_e": {
+          "106": 0.0,
+          "107": 1.0,
+          "111": 1.0,
+          "116": 0.0,
+          "118": 0.0,
+          "119": 1.0,
+          "123": 0.0,
+          "124": 1.0,
+          "125": 1.0,
+          "127": 0.1818181818181818,
+          "128": 0.0,
+          "130": 0.0,
+          "137": 0.4615384615384615,
+          "138": 0.0
+        }
+      },
+      "eviction_stats": {
+        "avg_dynamic_cache_size": 856.5206257783312,
+        "avg_final_cache_size": 957.1428571428571,
+        "avg_unmasked_tokens": 856.5206257783312,
+        "avg_final_unmasked_tokens": 951.5625,
+        "cache_budget": 1024,
+        "budget_utilization_pct": 83.64459236116517
+      }
+    }
+  }
+}

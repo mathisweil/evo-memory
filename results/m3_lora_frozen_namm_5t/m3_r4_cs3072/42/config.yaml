@@ -1,0 +1,35 @@
+always_save_checkpoint: true
+batch_size: 4
+dtype: bfloat16
+early_stopping_patience: 20
+eval_interval: 14
+gradient_accumulation_steps: 4
+init_from: null
+learning_rate: 5.0e-05
+log_interval: 2
+lora_rank: 4
+lora_target_modules:
+- q_proj
+- v_proj
+max_answer_tokens: 64
+max_conditioning_length: 6500
+max_grad_norm: 1.0
+max_seq_len: 7000
+method: m3_lora_frozen_namm_5t
+min_conditioning_length: 4096
+namm_active: true
+num_epochs: 100
+out_dir: /home/jovyan/evo-memory/experiments/experiment_1/m3_lora_frozen_namm_5t/m3_r4_cs3072
+seed: 42
+sft_mode: true
+skip_baseline_eval: true
+task_names:
+- lb/qasper
+- lb/2wikimqa
+- lb/qasper_e
+- lb/hotpotqa_e
+- lb/2wikimqa_e
+train_frac: 0.7
+val_frac: 0.15
+warmup_ratio: 0.03
+weight_decay: 0.01

@@ -1,0 +1,666 @@
+{
+  "test": {
+    "lb/qasper": [
+      {
+        "prompt_idx": 153,
+        "pred": "unanswerable",
+        "answers": [
+          "eight layers"
+        ],
+        "all_classes": null,
+        "length": 4487
+      },
+      {
+        "prompt_idx": 154,
+        "pred": "unanswerable",
+        "answers": [
+          " the same datasets as BIBREF7",
+          "same datasets as BIBREF7"
+        ],
+        "all_classes": null,
+        "length": 4661
+      },
+      {
+        "prompt_idx": 155,
+        "pred": "The clinical datasets used in the paper are NUBes-PHI and MEDDOCAN.",
+        "answers": [
+          "MEDDOCAN, NUBes-PHI",
+          "MEDDOCAN, NUBes "
+        ],
+        "all_classes": null,
+        "length": 4528
+      },
+      {
+        "prompt_idx": 156,
+        "pred": "They used linguistic features such as unigrams, unigram features, and linguistic features to detect sarcasm.",
+        "answers": [
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 3543
+      },
+      {
+        "prompt_idx": 159,
+        "pred": "unanswerable",
+        "answers": [
+          "Irony Classifier, Sentiment Classifier for Irony, Sentiment Classifier for Non-irony, transformation from ironic sentences to non-ironic sentences"
+        ],
+        "all_classes": null,
+        "length": 4600
+      },
+      {
+        "prompt_idx": 160,
+        "pred": "Gaussian-masked directional multi-head attention is a variant of self-attention that uses directional information to improve the ability of capturing localness and directional features in the Transformer encoder.",
+        "answers": [
+          "pays attentions to adjacent characters and casts a localness relationship between the characters as a fixed Gaussian weight assuming the weight relies on the distance between characters",
+          "Gaussian-masked directional attention can be described as a function to map queries and key-value pairs to the representation of input, Gaussian-masked directional attention expects to pay attention to the adjacent characters of each positions and cast the localness relationship between characters as a fix Gaussian weight for attention, Gaussian weight only relys on the distance between characters"
+        ],
+        "all_classes": null,
+        "length": 3612
+      },
+      {
+        "prompt_idx": 161,
+        "pred": "unanswerable",
+        "answers": [
+          "Facebook status update messages",
+          "Facebook status update messages"
+        ],
+        "all_classes": null,
+        "length": 4005
+      },
+      {
+        "prompt_idx": 167,
+        "pred": "They consider text classification tasks.",
+        "answers": [
+          "text classification for themes including sentiment, web-page, science, medical and healthcare"
+        ],
+        "all_classes": null,
+        "length": 3591
+      },
+      {
+        "prompt_idx": 168,
+        "pred": "unanswerable",
+        "answers": [
+          "By 14 times.",
+          "up to 1.95 times larger"
+        ],
+        "all_classes": null,
+        "length": 3294
+      },
+      {
+        "prompt_idx": 169,
+        "pred": "unanswerable",
+        "answers": [
+          "3606",
+          "6946"
+        ],
+        "all_classes": null,
+        "length": 2835
+      },
+      {
+        "prompt_idx": 170,
+        "pred": "unanswerable",
+        "answers": [
+          "MLP",
+          "Eusboost, MWMOTE"
+        ],
+        "all_classes": null,
+        "length": 2474
+      },
+      {
+        "prompt_idx": 171,
+        "pred": "Yes.",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 3784
+      },
+      {
+        "prompt_idx": 172,
+        "pred": "unanswerable",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4320
+      },
+      {
+        "prompt_idx": 173,
+        "pred": "Unanswerable",
+        "answers": [
+          " Wall Street Journal (WSJ) portion of the Penn Treebank",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4327
+      }
+    ],
+    "lb/2wikimqa": [
+      {
+        "prompt_idx": 120,
+        "pred": "Ajman",
+        "answers": [
+          "Abu Dhabi"
+        ],
+        "all_classes": null,
+        "length": 3593
+      },
+      {
+        "prompt_idx": 121,
+        "pred": "Ottensen",
+        "answers": [
+          "Prenzlau"
+        ],
+        "all_classes": null,
+        "length": 3584
+      },
+      {
+        "prompt_idx": 122,
+        "pred": "Brooklyn, New York",
+        "answers": [
+          "Pozna\u0144"
+        ],
+        "all_classes": null,
+        "length": 3814
+      },
+      {
+        "prompt_idx": 124,
+        "pred": "Poughkeepsie, New York",
+        "answers": [
+          "Toronto, Ontario"
+        ],
+        "all_classes": null,
+        "length": 3366
+      },
+      {
+        "prompt_idx": 125,
+        "pred": "Forbidden Daughters",
+        "answers": [
+          "Forbidden Daughters"
+        ],
+        "all_classes": null,
+        "length": 4389
+      },
+      {
+        "prompt_idx": 127,
+        "pred": "Bogdan \u021a\u0103ru\u0219",
+        "answers": [
+          "Bogdan \u021a\u0103ru\u0219"
+        ],
+        "all_classes": null,
+        "length": 3425
+      },
+      {
+        "prompt_idx": 129,
+        "pred": "From Corleone To Brooklyn",
+        "answers": [
+          "From Corleone To Brooklyn"
+        ],
+        "all_classes": null,
+        "length": 3894
+      },
+      {
+        "prompt_idx": 132,
+        "pred": "I don't have enough information to answer the question. The passage only mentions that the director died in 2003, but it doesn't specify the cause of",
+        "answers": [
+          "Parkinson"
+        ],
+        "all_classes": null,
+        "length": 4337
+      },
+      {
+        "prompt_idx": 133,
+        "pred": "Eleanor Beauchamp, Duchess of Somerset",
+        "answers": [
+          "Roger Mortimer, 1st Earl of March"
+        ],
+        "all_classes": null,
+        "length": 3947
+      },
+      {
+        "prompt_idx": 135,
+        "pred": "Italia-Germania 4-3",
+        "answers": [
+          "Prince Of Arcadia"
+        ],
+        "all_classes": null,
+        "length": 3155
+      },
+      {
+        "prompt_idx": 136,
+        "pred": "I cannot verify the birthplace of the director of the film Love At First Sight (1985).",
+        "answers": [
+          "Milan"
+        ],
+        "all_classes": null,
+        "length": 3195
+      },
+      {
+        "prompt_idx": 137,
+        "pred": "I cannot verify where the director of the 1938 film Nanon died.",
+        "answers": [
+          "K\u00f6ln"
+        ],
+        "all_classes": null,
+        "length": 3719
+      }
+    ],
+    "lb/qasper_e": [
+      {
+        "prompt_idx": 156,
+        "pred": "unanswerable",
+        "answers": [
+          "They measured the under-translated words with low word importance score as calculated by Attribution.\nmethod",
+          "we ask ten human annotators to manually label the under-translated input words, and at least two annotators label each input-hypothesis pair"
+        ],
+        "all_classes": null,
+        "length": 4246
+      },
+      {
+        "prompt_idx": 158,
+        "pred": "unanswerable",
+        "answers": [
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4117
+      },
+      {
+        "prompt_idx": 159,
+        "pred": "unanswerable",
+        "answers": [
+          "Europarl corpus , WMT newstest 2014, News-Commentary-11, Wikipedia from WMT 2014, Multi-UN, EU-Bookshop, Rapid, Common-Crawl (WMT 2017)",
+          "Europarl tests from 2006, 2007, 2008; WMT newstest 2014."
+        ],
+        "all_classes": null,
+        "length": 4184
+      },
+      {
+        "prompt_idx": 160,
+        "pred": "Yes",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4484
+      },
+      {
+        "prompt_idx": 161,
+        "pred": "unanswerable",
+        "answers": [
+          "frequencies of the other words which occur with both of them (i.e., second order co\u2013occurrences)",
+          "The matrix containing co-occurrences of the words which occur with the both words of every given pair of words."
+        ],
+        "all_classes": null,
+        "length": 4271
+      },
+      {
+        "prompt_idx": 162,
+        "pred": "unanswerable",
+        "answers": [
+          "precision, recall, F1 and accuracy",
+          "precision, recall, F1 , accuracy "
+        ],
+        "all_classes": null,
+        "length": 4101
+      },
+      {
+        "prompt_idx": 163,
+        "pred": "unanswerable",
+        "answers": [
+          "Yes",
+          "Unanswerable"
+        ],
+        "all_classes": null,
+        "length": 4770
+      },
+      {
+        "prompt_idx": 164,
+        "pred": "They match annotators to instances based on their predicted difficulty scores.",
+        "answers": [
+          "Annotations from experts are used if they have already been collected."
+        ],
+        "all_classes": null,
+        "length": 4377
+      },
+      {
+        "prompt_idx": 165,
+        "pred": "unanswerable",
+        "answers": [
+          "13,939"
+        ],
+        "all_classes": null,
+        "length": 4489
+      },
+      {
+        "prompt_idx": 166,
+        "pred": "Question: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer: Yes\n\nQuestion: Is the data de-identified?\n\nAnswer:",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4592
+      },
+      {
+        "prompt_idx": 167,
+        "pred": "unanswerable",
+        "answers": [
+          "Yes",
+          "Yes"
+        ],
+        "all_classes": null,
+        "length": 4457
+      },
+      {
+        "prompt_idx": 168,
+        "pred": "unanswerable",
+        "answers": [
+          "Quantitative evaluation methods using ROUGE, Recall, Precision and F1.",
+          "standard ROGUE metric, Recall, Precision and INLINEFORM0 scores for ROGUE-1,  INLINEFORM2 scores for ROGUE-2 and ROGUE-L"
+        ],
+        "all_classes": null,
+        "length": 4395
+      },
+      {
+        "prompt_idx": 169,
+        "pred": "unanswerable",
+        "answers": [
+          "59.4% on wikipedia dataset, 93.4% on peer-reviewed archive AI papers, 77.1%  on peer-reviewed archive Computation and Language papers, and 79.9% on peer-reviewed archive Machine Learning papers"
+        ],
+        "all_classes": null,
+        "length": 4203
+      },
+      {
+        "prompt_idx": 170,
+        "pred": "unanswerable",
+        "answers": [
+          "Skip\u2013gram, CBOW",
+          "integrated vector-res, vector-faith, Skip\u2013gram, CBOW"
+        ],
+        "all_classes": null,
+        "length": 4259
+      },
+      {
+        "prompt_idx": 172,
+        "pred": "unanswerable",
+        "answers": [
+          " by testing humans on a random subset of 50 named entity and 50 common noun validation questions that the psr ensemble could not answer correctly",
+          "majority of questions that our system could not answer so far are in fact answerable"
+        ],
+        "all_classes": null,
+        "length": 4232
+      },
+      {
+        "prompt_idx": 173,
+        "pred": "unanswerable",
+        "answers": [
+          "precision, recall , F1 score"
+        ],
+        "all_classes": null,
+        "length": 4515
+      },
+      {
+        "prompt_idx": 174,
+        "pred": "unanswerable",
+        "answers": [
+          "a sample of  29,794 wikipedia articles and 2,794 arXiv papers "
+        ],
+        "all_classes": null,
+        "length": 4187
+      },
+      {
+        "prompt_idx": 175,
+        "pred": "Yes, they recommend translating the premise and hypothesis together.",
+        "answers": [
+          "No",
+          "No"
+        ],
+        "all_classes": null,
+        "length": 4071
+      }
+    ],
+    "lb/hotpotqa_e": [
+      {
+        "prompt_idx": 88,
+        "pred": "No.",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3217
+      },
+      {
+        "prompt_idx": 89,
+        "pred": "Marlborough",
+        "answers": [
+          "Marlborough"
+        ],
+        "all_classes": null,
+        "length": 3829
+      },
+      {
+        "prompt_idx": 93,
+        "pred": "No",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3674
+      },
+      {
+        "prompt_idx": 94,
+        "pred": "Yes",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 3705
+      },
+      {
+        "prompt_idx": 96,
+        "pred": "Aichryson has more species, with 15 species, compared to Polypodium, which has 7 species.",
+        "answers": [
+          "Polypodium"
+        ],
+        "all_classes": null,
+        "length": 3730
+      },
+      {
+        "prompt_idx": 97,
+        "pred": "I cannot verify the middle name of the actor who hosted the 24th People's Choice Awards with Reba McEntire.",
+        "answers": [
+          "Albert"
+        ],
+        "all_classes": null,
+        "length": 3271
+      },
+      {
+        "prompt_idx": 99,
+        "pred": "A1 Recordings",
+        "answers": [
+          "A1 Recordings"
+        ],
+        "all_classes": null,
+        "length": 2862
+      },
+      {
+        "prompt_idx": 103,
+        "pred": "16,251",
+        "answers": [
+          "729 at the 2010 census"
+        ],
+        "all_classes": null,
+        "length": 4198
+      },
+      {
+        "prompt_idx": 105,
+        "pred": "Cranberry juice",
+        "answers": [
+          "lime"
+        ],
+        "all_classes": null,
+        "length": 4196
+      },
+      {
+        "prompt_idx": 106,
+        "pred": "George Abbott was a playwright and director who wrote the play \"Broadway\" and directed the film \"Secrets of a Secretary\".",
+        "answers": [
+          "American theater producer and director, playwright, screenwriter"
+        ],
+        "all_classes": null,
+        "length": 4512
+      },
+      {
+        "prompt_idx": 108,
+        "pred": "Scotland",
+        "answers": [
+          "Scotland"
+        ],
+        "all_classes": null,
+        "length": 4500
+      },
+      {
+        "prompt_idx": 109,
+        "pred": "13",
+        "answers": [
+          "13"
+        ],
+        "all_classes": null,
+        "length": 4497
+      }
+    ],
+    "lb/2wikimqa_e": [
+      {
+        "prompt_idx": 106,
+        "pred": "No, they do not.",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4176
+      },
+      {
+        "prompt_idx": 107,
+        "pred": "Kiplangat Sang",
+        "answers": [
+          "Kiplangat Sang"
+        ],
+        "all_classes": null,
+        "length": 4003
+      },
+      {
+        "prompt_idx": 111,
+        "pred": "London",
+        "answers": [
+          "Sydney, Australia"
+        ],
+        "all_classes": null,
+        "length": 4287
+      },
+      {
+        "prompt_idx": 116,
+        "pred": "I cannot verify the date of death of Andrew, Duke of Slavonia's father.",
+        "answers": [
+          "6 August 1272"
+        ],
+        "all_classes": null,
+        "length": 4185
+      },
+      {
+        "prompt_idx": 118,
+        "pred": "No",
+        "answers": [
+          "yes"
+        ],
+        "all_classes": null,
+        "length": 4141
+      },
+      {
+        "prompt_idx": 119,
+        "pred": "Lassie Come Home",
+        "answers": [
+          "Prairie Thunder"
+        ],
+        "all_classes": null,
+        "length": 4155
+      },
+      {
+        "prompt_idx": 123,
+        "pred": "December 1697",
+        "answers": [
+          "8 April 1643"
+        ],
+        "all_classes": null,
+        "length": 4038
+      },
+      {
+        "prompt_idx": 124,
+        "pred": "I cannot verify the birthplace of the director of the film The Messenger (2009).",
+        "answers": [
+          "Israeli"
+        ],
+        "all_classes": null,
+        "length": 4399
+      },
+      {
+        "prompt_idx": 125,
+        "pred": "The Thing About My Folks",
+        "answers": [
+          "The Thing About My Folks"
+        ],
+        "all_classes": null,
+        "length": 4234
+      },
+      {
+        "prompt_idx": 127,
+        "pred": "Hubba bint Hulail",
+        "answers": [
+          "Princess Maria Immaculata of Bourbon-Two Sicilies"
+        ],
+        "all_classes": null,
+        "length": 4083
+      },
+      {
+        "prompt_idx": 128,
+        "pred": "American",
+        "answers": [
+          "Canadian"
+        ],
+        "all_classes": null,
+        "length": 4421
+      },
+      {
+        "prompt_idx": 130,
+        "pred": "I cannot verify where the director of the 1959 film Temptation died.",
+        "answers": [
+          "Nice"
+        ],
+        "all_classes": null,
+        "length": 4110
+      },
+      {
+        "prompt_idx": 137,
+        "pred": "Sancha of Aragon, Queen of Castile's paternal grandmother was Ramon Berenguer IV, Count of Barcelona.",
+        "answers": [
+          "Urraca of Le\u00f3n"
+        ],
+        "all_classes": null,
+        "length": 4215
+      },
+      {
+        "prompt_idx": 138,
+        "pred": "Carnegie Mellon University",
+        "answers": [
+          "Warsaw School of Economics"
+        ],
+        "all_classes": null,
+        "length": 4162
+      }
+    ]
+  }
+}
