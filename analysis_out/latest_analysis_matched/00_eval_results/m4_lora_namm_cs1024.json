@@ -1,0 +1,35 @@
+{
+  "type": "eval_namm_splits",
+  "source": "results/maskfix_results/all_results.json (M4 LoRA +NAMM cs1024)",
+  "config": {
+    "lora_checkpoint": "checkpoints_backup/lora_m4_cs1024_maskfix/best_ckpt_step260_val52.06.pt",
+    "namm_checkpoint": "eval_results/namm_cs1024_maskfix/ckpt.pt",
+    "eval_mode": "namm+lora",
+    "run_config": "namm_bam_i1_llama32_1b_5t",
+    "cache_size": 1024,
+    "min_conditioning_length": 4096,
+    "max_conditioning_length": 6500,
+    "max_answer_tokens": 64,
+    "extended_max_conditioning_length": 8192
+  },
+  "scores_per_split": {
+    "test": {
+      "micro_mean_f1": 33.50836814312991,
+      "macro_mean_f1": 33.87676967409301,
+      "lb/qasper": 33.25717901719473,
+      "lb/2wikimqa": 25.0,
+      "lb/qasper_e": 27.81223246740488,
+      "lb/hotpotqa_e": 43.518518518518526,
+      "lb/2wikimqa_e": 39.795918367346935
+    },
+    "extended_test": {
+      "micro_mean_f1": 25.837569210284624,
+      "macro_mean_f1": 26.83234810191084,
+      "lb/qasper": 25.458513404359547,
+      "lb/2wikimqa": 17.740493208329465,
+      "lb/qasper_e": 25.333792395606878,
+      "lb/hotpotqa_e": 38.45878136200716,
+      "lb/2wikimqa_e": 27.17016013925114
+    }
+  }
+}

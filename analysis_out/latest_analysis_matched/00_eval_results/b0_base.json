@@ -1,0 +1,35 @@
+{
+  "type": "plain_llama_baseline",
+  "source": "results/maskfix_results/all_results.json (B0 plain)",
+  "config": {
+    "lora_checkpoint": null,
+    "namm_checkpoint": null,
+    "eval_mode": "base",
+    "run_config": "namm_bam_i1_llama32_1b_5t",
+    "cache_size": null,
+    "min_conditioning_length": 4096,
+    "max_conditioning_length": 6500,
+    "max_answer_tokens": 64,
+    "extended_max_conditioning_length": 8192
+  },
+  "scores_per_split": {
+    "test": {
+      "micro_mean_f1": 22.40546146122183,
+      "macro_mean_f1": 0,
+      "lb/qasper": 25.850230414746544,
+      "lb/2wikimqa": 26.515151515151516,
+      "lb/qasper_e": 6.06060606060606,
+      "lb/hotpotqa_e": 44.56349206349207,
+      "lb/2wikimqa_e": 17.460317460317462
+    },
+    "extended_test": {
+      "micro_mean_f1": 22.417483661205438,
+      "macro_mean_f1": 0,
+      "lb/qasper": 18.881913725729184,
+      "lb/2wikimqa": 19.556277056277054,
+      "lb/qasper_e": 13.473004203256021,
+      "lb/hotpotqa_e": 45.87734845799361,
+      "lb/2wikimqa_e": 21.627871218035153
+    }
+  }
+}
