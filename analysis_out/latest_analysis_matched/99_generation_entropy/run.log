@@ -1,0 +1,95 @@
+01:12:53  INFO      Building model...
+01:12:54  INFO      Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+01:12:54  INFO      NumExpr defaulting to 16 threads.
+01:12:54  INFO      PyTorch version 2.3.1 available.
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+01:13:17  WARNING   apply_lora_adapters: lora_alpha not provided; defaulting to 2 * rank = 16. FAIR-01 expects callers to set lora_alpha explicitly so the M1 sweep ratio is auditable.
+...Instantialting llm...
+...Instantialting memory policy...
+StatelessAttention()
+Warning: output features not specified setting to 50 (input features*default_output_features_mult)
+Warning: hidden features not specified setting to 1 (output features)
+Initializing learned weights for token_embedding
+Initializing learned weights for scoring_network
+Initializing learned weights for selection_criteria
+New number of initial base params from components setup: 0
+New number of initial additional params from components setup: 4172
+New number of initial base params from setup: 0
+New number of initial additional params from setup: 4172
+...Instantialting memory llm...
+Registering token_embedding
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering scoring_network
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Registering selection_criteria
+RecencyEmbeddingWrapper(
+  (wrapped_embedding): AttentionSpectrogram()
+  (recency_embedding): PositionalEmbedding()
+)
+Instantiating memory llm with 16 attention layers
+...Instantialting evaluation module...
+...Instantialting evolution module...
+# optimized parameters: 4172
+...Finished instantiations.
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+01:13:31  INFO        25 prompts (5 per task, val+test)
+01:13:31  INFO      ============================================================
+01:13:31  INFO      M1-matched, full cache (M1_full)
+01:13:31  INFO      ============================================================
+01:13:31  INFO        Loaded LoRA: step=336 val=45.48060267873889
+01:13:32  INFO        1/25 done (seq_len=5106, gen_steps=2, task=lb/2wikimqa)
+01:13:40  INFO        10/25 done (seq_len=5919, gen_steps=2, task=lb/2wikimqa_e)
+01:13:47  INFO        20/25 done (seq_len=6004, gen_steps=2, task=lb/qasper)
+01:13:52  INFO        M1_full: mean entropy step 0=2.773, step -1=6.396
+01:13:52  INFO      ============================================================
+01:13:52  INFO      M1-matched, under NAMM (M1_namm)
+01:13:52  INFO      ============================================================
+01:13:52  INFO        Loaded LoRA: step=336 val=45.48060267873889
+01:13:53  INFO        1/25 done (seq_len=5106, gen_steps=2, task=lb/2wikimqa)
+01:14:00  INFO        10/25 done (seq_len=5919, gen_steps=2, task=lb/2wikimqa_e)
+01:14:06  INFO        20/25 done (seq_len=6004, gen_steps=3, task=lb/qasper)
+01:14:09  INFO        M1_namm: mean entropy step 0=3.521, step -1=4.955
+01:14:09  INFO      ============================================================
+01:14:09  INFO      A4 (M4 weights), under NAMM (A4_namm)
+01:14:09  INFO      ============================================================
+01:14:09  INFO        Loaded LoRA: step=260 val=52.06387693314976
+01:14:10  INFO        1/25 done (seq_len=5106, gen_steps=5, task=lb/2wikimqa)
+01:14:18  INFO        10/25 done (seq_len=5919, gen_steps=3, task=lb/2wikimqa_e)
+01:14:28  INFO        20/25 done (seq_len=6004, gen_steps=3, task=lb/qasper)
+01:14:35  INFO        A4_namm: mean entropy step 0=2.629, step -1=4.710
+01:14:35  INFO      Saved analysis_out/latest_analysis_matched/08_generation_entropy/generation_entropy.json
+01:14:35  INFO      Saved analysis_out/latest_analysis_matched/08_generation_entropy/generation_entropy_raw.json
+01:14:36  INFO      Saved analysis_out/latest_analysis_matched/08_generation_entropy/entropy_spaghetti.png
+01:14:36  INFO      
+============================================================
+01:14:36  INFO      SUMMARY
+01:14:36  INFO      ============================================================
+01:14:36  INFO        M1_full: entropy step 0=2.773  step 10=6.396  last=6.396  (n_steps=3)
+01:14:36  INFO        M1_namm: entropy step 0=3.521  step 10=5.642  last=4.955  (n_steps=128)
+01:14:36  INFO        A4_namm: entropy step 0=2.629  step 10=4.554  last=4.710  (n_steps=128)
+01:14:36  INFO        M1_namm - M1_full: mean delta=0.7129, max delta=1.6808
+01:14:36  INFO        A4_namm - M1_full: mean delta=0.5092, max delta=2.7765
+01:14:36  INFO      
+Done. Plots saved to analysis_out/latest_analysis_matched/08_generation_entropy
+Instantiating tasks: ['lb/qasper', 'lb/2wikimqa', 'lb/qasper_e', 'lb/hotpotqa_e', 'lb/2wikimqa_e']; with  corresponding metrics: perf
+Length filter lb/qasper: 200 -> 181 examples
+Length filter lb/2wikimqa: 200 -> 138 examples
+Length filter lb/qasper_e: 224 -> 183 examples
+Length filter lb/hotpotqa_e: 300 -> 111 examples
+Length filter lb/2wikimqa_e: 300 -> 142 examples
+Answer token filter lb/qasper: 181 -> 176 examples (max=64)
+Answer token filter lb/2wikimqa: 138 -> 138 examples (max=64)
+Answer token filter lb/qasper_e: 183 -> 176 examples (max=64)
+Answer token filter lb/hotpotqa_e: 111 -> 111 examples (max=64)
+Answer token filter lb/2wikimqa_e: 142 -> 142 examples (max=64)
+  lb/qasper: 176 total, 89 filtered [4096-6500] tok -> 60 train / 13 val / 14 test
+  lb/2wikimqa: 138 total, 58 filtered [4096-6500] tok -> 56 train / 12 val / 12 test
+  lb/qasper_e: 176 total, 65 filtered [4096-6500] tok -> 77 train / 16 val / 18 test
+  lb/hotpotqa_e: 111 total, 38 filtered [4096-6500] tok -> 51 train / 10 val / 12 test
+  lb/2wikimqa_e: 142 total, 53 filtered [4096-6500] tok -> 62 train / 13 val / 14 test

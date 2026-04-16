@@ -1,0 +1,7 @@
+** NOT INCLUDED **
+
+## EXTRA SECTION ON ANALYSIS (OPTIONAL)
+
+The draft mentions that local perturbations in the next-token distribution can compound over time during autoregressive generation.
+
+Analysis: Track the negative log-likelihood (NLL) or entropy of the output logits at each generation step. You should expect the post-hoc model to show a degradation in confidence (higher entropy) the longer the generation goes on, as the missing context compounds. LoRA+NAMM should theoretically stabilize this confidence.
