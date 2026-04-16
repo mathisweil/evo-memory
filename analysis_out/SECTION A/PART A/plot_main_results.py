@@ -31,6 +31,7 @@ COND_FILES = {
     "Base+NAMM\n(M2)": "m2_base_namm_cs1024.json",
     "M1-matched\n(full cache)": "m1_matched_full_cache.json",
     "M1-matched\nunder NAMM": "m1_matched_under_namm_cs1024.json",
+    "M1-matched\ntruncated": "m1_matched_trunc1024.json",
     "M4 LoRA\n+NAMM": "m4_lora_namm_cs1024.json",
     "A4: M4 LoRA\nno NAMM": "a4_m4_lora_no_namm.json",
 }
@@ -42,6 +43,7 @@ COLORS = {
     "Base+NAMM\n(M2)": "#937DC2",
     "M1-matched\n(full cache)": "#4C72B0",
     "M1-matched\nunder NAMM": "#DD8452",
+    "M1-matched\ntruncated": "#55A868",
     "M4 LoRA\n+NAMM": "#C44E52",
     "A4: M4 LoRA\nno NAMM": "#CCB974",
 }
