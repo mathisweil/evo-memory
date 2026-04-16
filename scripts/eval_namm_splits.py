@@ -600,6 +600,7 @@ def main():
             memory_policy is not None
             and not args.use_classic_recency
             and not args.plain
+            and memory_policy.get_init_param_values() is not None
         )
         if has_policy_stats:
             eviction_traces_per_split[split_name] = (
