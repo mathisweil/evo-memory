@@ -28,18 +28,22 @@ TASK_LABELS = ["qasper", "2wikimqa", "qasper_e", "hotpotqa_e", "2wikimqa_e"]
 # Condition label -> JSON filename in 00_eval_results
 COND_FILES = {
     "B0": "b0_base.json",
+    "Base+NAMM\n(M2)": "m2_base_namm_cs1024.json",
     "M1-matched\n(full cache)": "m1_matched_full_cache.json",
     "M1-matched\nunder NAMM": "m1_matched_under_namm_cs1024.json",
     "M4 LoRA\n+NAMM": "m4_lora_namm_cs1024.json",
+    "A4: M4 LoRA\nno NAMM": "a4_m4_lora_no_namm.json",
 }
 
 COND_ORDER = list(COND_FILES.keys())
 
 COLORS = {
     "B0": "#888888",
+    "Base+NAMM\n(M2)": "#937DC2",
     "M1-matched\n(full cache)": "#4C72B0",
     "M1-matched\nunder NAMM": "#DD8452",
-    "M4 LoRA\n+NAMM": "#55A868",
+    "M4 LoRA\n+NAMM": "#C44E52",
+    "A4: M4 LoRA\nno NAMM": "#CCB974",
 }
 
 
@@ -63,7 +67,7 @@ def load_data():
 # ── Plotting ─────────────────────────────────────────────────────────
 
 def plot_mean_f1(data, split, output_path):
-    fig, ax = plt.subplots(figsize=(5, 4))
+    fig, ax = plt.subplots(figsize=(7, 4))
 
     vals = [data[split][c]["micro"] for c in COND_ORDER]
     x = np.arange(len(COND_ORDER))
@@ -94,12 +98,12 @@ def plot_mean_f1(data, split, output_path):
 
 
 def plot_per_task_f1(data, split, output_path):
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(13, 5))
 
     n_conds = len(COND_ORDER)
     n_tasks = len(TASKS)
-    bar_width = 0.18
-    group_gap = 0.15
+    bar_width = 0.13
+    group_gap = 0.18
 
     for ci, cond in enumerate(COND_ORDER):
         task_vals = [data[split][cond]["tasks"][t] for t in TASKS]

@@ -1,0 +1,35 @@
+{
+  "type": "eval_namm_splits",
+  "source": "results/maskfix_results/all_results.json (M2 NAMM cs1024)",
+  "config": {
+    "lora_checkpoint": null,
+    "namm_checkpoint": "eval_results/namm_cs1024_maskfix/ckpt.pt",
+    "eval_mode": "namm",
+    "run_config": "namm_bam_i1_llama32_1b_5t",
+    "cache_size": 1024,
+    "min_conditioning_length": 4096,
+    "max_conditioning_length": 6500,
+    "max_answer_tokens": 64,
+    "extended_max_conditioning_length": 8192
+  },
+  "scores_per_split": {
+    "test": {
+      "micro_mean_f1": 19.273294003496037,
+      "macro_mean_f1": 20.08344535551931,
+      "lb/qasper": 26.888831481959873,
+      "lb/2wikimqa": 25.0,
+      "lb/qasper_e": 7.617223134464514,
+      "lb/hotpotqa_e": 18.58974358974359,
+      "lb/2wikimqa_e": 22.321428571428573
+    },
+    "extended_test": {
+      "micro_mean_f1": 18.69938109651339,
+      "macro_mean_f1": 18.929574564667394,
+      "lb/qasper": 20.870055840421923,
+      "lb/2wikimqa": 19.76088368600446,
+      "lb/qasper_e": 10.640678778325515,
+      "lb/hotpotqa_e": 22.723029658513532,
+      "lb/2wikimqa_e": 20.65322486007153
+    }
+  }
+}
