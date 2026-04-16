@@ -1,0 +1,30 @@
+{
+  "type": "eval_namm_splits",
+  "source": "GCS all_results_current_split.json (Trunc plain 1024)",
+  "source_file": "eval_results/trunc_plain_1024_resplit/20260416_134311/results.json",
+  "config": {
+    "lora_checkpoint": null,
+    "namm_checkpoint": null,
+    "eval_mode": "trunc",
+    "cache_size": null,
+    "truncate_input_to": 1024
+  },
+  "scores_per_split": {
+    "test": {
+      "micro_mean_f1": 18.177506813211554,
+      "lb/qasper": 29.796850246948093,
+      "lb/2wikimqa": 25.0,
+      "lb/qasper_e": 13.487198525974204,
+      "lb/hotpotqa_e": 9.375,
+      "lb/2wikimqa_e": 14.285714285714286
+    },
+    "extended_test": {
+      "micro_mean_f1": 15.45368426898364,
+      "lb/qasper": 21.20471713926744,
+      "lb/2wikimqa": 19.885521885521882,
+      "lb/qasper_e": 14.245871304751194,
+      "lb/hotpotqa_e": 14.583333333333334,
+      "lb/2wikimqa_e": 8.125
+    }
+  }
+}

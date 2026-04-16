@@ -1,35 +1,30 @@
 {
-  "type": "plain_llama_baseline",
-  "source": "results/maskfix_results/all_results.json (B0 plain)",
+  "type": "eval_namm_splits",
+  "source": "GCS all_results_current_split.json (B0 base, full cache)",
+  "source_file": "eval_results/b0_baseline_resplit/20260416_134946/results.json",
   "config": {
     "lora_checkpoint": null,
     "namm_checkpoint": null,
-    "eval_mode": "base",
-    "run_config": "namm_bam_i1_llama32_1b_5t",
+    "eval_mode": "plain",
     "cache_size": null,
-    "min_conditioning_length": 4096,
-    "max_conditioning_length": 6500,
-    "max_answer_tokens": 64,
-    "extended_max_conditioning_length": 8192
+    "truncate_input_to": null
   },
   "scores_per_split": {
     "test": {
-      "micro_mean_f1": 22.40546146122183,
-      "macro_mean_f1": 0,
+      "micro_mean_f1": 21.961017016777383,
       "lb/qasper": 25.850230414746544,
       "lb/2wikimqa": 26.515151515151516,
       "lb/qasper_e": 6.06060606060606,
       "lb/hotpotqa_e": 44.56349206349207,
-      "lb/2wikimqa_e": 17.460317460317462
+      "lb/2wikimqa_e": 15.238095238095239
     },
     "extended_test": {
-      "micro_mean_f1": 22.417483661205438,
-      "macro_mean_f1": 0,
-      "lb/qasper": 18.881913725729184,
-      "lb/2wikimqa": 19.556277056277054,
-      "lb/qasper_e": 13.473004203256021,
-      "lb/hotpotqa_e": 45.87734845799361,
-      "lb/2wikimqa_e": 21.627871218035153
+      "micro_mean_f1": 18.709585125771603,
+      "lb/qasper": 20.892893365816885,
+      "lb/2wikimqa": 20.908411849588312,
+      "lb/qasper_e": 11.722594827416163,
+      "lb/hotpotqa_e": 35.563695563695575,
+      "lb/2wikimqa_e": 13.815463085819124
     }
   }
 }

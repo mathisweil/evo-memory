@@ -29,6 +29,7 @@ TASK_LABELS = ["qasper", "2wikimqa", "qasper_e", "hotpotqa_e", "2wikimqa_e"]
 COND_FILES = {
     "B0": "b0_base.json",
     "Base+NAMM\n(M2)": "m2_base_namm_cs1024.json",
+    "Base\ntruncated": "trunc_plain_1024.json",
     "M1-matched\n(full cache)": "m1_matched_full_cache.json",
     "M1-matched\nunder NAMM": "m1_matched_under_namm_cs1024.json",
     "M1-matched\ntruncated": "m1_matched_trunc1024.json",
@@ -41,6 +42,7 @@ COND_ORDER = list(COND_FILES.keys())
 COLORS = {
     "B0": "#888888",
     "Base+NAMM\n(M2)": "#937DC2",
+    "Base\ntruncated": "#AAAAAA",
     "M1-matched\n(full cache)": "#4C72B0",
     "M1-matched\nunder NAMM": "#DD8452",
     "M1-matched\ntruncated": "#55A868",
