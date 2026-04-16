@@ -1,0 +1,70 @@
+# M3 (warm-buffers ablation) — LoRA + frozen NAMM with component buffers
+# persisting across training samples. Reproduces the pre-fix behaviour where
+# ema_output_buffer / past_scores / prev_attn_buffer were NOT reset between
+# documents. NOT FAIR-01 comparable with the main M3 table — intended for
+# ablation only.
+#
+# Differs from m3_lora_frozen_namm_5t.yaml by `warm_buffers: true`. Reading
+# the stale buffers still requires `new_sequences=False` inside the NAMM
+# components, so the effect is only observable when the forward pass is
+# invoked on a chunk that follows a prior chunk of the same sequence; see
+# `namm/policy/deep.py:335` and `namm/policy/base_deep_components.py:603`.
+#
+# Usage:
+#   python scripts/run_lora.py \
+#       --config scripts/configs/m3_warm_lora_5t.yaml \
+#       --run_name m3_warm_lora \
+#       --namm_checkpoint <path-to-m2-checkpoint>
+
+# -- Experiment ---------------------------------------------------------------
+run_name: null
+experiment: null
+method: m3_warm_lora_5t
+
+# -- LoRA hyperparameters (MUST match M1 exactly) -----------------------------
+lora_rank: 8
+lora_target_modules: [q_proj, v_proj]
+lora_alpha: 16
+lora_dropout: 0.1
+learning_rate: 5e-5
+weight_decay: 0.01
+max_grad_norm: 1.0
+warmup_ratio: 0.03
+num_epochs: 100
+batch_size: 4
+gradient_accumulation_steps: 4
+max_seq_len: 7000
+sft_mode: true
+dtype: bfloat16
+always_save_checkpoint: true
+
+# -- NAMM (active — requires --namm_checkpoint at runtime) --------------------
+namm_active: true
+namm_checkpoint: null
+run_config: namm_bam_i1_llama32_1b_5t
+cache_size: 1024
+warm_buffers: true
+
+# -- Data (FAIR-01) -----------------------------------------------------------
+filter_by_tokens: null
+filter_answers_by_tokens: 64
+train_split: 0.7
+val_split: 0.15
+split_seed: 42
+
+# -- Evaluation ---------------------------------------------------------------
+eval_interval: 14
+log_interval: 2
+batch_size_eval: 8
+early_stopping_patience: 20
+
+# -- Wandb --------------------------------------------------------------------
+wandb_entity: SNLP_NAMM
+wandb_project: Experiments
+
+# -- Checkpointing & GCS -----------------------------------------------------
+gcs: true
+resume_checkpoint: null
+
+# -- Advanced -----------------------------------------------------------------
+override: []
