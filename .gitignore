@@ -1,7 +1,6 @@
 # Experiment outputs and checkpoints
 
 experiment_artifacts/
-eval_results/
 exp_local/
 exp/
 outputs/
