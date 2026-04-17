@@ -19,8 +19,8 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PY="${PY:-$REPO_ROOT/venv/bin/python}"
 
 NAMM_CKPT="${NAMM_CKPT:-$REPO_ROOT/local_folder/final_cs1024/namm_cs1024_maskfix.pt}"
-M1_LORA="${M1_LORA:-$REPO_ROOT/local_folder/final_cs1024/lora_m1_lr1e4_matched/best_ckpt.pt}"
-M4_LORA="${M4_LORA:-$REPO_ROOT/local_folder/final_cs1024/lora_m4_cs1024_maskfix/best_ckpt_step260_val52.06.pt}"
+M1_LORA="${M1_LORA:-$REPO_ROOT/local_folder/final_cs1024/m1_lora_matched.pt}"
+M4_LORA="${M4_LORA:-$REPO_ROOT/local_folder/final_cs1024/m4_lora_namm.pt}"
 
 RUN_CONFIG="${RUN_CONFIG:-namm_bam_i1_llama32_1b_5t}"
 CACHE_SIZE="${CACHE_SIZE:-1024}"
