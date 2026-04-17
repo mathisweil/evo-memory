@@ -1,10 +1,7 @@
 # Experiment outputs and checkpoints
 
 experiment_artifacts/
-<<<<<<< HEAD
-eval_results/
-=======
->>>>>>> 56f7afc9ff85c26ec7abe7c5cb03202cf55554e3
+
 exp_local/
 exp/
 outputs/
