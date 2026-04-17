@@ -26,6 +26,7 @@ import datetime
 import json
 import os
 import sys
+from typing import Dict, List
 
 import numpy as np
 import torch
@@ -157,7 +158,205 @@ def parse_args():
                              "is in --splits.")
     parser.add_argument("--task_config", type=str, default=None,
                         help="Override task config (e.g. rh_ood_eval_3t for OOD eval)")
+    parser.add_argument("--dump_namm_state", type=str, default=None,
+                        help="Section C: per-prompt NAMM state dump directory. "
+                             "When set, replaces the generation/F1 eval loop "
+                             "with a forward-only per-prompt pass that saves "
+                             "NAMM scores, retained indices, and the final "
+                             "LLM-side attention to "
+                             "<dir>/<task>__<idx:04d>.pt. Requires a NAMM "
+                             "checkpoint; incompatible with --plain, "
+                             "--use_classic_recency, --truncate_input_to.")
+    parser.add_argument("--dump_max_prompts_per_task", type=int, default=None,
+                        help="Section C: cap prompts per task in the dump "
+                             "loop (smoke-test use).")
+    parser.add_argument("--dump_condition_label", type=str, default=None,
+                        help="Section C: short label ('B0', 'M1', 'M4') "
+                             "stamped into every dump file's config metadata.")
     return parser.parse_args()
+
+
+def _run_section_c_dump_loop(
+    args,
+    memory_policy,
+    memory_model,
+    memory_evaluator,
+    task_sampler,
+    tokenizer,
+    device,
+    timestamp,
+    train_frac,
+    val_frac,
+    max_cond,
+    min_cond,
+    ext_max_cond,
+):
+    """Section C — per-prompt NAMM state dump (no F1 generation).
+
+    Iterates the requested splits one prompt at a time, runs a forward-only
+    pass with ``apply_memory_policy=True`` and ``output_attentions=True``,
+    captures NAMM tensors from the policy, captures LLM self-attention
+    from forward hooks, reduces attention to a per-KV-token scalar, and
+    saves one ``.pt`` file per prompt under ``args.dump_namm_state``.
+
+    Returns the list of written paths.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    if not hasattr(memory_policy, 'initialize_dump_buffers'):
+        raise RuntimeError(
+            "Memory policy does not support tensor dumping. "
+            "--dump_namm_state requires the DeepMP policy (BAM-i1 NAMM).")
+
+    memory_policy._record_dump_tensors = True
+    memory_policy.initialize_dump_buffers()
+
+    captured = {"per_chunk": []}
+
+    def _make_hook(layer_idx):
+        def hook_fn(_module, _inp, output):
+            attn_weights = output[1]
+            if attn_weights is not None:
+                # (bs, n_heads, q_len, kv_len) — batch size 1 in dump mode.
+                captured["per_chunk"].append(
+                    (layer_idx, attn_weights[0].detach().to(torch.float16).cpu())
+                )
+        return hook_fn
+
+    hooks = []
+    for i, layer in enumerate(memory_model.model.layers):
+        hooks.append(layer.self_attn.register_forward_hook(_make_hook(i)))
+
+    out_root = os.path.abspath(args.dump_namm_state)
+    os.makedirs(out_root, exist_ok=True)
+
+    config_blob = {
+        "condition": args.dump_condition_label or "unknown",
+        "lora_path": (os.path.abspath(args.lora_checkpoint)
+                      if args.lora_checkpoint else None),
+        "namm_path": os.path.abspath(args.namm_checkpoint),
+        "cache_size": args.cache_size,
+        "run_config": args.run_config,
+        "timestamp": timestamp,
+        "protected_tail_n": 5,
+        "train_frac": train_frac,
+        "val_frac": val_frac,
+        "min_conditioning_length": min_cond,
+        "max_conditioning_length": max_cond,
+        "extended_max_conditioning_length": ext_max_cond,
+    }
+
+    written: List[str] = []
+    total_prompts_seen = 0
+    for split_name in args.splits:
+        split_idxs = task_sampler.get_split_indices(split_name)
+        for task_name in sorted(split_idxs.keys()):
+            task_indices = sorted(int(i) for i in split_idxs[task_name])
+            if args.dump_max_prompts_per_task is not None:
+                task_indices = task_indices[:args.dump_max_prompts_per_task]
+            print(f"  dump split={split_name} task={task_name}: "
+                  f"{len(task_indices)} prompts")
+
+            for orig_idx in task_indices:
+                prompt_str = task_sampler.lb_prompts_per_task[task_name][orig_idx]
+                enc = tokenizer(prompt_str, add_special_tokens=True,
+                                return_tensors="pt")
+                input_ids = enc["input_ids"].to(device)
+                attention_mask = enc["attention_mask"].to(device)
+                n_tok = int(input_ids.shape[-1])
+
+                if args.cache_size and n_tok <= args.cache_size:
+                    logger.info(
+                        "Skipping task=%s idx=%d: n_tok=%d ≤ cache_size=%d "
+                        "(no eviction fires)", task_name, orig_idx, n_tok,
+                        args.cache_size)
+                    continue
+
+                # Between-prompt reset: policy auto-resets non-dump state on
+                # new_sequences=True during the first chunk of the next
+                # forward pass (see DeepMP.update_layer_cache_impl_).
+                memory_policy.initialize_dump_buffers()
+                captured["per_chunk"] = []
+
+                with torch.no_grad():
+                    memory_model(
+                        input_ids=input_ids,
+                        attention_mask=attention_mask,
+                        apply_memory_policy=True,
+                        output_attentions=True,
+                        use_cache=True,
+                        skip_lm_head=True,
+                    )
+
+                dump = memory_policy.pop_dump_buffers()
+
+                # Reduce final-chunk LLM attention to per-KV-token scalar
+                # per layer. captured["per_chunk"] is a flat list of
+                # (layer_idx, attn) pairs across chunks; we want only the
+                # last occurrence of each layer_idx (= final chunk).
+                final_attn_by_layer: Dict[int, torch.Tensor] = {}
+                for layer_idx, attn in captured["per_chunk"]:
+                    final_attn_by_layer[layer_idx] = attn
+
+                if final_attn_by_layer:
+                    n_layers = memory_policy.num_memory_layers
+                    layer_means = []
+                    layer_heads_means = []
+                    for l in range(n_layers):
+                        a = final_attn_by_layer.get(l)
+                        if a is None:
+                            layer_means.append(None)
+                            layer_heads_means.append(None)
+                            continue
+                        # a: (n_heads, q_len, kv_len) fp16
+                        a_f = a.float()
+                        # Mean over queries first, then over heads.
+                        mean_per_head = a_f.mean(dim=-2)              # (n_heads, kv_len)
+                        layer_heads_means.append(mean_per_head.to(torch.float16))
+                        layer_means.append(
+                            mean_per_head.mean(dim=0).to(torch.float16)
+                        )
+                    if all(t is not None for t in layer_means):
+                        final_attn_mean = torch.stack(layer_means, dim=0)
+                        final_attn_per_head = torch.stack(layer_heads_means, dim=0)
+                    else:
+                        final_attn_mean = None
+                        final_attn_per_head = None
+                else:
+                    final_attn_mean = None
+                    final_attn_per_head = None
+
+                record = dict(dump)
+                record["final_attn_mean_per_token"] = final_attn_mean
+                record["final_attn_mean_per_token_per_head"] = final_attn_per_head
+                record["prompt_meta"] = {
+                    "task": task_name,
+                    "orig_idx": int(orig_idx),
+                    "prompt_length_tokens": n_tok,
+                    "split": split_name,
+                    "n_steps": dump["n_steps"],
+                    "protected_tail_n": 5,
+                }
+                record["config"] = dict(config_blob)
+
+                fname = f"{task_name.replace('/', '__')}__{orig_idx:04d}.pt"
+                out_path = os.path.join(out_root, fname)
+                torch.save(record, out_path)
+                written.append(out_path)
+                total_prompts_seen += 1
+                if total_prompts_seen % 5 == 0:
+                    print(f"    dumped {total_prompts_seen} prompts "
+                          f"(last: {fname})")
+
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+
+    for h in hooks:
+        h.remove()
+    memory_policy._record_dump_tensors = False
+    print(f"\nSection C: wrote {len(written)} dump files to {out_root}")
+    return written
 
 
 def main():
@@ -177,6 +376,20 @@ def main():
                 "a LoRA checkpoint without NAMM, omit --plain and omit "
                 "--namm_checkpoint (the NAMM wrapper will use init params "
                 "with a large cache_size, effectively no eviction).")
+
+    if args.dump_namm_state:
+        if args.plain:
+            raise ValueError("--dump_namm_state is incompatible with --plain")
+        if args.use_classic_recency:
+            raise ValueError(
+                "--dump_namm_state is incompatible with --use_classic_recency")
+        if args.truncate_input_to is not None:
+            raise ValueError(
+                "--dump_namm_state is incompatible with --truncate_input_to")
+        if not args.namm_checkpoint:
+            raise ValueError(
+                "--dump_namm_state requires --namm_checkpoint (Section C "
+                "compares eviction under a fixed trained NAMM).")
 
     # ── Resolve output directory ────────────────────────────────────────────
     if args.output_dir:
@@ -530,6 +743,26 @@ def main():
     # Show per-task sample counts
     for task_n, n in task_sampler.num_prompts_per_lb_task.items():
         print(f"  Task: {task_n}, total eligible samples: {n}")
+
+    # ── Section C: per-prompt dump mode (no generation, no F1) ──────────────
+    if args.dump_namm_state:
+        print(f"\nSection C dump mode → {args.dump_namm_state}")
+        _run_section_c_dump_loop(
+            args=args,
+            memory_policy=memory_policy,
+            memory_model=memory_model,
+            memory_evaluator=memory_evaluator,
+            task_sampler=task_sampler,
+            tokenizer=tokenizer,
+            device=device,
+            timestamp=timestamp,
+            train_frac=train_frac,
+            val_frac=val_frac,
+            max_cond=max_cond,
+            min_cond=min_cond,
+            ext_max_cond=ext_max_cond,
+        )
+        return
 
     # ── Apply tail-only input truncation at the STRING level ───────────────
     # If --truncate_input_to N is set, replace every prompt string with one
