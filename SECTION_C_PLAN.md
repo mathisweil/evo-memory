@@ -138,12 +138,17 @@ contains a dict (loaded by `torch.load(..., weights_only=False)`):
 
 ```python
 {
-    # Per-layer tensors at the FINAL eviction step.
-    "final_scores":         Tensor[float16] (n_layers=16, n_heads=32, n_kv_final),
-    "final_retained_idxs":  Tensor[int32]   (n_layers, n_heads, k=1024),
-    "final_new_mask":       Tensor[bool]    (n_layers, n_heads, k=1024),
-    "final_position_ids":   Tensor[int32]   (n_layers, n_kv_final),  # head-0 slot→prompt map, used by Spearman cross-check against head-averaged LLM attention
-    "final_retained_positions": Tensor[int32] (n_layers, n_heads, k=1024),  # per-head retained prompt positions — the canonical input to IoU/retention metrics
+    # Per-layer tensors at the FINAL eviction step. Stored as LISTS of
+    # per-layer tensors (not stacked) because different layers may see
+    # different n_kv / k at their final scoring call — DynamicMemoryPolicy
+    # .update_cache lets per-layer buffered attention feed different
+    # update_new_tokens values into update_layer_cache_impl_, so we cannot
+    # assume uniform shapes across layers.
+    "final_scores":         list[Tensor[float16]]  length n_layers=16, each (n_heads=8, n_kv_layer),
+    "final_retained_idxs":  list[Tensor[int32]]    length n_layers, each (n_heads, k_layer ≤ 1024),
+    "final_new_mask":       list[Tensor[bool]]     length n_layers, each (n_heads, k_layer),
+    "final_position_ids":   list[Tensor[int32]] | None,  length n_layers, each (n_kv_layer,)  # head-0 slot→prompt map
+    "final_retained_positions": list[Tensor[int32]] | None,  length n_layers, each (n_heads, k_layer)  # per-head retained prompt positions — canonical input to IoU/retention
 
     # LLM-side attention, reduced to per-KV-token scalar per layer.
     "final_attn_mean_per_token": Tensor[float16] (n_layers, n_kv_final),
