@@ -23,17 +23,31 @@ evo-memory/
 │   └── typing/                   #   precision / attention configs
 │
 ├── scripts/                      # main entry points
-│   ├── run_es.py                 #   ES fine-tuning
-│   ├── run_lora.py               #   LoRA gradient-based fine-tuning
-│   ├── run_namm.py               #   NAMM policy training (Hydra)
-│   ├── run_joint.py              #   joint alternating NAMM + adapter training
-│   ├── run_eval.py               #   evaluation runner
-│   ├── generate_report.py        #   cross-experiment comparison reports
-│   ├── upload_pretrained.py      #   GCS checkpoint management
-│   ├── archive_experiment.py     #   experiment archival to GCS
-│   ├── experiment_utils.py       #   shared utilities (manifest, config loading, eval functions)
-│   ├── check_eviction_stats.py   #   diagnostic tool for NAMM token retention
-│   ├── generate_paper_figures.py #   paper figure generation
+│   ├── run/                      #   training + evaluation drivers
+│   │   ├── run_es.py             #     ES fine-tuning
+│   │   ├── run_lora.py           #     LoRA gradient-based fine-tuning
+│   │   ├── run_namm.py           #     NAMM policy training (Hydra)
+│   │   ├── run_joint.py          #     joint alternating NAMM + adapter training
+│   │   ├── run_eval.py           #     evaluation runner
+│   │   └── eval_namm_splits.py   #     multi-split NAMM/LoRA evaluator
+│   ├── analysis/                 #   diagnostic / probing tools
+│   │   ├── check_eviction_stats.py
+│   │   ├── eviction_representation_analysis.py
+│   │   ├── ghost_information_analysis.py
+│   │   ├── hidden_state_shift_analysis.py
+│   │   ├── paired_delta_analysis.py
+│   │   └── profile_namm.py
+│   ├── reporting/                #   figures, tables, per-prompt case studies
+│   │   ├── generate_paper_figures.py
+│   │   ├── generate_report.py    #     cross-experiment comparison reports
+│   │   ├── plot_main_table.py
+│   │   ├── case_study_attention.py  # final-token attention + KV-cosine heatmaps
+│   │   └── case_study_entropy.py    # attention-entropy trajectories + ghost KV
+│   ├── infra/                    #   GCS / experiment lifecycle
+│   │   ├── upload_pretrained.py  #     GCS checkpoint management
+│   │   ├── archive_experiment.py #     experiment archival to GCS
+│   │   ├── download_artifacts.py
+│   │   └── organize_eval_results.py
 │   └── configs/                  #   YAML hyperparameter presets
 │       ├── m1_lora_5t.yaml              #   M1 LoRA-only (FAIR-01, 5-task)
 │       ├── m3_lora_frozen_namm_5t.yaml  #   M3 LoRA + frozen NAMM (FAIR-01, 5-task)
@@ -67,6 +81,7 @@ evo-memory/
 │   └── policy/                   #   eviction policies (recency, deep scoring, H2O, ScissorHands)
 │
 ├── utils/                        # shared utilities
+│   ├── experiment.py             #   manifest, config loading, eval dispatch
 │   ├── helpers.py                #   model loading, tokenization, data processing
 │   └── hydra_helpers.py          #   Hydra configuration utilities
 │
@@ -147,15 +162,15 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 
 | Experiment | Script | Config | Required Args | Key Optional Args |
 |---|---|---|---|---|
-| **Train NAMM** (M2) | `scripts/run_namm.py` | `config/config.yaml` (Hydra) | `'run@_global_=<preset>'` | `threshold_only`, `scoring_initializer`, `save_checkpoint_every`, `trainer_config.max_iters` |
-| **LoRA only** (M1) | `scripts/run_lora.py` | `scripts/configs/m1_lora_5t.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
-| **LoRA + frozen NAMM** (M3) | `scripts/run_lora.py` | `scripts/configs/m3_lora_frozen_namm_5t.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
-| **Joint NAMM + LoRA** (M4) | `scripts/run_joint.py` | `scripts/configs/m4_joint_lora_5t.yaml` | `--run_name` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
-| **H2O baseline** | `scripts/run_eval.py` | — | `--run_config h2o_baseline_llama32_1b` | `--cache_size`, `--num_samples` |
-| **ScissorHands baseline** | `scripts/run_eval.py` | — | `--run_config scissorhands_baseline_llama32_1b` | `--cache_size`, `--num_samples` |
-| **LoRA + H2O / ScissorHands** | `scripts/run_lora.py` | `scripts/configs/m1_lora_5t.yaml` | `--run_name`, `--eviction_policy {h2o,scissorhands}` | `--cache_size`, `--lora_rank` |
-| **Evaluate** | `scripts/run_eval.py` | `scripts/configs/eval_default.yaml` | — | `--es_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--num_samples` |
-| **Evaluate splits** | `scripts/eval_namm_splits.py` | — | `--run_config` | `--lora_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--splits` |
+| **Train NAMM** (M2) | `scripts/run/run_namm.py` | `config/config.yaml` (Hydra) | `'run@_global_=<preset>'` | `threshold_only`, `scoring_initializer`, `save_checkpoint_every`, `trainer_config.max_iters` |
+| **LoRA only** (M1) | `scripts/run/run_lora.py` | `scripts/configs/m1_lora_5t.yaml` | `--run_name` | `--num_epochs`, `--learning_rate`, `--lora_rank` |
+| **LoRA + frozen NAMM** (M3) | `scripts/run/run_lora.py` | `scripts/configs/m3_lora_frozen_namm_5t.yaml` | `--run_name`, `--namm_checkpoint` | `--cache_size`, `--eval_interval` |
+| **Joint NAMM + LoRA** (M4) | `scripts/run/run_joint.py` | `scripts/configs/m4_joint_lora_5t.yaml` | `--run_name` | `--num_outer_loops`, `--namm_iterations_per_stage`, `--lora_epochs_per_stage` |
+| **H2O baseline** | `scripts/run/run_eval.py` | — | `--run_config h2o_baseline_llama32_1b` | `--cache_size`, `--num_samples` |
+| **ScissorHands baseline** | `scripts/run/run_eval.py` | — | `--run_config scissorhands_baseline_llama32_1b` | `--cache_size`, `--num_samples` |
+| **LoRA + H2O / ScissorHands** | `scripts/run/run_lora.py` | `scripts/configs/m1_lora_5t.yaml` | `--run_name`, `--eviction_policy {h2o,scissorhands}` | `--cache_size`, `--lora_rank` |
+| **Evaluate** | `scripts/run/run_eval.py` | `scripts/configs/eval_default.yaml` | — | `--es_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--num_samples` |
+| **Evaluate splits** | `scripts/run/eval_namm_splits.py` | — | `--run_config` | `--lora_checkpoint`, `--namm_checkpoint`, `--cache_size`, `--splits` |
 
 ### NAMM eviction modes
 
@@ -168,10 +183,10 @@ All scripts accept `--config <yaml>` to load defaults; CLI flags override the co
 
 ```bash
 # Top-k mode (default, cache_size=1024)
-python scripts/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b'
+python scripts/run/run_namm.py 'run@_global_=namm_bam_i1_llama32_1b'
 
 # Threshold-only mode — eviction driven purely by learned score threshold
-python scripts/run_namm.py \
+python scripts/run/run_namm.py \
     'run@_global_=namm_bam_i1_llama32_1b' \
     threshold_only=true \
     scoring_initializer=2
@@ -181,14 +196,14 @@ python scripts/run_namm.py \
 
 > **`scoring_initializer=2` required for threshold mode.** With the default `scoring_initializer=0` the CMA-ES mean starts at the eviction boundary (score=0). A small perturbation collapses all scores below zero and evicts every token. Starting at 2 gives CMA-ES room to learn selective eviction before the threshold is first reached.
 
-In threshold mode, `max_memory_length` (internal buffer sizing) is unchanged; only the top-k cutoff and the evaluator's physical KV truncation are lifted. Use `scripts/check_eviction_stats.py --cache_size 0` to diagnose token retention for a threshold-mode checkpoint.
+In threshold mode, `max_memory_length` (internal buffer sizing) is unchanged; only the top-k cutoff and the evaluator's physical KV truncation are lifted. Use `scripts/analysis/check_eviction_stats.py --cache_size 0` to diagnose token retention for a threshold-mode checkpoint.
 
 #### Checkpoint frequency
 
 By default NAMM saves `latest.pt` on every iteration. To save only every N steps:
 
 ```bash
-python scripts/run_namm.py \
+python scripts/run/run_namm.py \
     'run@_global_=namm_bam_i1_llama32_1b' \
     save_checkpoint_every=10
 ```
@@ -201,7 +216,7 @@ Set `save_checkpoint_every:` (null) in a run config to restore the save-every-st
 
 ```bash
 # Reduce buffer size without filtering out long training examples
-python scripts/run_namm.py \
+python scripts/run/run_namm.py \
     'run@_global_=namm_bam_i1_llama32_1b' \
     max_conditioning_length=2048 \
     split_max_conditioning_length=6500
@@ -213,21 +228,21 @@ Train NAMM at different KV-cache budgets on the same 5-task LongBench QA subset 
 
 ```bash
 # cache_size=1024 (~6h, ~10 GB peak on RTX 3090 Ti)
-python scripts/run_namm.py \
+python scripts/run/run_namm.py \
     run@_global_=namm_bam_i1_llama32_1b_5t \
     filter_by_length=8192 \
     cache_size=1024 max_memory_length=1024 \
     run_name_suffix=llama32-1b-5t-cs1024
 
 # cache_size=2048 (~8h, ~14 GB peak)
-python scripts/run_namm.py \
+python scripts/run/run_namm.py \
     run@_global_=namm_bam_i1_llama32_1b_5t \
     filter_by_length=8192 \
     cache_size=2048 max_memory_length=2048 \
     run_name_suffix=llama32-1b-5t-cs2048
 
 # cache_size=4096 (~14h, ~20 GB peak — batch_size must drop to 2)
-python scripts/run_namm.py \
+python scripts/run/run_namm.py \
     run@_global_=namm_bam_i1_llama32_1b_5t \
     filter_by_length=8192 \
     cache_size=4096 max_memory_length=4096 \
@@ -261,48 +276,48 @@ Two heuristic policies are implemented as drop-in alternatives to NAMM. Both hav
 | `h2o` | Zhang et al., NeurIPS 2023 | Per-(layer, KV-head) accumulator of post-softmax attention; keeps top-`k_hh` heavy hitters and the most recent `k_recent = B - k_hh` tokens | `heavy_hitter_ratio` (default 0.5) |
 | `scissorhands` | Liu et al., NeurIPS 2023 | Persistence-of-importance count over a sliding history window; protects a recent window; drops tokens with the highest unimportance count when over budget | `history_window_ratio` (0.5), `recent_window_ratio` (0.25), `drop_ratio` (0.5) |
 
-Both honor FAIR-01: total budget is `cache_size=1024`, no LLM weight changes are required, and the same 5-task QA splits and greedy decoding apply. Pass `--eviction_policy h2o` or `--eviction_policy scissorhands` to `scripts/run_lora.py` to enable eviction during LoRA training and evaluation.
+Both honor FAIR-01: total budget is `cache_size=1024`, no LLM weight changes are required, and the same 5-task QA splits and greedy decoding apply. Pass `--eviction_policy h2o` or `--eviction_policy scissorhands` to `scripts/run/run_lora.py` to enable eviction during LoRA training and evaluation.
 
 ### Example commands
 
 ```bash
 # M1 LoRA-only (FAIR-01)
-python scripts/run_lora.py \
+python scripts/run/run_lora.py \
     --config scripts/configs/m1_lora_5t.yaml --run_name m1_r8
 
 # M3 LoRA + frozen NAMM (FAIR-01)
-python scripts/run_lora.py \
+python scripts/run/run_lora.py \
     --config scripts/configs/m3_lora_frozen_namm_5t.yaml --run_name m3_lora \
     --namm_checkpoint path/to/m2_checkpoint.pt
 
 # M4 Joint NAMM + LoRA (FAIR-01)
-python scripts/run_joint.py \
+python scripts/run/run_joint.py \
     --config scripts/configs/m4_joint_lora_5t.yaml --run_name m4_joint_lora
 
 # Evaluate with NAMM + LoRA on test split
-python scripts/eval_namm_splits.py \
+python scripts/run/eval_namm_splits.py \
     --run_config namm_bam_i1_llama32_1b_5t \
     --lora_checkpoint path/to/best_ckpt.pt \
     --namm_checkpoint path/to/namm.pt \
     --cache_size 1024 --splits test
 
 # Evaluate baseline (no fine-tuning, no NAMM)
-python scripts/run_eval.py --run_config full_cache_baseline_llama32_1b
+python scripts/run/run_eval.py --run_config full_cache_baseline_llama32_1b
 
 # H2O eviction baseline (Zhang et al., NeurIPS 2023) at FAIR-01 cache_size=1024
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --run_config h2o_baseline_llama32_1b \
     --cache_size 1024 \
     --override "task@_global_=rh_multi_qa_5t"
 
 # ScissorHands eviction baseline (Liu et al., NeurIPS 2023) at FAIR-01 cache_size=1024
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --run_config scissorhands_baseline_llama32_1b \
     --cache_size 1024 \
     --override "task@_global_=rh_multi_qa_5t"
 
 # LoRA fine-tuning under H2O eviction at train and eval time
-python scripts/run_lora.py \
+python scripts/run/run_lora.py \
     --config scripts/configs/m1_lora_5t.yaml --run_name m1_h2o \
     --eviction_policy h2o --cache_size 1024
 
@@ -340,9 +355,9 @@ experiments/
                 └── stage_K/                 #   per-stage ES/LoRA output
 ```
 
-`run_eval.py` writes `eval_{baseline,es}_{timestamp}.log` and `results.json` into the checkpoint's parent directory (or `--output_dir`).
+`scripts/run/run_eval.py` writes `eval_{baseline,es}_{timestamp}.log` and `results.json` into the checkpoint's parent directory (or `--output_dir`).
 
-`run_namm.py` (Hydra) writes to `outputs/{date}/{time}/` relative to the repo root.
+`scripts/run/run_namm.py` (Hydra) writes to `outputs/{date}/{time}/` relative to the repo root.
 
 ---
 
@@ -373,6 +388,6 @@ First XLA run takes ~20 min for compilation. The cache is synced to/from GCS aut
 
 | Script | Purpose |
 |---|---|
-| `scripts/generate_report.py` | Compare results across experiments |
-| `scripts/upload_pretrained.py` | Upload / list pretrained NAMM checkpoints in GCS |
-| `scripts/archive_experiment.py` | Archive completed experiment dirs to GCS |
+| `scripts/reporting/generate_report.py` | Compare results across experiments |
+| `scripts/infra/upload_pretrained.py` | Upload / list pretrained NAMM checkpoints in GCS |
+| `scripts/infra/archive_experiment.py` | Archive completed experiment dirs to GCS |

@@ -48,7 +48,7 @@ These require no training. Run first to establish reference scores.
 Evaluates raw Llama-3.2-1B-Instruct on the 5-task QA subset with no KV cache limit, no eviction, no fine-tuning. This is the absolute performance floor.
 
 ```bash
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --run_config full_cache_baseline_llama32_1b \
     --output_dir experiments/experiment_N/baseline
 ```
@@ -70,7 +70,7 @@ python scripts/run_eval.py \
 Evaluates the base model with a fixed recency policy: keeps the most recently written tokens, evicts oldest first. No learned policy, no training. Establishes what a naive heuristic achieves at `cache_size=1024`.
 
 ```bash
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --run_config recency_baseline_llama32_1b \
     --cache_size 1024 \
     --output_dir experiments/experiment_N/es_recency/b1_recency \
@@ -92,7 +92,7 @@ python scripts/run_eval.py \
 Evaluates the base model with the H2O Heavy-Hitter Oracle policy: per-(layer, KV-head) accumulator of post-softmax attention; keeps the top `k_hh = round(B · heavy_hitter_ratio)` heavy hitters and the most recent `k_recent = B − k_hh` tokens. No learned policy, no training. Uses the same FAIR-01 budget `cache_size=1024` as B1, M2, M3, M4.
 
 ```bash
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --run_config h2o_baseline_llama32_1b \
     --cache_size 1024 \
     --output_dir experiments/experiment_N/baselines/b2_h2o \
@@ -116,7 +116,7 @@ python scripts/run_eval.py \
 Evaluates the base model with the ScissorHands persistence-of-importance policy: counts how often each token's mean-pooled post-softmax attention falls below `1/t` over a sliding history window; protects the most recent `recent_window` tokens; drops the `drop_count` tokens with the highest unimportance count when `kv_len > cache_size`. No learned policy, no training.
 
 ```bash
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --run_config scissorhands_baseline_llama32_1b \
     --cache_size 1024 \
     --output_dir experiments/experiment_N/baselines/b3_scissorhands \
@@ -150,7 +150,7 @@ Supervised fine-tuning (SFT) with LoRA on the 5-task QA subset with full KV cach
 #### M1-r4
 
 ```bash
-python scripts/run_lora.py \
+python scripts/run/run_lora.py \
     --config scripts/configs/m1_lora_5t.yaml \
     --run_name m1_r4 \
     --lora_rank 4 \
@@ -160,7 +160,7 @@ python scripts/run_lora.py \
 #### M1-r8 (main table)
 
 ```bash
-python scripts/run_lora.py \
+python scripts/run/run_lora.py \
     --config scripts/configs/m1_lora_5t.yaml \
     --run_name m1_r8
 ```
@@ -168,7 +168,7 @@ python scripts/run_lora.py \
 #### M1-r16
 
 ```bash
-python scripts/run_lora.py \
+python scripts/run/run_lora.py \
     --config scripts/configs/m1_lora_5t.yaml \
     --run_name m1_r16 \
     --lora_rank 16 \
@@ -209,7 +209,7 @@ python scripts/run_lora.py \
 Trains the NAMM eviction policy via CMA-ES on a frozen Llama-3.2-1B-Instruct using the 5-task QA subset. LLM weights do not change. **No pretrained checkpoint is used** — training starts from random NAMM parameters. This is the learned-eviction-only baseline and the source checkpoint for M3.
 
 ```bash
-python scripts/run_namm.py \
+python scripts/run/run_namm.py \
     'run@_global_=namm_bam_i1_llama32_1b_5t' \
     wandb_run_name=m2_namm_standalone \
     wandb_group_name=main_conditions \
@@ -243,7 +243,7 @@ python scripts/run_namm.py \
 
 > **Threshold-only variant:** append `threshold_only=true scoring_initializer=2` to run M2 with the original NAMM paper's eviction rule (score threshold only, no hard top-k cap). The cache size will vary dynamically per step.
 > ```bash
-> python scripts/run_namm.py \
+> python scripts/run/run_namm.py \
 >     'run@_global_=namm_bam_i1_llama32_1b_5t' \
 >     threshold_only=true \
 >     scoring_initializer=2 \
@@ -258,7 +258,7 @@ python scripts/run_namm.py \
 LoRA is fine-tuned (SFT) while the frozen M2 NAMM is active during training. This is the intermediate condition between M1 (no NAMM) and M4 (joint). Isolates whether NAMM eviction during gradient steps helps independently of co-optimisation. Requires M2 to be complete.
 
 ```bash
-python scripts/run_lora.py \
+python scripts/run/run_lora.py \
     --config scripts/configs/m3_lora_frozen_namm_5t.yaml \
     --run_name m3_lora_frozen_namm \
     --namm_checkpoint <path-to-m2-checkpoint>
@@ -298,7 +298,7 @@ NAMM and LoRA are co-trained in alternating stages: Stage A evolves the NAMM for
 > **3-loop schedule rationale:** 3 outer loops × (67 NAMM + 50 LoRA) = 201 NAMM + 150 LoRA, matching M1+M2's compute budget. 3 loops gives 2 co-adaptation cycles instead of 1 (the earlier 2-loop schedule had only one). Each LoRA stage early-stops at ~30 epochs via best-checkpoint selection; 50 allocated epochs gives ~20 epochs headroom. NAMM warm-starts from the previous loop's checkpoint (see `docs/m4_joint_training_analysis.md`).
 
 ```bash
-python scripts/run_joint.py \
+python scripts/run/run_joint.py \
     --config scripts/configs/m4_joint_lora_5t.yaml \
     --run_name m4_joint_lora
 ```
@@ -356,7 +356,7 @@ Takes the fully trained M4 checkpoint and evaluates it twice: once with NAMM act
 #### M4 — NAMM active (standard)
 
 ```bash
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_2/ \
     --namm_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/namm/latest.pt \
     --cache_size 1024 \
@@ -366,7 +366,7 @@ python scripts/run_eval.py \
 #### M4 LoRA only — NAMM disabled
 
 ```bash
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --es_checkpoint experiments/experiment_N/joint_lora/m4_joint_lora/adapter/stage_2/ \
     --output_dir experiments/ablations/a4_modularity/m4_namm_off
 # No --namm_checkpoint → full KV cache, no eviction
@@ -386,7 +386,7 @@ python scripts/run_eval.py \
 ### Generating the cross-experiment report
 
 ```bash
-python scripts/generate_report.py \
+python scripts/reporting/generate_report.py \
     --experiment_dir experiments/experiment_N/ \
     --output experiments/experiment_N/paper_results.csv
 ```
@@ -543,7 +543,7 @@ Run these before committing to any full experiment to confirm the pipeline works
 #### M1 smoke test
 
 ```bash
-python scripts/run_lora.py \
+python scripts/run/run_lora.py \
     --config scripts/configs/m1_lora_5t.yaml \
     --run_name smoke_m1 \
     --num_epochs 1 \
@@ -554,7 +554,7 @@ python scripts/run_lora.py \
 #### M4-LoRA joint smoke test
 
 ```bash
-python scripts/run_joint.py \
+python scripts/run/run_joint.py \
     --run_name smoke_joint_lora \
     --adapter_type lora \
     --num_outer_loops 2 \
@@ -567,7 +567,7 @@ python scripts/run_joint.py \
 #### Eval smoke test
 
 ```bash
-python scripts/run_eval.py \
+python scripts/run/run_eval.py \
     --run_config full_cache_baseline_llama32_1b \
     --num_samples 10
 ```
