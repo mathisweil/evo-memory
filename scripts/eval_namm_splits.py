@@ -217,11 +217,39 @@ def _run_clean_forward_spearman_pass(
     full_ctx_attn_mean_per_token: Optional[List[Optional[torch.Tensor]]] = None
     full_ctx_scores: Optional[List[Optional[torch.Tensor]]] = None
     try:
+        # BAM-i1's AttentionSpectrogram requires num_new_tokens to be a
+        # multiple of its STFT hop_length, otherwise
+        # `get_tokens_embedding` raises `NotImplementedError` at
+        # namm/policy/deep_embedding_spectogram.py:152. The chunked pass
+        # satisfies this because memory_policy_fixed_delay=256 is
+        # stride-aligned; a single-pass over a raw LongBench prompt is
+        # not. Truncate the prompt prefix to the largest stride-aligned
+        # length ≤ n_tok — drops ≤15 tokens from a ~5k-token prompt.
+        stride = getattr(
+            getattr(memory_policy, "token_embedding", None),
+            "stft_stride", 1,
+        ) or 1
+        aligned_n = (n_tok // stride) * stride
+        if aligned_n < stride * 2:
+            logger.warning(
+                "Skipping clean-forward Spearman pass for task=%s idx=%d: "
+                "stride-aligned length %d < 2*stride=%d",
+                task_name, orig_idx, aligned_n, stride * 2,
+            )
+            return None, None
+        drop = n_tok - aligned_n
+        if drop > 0:
+            clean_input_ids = input_ids[:, drop:].contiguous()
+            clean_attn_mask = attention_mask[:, drop:].contiguous()
+        else:
+            clean_input_ids = input_ids
+            clean_attn_mask = attention_mask
+
         memory_policy.initialize_buffers()
         with torch.no_grad():
             clean_out = memory_model(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
+                input_ids=clean_input_ids,
+                attention_mask=clean_attn_mask,
                 apply_memory_policy=False,
                 output_attentions=True,
                 use_cache=True,
@@ -253,15 +281,15 @@ def _run_clean_forward_spearman_pass(
         # (2) NAMM analyze over the full KV: reproduces
         # `analysis/report_6/generate_plots.py::extract_alignment_data`.
         memory_policy.initialize_buffers()
-        pos_ids = torch.arange(n_tok, device=device).unsqueeze(0)
+        pos_ids = torch.arange(aligned_n, device=device).unsqueeze(0)
         attn_mask_full = torch.ones(
-            1, n_tok, dtype=torch.long, device=device)
+            1, aligned_n, dtype=torch.long, device=device)
         attn_list = (
             list(clean_attn) if memory_policy.requires_attn_scores else []
         )
         _, analysis_dicts = memory_policy.update_cache(
             past_key_values=past_kv,
-            num_new_tokens=n_tok,
+            num_new_tokens=aligned_n,
             attn_weights_list=attn_list,
             attention_mask=attn_mask_full,
             position_ids=pos_ids,
@@ -289,9 +317,11 @@ def _run_clean_forward_spearman_pass(
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     except Exception as exc:
+        import traceback
         logger.warning(
-            "Clean-forward Spearman pass failed for task=%s idx=%d: %s",
-            task_name, orig_idx, exc,
+            "Clean-forward Spearman pass failed for task=%s idx=%d: %s: %s\n%s",
+            task_name, orig_idx, type(exc).__name__, exc,
+            traceback.format_exc(),
         )
         full_ctx_attn_mean_per_token = None
         full_ctx_scores = None
