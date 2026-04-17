@@ -67,7 +67,15 @@ CONDITION_LABEL: Dict[str, str] = {
 
 @dataclass
 class PromptRecord:
-    """One condition's dump for a single prompt."""
+    """One condition's dump for a single prompt.
+
+    Per-layer fields are stored as lists of tensors because different layers
+    may see different ``n_kv`` (and occasionally different retained ``k``)
+    at their final scoring call — the memory policy's ``update_cache``
+    path lets different layers fire at different chunks when they have
+    buffered attention caches of different sizes, so we cannot assume
+    uniform shapes across layers.
+    """
 
     task: str
     orig_idx: int
@@ -77,11 +85,11 @@ class PromptRecord:
     n_layers: int
     n_heads: int
     cache_size: int
-    final_retained_positions: torch.Tensor  # (n_layers, n_heads, k) int
-    final_scores: torch.Tensor  # (n_layers, n_heads, n_kv) fp16
-    final_new_mask: torch.Tensor  # (n_layers, n_heads, k) bool
-    final_position_ids: Optional[torch.Tensor]  # (n_layers, n_kv) int (head-0)
-    final_attn_mean_per_token: Optional[torch.Tensor]  # (n_layers, n_kv) fp16
+    final_retained_positions: List[torch.Tensor]  # list length n_layers of (n_heads, k) int
+    final_scores: List[torch.Tensor]  # list length n_layers of (n_heads, n_kv) fp16
+    final_new_mask: List[torch.Tensor]  # list length n_layers of (n_heads, k) bool
+    final_position_ids: Optional[List[torch.Tensor]]  # list length n_layers of (n_kv,) int (head-0)
+    final_attn_mean_per_token: Optional[torch.Tensor]  # (n_layers, n_kv_attn) fp16 from LLM hooks
     per_step_n_kv: List[int]
     per_step_retained_count_per_head: torch.Tensor  # (n_steps, n_layers, n_heads)
 
@@ -102,6 +110,15 @@ def _parse_filename(path: Path) -> Tuple[str, int]:
     return base, int(idx_part)
 
 
+def _as_layer_list(value) -> List[torch.Tensor]:
+    """Normalise a stacked or list-of-tensors per-layer field into a list."""
+    if isinstance(value, list):
+        return value
+    if torch.is_tensor(value):
+        return [value[i] for i in range(value.shape[0])]
+    raise TypeError(f"Unsupported per-layer field type: {type(value)!r}")
+
+
 def load_condition_dumps(condition_dir: Path) -> Dict[Tuple[str, int], PromptRecord]:
     """Load all ``.pt`` dumps in ``condition_dir`` into a key→record map."""
     records: Dict[Tuple[str, int], PromptRecord] = {}
@@ -112,25 +129,44 @@ def load_condition_dumps(condition_dir: Path) -> Dict[Tuple[str, int], PromptRec
         task, orig_idx = _parse_filename(f)
         blob = torch.load(f, map_location="cpu", weights_only=False)
         meta = blob["prompt_meta"]
-        retained_positions = blob.get("final_retained_positions")
-        if retained_positions is None:
-            # Fall back to head-0 position_ids translated through retained_idxs.
-            # This loses per-head divergence but lets old dumps still load.
-            pos = blob.get("final_position_ids")
-            retained_idxs = blob["final_retained_idxs"]
-            if pos is None:
+
+        final_scores = _as_layer_list(blob["final_scores"])
+        final_retained_idxs = _as_layer_list(blob["final_retained_idxs"])
+        final_new_mask = _as_layer_list(blob["final_new_mask"])
+
+        final_position_ids_raw = blob.get("final_position_ids")
+        if final_position_ids_raw is None:
+            final_position_ids = None
+        else:
+            final_position_ids = _as_layer_list(final_position_ids_raw)
+
+        retained_positions_raw = blob.get("final_retained_positions")
+        if retained_positions_raw is None:
+            # Back-compat path for dumps written before
+            # ``final_retained_positions`` existed. Uses the head-0 view of
+            # position_ids (a simplification — the modern dump stores
+            # per-head positions).
+            if final_position_ids is None:
                 raise RuntimeError(
                     f"{f}: missing both final_retained_positions and "
                     "final_position_ids; cannot translate to prompt space."
                 )
-            # pos: (n_layers, n_kv); retained_idxs: (n_layers, n_heads, k)
-            retained_positions = torch.gather(
-                pos.unsqueeze(1).expand(-1, retained_idxs.shape[1], -1).long(),
-                dim=-1,
-                index=retained_idxs.long(),
-            ).to(torch.int32)
-        scores = blob["final_scores"]
-        n_layers, n_heads, _ = scores.shape
+            retained_positions = [
+                torch.gather(
+                    final_position_ids[l]
+                        .unsqueeze(0)
+                        .expand(final_retained_idxs[l].shape[0], -1)
+                        .long(),
+                    dim=-1,
+                    index=final_retained_idxs[l].long(),
+                ).to(torch.int32)
+                for l in range(len(final_retained_idxs))
+            ]
+        else:
+            retained_positions = _as_layer_list(retained_positions_raw)
+
+        n_layers = len(final_scores)
+        n_heads = int(final_scores[0].shape[0])
         records[(task, orig_idx)] = PromptRecord(
             task=task,
             orig_idx=orig_idx,
@@ -140,10 +176,10 @@ def load_condition_dumps(condition_dir: Path) -> Dict[Tuple[str, int], PromptRec
             n_layers=n_layers,
             n_heads=n_heads,
             cache_size=int(blob["config"]["cache_size"]),
-            final_retained_positions=retained_positions.to(torch.int32),
-            final_scores=scores,
-            final_new_mask=blob["final_new_mask"],
-            final_position_ids=blob.get("final_position_ids"),
+            final_retained_positions=retained_positions,
+            final_scores=final_scores,
+            final_new_mask=final_new_mask,
+            final_position_ids=final_position_ids,
             final_attn_mean_per_token=blob.get("final_attn_mean_per_token"),
             per_step_n_kv=list(blob["per_step_n_kv"]),
             per_step_retained_count_per_head=blob[
@@ -189,71 +225,75 @@ def load_all_dumps(
 
 def _retained_positions_masked(
     record: PromptRecord,
-) -> torch.Tensor:
-    """Return retained prompt positions with the protected tail removed.
+) -> List[torch.Tensor]:
+    """Return retained prompt positions per layer with the protected tail removed.
 
     The protected tail is the last ``protected_tail_n`` prompt positions,
     forced to be kept by ``+protected_tail_n=5``. Including them inflates
     IoU by a trivial +5/1024 of agreement across conditions, so we drop them.
 
     Returns:
-        Int tensor (n_layers, n_heads, k) where the protected-tail positions
-        have been replaced by ``-1``. IoU is computed on the remaining values.
+        List of length n_layers of int64 tensors (n_heads, k_layer) where
+        protected-tail entries have been replaced by ``-1``. k may vary
+        per layer in the rare identity-path edge case.
     """
-    positions = record.final_retained_positions.clone().to(torch.int64)
-    if record.protected_tail_n > 0:
-        tail_cutoff = record.prompt_length - record.protected_tail_n
-        positions = torch.where(
-            positions >= tail_cutoff,
-            torch.full_like(positions, -1),
-            positions,
-        )
-    return positions
+    out: List[torch.Tensor] = []
+    tail_cutoff = (
+        record.prompt_length - record.protected_tail_n
+        if record.protected_tail_n > 0
+        else None
+    )
+    for layer_positions in record.final_retained_positions:
+        positions = layer_positions.to(torch.int64)
+        if tail_cutoff is not None:
+            positions = torch.where(
+                positions >= tail_cutoff,
+                torch.full_like(positions, -1),
+                positions,
+            )
+        out.append(positions)
+    return out
+
+
+def _layer_positions_to_dense_mask(
+    positions: torch.Tensor, prompt_length: int
+) -> torch.Tensor:
+    """Scatter (n_heads, k) position indices into a (n_heads, P) bool mask."""
+    valid = positions >= 0
+    safe_positions = positions.clamp(min=0, max=prompt_length - 1)
+    dense = torch.zeros(
+        positions.shape[0], prompt_length, dtype=torch.bool,
+    )
+    dense.scatter_(dim=-1, index=safe_positions, src=valid)
+    return dense
 
 
 def _pair_iou_per_layer_head(
-    positions_a: torch.Tensor,
-    positions_b: torch.Tensor,
+    positions_a: List[torch.Tensor],
+    positions_b: List[torch.Tensor],
     prompt_length: int,
 ) -> np.ndarray:
-    """Compute IoU per (layer, head) between two retained-position tensors.
+    """IoU per (layer, head) between two lists of retained-position tensors.
 
-    Uses a dense boolean buffer over the prompt length — O(L * H * P) work
-    per prompt, which at 16 × 32 × 6500 ≈ 3.3 M booleans is fast.
-
-    Args:
-        positions_a: (n_layers, n_heads, k) int64 with -1 for excluded entries.
-        positions_b: same shape.
-        prompt_length: P such that valid positions are in [0, P).
+    Each layer's positions are (n_heads, k_layer) int64 with -1 for excluded
+    entries. The two lists must have equal length (same n_layers).
 
     Returns:
         Numpy array shape (n_layers, n_heads) of IoU floats in [0, 1].
     """
-    n_layers, n_heads, _ = positions_a.shape
-    mask_a = _positions_to_dense_mask(positions_a, prompt_length)
-    mask_b = _positions_to_dense_mask(positions_b, prompt_length)
-    inter = (mask_a & mask_b).sum(dim=-1).to(torch.float64)
-    union = (mask_a | mask_b).sum(dim=-1).to(torch.float64)
-    iou = torch.where(
-        union > 0, inter / union, torch.zeros_like(inter)
-    )
-    return iou.cpu().numpy()  # (n_layers, n_heads)
-
-
-def _positions_to_dense_mask(
-    positions: torch.Tensor, prompt_length: int
-) -> torch.Tensor:
-    """Scatter (n_layers, n_heads, k) position indices into a dense bool mask."""
-    valid = positions >= 0
-    safe_positions = positions.clamp(min=0, max=prompt_length - 1)
-    dense = torch.zeros(
-        positions.shape[0],
-        positions.shape[1],
-        prompt_length,
-        dtype=torch.bool,
-    )
-    dense.scatter_(dim=-1, index=safe_positions, src=valid)
-    return dense
+    n_layers = len(positions_a)
+    n_heads = positions_a[0].shape[0]
+    out = np.zeros((n_layers, n_heads), dtype=np.float64)
+    for layer in range(n_layers):
+        mask_a = _layer_positions_to_dense_mask(positions_a[layer], prompt_length)
+        mask_b = _layer_positions_to_dense_mask(positions_b[layer], prompt_length)
+        inter = (mask_a & mask_b).sum(dim=-1).to(torch.float64)
+        union = (mask_a | mask_b).sum(dim=-1).to(torch.float64)
+        iou = torch.where(
+            union > 0, inter / union, torch.zeros_like(inter)
+        )
+        out[layer] = iou.cpu().numpy()
+    return out
 
 
 def compute_pairwise_iou(
@@ -318,14 +358,17 @@ def compute_per_layer_retention(
         per_layer_prompts: List[np.ndarray] = []
         for key in keys:
             rec = dumps[cond][key]
-            positions = _retained_positions_masked(rec)  # (L, H, k)
+            positions_layers = _retained_positions_masked(rec)
             prompt_length = rec.prompt_length
-            mask = _positions_to_dense_mask(positions, prompt_length)
-            any_head = mask.any(dim=1)  # (L, prompt_length)
-            # Exclude the protected tail from the denominator too.
             n_valid = max(prompt_length - rec.protected_tail_n, 1)
-            retention = any_head.sum(dim=-1).to(torch.float64).numpy() / n_valid
-            per_layer_prompts.append(retention)
+            per_layer = np.zeros(len(positions_layers), dtype=np.float64)
+            for layer, layer_positions in enumerate(positions_layers):
+                mask = _layer_positions_to_dense_mask(
+                    layer_positions, prompt_length
+                )
+                any_head = mask.any(dim=0)  # (prompt_length,)
+                per_layer[layer] = float(any_head.sum().item()) / n_valid
+            per_layer_prompts.append(per_layer)
         stacked = np.stack(per_layer_prompts, axis=0)  # (n_prompts, n_layers)
         out[cond] = {
             "per_layer_mean": stacked.mean(axis=0).tolist(),
@@ -357,7 +400,8 @@ def compute_ks_distance(
             parts: List[np.ndarray] = []
             for key in keys:
                 rec = dumps[cond][key]
-                layer_scores = rec.final_scores[layer].float().flatten().numpy()
+                layer_tensor = rec.final_scores[layer]
+                layer_scores = layer_tensor.float().flatten().numpy()
                 parts.append(layer_scores)
             flat = np.concatenate(parts)
             if flat.size > max_samples_per_layer:
@@ -412,13 +456,12 @@ def compute_spearman_per_condition(
             rhos: List[float] = []
             n_layers = rec.n_layers
             attn = rec.final_attn_mean_per_token.float()
-            scores = rec.final_scores.float()
             # Attention captured on the final chunk may have a smaller
             # kv_len than the NAMM n_kv at the eviction call. Align on the
             # minimum length from the end.
             for layer in range(n_layers):
                 attn_l = attn[layer]
-                score_l = scores[layer].mean(dim=0)
+                score_l = rec.final_scores[layer].float().mean(dim=0)
                 m = min(attn_l.shape[-1], score_l.shape[-1])
                 if m < 4:
                     continue
@@ -601,7 +644,9 @@ def _plot_c3_score_distributions(
     for cond in CONDITION_ORDER:
         parts: List[np.ndarray] = []
         for key in keys:
-            parts.append(dumps[cond][key].final_scores.float().flatten().numpy())
+            rec = dumps[cond][key]
+            for layer_tensor in rec.final_scores:
+                parts.append(layer_tensor.float().flatten().numpy())
         flat = np.concatenate(parts)
         if flat.size > max_samples:
             idx = rng.choice(flat.size, size=max_samples, replace=False)

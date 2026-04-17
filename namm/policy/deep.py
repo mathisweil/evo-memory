@@ -888,28 +888,23 @@ class DeepMP(DynamicParamMemoryPolicy):
         n = self.num_memory_layers
         n_steps = len(self._dump_per_step[0]) if self._dump_per_step[0] else 0
 
-        final_scores = torch.stack(
-            [t if t is not None else torch.empty(0) for t in self._dump_final_scores],
-            dim=0,
-        )
-        final_retained = torch.stack(
-            [t for t in self._dump_final_retained_idxs], dim=0,
-        )
-        final_mask = torch.stack(
-            [t for t in self._dump_final_new_mask], dim=0,
-        )
-        if any(t is None for t in self._dump_final_position_ids):
+        # Per-layer n_kv (and in the identity-path edge case per-layer k)
+        # can differ because different layers may fire their final scoring
+        # call at different chunks (layer-specific update_new_tokens
+        # adjustments in DynamicMemoryPolicy.update_cache) or because one
+        # layer's final n_samples falls below cache_size (TopKSelection
+        # returns an identity-length tensor). Keep every per-layer field
+        # as a plain list so downstream code never has to assume uniform
+        # shape across layers.
+        final_scores = list(self._dump_final_scores)
+        final_retained = list(self._dump_final_retained_idxs)
+        final_mask = list(self._dump_final_new_mask)
+        final_pos = list(self._dump_final_position_ids)
+        if all(t is None for t in final_pos):
             final_pos = None
-        else:
-            final_pos = torch.stack(
-                [t for t in self._dump_final_position_ids], dim=0,
-            )
-        if any(t is None for t in self._dump_final_retained_positions):
+        final_retained_positions = list(self._dump_final_retained_positions)
+        if all(t is None for t in final_retained_positions):
             final_retained_positions = None
-        else:
-            final_retained_positions = torch.stack(
-                [t for t in self._dump_final_retained_positions], dim=0,
-            )
 
         if n_steps > 0:
             retained_counts = torch.stack(
