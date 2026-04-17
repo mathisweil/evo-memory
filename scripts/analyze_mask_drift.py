@@ -1,7 +1,7 @@
 """Section C — Analyse eviction-mask drift from per-prompt NAMM dumps.
 
 Consumes dumps written by ``scripts/eval_namm_splits.py --dump_namm_state`` for
-three conditions (B0 base Llama, M1 base+M1-LoRA, M4 base+M4-LoRA) under the
+three conditions (B0 base Llama, M1 base+M1-LoRA, M3 base+M3-LoRA) under the
 same frozen NAMM checkpoint on the same 70-prompt FAIR-01 test split.
 
 Produces:
@@ -52,16 +52,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-CONDITION_ORDER: Tuple[str, ...] = ("B0", "M1", "M4")
+CONDITION_ORDER: Tuple[str, ...] = ("B0", "M1", "M3")
 CONDITION_COLOR: Dict[str, str] = {
     "B0": COLORS["baseline"],
     "M1": COLORS["lora"],
-    "M4": COLORS["joint"],
+    "M3": COLORS["joint"],
 }
 CONDITION_LABEL: Dict[str, str] = {
     "B0": "B0 (base)",
     "M1": "M1 (+LoRA)",
-    "M4": "M4 (+LoRA, joint)",
+    "M3": "M3 (+LoRA, frozen NAMM)",
 }
 
 
@@ -519,7 +519,7 @@ def compute_spearman_per_condition(
             "per_prompt": per_prompt_rho,
             "n_prompts_fallback": fallback_used[cond],
         }
-    paper_ref = {"B0": None, "M1": -0.115, "M4": -0.168}
+    paper_ref = {"B0": None, "M1": -0.115, "M3": -0.168}
     warnings: List[str] = []
     for cond, ref in paper_ref.items():
         if ref is None:
@@ -532,6 +532,47 @@ def compute_spearman_per_condition(
             )
     out["_paper_reference"] = paper_ref
     out["_warnings"] = warnings
+    return out
+
+
+def compute_per_layer_spearman(
+    dumps: Dict[str, Dict[Tuple[str, int], PromptRecord]],
+    keys: Sequence[Tuple[str, int]],
+) -> Dict[str, Dict[int, List[float]]]:
+    """Per-(condition, layer) list of prompt-level Spearman ρ values.
+
+    Unlike ``compute_spearman_per_condition`` (which averages over layers
+    per prompt, then over prompts), this keeps the layer axis so C5 can
+    plot the paper §5.4 per-layer curve.
+    """
+    out: Dict[str, Dict[int, List[float]]] = {
+        c: {} for c in CONDITION_ORDER
+    }
+    for cond in CONDITION_ORDER:
+        for key in keys:
+            rec = dumps[cond][key]
+            if (
+                rec.full_ctx_attn_mean_per_token is None
+                or rec.full_ctx_scores is None
+            ):
+                continue
+            for layer in range(rec.n_layers):
+                attn_raw = rec.full_ctx_attn_mean_per_token[layer]
+                score_raw = rec.full_ctx_scores[layer]
+                if attn_raw is None or score_raw is None:
+                    continue
+                attn_l = attn_raw.float()
+                score_l = score_raw.float().mean(dim=0)
+                m = min(attn_l.shape[-1], score_l.shape[-1])
+                if m < 4:
+                    continue
+                a = attn_l[:m].numpy()
+                s = score_l[:m].numpy()
+                if np.std(a) < 1e-12 or np.std(s) < 1e-12:
+                    continue
+                rho = spearmanr(s, a).statistic
+                if np.isfinite(rho):
+                    out[cond].setdefault(layer, []).append(float(rho))
     return out
 
 
@@ -771,8 +812,8 @@ def _plot_c4_iou_by_layer(pairwise: Dict[str, Dict], out_dir: Path) -> str:
     fig, ax = plt.subplots(figsize=(6.0, 3.5))
     pair_color = {
         "B0__M1": COLORS["lora"],
-        "B0__M4": COLORS["joint"],
-        "M1__M4": COLORS["sequential"],
+        "B0__M3": COLORS["joint"],
+        "M1__M3": COLORS["sequential"],
     }
     for pair, color in pair_color.items():
         per_layer = np.asarray(pairwise[pair]["per_layer_mean"])
@@ -789,6 +830,44 @@ def _plot_c4_iou_by_layer(pairwise: Dict[str, Dict], out_dir: Path) -> str:
     return save_figure(fig, "C4_iou_by_layer", out_dir)
 
 
+def _plot_c5_spearman_by_layer(
+    per_layer_spearman: Dict[str, Dict[int, List[float]]],
+    paper_ref: Dict[str, Optional[float]],
+    out_dir: Path,
+) -> str:
+    """Per-layer Spearman ρ(NAMM score, LLM attention) — paper §5.4 reproduction."""
+    fig, ax = plt.subplots(figsize=(6.0, 3.5))
+    for cond in CONDITION_ORDER:
+        layer_map = per_layer_spearman.get(cond, {})
+        if not layer_map:
+            continue
+        layers = sorted(layer_map.keys())
+        means = np.asarray([np.mean(layer_map[l]) for l in layers])
+        stds = np.asarray([np.std(layer_map[l]) for l in layers])
+        ax.plot(
+            layers, means, marker="o", ms=3.5,
+            color=CONDITION_COLOR[cond], label=CONDITION_LABEL[cond],
+        )
+        ax.fill_between(
+            layers, means - stds, means + stds,
+            color=CONDITION_COLOR[cond], alpha=0.15,
+        )
+    for cond, ref in paper_ref.items():
+        if ref is None:
+            continue
+        ax.axhline(
+            ref, color=CONDITION_COLOR[cond], linestyle="--",
+            linewidth=0.8, alpha=0.6,
+            label=f"paper §5.4 {cond}={ref:+.3f}",
+        )
+    ax.axhline(0.0, color="k", linestyle=":", linewidth=0.7, alpha=0.5)
+    ax.set_xlabel("Layer")
+    ax.set_ylabel(r"Spearman $\rho$(NAMM score, attention)")
+    ax.legend(frameon=False, fontsize=8, loc="best")
+    fig.tight_layout()
+    return save_figure(fig, "C5_spearman_by_layer", out_dir)
+
+
 # ── Driver ───────────────────────────────────────────────────────────────────
 
 
@@ -796,7 +875,7 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--dumps_root", type=str, required=True,
-        help="Directory containing B0/, M1/, M4/ sub-directories of .pt dumps",
+        help="Directory containing B0/, M1/, M3/ sub-directories of .pt dumps",
     )
     parser.add_argument(
         "--metrics_out", type=str,
@@ -838,6 +917,7 @@ def main() -> None:
         dumps, keys, rng, max_samples_per_layer=args.ks_max_samples_per_layer,
     )
     spearman = compute_spearman_per_condition(dumps, keys)
+    per_layer_spearman = compute_per_layer_spearman(dumps, keys)
     cross_b0 = cross_prompt_iou_baseline(
         dumps["B0"], keys, rng, n_pairs=args.cross_prompt_pairs,
     )
@@ -848,6 +928,10 @@ def main() -> None:
         "per_layer_retention": retention,
         "ks_distance_scores": ks,
         "spearman_namm_vs_attn": spearman,
+        "spearman_namm_vs_attn_per_layer": {
+            cond: {str(l): v for l, v in layer_map.items()}
+            for cond, layer_map in per_layer_spearman.items()
+        },
         "reference_cross_prompt_iou_B0": cross_b0,
         "reference_random_baseline_iou": random_iou,
         "meta": {
@@ -868,7 +952,10 @@ def main() -> None:
     c2 = _plot_c2_retention_by_layer(retention, figures_out)
     c3 = _plot_c3_score_distributions(dumps, keys, ks, rng, figures_out)
     c4 = _plot_c4_iou_by_layer(pairwise, figures_out)
-    logger.info("Wrote figures → %s, %s, %s, %s", c1, c2, c3, c4)
+    c5 = _plot_c5_spearman_by_layer(
+        per_layer_spearman, spearman.get("_paper_reference", {}), figures_out,
+    )
+    logger.info("Wrote figures → %s, %s, %s, %s, %s", c1, c2, c3, c4, c5)
 
     for w in spearman.get("_warnings", []):
         logger.warning("Spearman cross-check: %s", w)

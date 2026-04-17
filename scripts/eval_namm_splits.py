@@ -171,7 +171,7 @@ def parse_args():
                         help="Section C: cap prompts per task in the dump "
                              "loop (smoke-test use).")
     parser.add_argument("--dump_condition_label", type=str, default=None,
-                        help="Section C: short label ('B0', 'M1', 'M4') "
+                        help="Section C: short label ('B0', 'M1', 'M3') "
                              "stamped into every dump file's config metadata.")
     return parser.parse_args()
 

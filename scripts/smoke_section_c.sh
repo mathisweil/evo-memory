@@ -20,7 +20,7 @@ PY="${PY:-$REPO_ROOT/venv/bin/python}"
 
 NAMM_CKPT="${NAMM_CKPT:-$REPO_ROOT/local_folder/final_cs1024/namm_cs1024_maskfix.pt}"
 M1_LORA="${M1_LORA:-$REPO_ROOT/local_folder/final_cs1024/m1_lora_matched.pt}"
-M4_LORA="${M4_LORA:-$REPO_ROOT/local_folder/final_cs1024/m4_lora_namm.pt}"
+M3_LORA="${M3_LORA:-$REPO_ROOT/local_folder/final_cs1024/m4_lora_namm.pt}"
 
 RUN_CONFIG="${RUN_CONFIG:-namm_bam_i1_llama32_1b_5t}"
 CACHE_SIZE="${CACHE_SIZE:-1024}"
@@ -28,7 +28,7 @@ DUMP_ROOT="${DUMP_ROOT:-$REPO_ROOT/eval_results/section_c_smoke}"
 PROMPTS_PER_TASK="${PROMPTS_PER_TASK:-1}"
 
 rm -rf "$DUMP_ROOT"
-mkdir -p "$DUMP_ROOT/B0" "$DUMP_ROOT/M1" "$DUMP_ROOT/M4"
+mkdir -p "$DUMP_ROOT/B0" "$DUMP_ROOT/M1" "$DUMP_ROOT/M3"
 
 echo "[smoke] B0 (base + NAMM)"
 "$PY" "$REPO_ROOT/scripts/eval_namm_splits.py" \
@@ -51,15 +51,15 @@ echo "[smoke] M1 (base + M1-LoRA + NAMM)"
     --dump_condition_label M1 \
     --dump_max_prompts_per_task "$PROMPTS_PER_TASK"
 
-echo "[smoke] M4 (base + M4-LoRA + NAMM)"
+echo "[smoke] M3 (base + M3-LoRA + frozen NAMM)"
 "$PY" "$REPO_ROOT/scripts/eval_namm_splits.py" \
     --namm_checkpoint "$NAMM_CKPT" \
-    --lora_checkpoint "$M4_LORA" \
+    --lora_checkpoint "$M3_LORA" \
     --cache_size "$CACHE_SIZE" \
     --run_config "$RUN_CONFIG" \
     --splits test \
-    --dump_namm_state "$DUMP_ROOT/M4" \
-    --dump_condition_label M4 \
+    --dump_namm_state "$DUMP_ROOT/M3" \
+    --dump_condition_label M3 \
     --dump_max_prompts_per_task "$PROMPTS_PER_TASK"
 
 echo "[smoke] analyze"
