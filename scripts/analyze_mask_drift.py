@@ -273,14 +273,21 @@ def _retained_positions_masked(
 def _layer_positions_to_dense_mask(
     positions: torch.Tensor, prompt_length: int
 ) -> torch.Tensor:
-    """Scatter (n_heads, k) position indices into a (n_heads, P) bool mask."""
+    """Scatter (n_heads, k) position indices into a (n_heads, P) bool mask.
+
+    Invalid (-1) entries are routed to a sentinel column at index
+    ``prompt_length`` that is dropped after scatter — clamping them to 0
+    would let their ``src=False`` overwrite a legitimately retained
+    position 0 (last-write-wins for duplicate scatter indices).
+    """
     valid = positions >= 0
-    safe_positions = positions.clamp(min=0, max=prompt_length - 1)
+    sentinel = torch.full_like(positions, prompt_length)
+    safe_positions = torch.where(valid, positions, sentinel).long()
     dense = torch.zeros(
-        positions.shape[0], prompt_length, dtype=torch.bool,
+        positions.shape[0], prompt_length + 1, dtype=torch.bool,
     )
     dense.scatter_(dim=-1, index=safe_positions, src=valid)
-    return dense
+    return dense[:, :prompt_length]
 
 
 def _pair_iou_per_layer_head(
