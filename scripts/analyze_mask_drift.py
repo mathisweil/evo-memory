@@ -774,15 +774,6 @@ def _plot_c1_mask_overlap(
                 color="white" if matrix[i, j] < 0.55 else "black",
                 fontsize=10,
             )
-    baseline_mean = cross_prompt_b0.get("mean", float("nan"))
-    if np.isfinite(baseline_mean):
-        subtitle = (
-            f"cross-prompt B0 baseline={baseline_mean:.3f}, "
-            f"random={random_iou:.3f}"
-        )
-    else:
-        subtitle = f"random baseline={random_iou:.3f}"
-    ax.set_title(f"Eviction-mask IoU\n{subtitle}", fontsize=10)
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="IoU")
     fig.tight_layout()
     return save_figure(fig, "C1_mask_overlap", out_dir)
