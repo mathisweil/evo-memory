@@ -90,6 +90,11 @@ class PromptRecord:
     final_new_mask: List[torch.Tensor]  # list length n_layers of (n_heads, k) bool
     final_position_ids: Optional[List[torch.Tensor]]  # list length n_layers of (n_kv,) int (head-0)
     final_attn_mean_per_token: Optional[List[Optional[torch.Tensor]]]  # per-layer, each (n_kv_attn,) fp16 from LLM hooks
+    # Paper §5.4 Spearman reproduction — single un-chunked, no-eviction
+    # forward + analyze over the full KV. Both fields are full-prompt (one
+    # entry per token), ``None`` on OOM/older dumps.
+    full_ctx_attn_mean_per_token: Optional[List[Optional[torch.Tensor]]]  # per-layer, each (seq_len,) fp16
+    full_ctx_scores: Optional[List[Optional[torch.Tensor]]]  # per-layer, each (n_heads, seq_len) fp16
     per_step_n_kv: List[int]
     per_step_retained_count_per_head: torch.Tensor  # (n_steps, n_layers, n_heads)
 
