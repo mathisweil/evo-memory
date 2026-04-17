@@ -225,10 +225,16 @@ def _run_clean_forward_spearman_pass(
         # stride-aligned; a single-pass over a raw LongBench prompt is
         # not. Truncate the prompt prefix to the largest stride-aligned
         # length ≤ n_tok — drops ≤15 tokens from a ~5k-token prompt.
-        stride = getattr(
-            getattr(memory_policy, "token_embedding", None),
-            "stft_stride", 1,
-        ) or 1
+        emb = getattr(memory_policy, "token_embedding", None)
+        stride = 1
+        for _ in range(6):
+            if emb is None:
+                break
+            s = getattr(emb, "stft_stride", None)
+            if s:
+                stride = int(s)
+                break
+            emb = getattr(emb, "wrapped_embedding", None)
         aligned_n = (n_tok // stride) * stride
         if aligned_n < stride * 2:
             logger.warning(
