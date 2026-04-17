@@ -25,12 +25,12 @@ method: m3_warm_lora_5t
 lora_rank: 8
 lora_target_modules: [q_proj, v_proj]
 lora_alpha: 16
-lora_dropout: 0.1
-learning_rate: 5e-5
+lora_dropout: 0.05 # previous - 0.1
+learning_rate: 1e-4 # previous - 5e-5
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
-num_epochs: 100
+num_epochs: 150 # previous - 100
 batch_size: 4
 gradient_accumulation_steps: 4
 max_seq_len: 7000
@@ -68,4 +68,7 @@ gcs: true
 resume_checkpoint: null
 
 # -- Advanced -----------------------------------------------------------------
-override: []
+override:
+    - "max_position_id=8192"
+    - "max_new_tokens=64"
+    - "max_gen_tokens=64"

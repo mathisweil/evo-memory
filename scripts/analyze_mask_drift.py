@@ -59,9 +59,9 @@ CONDITION_COLOR: Dict[str, str] = {
     "M3": COLORS["joint"],
 }
 CONDITION_LABEL: Dict[str, str] = {
-    "B0": "B0 (base)",
-    "M1": "M1 (+LoRA)",
-    "M3": "M3 (+LoRA, frozen NAMM)",
+    "B0": "Base-EC",
+    "M1": "FTS-EC",
+    "M3": "FTE-EC",
 }
 
 
@@ -576,6 +576,50 @@ def compute_per_layer_spearman(
     return out
 
 
+def compute_per_layer_eviction_regret(
+    dumps: Dict[str, Dict[Tuple[str, int], PromptRecord]],
+    keys: Sequence[Tuple[str, int]],
+) -> Dict[str, Dict[int, List[float]]]:
+    """Per-(condition, layer) mean attention mass on tokens NAMM would evict.
+
+    Uses the clean-forward fields: for each layer, sort tokens by head-mean
+    NAMM score, mark the bottom ``seq_len - cache_size`` as evicted, and
+    sum the LLM's mean attention on that set. This is the paper §5.4
+    ``total_regret`` quantity, kept per-layer so C6 can plot its layerwise
+    profile.
+    """
+    out: Dict[str, Dict[int, List[float]]] = {
+        c: {} for c in CONDITION_ORDER
+    }
+    for cond in CONDITION_ORDER:
+        for key in keys:
+            rec = dumps[cond][key]
+            if (
+                rec.full_ctx_attn_mean_per_token is None
+                or rec.full_ctx_scores is None
+            ):
+                continue
+            cache_size = rec.cache_size
+            for layer in range(rec.n_layers):
+                attn_raw = rec.full_ctx_attn_mean_per_token[layer]
+                score_raw = rec.full_ctx_scores[layer]
+                if attn_raw is None or score_raw is None:
+                    continue
+                attn_l = attn_raw.float()
+                score_l = score_raw.float().mean(dim=0)
+                m = min(attn_l.shape[-1], score_l.shape[-1])
+                if m <= cache_size or m < 4:
+                    continue
+                attn_l = attn_l[:m]
+                score_l = score_l[:m]
+                _, top = score_l.topk(cache_size)
+                mask = torch.ones(m, dtype=torch.bool)
+                mask[top] = False
+                regret = float(attn_l[mask].sum().item())
+                out[cond].setdefault(layer, []).append(regret)
+    return out
+
+
 def _prompt_spearman_layers(
     rec: PromptRecord,
 ) -> Optional[Tuple[List[float], bool]]:
@@ -868,6 +912,35 @@ def _plot_c5_spearman_by_layer(
     return save_figure(fig, "C5_spearman_by_layer", out_dir)
 
 
+def _plot_c6_eviction_regret_by_layer(
+    per_layer_regret: Dict[str, Dict[int, List[float]]],
+    out_dir: Path,
+) -> str:
+    """Per-layer eviction regret — total attention mass on tokens NAMM drops."""
+    fig, ax = plt.subplots(figsize=(6.0, 3.5))
+    for cond in CONDITION_ORDER:
+        layer_map = per_layer_regret.get(cond, {})
+        if not layer_map:
+            continue
+        layers = sorted(layer_map.keys())
+        means = np.asarray([np.mean(layer_map[l]) for l in layers])
+        stds = np.asarray([np.std(layer_map[l]) for l in layers])
+        ax.plot(
+            layers, means, marker="o", ms=3.5,
+            color=CONDITION_COLOR[cond], label=CONDITION_LABEL[cond],
+        )
+        ax.fill_between(
+            layers, means - stds, means + stds,
+            color=CONDITION_COLOR[cond], alpha=0.15,
+        )
+    ax.set_xlabel("Layer")
+    ax.set_ylabel("Total attention mass on evicted tokens")
+    ax.set_ylim(bottom=0.0)
+    ax.legend(frameon=False, fontsize=8, loc="best")
+    fig.tight_layout()
+    return save_figure(fig, "C6_eviction_regret_by_layer", out_dir)
+
+
 # ── Driver ───────────────────────────────────────────────────────────────────
 
 
@@ -918,6 +991,7 @@ def main() -> None:
     )
     spearman = compute_spearman_per_condition(dumps, keys)
     per_layer_spearman = compute_per_layer_spearman(dumps, keys)
+    per_layer_regret = compute_per_layer_eviction_regret(dumps, keys)
     cross_b0 = cross_prompt_iou_baseline(
         dumps["B0"], keys, rng, n_pairs=args.cross_prompt_pairs,
     )
@@ -931,6 +1005,10 @@ def main() -> None:
         "spearman_namm_vs_attn_per_layer": {
             cond: {str(l): v for l, v in layer_map.items()}
             for cond, layer_map in per_layer_spearman.items()
+        },
+        "eviction_regret_per_layer": {
+            cond: {str(l): v for l, v in layer_map.items()}
+            for cond, layer_map in per_layer_regret.items()
         },
         "reference_cross_prompt_iou_B0": cross_b0,
         "reference_random_baseline_iou": random_iou,
@@ -955,7 +1033,10 @@ def main() -> None:
     c5 = _plot_c5_spearman_by_layer(
         per_layer_spearman, spearman.get("_paper_reference", {}), figures_out,
     )
-    logger.info("Wrote figures → %s, %s, %s, %s, %s", c1, c2, c3, c4, c5)
+    c6 = _plot_c6_eviction_regret_by_layer(per_layer_regret, figures_out)
+    logger.info(
+        "Wrote figures → %s, %s, %s, %s, %s, %s", c1, c2, c3, c4, c5, c6,
+    )
 
     for w in spearman.get("_warnings", []):
         logger.warning("Spearman cross-check: %s", w)
