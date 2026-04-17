@@ -1,4 +1,4 @@
-"""Paper-ready plots: 4 conditions, test set only.
+"""Paper-ready plots: 5 conditions, test set only.
 
 1. mean_f1_test.png — Mean F1 bar chart
 2. per_task_f1_test.png — Per-task grouped bars
@@ -23,6 +23,7 @@ TASK_LABELS = ["qasper", "2wikimqa", "qasper_e", "hotpotqa_e", "2wikimqa_e"]
 COND_FILES = {
     "B0": "b0_base.json",
     "M1-matched\n(full cache)": "m1_matched_full_cache.json",
+    "Base\n+NAMM (post-hoc)": "m2_base_namm_cs1024.json",
     "M1-matched\nunder NAMM": "m1_matched_under_namm_cs1024.json",
     "M4 LoRA\n+NAMM": "m4_lora_namm_cs1024.json",
 }
@@ -31,15 +32,17 @@ COND_ORDER = list(COND_FILES.keys())
 
 # Display labels for plots
 DISPLAY_LABELS = {
-    "B0": "Base",
-    "M1-matched\n(full cache)": "Fine-Tuned\n(Standard)",
-    "M1-matched\nunder NAMM": "Fine-Tuned (Standard)\n+ Post-Hoc NAMM",
-    "M4 LoRA\n+NAMM": "Fine-Tuned\n(NAMM Active)",
+    "B0": "Base-FC",
+    "M1-matched\n(full cache)": "FTS-FC",
+    "Base\n+NAMM (post-hoc)": "Base-EC",
+    "M1-matched\nunder NAMM": "FTS-EC",
+    "M4 LoRA\n+NAMM": "FTE-EC",
 }
 
 COLORS = {
     "B0": "#888888",
     "M1-matched\n(full cache)": "#4C72B0",
+    "Base\n+NAMM (post-hoc)": "#C44E52",
     "M1-matched\nunder NAMM": "#DD8452",
     "M4 LoRA\n+NAMM": "#55A868",
 }
@@ -59,7 +62,7 @@ def load_data():
 
 
 def plot_mean_f1(data, output_path):
-    fig, ax = plt.subplots(figsize=(5.5, 4))
+    fig, ax = plt.subplots(figsize=(7, 4))
 
     vals = [data[c]["micro"] for c in COND_ORDER]
     x = np.arange(len(COND_ORDER))
@@ -93,8 +96,8 @@ def plot_per_task_f1(data, output_path):
 
     n_conds = len(COND_ORDER)
     n_tasks = len(TASKS)
-    bar_width = 0.18
-    group_gap = 0.15
+    bar_width = 0.15
+    group_gap = 0.2
 
     for ci, cond in enumerate(COND_ORDER):
         task_vals = [data[cond]["tasks"][t] for t in TASKS]
