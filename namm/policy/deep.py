@@ -677,6 +677,17 @@ class DeepMP(DynamicParamMemoryPolicy):
             self.record_mask_dynamic_stats(
                 layer_id=layer_id, cache_mask=new_mask)
 
+        # Section C: per-prompt tensor dump for eviction-mask drift analysis.
+        # Gated behind `_record_dump_tensors`; no behaviour when disabled.
+        if getattr(self, '_record_dump_tensors', False):
+            self._record_dump_step(
+                layer_id=layer_id,
+                token_scores=token_scores,
+                retained_idxs=retained_idxs,
+                new_mask=new_mask,
+                position_ids=position_ids,
+                )
+
         if analyze:
             return key_cache, value_cache, analysis_dict
         else:
@@ -802,6 +813,147 @@ class DeepMP(DynamicParamMemoryPolicy):
         for score_name, stats_to_record in self.scores_to_stats.items():
             self.initialize_stat_objects_for(
                 score_name=score_name, stats=stats_to_record)
+
+    # ── Section C — per-prompt tensor dump (off by default) ─────────────
+    def initialize_dump_buffers(self) -> None:
+        """Reset the per-prompt eviction dump buffers.
+
+        Call before each prompt's forward pass when ``_record_dump_tensors``
+        is True. Holds batch-size 1 only (Section C dumps run one prompt
+        at a time).
+        """
+        n = self.num_memory_layers
+        self._dump_per_step = [[] for _ in range(n)]
+        self._dump_final_scores: List[Optional[torch.Tensor]] = [None] * n
+        self._dump_final_retained_idxs: List[Optional[torch.Tensor]] = [None] * n
+        self._dump_final_new_mask: List[Optional[torch.Tensor]] = [None] * n
+        self._dump_final_position_ids: List[Optional[torch.Tensor]] = [None] * n
+        self._dump_final_retained_positions: List[Optional[torch.Tensor]] = [None] * n
+
+    def _record_dump_step(
+        self,
+        layer_id: int,
+        token_scores: torch.Tensor,
+        retained_idxs: torch.Tensor,
+        new_mask: torch.Tensor,
+        position_ids: Optional[torch.Tensor],
+    ) -> None:
+        """Append a per-step scalar record and overwrite the final-step tensors."""
+        scores_f = token_scores.detach().float()
+        step_record = {
+            "n_kv": int(token_scores.shape[-1]),
+            "retained_count_per_head": (
+                new_mask.detach().to(torch.int32).sum(dim=-1).squeeze(0).cpu()
+            ),
+            "score_mean_per_head": scores_f.mean(dim=-1).squeeze(0).cpu(),
+            "score_std_per_head": scores_f.std(dim=-1).squeeze(0).cpu(),
+        }
+        self._dump_per_step[layer_id].append(step_record)
+
+        self._dump_final_scores[layer_id] = (
+            token_scores.detach().squeeze(0).to(torch.float16).cpu()
+        )
+        self._dump_final_retained_idxs[layer_id] = (
+            retained_idxs.detach().squeeze(0).to(torch.int32).cpu()
+        )
+        self._dump_final_new_mask[layer_id] = (
+            new_mask.detach().squeeze(0).to(torch.bool).cpu()
+        )
+        if position_ids is not None:
+            # Head-0 position_ids — a 1D (n_kv,) tensor aligned with the
+            # head-averaged LLM attention we capture separately for the
+            # Spearman cross-check.
+            self._dump_final_position_ids[layer_id] = (
+                position_ids.detach().squeeze(0)[0].to(torch.int32).cpu()
+            )
+            # Per-head retained prompt positions. After multi-step gather,
+            # position_ids is head-specific in (1, n_heads, n_kv); translating
+            # each head's retained_idxs through its own slice gives the true
+            # set of prompt positions each head keeps, which is what Section C
+            # IoU/retention metrics actually need.
+            retained_positions = torch.gather(
+                position_ids.detach(), dim=-1, index=retained_idxs.detach()
+            )
+            self._dump_final_retained_positions[layer_id] = (
+                retained_positions.squeeze(0).to(torch.int32).cpu()
+            )
+
+    def pop_dump_buffers(self) -> dict:
+        """Return accumulated per-prompt dump tensors and clear the buffers.
+
+        Returns a dict with stacked per-layer tensors suitable for
+        ``torch.save``. Structure matches the format documented in
+        ``SECTION_C_PLAN.md`` §3.
+        """
+        n = self.num_memory_layers
+        n_steps = len(self._dump_per_step[0]) if self._dump_per_step[0] else 0
+
+        final_scores = torch.stack(
+            [t if t is not None else torch.empty(0) for t in self._dump_final_scores],
+            dim=0,
+        )
+        final_retained = torch.stack(
+            [t for t in self._dump_final_retained_idxs], dim=0,
+        )
+        final_mask = torch.stack(
+            [t for t in self._dump_final_new_mask], dim=0,
+        )
+        if any(t is None for t in self._dump_final_position_ids):
+            final_pos = None
+        else:
+            final_pos = torch.stack(
+                [t for t in self._dump_final_position_ids], dim=0,
+            )
+        if any(t is None for t in self._dump_final_retained_positions):
+            final_retained_positions = None
+        else:
+            final_retained_positions = torch.stack(
+                [t for t in self._dump_final_retained_positions], dim=0,
+            )
+
+        if n_steps > 0:
+            retained_counts = torch.stack(
+                [
+                    torch.stack([s["retained_count_per_head"] for s in self._dump_per_step[l]], dim=0)
+                    for l in range(n)
+                ],
+                dim=1,
+            )  # (n_steps, n_layers, n_heads)
+            score_means = torch.stack(
+                [
+                    torch.stack([s["score_mean_per_head"] for s in self._dump_per_step[l]], dim=0)
+                    for l in range(n)
+                ],
+                dim=1,
+            )
+            score_stds = torch.stack(
+                [
+                    torch.stack([s["score_std_per_head"] for s in self._dump_per_step[l]], dim=0)
+                    for l in range(n)
+                ],
+                dim=1,
+            )
+            per_step_n_kv = [s["n_kv"] for s in self._dump_per_step[0]]
+        else:
+            retained_counts = torch.zeros(0, n, 0, dtype=torch.int32)
+            score_means = torch.zeros(0, n, 0, dtype=torch.float32)
+            score_stds = torch.zeros(0, n, 0, dtype=torch.float32)
+            per_step_n_kv = []
+
+        out = {
+            "final_scores": final_scores,
+            "final_retained_idxs": final_retained,
+            "final_new_mask": final_mask,
+            "final_position_ids": final_pos,
+            "final_retained_positions": final_retained_positions,
+            "per_step_n_kv": per_step_n_kv,
+            "per_step_retained_count_per_head": retained_counts,
+            "per_step_score_mean_per_head": score_means,
+            "per_step_score_std_per_head": score_stds,
+            "n_steps": n_steps,
+        }
+        self.initialize_dump_buffers()
+        return out
         
         
         
