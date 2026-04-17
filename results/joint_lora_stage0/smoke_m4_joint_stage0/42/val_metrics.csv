@@ -1,0 +1,2 @@
+step,train_lb_2wikimqa,train_lb_2wikimqa_e,train_lb_avg_f1,train_lb_hotpotqa_e,train_lb_qasper,train_lb_qasper_e,val_lb_2wikimqa,val_lb_2wikimqa_e,val_lb_avg_f1,val_lb_hotpotqa_e,val_lb_qasper,val_lb_qasper_e
+14,22.5817,25.0113,15.443,14.5696,7.7378,7.3149,18.4211,12.8763,10.2489,1.6333,6.7646,11.5494
