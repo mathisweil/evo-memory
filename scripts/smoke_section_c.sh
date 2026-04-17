@@ -18,7 +18,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PY="${PY:-$REPO_ROOT/venv/bin/python}"
 
-NAMM_CKPT="${NAMM_CKPT:-$REPO_ROOT/local_folder/final_cs1024/namm_cs1024_maskfix/ckpt.pt}"
+NAMM_CKPT="${NAMM_CKPT:-$REPO_ROOT/local_folder/final_cs1024/namm_cs1024_maskfix.pt}"
 M1_LORA="${M1_LORA:-$REPO_ROOT/local_folder/final_cs1024/lora_m1_lr1e4_matched/best_ckpt.pt}"
 M4_LORA="${M4_LORA:-$REPO_ROOT/local_folder/final_cs1024/lora_m4_cs1024_maskfix/best_ckpt_step260_val52.06.pt}"
 
