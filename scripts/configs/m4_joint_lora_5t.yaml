@@ -44,19 +44,19 @@ mini_batch_size: 16
 lora_rank: 8
 lora_target_modules: [q_proj, v_proj]
 lora_alpha: 16
-lora_dropout: 0.1
-learning_rate: 5e-5
+lora_dropout: 0.05
+learning_rate: 1e-4
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
-lora_batch_size: 4          # NAMM path loops per-sample in trainer.py (see docs/namm_memory_investigation.md Fix C)
+lora_batch_size: 4
 gradient_accumulation_steps: 4  # effective_batch = lora_batch_size * grad_accum = 16
 max_seq_len: 7000
 sft_mode: true
-lora_eval_interval: 14      # matches M1/M3 — enables best-of-N checkpointing within each LoRA stage
-lora_log_interval: 2       # logging interval within LoRA stages
-lora_early_stopping_patience: 20   # matches M1/M3; applies per-stage, outer loop continues
-lora_eval_batch_size: 8     # per-stage eval batch size during LoRA Stage B; matches M1/M3 batch_size_eval=8. null = inherit global evaluator setting.
+lora_eval_interval: 14
+lora_log_interval: 2
+lora_early_stopping_patience: 20
+lora_eval_batch_size: 8
 dtype: bfloat16
 
 # -- Data (FAIR-01) -----------------------------------------------------------
@@ -80,4 +80,7 @@ wandb_run_name: null
 wandb_group_name: null
 
 # -- Advanced -----------------------------------------------------------------
-override: []
+override:
+    - "max_position_id=8192"
+    - "max_new_tokens=64"
+    - "max_gen_tokens=64"

@@ -4,12 +4,6 @@
 # documents. NOT FAIR-01 comparable with the main M3 table — intended for
 # ablation only.
 #
-# Differs from m3_lora_frozen_namm_5t.yaml by `warm_buffers: true`. Reading
-# the stale buffers still requires `new_sequences=False` inside the NAMM
-# components, so the effect is only observable when the forward pass is
-# invoked on a chunk that follows a prior chunk of the same sequence; see
-# `namm/policy/deep.py:335` and `namm/policy/base_deep_components.py:603`.
-#
 # Usage:
 #   python scripts/run_lora.py \
 #       --config scripts/configs/m3_warm_lora_5t.yaml \
@@ -25,12 +19,12 @@ method: m3_warm_lora_5t
 lora_rank: 8
 lora_target_modules: [q_proj, v_proj]
 lora_alpha: 16
-lora_dropout: 0.1
-learning_rate: 5e-5
+lora_dropout: 0.05
+learning_rate: 1e-4
 weight_decay: 0.01
 max_grad_norm: 1.0
 warmup_ratio: 0.03
-num_epochs: 100
+num_epochs: 150
 batch_size: 4
 gradient_accumulation_steps: 4
 max_seq_len: 7000
@@ -55,8 +49,7 @@ split_seed: 42
 # -- Evaluation ---------------------------------------------------------------
 eval_interval: 14
 log_interval: 2
-batch_size_eval: 4        # matches green; note: flows into Hydra `batch_size`
-                          # for the NAMM eval forward pass (run_lora.py:201-202).
+batch_size_eval: 4
 early_stopping_patience: 20
 
 # -- Wandb --------------------------------------------------------------------
@@ -68,4 +61,7 @@ gcs: true
 resume_checkpoint: null
 
 # -- Advanced -----------------------------------------------------------------
-override: []
+override:
+    - "max_position_id=8192"
+    - "max_new_tokens=64"
+    - "max_gen_tokens=64"

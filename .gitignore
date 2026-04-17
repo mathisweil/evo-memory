@@ -8,7 +8,6 @@ outputs/
 checkpoints/
 artifacts/
 tmp/
-local_folder/
 
 # Weights & Biases
 wandb/
