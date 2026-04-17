@@ -89,7 +89,7 @@ class PromptRecord:
     final_scores: List[torch.Tensor]  # list length n_layers of (n_heads, n_kv) fp16
     final_new_mask: List[torch.Tensor]  # list length n_layers of (n_heads, k) bool
     final_position_ids: Optional[List[torch.Tensor]]  # list length n_layers of (n_kv,) int (head-0)
-    final_attn_mean_per_token: Optional[torch.Tensor]  # (n_layers, n_kv_attn) fp16 from LLM hooks
+    final_attn_mean_per_token: Optional[List[Optional[torch.Tensor]]]  # per-layer, each (n_kv_attn,) fp16 from LLM hooks
     per_step_n_kv: List[int]
     per_step_retained_count_per_head: torch.Tensor  # (n_steps, n_layers, n_heads)
 
@@ -167,6 +167,21 @@ def load_condition_dumps(condition_dir: Path) -> Dict[Tuple[str, int], PromptRec
 
         n_layers = len(final_scores)
         n_heads = int(final_scores[0].shape[0])
+
+        attn_raw = blob.get("final_attn_mean_per_token")
+        if attn_raw is None:
+            final_attn_mean_per_token: Optional[List[Optional[torch.Tensor]]] = None
+        elif isinstance(attn_raw, list):
+            final_attn_mean_per_token = attn_raw
+        elif torch.is_tensor(attn_raw):
+            # Back-compat for stacked (n_layers, n_kv_attn) dumps.
+            final_attn_mean_per_token = [attn_raw[i] for i in range(attn_raw.shape[0])]
+        else:
+            raise TypeError(
+                f"{f}: unsupported final_attn_mean_per_token type "
+                f"{type(attn_raw)!r}"
+            )
+
         records[(task, orig_idx)] = PromptRecord(
             task=task,
             orig_idx=orig_idx,
@@ -180,7 +195,7 @@ def load_condition_dumps(condition_dir: Path) -> Dict[Tuple[str, int], PromptRec
             final_scores=final_scores,
             final_new_mask=final_new_mask,
             final_position_ids=final_position_ids,
-            final_attn_mean_per_token=blob.get("final_attn_mean_per_token"),
+            final_attn_mean_per_token=final_attn_mean_per_token,
             per_step_n_kv=list(blob["per_step_n_kv"]),
             per_step_retained_count_per_head=blob[
                 "per_step_retained_count_per_head"
@@ -455,12 +470,16 @@ def compute_spearman_per_condition(
                 continue
             rhos: List[float] = []
             n_layers = rec.n_layers
-            attn = rec.final_attn_mean_per_token.float()
             # Attention captured on the final chunk may have a smaller
-            # kv_len than the NAMM n_kv at the eviction call. Align on the
+            # kv_len than the NAMM n_kv at the eviction call, and each layer
+            # can have its own kv_len (so final_attn_mean_per_token is a
+            # per-layer list, possibly with None entries). Align on the
             # minimum length from the end.
             for layer in range(n_layers):
-                attn_l = attn[layer]
+                attn_l = rec.final_attn_mean_per_token[layer]
+                if attn_l is None:
+                    continue
+                attn_l = attn_l.float()
                 score_l = rec.final_scores[layer].float().mean(dim=0)
                 m = min(attn_l.shape[-1], score_l.shape[-1])
                 if m < 4:

@@ -26,7 +26,7 @@ import datetime
 import json
 import os
 import sys
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -301,25 +301,25 @@ def _run_section_c_dump_loop(
 
                 if final_attn_by_layer:
                     n_layers = memory_policy.num_memory_layers
-                    layer_means = []
-                    layer_heads_means = []
+                    layer_means: List[Optional[torch.Tensor]] = []
+                    layer_heads_means: List[Optional[torch.Tensor]] = []
                     for l in range(n_layers):
                         a = final_attn_by_layer.get(l)
                         if a is None:
                             layer_means.append(None)
                             layer_heads_means.append(None)
                             continue
-                        # a: (n_heads, q_len, kv_len) fp16
                         a_f = a.float()
-                        # Mean over queries first, then over heads.
-                        mean_per_head = a_f.mean(dim=-2)              # (n_heads, kv_len)
+                        mean_per_head = a_f.mean(dim=-2)
                         layer_heads_means.append(mean_per_head.to(torch.float16))
                         layer_means.append(
                             mean_per_head.mean(dim=0).to(torch.float16)
                         )
-                    if all(t is not None for t in layer_means):
-                        final_attn_mean = torch.stack(layer_means, dim=0)
-                        final_attn_per_head = torch.stack(layer_heads_means, dim=0)
+                    # Per-layer kv_len can differ (same reason the NAMM-side
+                    # dump stores per-layer lists instead of stacking).
+                    if any(t is not None for t in layer_means):
+                        final_attn_mean = layer_means
+                        final_attn_per_head = layer_heads_means
                     else:
                         final_attn_mean = None
                         final_attn_per_head = None
