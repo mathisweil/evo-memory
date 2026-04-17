@@ -187,6 +187,23 @@ def load_condition_dumps(condition_dir: Path) -> Dict[Tuple[str, int], PromptRec
                 f"{type(attn_raw)!r}"
             )
 
+        full_ctx_attn_raw = blob.get("full_ctx_attn_mean_per_token")
+        if full_ctx_attn_raw is None or isinstance(full_ctx_attn_raw, list):
+            full_ctx_attn_mean_per_token = full_ctx_attn_raw
+        else:
+            raise TypeError(
+                f"{f}: unsupported full_ctx_attn_mean_per_token type "
+                f"{type(full_ctx_attn_raw)!r}"
+            )
+        full_ctx_scores_raw = blob.get("full_ctx_scores")
+        if full_ctx_scores_raw is None or isinstance(full_ctx_scores_raw, list):
+            full_ctx_scores = full_ctx_scores_raw
+        else:
+            raise TypeError(
+                f"{f}: unsupported full_ctx_scores type "
+                f"{type(full_ctx_scores_raw)!r}"
+            )
+
         records[(task, orig_idx)] = PromptRecord(
             task=task,
             orig_idx=orig_idx,
@@ -201,6 +218,8 @@ def load_condition_dumps(condition_dir: Path) -> Dict[Tuple[str, int], PromptRec
             final_new_mask=final_new_mask,
             final_position_ids=final_position_ids,
             final_attn_mean_per_token=final_attn_mean_per_token,
+            full_ctx_attn_mean_per_token=full_ctx_attn_mean_per_token,
+            full_ctx_scores=full_ctx_scores,
             per_step_n_kv=list(blob["per_step_n_kv"]),
             per_step_retained_count_per_head=blob[
                 "per_step_retained_count_per_head"
@@ -468,49 +487,37 @@ def compute_spearman_per_condition(
     dumps: Dict[str, Dict[Tuple[str, int], PromptRecord]],
     keys: Sequence[Tuple[str, int]],
 ) -> Dict[str, Dict]:
-    """Reproduce paper §5.4 Spearman ρ between NAMM final scores (mean over
+    """Reproduce paper §5.4 Spearman ρ between NAMM token scores (mean over
     heads) and per-token mean LLM attention, averaged over (prompts, layers).
+
+    Uses the clean un-chunked pass (``full_ctx_*`` fields) when available —
+    that's the methodology the paper reports. Falls back to the chunked
+    post-eviction tensors for back-compat with older dumps, which biases
+    Spearman toward positive values because it only scores the survivors.
 
     Returns a dict keyed by condition with mean/std and per-prompt values.
     """
     out: Dict[str, Dict] = {}
+    fallback_used = {c: 0 for c in CONDITION_ORDER}
     for cond in CONDITION_ORDER:
         per_prompt_rho: List[float] = []
         for key in keys:
             rec = dumps[cond][key]
-            if rec.final_attn_mean_per_token is None:
+            result = _prompt_spearman_layers(rec)
+            if result is None:
                 continue
-            rhos: List[float] = []
-            n_layers = rec.n_layers
-            # Attention captured on the final chunk may have a smaller
-            # kv_len than the NAMM n_kv at the eviction call, and each layer
-            # can have its own kv_len (so final_attn_mean_per_token is a
-            # per-layer list, possibly with None entries). Align on the
-            # minimum length from the end.
-            for layer in range(n_layers):
-                attn_l = rec.final_attn_mean_per_token[layer]
-                if attn_l is None:
-                    continue
-                attn_l = attn_l.float()
-                score_l = rec.final_scores[layer].float().mean(dim=0)
-                m = min(attn_l.shape[-1], score_l.shape[-1])
-                if m < 4:
-                    continue
-                a = attn_l[-m:].numpy()
-                s = score_l[-m:].numpy()
-                if np.std(a) < 1e-12 or np.std(s) < 1e-12:
-                    continue
-                rho = spearmanr(s, a).statistic
-                if np.isfinite(rho):
-                    rhos.append(float(rho))
-            if rhos:
-                per_prompt_rho.append(float(np.mean(rhos)))
+            layer_rhos, used_fallback = result
+            if used_fallback:
+                fallback_used[cond] += 1
+            if layer_rhos:
+                per_prompt_rho.append(float(np.mean(layer_rhos)))
         arr = np.asarray(per_prompt_rho)
         out[cond] = {
             "mean": float(arr.mean()) if arr.size else float("nan"),
             "std": float(arr.std()) if arr.size else float("nan"),
             "n_prompts": int(arr.size),
             "per_prompt": per_prompt_rho,
+            "n_prompts_fallback": fallback_used[cond],
         }
     paper_ref = {"B0": None, "M1": -0.115, "M4": -0.168}
     warnings: List[str] = []
@@ -526,6 +533,60 @@ def compute_spearman_per_condition(
     out["_paper_reference"] = paper_ref
     out["_warnings"] = warnings
     return out
+
+
+def _prompt_spearman_layers(
+    rec: PromptRecord,
+) -> Optional[Tuple[List[float], bool]]:
+    """Per-layer Spearman ρ for one prompt.
+
+    Returns ``(rhos, used_fallback)`` or ``None`` when neither pass carried
+    usable tensors. The full-context pass is preferred (paper methodology);
+    fallback to the post-eviction tensors is flagged so the caller can
+    warn about biased Spearman estimates.
+    """
+    has_full = (
+        rec.full_ctx_attn_mean_per_token is not None
+        and rec.full_ctx_scores is not None
+    )
+    has_chunked = rec.final_attn_mean_per_token is not None
+    if not has_full and not has_chunked:
+        return None
+
+    rhos: List[float] = []
+    for layer in range(rec.n_layers):
+        if has_full:
+            attn_raw = rec.full_ctx_attn_mean_per_token[layer]
+            score_raw = rec.full_ctx_scores[layer]
+            if attn_raw is None or score_raw is None:
+                continue
+            attn_l = attn_raw.float()
+            score_l = score_raw.float().mean(dim=0)
+            # Clean pass: both tensors are full seq_len; align from start.
+            m = min(attn_l.shape[-1], score_l.shape[-1])
+            a_slice = slice(0, m)
+            s_slice = slice(0, m)
+        else:
+            attn_raw = rec.final_attn_mean_per_token[layer]
+            if attn_raw is None:
+                continue
+            attn_l = attn_raw.float()
+            score_l = rec.final_scores[layer].float().mean(dim=0)
+            # Post-eviction fallback: align from end (final chunk's kv_len
+            # may be shorter than the NAMM n_kv at eviction time).
+            m = min(attn_l.shape[-1], score_l.shape[-1])
+            a_slice = slice(attn_l.shape[-1] - m, attn_l.shape[-1])
+            s_slice = slice(score_l.shape[-1] - m, score_l.shape[-1])
+        if m < 4:
+            continue
+        a = attn_l[a_slice].numpy()
+        s = score_l[s_slice].numpy()
+        if np.std(a) < 1e-12 or np.std(s) < 1e-12:
+            continue
+        rho = spearmanr(s, a).statistic
+        if np.isfinite(rho):
+            rhos.append(float(rho))
+    return rhos, (not has_full and has_chunked)
 
 
 # ── Cross-prompt & analytic baselines ────────────────────────────────────────
