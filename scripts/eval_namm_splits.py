@@ -176,6 +176,141 @@ def parse_args():
     return parser.parse_args()
 
 
+def _run_clean_forward_spearman_pass(
+    memory_policy,
+    memory_model,
+    input_ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    n_tok: int,
+    device,
+    captured: Dict[str, list],
+    hook_active: Dict[str, bool],
+    logger,
+    task_name: str,
+    orig_idx: int,
+):
+    """Paper §5.4 Spearman reproduction: single un-chunked forward with
+    ``apply_memory_policy=False`` → full-context attention, then a manual
+    ``memory_policy.update_cache(..., analyze=True)`` over the full KV to
+    score every position.
+
+    Must be called AFTER the chunked dump has been popped. Temporarily
+    disables ``memory_policy_fixed_delay`` (chunking), ``_record_dump_tensors``
+    (so analyze doesn't overwrite the already-captured chunked dump), and
+    ``record_eval_stats`` (so the per-step stat buffers aren't corrupted with
+    duplicate entries). Restores all three in ``finally``.
+
+    Returns:
+        ``(full_ctx_attn_mean_per_token, full_ctx_scores)`` — both either
+        per-layer lists of fp16 tensors on CPU, or ``(None, None)`` on
+        failure (OOM or shape mismatch).
+    """
+    orig_record_dump = getattr(memory_policy, "_record_dump_tensors", False)
+    orig_fixed_delay = memory_model.memory_policy_fixed_delay
+    orig_record_eval_stats = memory_policy.record_eval_stats
+
+    memory_policy._record_dump_tensors = False
+    memory_model.memory_policy_fixed_delay = None
+    memory_policy.record_eval_stats = False
+    hook_active["v"] = False
+
+    full_ctx_attn_mean_per_token: Optional[List[Optional[torch.Tensor]]] = None
+    full_ctx_scores: Optional[List[Optional[torch.Tensor]]] = None
+    try:
+        memory_policy.initialize_buffers()
+        with torch.no_grad():
+            clean_out = memory_model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                apply_memory_policy=False,
+                output_attentions=True,
+                use_cache=True,
+                skip_lm_head=True,
+            )
+
+        clean_attn = clean_out.attentions
+        if clean_attn is None:
+            return None, None
+
+        # (1) per-KV-position mean attention (paper eq. §5.4) — reduce
+        # immediately so we can free `clean_attn` before the analyze call
+        # that follows; otherwise two copies of the full attention tensor
+        # coexist.
+        full_ctx_attn_mean_per_token = [
+            a[0].float().mean(dim=0).mean(dim=0).to(torch.float16).cpu()
+            for a in clean_attn
+        ]
+
+        past_kv = clean_out.past_key_values
+        if hasattr(past_kv, "to_legacy_cache"):
+            past_kv = past_kv.to_legacy_cache()
+        elif not isinstance(past_kv, tuple):
+            past_kv = tuple(
+                (past_kv.key_cache[j], past_kv.value_cache[j])
+                for j in range(len(past_kv.key_cache))
+            )
+
+        # (2) NAMM analyze over the full KV: reproduces
+        # `analysis/report_6/generate_plots.py::extract_alignment_data`.
+        memory_policy.initialize_buffers()
+        pos_ids = torch.arange(n_tok, device=device).unsqueeze(0)
+        attn_mask_full = torch.ones(
+            1, n_tok, dtype=torch.long, device=device)
+        attn_list = (
+            list(clean_attn) if memory_policy.requires_attn_scores else []
+        )
+        _, analysis_dicts = memory_policy.update_cache(
+            past_key_values=past_kv,
+            num_new_tokens=n_tok,
+            attn_weights_list=attn_list,
+            attention_mask=attn_mask_full,
+            position_ids=pos_ids,
+            analyze=True,
+        )
+
+        full_ctx_scores = []
+        for ad in analysis_dicts:
+            ts = ad.get("token_scores", None) if ad is not None else None
+            if ts is None:
+                full_ctx_scores.append(None)
+            else:
+                # (bs=1, n_heads, num_tokens) → (n_heads, num_tokens)
+                full_ctx_scores.append(
+                    ts[0].detach().float().to(torch.float16).cpu()
+                )
+    except torch.cuda.OutOfMemoryError:
+        logger.warning(
+            "OOM in clean-forward Spearman pass for task=%s idx=%d "
+            "(n_tok=%d); writing None placeholders.",
+            task_name, orig_idx, n_tok,
+        )
+        full_ctx_attn_mean_per_token = None
+        full_ctx_scores = None
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except Exception as exc:
+        logger.warning(
+            "Clean-forward Spearman pass failed for task=%s idx=%d: %s",
+            task_name, orig_idx, exc,
+        )
+        full_ctx_attn_mean_per_token = None
+        full_ctx_scores = None
+    finally:
+        memory_policy._record_dump_tensors = orig_record_dump
+        memory_model.memory_policy_fixed_delay = orig_fixed_delay
+        memory_policy.record_eval_stats = orig_record_eval_stats
+        hook_active["v"] = True
+        # Drain any attention captures leaked through hooks before the
+        # flag flip; the chunked pass's `final_attn_by_layer` has already
+        # been consumed, so discard is safe.
+        captured["per_chunk"] = []
+        memory_policy.initialize_buffers()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    return full_ctx_attn_mean_per_token, full_ctx_scores
+
+
 def _run_section_c_dump_loop(
     args,
     memory_policy,
@@ -213,9 +348,12 @@ def _run_section_c_dump_loop(
     memory_policy.initialize_dump_buffers()
 
     captured = {"per_chunk": []}
+    hook_active = {"v": True}
 
     def _make_hook(layer_idx):
         def hook_fn(_module, _inp, output):
+            if not hook_active["v"]:
+                return
             attn_weights = output[1]
             if attn_weights is not None:
                 # (bs, n_heads, q_len, kv_len) — batch size 1 in dump mode.
@@ -327,9 +465,33 @@ def _run_section_c_dump_loop(
                     final_attn_mean = None
                     final_attn_per_head = None
 
+                # Paper §5.4 Spearman methodology — a second forward with
+                # no eviction and no chunking so token_scores and attention
+                # align 1:1 over the full prompt. The chunked-prefill
+                # snapshot above scores only post-eviction survivors, which
+                # biases the Spearman correlation (wrong sign vs paper).
+                full_ctx_attn_mean_per_token, full_ctx_scores = (
+                    _run_clean_forward_spearman_pass(
+                        memory_policy=memory_policy,
+                        memory_model=memory_model,
+                        input_ids=input_ids,
+                        attention_mask=attention_mask,
+                        n_tok=n_tok,
+                        device=device,
+                        captured=captured,
+                        hook_active=hook_active,
+                        logger=logger,
+                        task_name=task_name,
+                        orig_idx=orig_idx,
+                    )
+                )
+
                 record = dict(dump)
                 record["final_attn_mean_per_token"] = final_attn_mean
                 record["final_attn_mean_per_token_per_head"] = final_attn_per_head
+                record["full_ctx_attn_mean_per_token"] = (
+                    full_ctx_attn_mean_per_token)
+                record["full_ctx_scores"] = full_ctx_scores
                 record["prompt_meta"] = {
                     "task": task_name,
                     "orig_idx": int(orig_idx),

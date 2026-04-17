@@ -140,7 +140,7 @@ if [[ $START_PHASE -le 0 ]] && [[ "$SKIP_SMOKE" == "false" ]]; then
             --num_epochs 1 \
             --eval_interval 999 \
             --no-gcs \
-            --wandb_log false \
+            --no-wandb_log \
             --skip_baseline_eval || {
         log "ABORT: M1 smoke test failed."
         exit 1
@@ -149,6 +149,7 @@ if [[ $START_PHASE -le 0 ]] && [[ "$SKIP_SMOKE" == "false" ]]; then
     run_step "smoke_m4_joint" \
         $PY scripts/run_joint.py \
             --config scripts/configs/m4_joint_lora_5t.yaml \
+            --adapter_type lora \
             --run_name smoke_m4_joint \
             --num_outer_loops 1 \
             --namm_iterations_per_stage 2 \
@@ -197,28 +198,19 @@ if [[ $START_PHASE -le 1 ]]; then
     done
 fi
 
-# ── Phase 2: M1_recency fix ───────────────────────────────────────────────
-# Ref: docs/m1_recency_investigation.md. The prior M1_recency eval ran NAMM
-# with untrained init params (scoring_initializer=0), not StreamingLLM
-# recency. Option A in that doc is the correct re-run.
+# ── Phase 2: M1_recency (disabled — empirically unrecoverable) ────────────
+# Ref: docs/m1_recency_investigation.md §Addendum (2026-04-17). Option A
+# (--use_classic_recency + M1-LoRA @ cs=1024) was run and still produces
+# F1 = 0 with degenerate "Jad Ball Ball..." generations across all prompts.
+# M1-LoRA was trained with namm_active=false / cache_size=null, so any
+# cs=1024 eviction (recency OR untrained NAMM) discards the context the
+# adapter relies on. Trained NAMM at cs=1024 works (m1_under_namm = F1
+# 30.5); recency at cs=1024 does not. Phase skipped to avoid burning
+# compute on a run that cannot recover.
 if [[ $START_PHASE -le 2 ]]; then
-    phase_header 2 "M1_recency fix (LoRA M1 + classic recency eviction)"
-
-    if [ ! -f "$M1_CKPT" ]; then
-        skip_step "m1_recency_fix" "M1 checkpoint not found at $M1_CKPT"
-    else
-        for cs in 1024 2048; do
-            run_step "m1_recency_cs${cs}_fixed" \
-                $PY scripts/eval_namm_splits.py \
-                    --lora_checkpoint "$M1_CKPT" \
-                    --use_classic_recency \
-                    --cache_size "$cs" \
-                    --batch_size 1 \
-                    --splits test extended_test \
-                    --run_label "m1_recency_cs${cs}_fixed" \
-                    --output_dir "${EVAL_RESULTS_DIR}/m1_recency_cs${cs}_fixed" || true
-        done
-    fi
+    phase_header 2 "M1_recency (SKIPPED — see docs/m1_recency_investigation.md §Addendum)"
+    skip_step "m1_recency_cs1024_fixed" "empirically unrecoverable — see addendum"
+    skip_step "m1_recency_cs2048_fixed" "empirically unrecoverable — see addendum"
 fi
 
 # ── Phase 3: M3-matched cs1024 ────────────────────────────────────────────
