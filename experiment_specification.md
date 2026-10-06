@@ -5,13 +5,13 @@
 **Cache budget at eval:** K = 1024 (EC regime)
 **Hardware:** Single NVIDIA GPU
 
-This document describes exactly how to reproduce the results reported in the TACL paper companion. It supersedes the earlier M1 / M2 / M3 / M4 naming. Filenames on disk (e.g. `m1_lora_5t.yaml`, `m3_lora_frozen_namm_5t.yaml`, `results/main_table_5t/M4/`) still carry the old scheme for historical reasons — the mapping is:
+This document describes exactly how to reproduce the results reported in the project report ([`UCL_NLP_2026.pdf`](UCL_NLP_2026.pdf)). It supersedes the earlier M1 / M2 / M3 / M4 naming. Filenames on disk (e.g. `m1_lora_5t.yaml`, `m3_lora_frozen_namm_5t.yaml`) still carry the old scheme for historical reasons. The mapping is:
 
 | Paper term | Meaning | On-disk artefact |
 |---|---|---|
 | **Base** | pretrained Llama-3.2-1B, no fine-tuning | — |
 | **FTS** | LoRA trained with a full KV cache | `scripts/configs/m1_lora_5t.yaml`, `lora-m1-...` checkpoints |
-| **FTE** | LoRA trained with NAMM eviction active | `scripts/configs/m3_lora_frozen_namm_5t.yaml`, `lora-m4-frozen-...` checkpoints, `results/main_table_5t/M4/` |
+| **FTE** | LoRA trained with NAMM eviction active | `scripts/configs/m3_lora_frozen_namm_5t.yaml`, `lora-m4-frozen-...` checkpoints |
 | **FC** | full cache at inference | — |
 | **EC** | NAMM-evicted cache at inference (K = 1024) | — |
 
@@ -36,7 +36,7 @@ Analyses (JS divergence, hidden-state drift, attention thirds, Jaccard mask stab
 
 All four Figure-1 LoRA cells (FTS-FC, FTS-EC, FTE-FC, FTE-EC) share:
 
-- Data: QA sequences from Qasper, 2WikiMultihopQA, and HotpotQA in LongBench, plus Qasper and 2WikiMultihopQA from LongBench-E — five sources, each contributing 73–111 sequences. Filtered to `4096 ≤ tokenised length ≤ 6500` (440 sequences in total), stratified 70 / 15 / 15, `split_seed=42`. During training, each example is reweighted by the inverse of its source size.
+- Data: QA sequences from Qasper and 2WikiMultihopQA in LongBench, plus Qasper, HotpotQA and 2WikiMultihopQA from LongBench-E (`config/task/rh_multi_qa_5t.yaml`): five sources, each contributing 73–111 sequences. Filtered to `4096 ≤ tokenised length ≤ 6500` (440 sequences in total), stratified 70 / 15 / 15, `split_seed=42`. During training, each example is reweighted by the inverse of its source size.
 - Base weights: raw `meta-llama/Llama-3.2-1B-Instruct`, no pretrained adapters.
 - Eval cache budget: K = 1024 in the EC regime; unbounded in the FC regime.
 - Decoding: greedy, `temperature=0.0`, `max_answer_tokens=64`.
@@ -73,11 +73,11 @@ python scripts/run/run_namm.py \
 | Tasks | `rh_multi_qa_5t` | preset |
 | Filtering | `min_conditioning_length=4096`, `max_conditioning_length=6500` | preset |
 | `max_answer_tokens` | 64 | paper Table 1 |
-| Output | `outputs/{date}/{time}/` (Hydra default) | |
+| Output | `experiments/namm_only_runs/<wandb_project>/<wandb_group_name>/<wandb_run_name>/<seed>/` | `out_dir` in `config/config.yaml` |
 
 NAMM trains for 200 CMA-ES generations on the same 306-example train split used for FTS / FTE. The evolving `best_member` determines the eviction policy at every subsequent eval.
 
-**Appendix C deviations from the original NAMM:** (i) eviction uses a cache-size-based top-K cutoff, not a score-threshold cutoff; (ii) an attention-mask bug in the Sakana reference implementation was fixed. See `namm/policy/deep_scoring_bam.py` and `docs/namm_ref_review.md`.
+**Appendix C deviations from the original NAMM:** (i) eviction uses a cache-size-based top-K cutoff, not a score-threshold cutoff; (ii) an attention-mask bug in the Sakana reference implementation was fixed. See `namm/policy/deep_scoring_bam.py`.
 
 > **Threshold-only variant** (not reported in the paper): append `threshold_only=true scoring_initializer=2` for the original score-threshold eviction rule.
 
@@ -111,7 +111,7 @@ python scripts/run/run_lora.py \
 | `eval_interval` | 14 | |
 | `sft_mode` | true | chat-template formatted prompt, answer-only loss |
 | `split_seed` | 42 | paper Table 2 |
-| Output | `experiments/experiment_N/m1_lora_only/fts/` | |
+| Output | `results/m1_lora_5t/fts/42/` | `results/<method>/<run_name>/<split_seed>/` |
 
 > **Known issue — `num_epochs` in the on-disk YAML.** `scripts/configs/m1_lora_5t.yaml` currently sets `num_epochs=100`. The paper's Table 2 budget (and the schedule used for the reported FTS checkpoint) is 150 epochs. Override on the CLI with `--num_epochs 150` or fix the YAML before re-running.
 
@@ -133,7 +133,7 @@ FTE uses the same LoRA hyperparameters as FTS (see §3). The only differences:
 | `namm_active` | true | NAMM evicts during every gradient step |
 | `namm_checkpoint` | required | from step 1; missing this silently falls back to a randomly-initialised NAMM |
 | `cache_size` | 1024 | paper Table 2 |
-| Output | `experiments/experiment_N/m3_lora_frozen_namm/fte/` | |
+| Output | `results/m3_lora_frozen_namm_5t/fte/42/` | `results/<method>/<run_name>/<split_seed>/` |
 
 FTS and FTE are otherwise identical (same optimiser, rank, dropout, schedule). That matched setup is what makes the FTS-vs-FTE comparison in Figure 1 clean.
 
@@ -141,16 +141,15 @@ FTS and FTE are otherwise identical (same optimiser, rank, dropout, schedule). T
 
 ## 5 · Evaluating the six Figure-1 configurations
 
-Each config is an evaluation at a single `(variant, regime)` combination. Use `scripts/run/eval_namm_splits.py` for EC (needs `--namm_checkpoint`); use `scripts/run/run_eval.py --run_config full_cache_baseline_llama32_1b` for FC.
+Each config is an evaluation at a single `(variant, regime)` combination, all with `scripts/run/eval_namm_splits.py` and the `namm_bam_i1_llama32_1b_5t` preset, whose 4096 to 6500-token filter and 64-token answer filter define the 70-prompt test split. EC loads the trained NAMM at K = 1024. FC disables eviction: Base uses `--plain`; FTS and FTE omit `--namm_checkpoint` and set `--cache_size 8192`, above the longest prompt, which the script treats as LoRA at full cache. Do not use `full_cache_baseline_llama32_1b` here: it has no 4096-token lower bound and a 128-token answer filter, so its test split is different.
 
 ```bash
-# Base-FC — pretrained model, full cache
-python scripts/run/run_eval.py \
-    --run_config full_cache_baseline_llama32_1b \
-    --override "task@_global_=rh_multi_qa_5t" \
-    --output_dir experiments/experiment_N/figure1/base_fc
+# Base-FC: pretrained model, full cache
+python scripts/run/eval_namm_splits.py \
+    --run_config namm_bam_i1_llama32_1b_5t \
+    --plain --splits test
 
-# Base-EC — pretrained model, NAMM eviction (K=1024)
+# Base-EC: pretrained model, NAMM eviction (K=1024)
 python scripts/run/eval_namm_splits.py \
     --run_config namm_bam_i1_llama32_1b_5t \
     --namm_checkpoint <namm.pt> \
@@ -158,9 +157,9 @@ python scripts/run/eval_namm_splits.py \
 
 # FTS-FC
 python scripts/run/eval_namm_splits.py \
-    --run_config full_cache_baseline_llama32_1b \
+    --run_config namm_bam_i1_llama32_1b_5t \
     --lora_checkpoint <fts best_ckpt.pt> \
-    --splits test
+    --cache_size 8192 --splits test
 
 # FTS-EC
 python scripts/run/eval_namm_splits.py \
@@ -171,9 +170,9 @@ python scripts/run/eval_namm_splits.py \
 
 # FTE-FC
 python scripts/run/eval_namm_splits.py \
-    --run_config full_cache_baseline_llama32_1b \
+    --run_config namm_bam_i1_llama32_1b_5t \
     --lora_checkpoint <fte best_ckpt.pt> \
-    --splits test
+    --cache_size 8192 --splits test
 
 # FTE-EC
 python scripts/run/eval_namm_splits.py \
@@ -194,7 +193,7 @@ Paper F1 values (Figure 1, test micro):
 | FTE-FC | 29.3 |
 | FTE-EC | 28.9 |
 
-Per-task breakdowns are in `results/main_table_5t/<config>/cs1024/results.json`.
+Per-task breakdowns are written by `eval_namm_splits.py` to `results.json` in its output folder (under `scores_per_split`).
 
 ---
 
@@ -311,10 +310,11 @@ python scripts/run/eval_namm_splits.py \
     --lora_checkpoint <checkpoint> \
     --namm_checkpoint <namm.pt> \
     --cache_size 1024 \
+    --filter_by_length 8192 \
     --splits extended_test
 ```
 
-`--splits extended_test` selects the 6500–8192-token split. Swap `--run_config` to `full_cache_baseline_llama32_1b` for the FC regime, and omit `--lora_checkpoint` for the Base variant.
+`--splits extended_test` evaluates the 70 test prompts plus the 154 prompts of 6500 to 8192 tokens (224 in total). `--filter_by_length 8192` is needed because the default word-count pre-filter (`filter_by_length / 1.3` words) drops some of the longer prompts. For the FC regime, drop `--namm_checkpoint` and use `--cache_size 8192` (Base: `--plain` instead), as in §5; omit `--lora_checkpoint` for the Base variant.
 
 ---
 
@@ -358,16 +358,10 @@ The repo contains code paths that were explored during research but did not feat
 ## 9 · Output layout
 
 ```
-experiments/
-└── experiment_N/
-    ├── m1_lora_only/<run_name>/       # FTS runs
-    │   ├── config.json
-    │   ├── results.json
-    │   └── checkpoints/best_ckpt.pt
-    └── m3_lora_frozen_namm/<run_name>/ # FTE runs
-        ├── config.json
-        ├── results.json
-        └── checkpoints/best_ckpt.pt
+experiments/namm_only_runs/<wandb_project>/<wandb_group_name>/<wandb_run_name>/<seed>/
+    ckpt.pt, latest.pt                  # run_namm.py: best and latest NAMM checkpoints
+results/<method>/<run_name>/<split_seed>/
+    best_ckpt.pt, ckpt.pt, config.yaml, metrics.csv, val_metrics.csv   # run_lora.py (FTS / FTE)
 ```
 
-`scripts/run/run_namm.py` writes to `outputs/{date}/{time}/`. `scripts/run/run_eval.py` writes `results.json` next to the evaluated checkpoint (or `--output_dir`).
+Both paths are relative to the working directory, so launch from the repository root. `scripts/run/eval_namm_splits.py` writes `results.json` and `generations.json` to a timestamped subfolder of `--output_dir` (default: the NAMM checkpoint's folder, else `eval_results/plain_baseline/`). `scripts/run/run_eval.py` writes `results.json` next to the evaluated checkpoint (or `--output_dir`).
