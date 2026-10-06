@@ -172,7 +172,7 @@ def main():
         overrides.append(f"batch_size={args.batch_size}")
         overrides.append(f"eval_max_batch_size={args.batch_size}")
 
-    with initialize(version_base=None, config_path="../config",
+    with initialize(version_base=None, config_path="../../config",
                     job_name="hidden_state_shift"):
         cfg = compose(config_name="config", overrides=overrides)
 

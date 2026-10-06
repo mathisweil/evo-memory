@@ -25,7 +25,7 @@ from namm.run_utils import (
 from utils.hydra_helpers import assert_fair01_test_size
 
 
-@hydra.main(version_base=None, config_path='../config', config_name='config')
+@hydra.main(version_base=None, config_path='../../config', config_name='config')
 def main(cfg: DictConfig):
     _, global_rank, n_ddp = get_dist_info()
     is_ddp = global_rank > -1

@@ -171,7 +171,7 @@ def main():
         "+protected_tail_n=5",
     ]
 
-    with initialize(version_base=None, config_path="../config",
+    with initialize(version_base=None, config_path="../../config",
                     job_name="ghost_info"):
         cfg = compose(config_name="config", overrides=overrides)
 

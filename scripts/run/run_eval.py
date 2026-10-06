@@ -159,7 +159,7 @@ def main():
     if args.cache_size is not None:
         overrides.append(f"cache_size={args.cache_size}")
         overrides.append(f"max_memory_length={args.cache_size}")
-    with initialize(version_base=None, config_path="../config",
+    with initialize(version_base=None, config_path="../../config",
                     job_name="es_eval"):
         cfg = compose(config_name="config", overrides=overrides)
 

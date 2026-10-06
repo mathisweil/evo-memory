@@ -95,7 +95,7 @@ def main():
         "+protected_tail_n=5",
     ]
 
-    with initialize(version_base=None, config_path="../config",
+    with initialize(version_base=None, config_path="../../config",
                     job_name="case_study_viz"):
         cfg = compose(config_name="config", overrides=overrides)
 

@@ -456,7 +456,7 @@ def run_torch_profiler(model, memory_policy, device, dtype):
 
 # ── Entry point ──────────────────────────────────────────────────────────────
 
-@hydra.main(version_base=None, config_path="../config",
+@hydra.main(version_base=None, config_path="../../config",
             config_name="config")
 def main(cfg: DictConfig):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'

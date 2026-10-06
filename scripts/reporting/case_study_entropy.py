@@ -164,7 +164,7 @@ def main():
         f"cache_size={args.cache_size}", f"max_memory_length={args.cache_size}",
         "+protected_tail_n=5",
     ]
-    with initialize(version_base=None, config_path="../config",
+    with initialize(version_base=None, config_path="../../config",
                     job_name="case_study_v2"):
         cfg = compose(config_name="config", overrides=overrides)
 

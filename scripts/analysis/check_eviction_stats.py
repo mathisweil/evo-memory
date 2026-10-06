@@ -58,7 +58,7 @@ def main():
         # Keep policy-level cache_size at 5120 for evaluator memory management
         overrides.append("cache_size=5120")
         overrides.append("max_memory_length=5120")
-    with initialize(version_base=None, config_path="../config", job_name="eviction_check"):
+    with initialize(version_base=None, config_path="../../config", job_name="eviction_check"):
         cfg = compose(config_name="config", overrides=overrides)
 
     with torch.no_grad():

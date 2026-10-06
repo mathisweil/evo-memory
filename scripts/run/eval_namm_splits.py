@@ -226,7 +226,7 @@ def main():
     if args.task_config is not None:
         overrides.append(f"task@_global_={args.task_config}")
 
-    with initialize(version_base=None, config_path="../config",
+    with initialize(version_base=None, config_path="../../config",
                     job_name="eval_namm_splits"):
         cfg = compose(config_name="config", overrides=overrides)
 
